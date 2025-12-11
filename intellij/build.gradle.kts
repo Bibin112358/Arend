@@ -8,19 +8,21 @@ import org.jetbrains.intellij.platform.gradle.tasks.BuildPluginTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.intellij.platform.gradle.tasks.PatchPluginXmlTask
 import org.jetbrains.intellij.platform.gradle.tasks.RunIdeTask
+import org.jetbrains.intellij.platform.gradle.tasks.aware.SplitModeAware
+import org.jetbrains.intellij.platform.gradle.utils.asPath
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 group = "org.arend.lang"
-version = "1.10.0.3"
+version = "1.11.0.1"
 
 val baseName = "intellij-arend"
 
 plugins {
     idea
     kotlin("jvm") version "2.2.0"
-    id("org.jetbrains.intellij.platform") version "2.9.0"
-    id("org.jetbrains.grammarkit") version "2022.3.2.2"
+    id("org.jetbrains.intellij.platform") version "2.10.5"
+    id("org.jetbrains.grammarkit") version "2023.3"
 }
 
 repositories {
@@ -39,12 +41,14 @@ dependencies {
     implementation("com.fifesoft:rsyntaxtextarea:3.1.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.6.1")
     testImplementation("junit:junit:4.13.1")
+    implementation("org.apache.xmlgraphics:batik-svggen:1.19")
+    implementation("org.apache.xmlgraphics:batik-dom:1.19")
 
     intellijPlatform {
-        create(IntelliJPlatformType.IntellijIdeaCommunity, "2025.2.1")
+        create(IntelliJPlatformType.IntellijIdea, "2025.3")
         bundledPlugins("com.intellij.modules.json", "org.jetbrains.plugins.yaml", "com.intellij.java")
         testBundledModules("intellij.platform.navbar", "intellij.platform.navbar.backend")
-        plugins("IdeaVIM:2.27.2")
+        plugins("IdeaVIM:2.28.0")
         testFramework(TestFrameworkType.Platform)
         testFramework(TestFrameworkType.Plugin.Java)
     }
@@ -163,16 +167,25 @@ tasks.register<Copy>("prelude") {
 }
 
 tasks.withType<Wrapper> {
-    gradleVersion = "8.5"
+    gradleVersion = "8.13"
 }
 
-tasks.register<RunIdeTask>("generateArendLibHTML") {
+tasks.register<RunIdeTask>("generateArendLib") {
     systemProperty("java.awt.headless", true)
-    args = listOf("generateArendLibHtml") +
-            (project.findProperty("pathToArendLib") as String? ?: "") +
-            (project.findProperty("pathToArendLibInArendSite") as String? ?: "") +
-            (project.findProperty("versionArendLib") as String? ?: "") +
-            (project.findProperty("updateColorScheme") as String? ?: "")
+    dependsOn(tasks.prepareSandbox)
+
+    val sandbox = tasks.runIde.get().sandboxDirectory.get()
+    systemProperty("idea.plugins.path", sandbox.dir("plugins").asFile.absolutePath)
+
+    splitMode.set(false)
+    splitModeTarget.set(SplitModeAware.SplitModeTarget.BOTH)
+    args = listOf("generateArendLib") +
+            (project.findProperty("pathToArendLib") as? String ?: "") +
+            (project.findProperty("pathToArendLibInArendSite") as? String ?: "") +
+            (project.findProperty("versionArendLib") as? String ?: "null") +
+            (project.findProperty("updateColorScheme") as? String ?: "") +
+            layout.projectDirectory.asPath.toString() +
+            (project.findProperty("classes") as? String ?: "")
 }
 
 // Utils

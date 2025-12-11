@@ -15,7 +15,7 @@ antlrVersion = "4.10"
 
 allprojects {
     group = "org.arend"
-    version = "1.10.0"
+    version = "1.11.0"
     repositories {
         mavenCentral()
     }
@@ -79,7 +79,7 @@ subprojects {
 }
 
 tasks.withType<Wrapper> {
-    gradleVersion = "8.5"
+    gradleVersion = "8.13"
 }
 
 dependencies {

@@ -22,6 +22,7 @@ import org.arend.ext.variable.Variable
 import org.arend.ext.variable.VariableImpl
 import org.arend.naming.reference.LocatedReferableImpl
 import org.arend.naming.reference.Referable
+import org.arend.naming.reference.TCDefReferable
 import org.arend.naming.renamer.StringRenamer
 import org.arend.prelude.Prelude
 import org.arend.psi.*
@@ -41,7 +42,7 @@ import org.arend.util.getBounds
 import java.math.BigInteger
 import java.util.Collections.singletonList
 
-private fun addId(id: String, newName: String?, factory: ArendPsiFactory, using: ArendNsUsing): ArendNsId? {
+private fun addId(id: String, newName: String?, referable: Referable?, factory: ArendPsiFactory, using: ArendNsUsing): ArendNsId? {
     val nsIds = using.nsIdList
     var anchor = using.lparen
     var needsCommaBefore = false
@@ -56,7 +57,12 @@ private fun addId(id: String, newName: String?, factory: ArendPsiFactory, using:
         if (id == idRefName && newName == idDefName) return nsId
     }
 
-    val nsIdStr = if (newName == null) id else "$id \\as $newName"
+    val arendGroup = (referable as? TCDefReferable)?.data as? ArendGroup
+    val nsIdStr = if (arendGroup?.parentGroup?.dynamicSubgroups?.contains(arendGroup) == true) {
+        if (newName == null) ".$id" else ".$id \\as $newName"
+    } else {
+        if (newName == null) id else "$id \\as $newName"
+    }
     val nsCmd = factory.createImportCommand("Dummy (a,$nsIdStr)", ArendPsiFactory.StatCmdKind.IMPORT).statCmd
     val newNsUsing = nsCmd!!.nsUsing!!
     val nsId = newNsUsing.nsIdList[1]
@@ -75,11 +81,10 @@ private fun addId(id: String, newName: String?, factory: ArendPsiFactory, using:
         if (needsCommaBefore) anchor.parent.addAfter(comma, anchor)
         return insertedId as ArendNsId
     }
-
     return null
 }
 
-fun doAddIdToUsing(statCmd: ArendStatCmd, idList: List<Pair<String, String?>>, forceUsing: Boolean = false): Pair<ArrayList<ArendNsId>, Boolean /* true if success */> {
+fun doAddIdToUsing(statCmd: ArendStatCmd, referable: Referable?, idList: List<Pair<String, String?>>, forceUsing: Boolean = false): Pair<ArrayList<ArendNsId>, Boolean /* true if success */> {
     val insertedNsIds = ArrayList<ArendNsId>()
     val factory = ArendPsiFactory(statCmd.project)
     val insertAnchor = statCmd.longName
@@ -93,30 +98,42 @@ fun doAddIdToUsing(statCmd: ArendStatCmd, idList: List<Pair<String, String?>>, f
                 insertedUsing as ArendNsUsing
             } else null
 
-    if (actualNsUsing != null) insertedNsIds.addAll(idList.mapNotNull { addId(it.first, it.second, factory, actualNsUsing) })
+    if (actualNsUsing != null) insertedNsIds.addAll(idList.mapNotNull { addId(
+        it.first,
+        it.second,
+        referable,
+        factory,
+        actualNsUsing
+    ) })
     return Pair(insertedNsIds, insertedNsIds.isNotEmpty() || !usingBlockRequired && actualNsUsing == null)
 }
 
-private fun addIdToHiding(refs: List<ArendRefIdentifier>, startAnchor: PsiElement, name: String, factory: ArendPsiFactory): ArendRefIdentifier {
+private fun addIdToHiding(scIds: List<ArendScId>, startAnchor: PsiElement, ref: Referable, factory: ArendPsiFactory): ArendScId {
+    val name = ref.textRepresentation()
     var anchor = startAnchor
     var needsComma = false
-    for (ref in refs) {
-        if (ref.referenceName <= name) {
+    for (scId in scIds) {
+        if (scId.refIdentifier.referenceName <= name) {
             needsComma = true
-            anchor = ref
+            anchor = scId
         }
-        if (ref.referenceName == name) return ref
+        if (scId.refIdentifier.referenceName == name) return scId
     }
-    val statCmd = factory.createFromText("\\import Foo \\hiding (bar, $name)")?.descendantOfType<ArendStatCmd>()
+    val arendGroup = (ref as? TCDefReferable)?.data as? ArendGroup
+    val statCmd = (if (arendGroup?.parentGroup?.dynamicSubgroups?.contains(arendGroup) == true) {
+        factory.createFromText("\\import Foo \\hiding (bar, .$name)")
+    } else {
+        factory.createFromText("\\import Foo \\hiding (bar, $name)")
+    })?.descendantOfType<ArendStatCmd>()
     val scId = statCmd!!.hidings[1]
     val comma = scId.findPrevSibling()!!
     if (needsComma) anchor = anchor.parent.addAfter(comma, anchor)
-    val insertedRef = anchor.parent.addAfter(scId, anchor) as ArendScId
-    if (!needsComma && insertedRef.findNextSibling() is ArendScId) anchor.parent.addAfter(comma, insertedRef)
-    return insertedRef.refIdentifier
+    val insertedScId = anchor.parent.addAfter(scId, anchor) as ArendScId
+    if (!needsComma && insertedScId.findNextSibling() is ArendScId) anchor.parent.addAfter(comma, insertedScId)
+    return insertedScId
 }
 
-fun doAddIdToHiding(statCmd: ArendStatCmd, idList: List<String>) : List<ArendRefIdentifier> {
+fun doAddIdToHiding(statCmd: ArendStatCmd, idList: List<Referable>) : List<ArendScId> {
     val factory = ArendPsiFactory(statCmd.project)
     val statCmdSample = factory.createFromText("\\import Foo \\hiding (lol)")?.descendantOfType<ArendStatCmd>()
     if (statCmd.hidingKw == null) statCmd.addAfter(statCmdSample!!.hidingKw!!, statCmd.nsUsing ?: statCmd.longName)
@@ -126,8 +143,8 @@ fun doAddIdToHiding(statCmd: ArendStatCmd, idList: List<String>) : List<ArendRef
         statCmd.addAfter(pop.second, anchor)
     }
     val lparen = statCmd.lparen
-    val result = ArrayList<ArendRefIdentifier>()
-    if (lparen != null) for (id in idList) result.add(addIdToHiding(statCmd.hidings.map { it.refIdentifier }, lparen, id, factory))
+    val result = ArrayList<ArendScId>()
+    if (lparen != null) for (id in idList) result.add(addIdToHiding(statCmd.hidings, lparen, id, factory))
     return result
 }
 
@@ -175,7 +192,6 @@ class RenameReferenceAction (private val element: ArendReferenceElement,
     override fun toString(): String = "Rename " + element.text + " to " + LongName(newName).toString()
 
     fun execute(editor: Editor?) {
-        val parent = element.parent
         val factory = ArendPsiFactory(element.project)
         val id = if (newName.size > 1 && target != null && useOpen &&
             doAddIdToOpen(factory, newName, element, target)) singletonList(newName.last()) else newName
@@ -183,38 +199,13 @@ class RenameReferenceAction (private val element: ArendReferenceElement,
 
         if (!needsModification) return
 
-        var atomFieldsAcc : ArendAtomFieldsAcc? = null
-        var longName: ArendLongName? = null
-        var pattern: ArendPattern? = null
-
-        // Analyze what is being modified
-        if (element is ArendRefIdentifier) {
-            when (parent) {
-                is ArendLiteral -> atomFieldsAcc = parent.parent.parent as ArendAtomFieldsAcc
-                is ArendFieldAcc -> atomFieldsAcc = parent.parent as ArendAtomFieldsAcc
-                is ArendLongName -> {
-                    longName = parent
-                    pattern = longName.parent as? ArendPattern
-                }
-                else ->
-                    throw UnsupportedOperationException()
-            }
-        } else if (element is ArendIPName) {
-            atomFieldsAcc = when (parent) {
-                is ArendLiteral -> parent.parent.parent as ArendAtomFieldsAcc
-                is ArendAtomFieldsAcc -> parent
-                else -> throw UnsupportedOperationException()
-            }
-        } else if (element is ArendDefIdentifier && element.parent is ArendPattern)
-            pattern = element.parent as ArendPattern
-          else
-            throw UnsupportedOperationException()
+        val data = getLongNameData(element) ?: throw java.lang.UnsupportedOperationException()
 
         // Extract suffix from the existing long name (if any)
-        val suffixTR = if (atomFieldsAcc != null)
-            TextRange(element.endOffset, atomFieldsAcc.endOffset)
-         else if (longName != null)
-            TextRange(element.endOffset, longName.endOffset)
+        val suffixTR = if (data.atomFieldsAcc != null)
+            TextRange(element.endOffset, data.atomFieldsAcc.endOffset)
+         else if (data.longName != null)
+            TextRange(element.endOffset, data.longName.endOffset)
          else null
 
         val suffix = if (suffixTR != null) element.containingFile.text.substring(suffixTR.startOffset, suffixTR.endOffset) else ""
@@ -222,16 +213,52 @@ class RenameReferenceAction (private val element: ArendReferenceElement,
         val resultingName = prefix + (if (element is ArendIPName) "`" else "") + id.last() + (if (element is ArendIPName && element.infix != null) "`" else "") + suffix
 
         val (oldPsi, newPsi) = when {
-            atomFieldsAcc != null ->
-                Pair (atomFieldsAcc, factory.createExpression(resultingName).descendantOfType<ArendAtomFieldsAcc>())
-            pattern != null ->
-                Pair( pattern,factory.createPattern(resultingName))
-            longName != null ->
-                Pair(longName, factory.createLongName(resultingName))
+            data.atomFieldsAcc != null ->
+                Pair (data.atomFieldsAcc, factory.createExpression(resultingName).descendantOfType<ArendAtomFieldsAcc>())
+            data.pattern != null ->
+                Pair( data.pattern,factory.createPattern(resultingName))
+            data.longName != null ->
+                Pair(data.longName, factory.createLongName(resultingName))
             else -> throw UnsupportedOperationException()
         }
 
         oldPsi.replace(newPsi!!)
+    }
+
+    companion object {
+        private data class LongNameData(val atomFieldsAcc : ArendAtomFieldsAcc?, val longName: ArendLongName?, val pattern: ArendPattern?)
+
+        private fun getLongNameData(element: ArendReferenceElement): LongNameData? {
+            val parent = element.parent
+            var atomFieldsAcc : ArendAtomFieldsAcc? = null
+            var longName: ArendLongName? = null
+            var pattern: ArendPattern? = null
+
+            // Analyze what is being modified
+            if (element is ArendRefIdentifier) {
+                when (parent) {
+                    is ArendLiteral -> atomFieldsAcc = parent.parent.parent as ArendAtomFieldsAcc
+                    is ArendFieldAcc -> atomFieldsAcc = parent.parent as ArendAtomFieldsAcc
+                    is ArendLongName -> {
+                        longName = parent
+                        pattern = longName.parent as? ArendPattern
+                    }
+                    else -> return null
+                }
+            } else if (element is ArendIPName) {
+                atomFieldsAcc = when (parent) {
+                    is ArendLiteral -> parent.parent.parent as ArendAtomFieldsAcc
+                    is ArendAtomFieldsAcc -> parent
+                    else -> return null
+                }
+            } else if (element is ArendDefIdentifier && element.parent is ArendPattern)
+                pattern = element.parent as ArendPattern
+            else
+                return null
+            return LongNameData(atomFieldsAcc, longName, pattern)
+        }
+
+        fun isRenameSupported(element: ArendReferenceElement): Boolean = getLongNameData(element) != null
     }
 }
 
@@ -361,7 +388,7 @@ fun addIdToUsing(groupMember: PsiElement?,
             if (ref != null) {
                 val target = ref.reference?.resolve()
                 if (target == targetContainer)
-                    return doAddIdToUsing(statCmd, renamings)
+                    return doAddIdToUsing(statCmd, null,renamings)
             }
         }
     }

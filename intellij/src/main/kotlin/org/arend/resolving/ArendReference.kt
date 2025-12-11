@@ -4,14 +4,15 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.components.service
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
+import com.intellij.psi.impl.source.PsiCodeFragmentImpl
 import org.arend.ArendIcons
+import org.arend.util.ArendFragmentUtils
 import org.arend.codeInsight.completion.ReplaceInsertHandler
 import org.arend.error.DummyErrorReporter
 import org.arend.ext.module.ModuleLocation
 import org.arend.naming.reference.*
 import org.arend.psi.*
 import org.arend.psi.ext.*
-import org.arend.psi.ext.ReferableBase
 import org.arend.refactoring.ArendNamesValidator
 import org.arend.server.ArendServerService
 import org.arend.term.abs.Abstract
@@ -71,13 +72,22 @@ abstract class ArendReferenceBase<T : ArendReferenceElement>(element: T, range: 
                                 ?.findArendFileOrDirectory(ref.location.modulePath, false, ref.location.locationKind == ModuleLocation.LocationKind.TEST)
                         }
                         else -> ref.path?.let {
-                            (if ((containingFile as? ArendFile)?.isRepl == true) repl?.getServer()
-                            else containingFile?.project?.service<ArendServerService>()?.server)
-                                ?.findModule(it, null, true, true) }?.let {
-                            containingFile?.project?.findLibrary(it.libraryName)?.findArendFileOrDirectory(it.modulePath, false, it.locationKind == ModuleLocation.LocationKind.TEST)
-                        } ?: (repl?.replLibraries?.values?.find { it.findArendFileOrDirectory(ref.path, withAdditional = true, withTests = true) != null }
-                                ?: (containingFile as? ArendFile)?.arendLibrary)
-                            ?.forAvailableConfigs { config -> config.findArendFileOrDirectory(ref.path, withAdditional = true, withTests = true) }
+                            if ((containingFile as? ArendFile)?.isRepl == true) {
+                                (repl?.replLibraries?.values?.find { config -> config.findArendFileOrDirectory(ref.path, withAdditional = true, withTests = true) != null })
+                                    ?: containingFile.arendLibrary?.forAvailableConfigs { config -> config.findArendFileOrDirectory(ref.path, withAdditional = true, withTests = true) }
+                            } else {
+                                (containingFile?.project?.service<ArendServerService>()?.server
+                                    ?.findModule(it, null, true, true))?.let { location ->
+                                        containingFile.project.findLibrary(location.libraryName)?.findArendFileOrDirectory(location.modulePath, false, location.locationKind == ModuleLocation.LocationKind.TEST)
+                                    } ?: (containingFile as? ArendFile)?.arendLibrary?.forAvailableConfigs { config ->
+                                            config.findArendFileOrDirectory(
+                                                ref.path,
+                                                withAdditional = true,
+                                                withTests = true
+                                            )
+                                    }
+                            }
+                        }
                     }
                     val result = LookupElementBuilder.create(if (ref is FullModuleReferable) ModuleReferable(ref.location.modulePath) else ref, ref.path.lastName)
                     when {
@@ -110,11 +120,20 @@ open class ArendReferenceImpl<T : ArendReferenceElement>(element: T) : ArendRefe
     override fun bindToElement(element: PsiElement) = element
 
     override fun getVariants(): Array<Any> {
-//        element.ancestor<ArendReplLine>()?.replCommand?.text?.let { return getReplCompletion(it)}
-        val file = element.containingFile as? ArendFile ?: return emptyArray()
-        return file.project.service<ArendServerService>().server.getCompletionVariants(ConcreteBuilder.convertGroup(file, file.moduleLocation, DummyErrorReporter.INSTANCE), element).mapNotNull {
-            origElement -> createArendLookUpElement(origElement, origElement.abstractReferable, file, false, null, false)
-        }.toTypedArray()
+        val (fragment, file) = when (val f = element.containingFile) {
+            is PsiCodeFragmentImpl -> Pair(f, f.context?.containingFile as? ArendFile)
+            is ArendFile -> Pair(null, f)
+            else -> return emptyArray()
+        }
+        val server = element.project.service<ArendServerService>().server
+
+        val result: List<Referable>? = if (fragment is PsiCodeFragmentImpl) {
+            ArendFragmentUtils.getCompletionItems(element, fragment, server) ?: return emptyArray()
+        } else file?.project?.service<ArendServerService>()?.server?.getCompletionVariants(ConcreteBuilder.convertGroup(file, file.moduleLocation, DummyErrorReporter.INSTANCE), element)
+
+        if (result == null) return emptyArray()
+
+        return result.mapNotNull { origElement -> createArendLookUpElement(origElement, origElement.abstractReferable, file, false, null, false) }.toTypedArray()
     }
 }
 

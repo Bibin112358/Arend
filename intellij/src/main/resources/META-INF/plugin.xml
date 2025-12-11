@@ -47,6 +47,7 @@
         <!-- File Type -->
 
         <fileType language="Arend" implementationClass="org.arend.ArendFileType" name="Arend" extensions="ard;ars" />
+        <internalFileTemplate name="Arend File"/>
 
         <!-- Parser -->
 
@@ -471,7 +472,7 @@
         <liveTemplateContext contextId="AREND_EXPRESSION" baseContextId="AREND" implementation="org.arend.liveTemplates.ArendTemplateContextType$Expression"/>
 
         <!-- Starters -->
-        <appStarter id="generateArendLibHtml" implementation="org.arend.documentation.GenerateArendLibHtmlStarter"/>
+        <appStarter id="generateArendLib" implementation="org.arend.documentation.GenerateArendLibStarter"/>
 
     </extensions>
 
