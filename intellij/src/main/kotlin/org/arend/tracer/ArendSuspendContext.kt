@@ -59,12 +59,7 @@ class ArendSuspendContext(traceEntry: ArendTraceEntry, contextView: ArendTraceCo
             component.setIcon(icon)
 
             runReadAction {
-                var resolve: Referable? = null
-                ApplicationManager.getApplication().executeOnPooledThread {
-                    runReadAction {
-                        resolve = InjectedArendEditor.resolveCauseReference(traceEntry.goalDataHolder).first
-                    }
-                }.get()
+                val resolve: Referable? = InjectedArendEditor.resolveCauseReference(traceEntry.goalDataHolder).first
                 if (InjectedArendEditor.causeIsMetaExpression(traceEntry.goalDataHolder.cause, resolve)) {
                     val metaExpressionText = traceEntry.goalDataHolder.getCauseDoc(PrettyPrinterConfig.DEFAULT).toString()
                     component.append(shorten(metaExpressionText), SimpleTextAttributes.REGULAR_ATTRIBUTES)

@@ -50,10 +50,7 @@ class YamlNotificationProvider : EditorNotificationProvider {
             yamlFileService.removeChangedFile(file)
 
             val applicationManager = ApplicationManager.getApplication()
-            var module: Module? = null
-            applicationManager.executeOnPooledThread {
-                module = ModuleUtilCore.findModuleForFile(file, project)
-            }.get()
+            var module: Module? = ModuleUtilCore.findModuleForFile(file, project)
             val arendModuleConfigService = ArendModuleConfigService.getInstance(module)
 
             invokeLater {
