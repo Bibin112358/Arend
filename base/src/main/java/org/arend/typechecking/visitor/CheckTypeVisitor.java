@@ -468,7 +468,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
         if (replace) {
           if (!actualClassCall.getImplementedHere().isEmpty()) {
-            actualClassCall = new ClassCallExpression(actualClassCall.getDefinition(), actualClassCall.getLevels(), Collections.emptyMap(), actualClassCall.getSortExpression(), actualClassCall.getUniverseKind());
+            actualClassCall = new ClassCallExpression(actualClassCall.getDefinition(), actualClassCall.getLevels(), Collections.emptyMap(), actualClassCall.getUniverseKind());
           }
           result.expression = new NewExpression(result.expression, actualClassCall);
           result.type = result.expression.getType();
@@ -486,7 +486,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
         }
         if (length != null) {
           Map<ClassField, Expression> impls = new LinkedHashMap<>();
-          ClassCallExpression resultClassCall = new ClassCallExpression(Prelude.DEP_ARRAY, classCall.getLevels(), impls, Sort.PROP, UniverseKind.NO_UNIVERSES);
+          ClassCallExpression resultClassCall = new ClassCallExpression(Prelude.DEP_ARRAY, classCall.getLevels(), impls, UniverseKind.NO_UNIVERSES);
           Expression elementsType;
           if (piExpr.getParameters().getNext().hasNext()) {
             PiExpression newPi = new PiExpression(piExpr.getParameters().getNext(), piExpr.getCodomain());
@@ -1398,7 +1398,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   private TypecheckingResult typecheckClassExt(List<? extends Concrete.ClassFieldImpl> classFieldImpls, Expression expectedType, Expression renewExpr, ClassCallExpression classCallExpr, Set<ClassField> pseudoImplemented, Concrete.Expression expr, boolean useDefaults) {
     ClassDefinition baseClass = classCallExpr.getDefinition();
     Map<ClassField, Expression> fieldSet = new LinkedHashMap<>();
-    ClassCallExpression resultClassCall = new ClassCallExpression(baseClass, classCallExpr.getLevels(), fieldSet, Sort.PROP, baseClass.getUniverseKind());
+    ClassCallExpression resultClassCall = new ClassCallExpression(baseClass, classCallExpr.getLevels(), fieldSet, baseClass.getUniverseKind());
     copyImplementationsFrom(resultClassCall, classCallExpr, expr);
     resultClassCall.updateHasUniverses();
 
@@ -1587,7 +1587,6 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
 
     resultClassCall.fixOrderOfImplementations();
-    fixClassExtSort(resultClassCall, expr);
     resultClassCall.updateHasUniverses();
     return checkResult(expectedType, new TypecheckingResult(resultClassCall, new UniverseExpression(resultClassCall.getSortExpressionOfType())), expr);
   }
@@ -1713,7 +1712,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
               }
             }
             Levels levels = typecheckLevels(actualDef, baseRefExpr, actualDef.generateInferVars(myEquations, expr), false);
-            actualClassCall = new ClassCallExpression(actualClass, levels, new LinkedHashMap<>(), expectedClassCall.getSortExpression(), actualDef.getUniverseKind());
+            actualClassCall = new ClassCallExpression(actualClass, levels, new LinkedHashMap<>(), actualDef.getUniverseKind());
             // It's probably better to use CMP.LE here, but then we need to check that copied implementations fit into their types with new levels.
             if (!actualClass.castLevels(expectedClassCall.getDefinition(), levels).compare(expectedClassCall.getLevels(), CMP.EQ, myEquations, expr)) {
               errorReporter.report(new TypeMismatchWithSubexprError(new CompareVisitor.Result(actualClassCall, expectedClassCall, actualClassCall, expectedClassCall, actualClassCall.getLevels(), expectedClassCall.getLevels()), expr));
@@ -2214,39 +2213,6 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
   }
 
-  public void fixClassExtSort(ClassCallExpression classCall, Concrete.SourceNode sourceNode) {
-    ClassDefinition classDef = classCall.getDefinition();
-    Levels idLevels = classDef.makeIdLevels();
-    Expression thisExpr = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(classDef, idLevels)));
-    Integer hLevel = classDef.getUseLevel(classCall.getImplementedHere(), classCall.getThisBinding(), true);
-    if (hLevel != null && hLevel == -1) {
-      classCall.setSort(Sort.PROP);
-    } else {
-      List<SortExpression> sorts = new ArrayList<>();
-      for (ClassField field : classDef.getNotImplementedFields()) {
-        if (classCall.isImplementedHere(field)) continue;
-        Expression fieldType = classDef.getFieldType(field, classDef.castLevels(field.getParentClass(), idLevels), thisExpr).normalize(NormalizationMode.WHNF);
-        if (!fieldType.isInstance(ErrorExpression.class)) {
-          SortExpression fieldSort = fieldType.getSortExpressionOfType();
-          if (fieldSort == null) {
-            errorReporter.report(new TypecheckingError("Cannot infer the sort of field '" + field.getName() + "'", sourceNode));
-          } else {
-            sorts.add(fieldSort.subst(false, Collections.emptyList(), classCall.getImplementedHere(), classCall.getLevelSubstitution()));
-          }
-        }
-      }
-
-      SortExpression sort = SortExpression.makeMax(sorts);
-      if (hLevel != null) {
-        Sort infSort = sort.withInfLevel();
-        if (!infSort.getHLevel().isClosed() || infSort.getHLevel().getConstant() > hLevel) {
-          sort = new SortExpression.Const(new Sort(infSort.getPLevel(), new Level(hLevel)));
-        }
-      }
-      classCall.setSortExpression(sort);
-    }
-  }
-
   // Parameters
 
   private TypedSingleDependentLink visitNameParameter(Concrete.NameParameter param, Concrete.SourceNode sourceNode) {
@@ -2480,7 +2446,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
                 paramType = FunCallExpression.make((FunctionDefinition) definition, levels, new ArrayList<>(defCallParamType.getDefCallArguments()));
               } else {
                 ClassCallExpression classCall = (ClassCallExpression) defCallParamType;
-                paramType = new ClassCallExpression((ClassDefinition) definition, levels, classCall.getImplementedHere(), classCall.getDefinition().computeSort(classCall.getImplementedHere(), classCall.getThisBinding()).subst(levels.makeSubstitution(classCall.getDefinition())), classCall.getUniverseKind());
+                paramType = new ClassCallExpression((ClassDefinition) definition, levels, classCall.getImplementedHere(), classCall.getUniverseKind());
               }
             }
           }
@@ -2610,7 +2576,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
       Map<ClassField, Expression> impls = new LinkedHashMap<>(classCall.getImplementedHere());
       impls.put(Prelude.ARRAY_AT, result.expression);
-      return new TypecheckingResult(new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, classCall.getLevels(), impls, Sort.PROP, UniverseKind.NO_UNIVERSES)), expectedType);
+      return new TypecheckingResult(new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, classCall.getLevels(), impls, UniverseKind.NO_UNIVERSES)), expectedType);
     }
   }
 
@@ -2715,11 +2681,11 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
           Map<ClassField, Expression> impls = new LinkedHashMap<>();
           impls.put(Prelude.ARRAY_LENGTH, new SmallIntegerExpression(expr.getFields().size()));
           impls.putAll(classCall.getImplementedHere());
-          elementsType = elementsType.subst(classCall.getThisBinding(), new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, classCall.getLevels(), impls, classCall.getSortExpression(), classCall.getUniverseKind())));
+          elementsType = elementsType.subst(classCall.getThisBinding(), new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, classCall.getLevels(), impls, classCall.getUniverseKind())));
         } else {
           Expression actualLength = new SmallIntegerExpression(expr.getFields().size());
           if (!CompareVisitor.compare(myEquations, CMP.EQ, length, actualLength, Nat(), expr)) {
-            errorReporter.report(new TypeMismatchWithSubexprError(new CompareVisitor.Result(new ClassCallExpression(Prelude.DEP_ARRAY, LevelPair.PROP, new SingletonMap<>(Prelude.ARRAY_LENGTH, actualLength), Sort.SET0, UniverseKind.ONLY_COVARIANT), new ClassCallExpression(Prelude.DEP_ARRAY, LevelPair.PROP, new SingletonMap<>(Prelude.ARRAY_LENGTH, length), Sort.SET0, UniverseKind.ONLY_COVARIANT), actualLength, length), expr));
+            errorReporter.report(new TypeMismatchWithSubexprError(new CompareVisitor.Result(new ClassCallExpression(Prelude.DEP_ARRAY, LevelPair.PROP, new SingletonMap<>(Prelude.ARRAY_LENGTH, actualLength), UniverseKind.ONLY_COVARIANT), new ClassCallExpression(Prelude.DEP_ARRAY, LevelPair.PROP, new SingletonMap<>(Prelude.ARRAY_LENGTH, length), UniverseKind.ONLY_COVARIANT), actualLength, length), expr));
             return null;
           }
         }
@@ -4018,9 +3984,8 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
               if (ok) {
                 Map<ClassField, Expression> newImpls = new LinkedHashMap<>(classCall.getImplementedHere());
                 newImpls.remove(Prelude.ARRAY_LENGTH);
-                ClassCallExpression newClassCall = new ClassCallExpression(Prelude.DEP_ARRAY, classCall.getLevels(), newImpls, classCall.getSortExpression(), classCall.getUniverseKind());
+                ClassCallExpression newClassCall = new ClassCallExpression(Prelude.DEP_ARRAY, classCall.getLevels(), newImpls, classCall.getUniverseKind());
                 if (type != null) newImpls.put(Prelude.ARRAY_ELEMENTS_TYPE, new LamExpression(new TypedSingleDependentLink(true, null, ExpressionFactory.Fin(FieldCallExpression.make(Prelude.ARRAY_LENGTH, new ReferenceExpression(newClassCall.getThisBinding())))), type));
-                newClassCall.setSort(Prelude.DEP_ARRAY.computeSort(newImpls, newClassCall.getThisBinding()));
                 exprResult.type = newClassCall;
               }
             }

@@ -1179,7 +1179,6 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       typechecker.checkAllImplemented(classCall, pseudoImplemented, def, resultType);
       if (classCall.getDefinition() == Prelude.DEP_ARRAY) {
         classCall.getImplementedHere().remove(Prelude.ARRAY_AT);
-        classCall.setSort(Sort.STD);
       }
       return new Pair<>(new NewExpression(null, classCall), type);
     } else {
@@ -1489,14 +1488,13 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
               }
               if (hasProperties) {
                 Map<ClassField, Expression> resultTypeImpls = new LinkedHashMap<>();
-                resultType = new ClassCallExpression(result.proj2.getDefinition(), result.proj2.getLevels(), resultTypeImpls, Sort.PROP, UniverseKind.NO_UNIVERSES);
+                resultType = new ClassCallExpression(result.proj2.getDefinition(), result.proj2.getLevels(), resultTypeImpls, UniverseKind.NO_UNIVERSES);
                 ExprSubstitution substitution = new ExprSubstitution(result.proj2.getThisBinding(), new ReferenceExpression(resultType.getThisBinding()));
                 for (Map.Entry<ClassField, Expression> entry : result.proj2.getImplementedHere().entrySet()) {
                   if (!entry.getKey().isProperty()) {
                     resultTypeImpls.put(entry.getKey(), entry.getValue().subst(substitution));
                   }
                 }
-                typechecker.fixClassExtSort(resultType, def.getResultType());
                 resultType.updateHasUniverses();
               }
               typedDef.setResultType(resultType);
@@ -1564,9 +1562,8 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
                 }
               }
               if (impls.size() != newClassCall.getImplementedHere().size()) {
-                newClassCall = new ClassCallExpression(newClassCall.getDefinition(), newClassCall.getLevels(), impls, newClassCall.getDefinition().getSort().subst(newClassCall.getLevelSubstitution()), newClassCall.getDefinition().getUniverseKind());
+                newClassCall = new ClassCallExpression(newClassCall.getDefinition(), newClassCall.getLevels(), impls, newClassCall.getDefinition().getUniverseKind());
                 newClassCall.updateHasUniverses();
-                typechecker.fixClassExtSort(newClassCall, def.getResultType());
                 newType = newClassCall;
               }
             }
@@ -1655,7 +1652,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     ClassCallExpression typeClassCall = typedDef.getResultType().cast(ClassCallExpression.class);
     if (typeClassCall != null) {
       Map<ClassField, Expression> newImpls = new LinkedHashMap<>();
-      ClassCallExpression newClassCall = new ClassCallExpression(typeClassCall.getDefinition(), typeClassCall.getLevels(), newImpls, typeClassCall.getSortExpression(), typeClassCall.getUniverseKind());
+      ClassCallExpression newClassCall = new ClassCallExpression(typeClassCall.getDefinition(), typeClassCall.getLevels(), newImpls, typeClassCall.getUniverseKind());
       Expression newThisBinding = new ReferenceExpression(newClassCall.getThisBinding());
       boolean allImpl = true;
       for (ClassField field : typeClassCall.getDefinition().getNotImplementedFields()) {
@@ -1678,7 +1675,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
           if (typedDef.getReallyActualBody() instanceof NewExpression && ((NewExpression) typedDef.getReallyActualBody()).getRenewExpression() == null) {
             ClassCallExpression bodyClassCall = ((NewExpression) typedDef.getReallyActualBody()).getClassCall();
             Map<ClassField, Expression> newBodyImpls = new LinkedHashMap<>();
-            ClassCallExpression newBodyClassCall = new ClassCallExpression(bodyClassCall.getDefinition(), bodyClassCall.getLevels(), newBodyImpls, bodyClassCall.getSortExpression(), bodyClassCall.getUniverseKind());
+            ClassCallExpression newBodyClassCall = new ClassCallExpression(bodyClassCall.getDefinition(), bodyClassCall.getLevels(), newBodyImpls, bodyClassCall.getUniverseKind());
             Expression newBodyThisBinding = new ReferenceExpression(newBodyClassCall.getThisBinding());
             for (ClassField field : bodyClassCall.getDefinition().getNotImplementedFields()) {
               if (field.isProperty()) {
@@ -1813,7 +1810,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       Definition useParent = def.getUseParent().getTypechecked();
       if (fieldDef instanceof ClassField && useParent instanceof ClassDefinition classDef) {
         Map<ClassField, Expression> defaultImpl = new LinkedHashMap<>();
-        ClassCallExpression thisType = new ClassCallExpression(classDef, classDef.makeIdLevels(), defaultImpl, classDef.getSort(), classDef.getUniverseKind());
+        ClassCallExpression thisType = new ClassCallExpression(classDef, classDef.makeIdLevels(), defaultImpl, classDef.getUniverseKind());
         for (ClassField field : classDef.getNotImplementedFields()) {
           Pair<AbsExpression, Boolean> defaultPair = classDef.getDefaultPair(field);
           if (defaultPair != null && defaultPair.proj2) {
@@ -1821,7 +1818,6 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
           }
         }
         TypedSingleDependentLink thisBinding = new TypedSingleDependentLink(false, "this", thisType, true);
-        thisType.setSort(classDef.computeSort(defaultImpl, thisBinding));
         thisType.updateHasUniverses();
         Expression result = DefCallResult.makeTResult(new Concrete.ReferenceExpression(def.getData().getData(), def.getData()), typedDef, classDef.makeIdLevels()).applyExpression(new ReferenceExpression(thisBinding), false, typechecker, def).toResult(typechecker).expression;
         Expression actualType = result.getType();

@@ -237,26 +237,6 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
     }
     if (myContext != null) myContext.remove(expr.getThisBinding());
 
-    Integer level = expr.getDefinition().getUseLevel(expr.getImplementedHere(), expr.getThisBinding(), true);
-    if (level == null || level != -1) {
-      SortExpression exprSort = expr.getSortExpressionOfType();
-      if (level != null) {
-        exprSort = new SortExpression.Const(new Sort(exprSort.withInfLevel().getPLevel(), new Level(level)));
-      }
-      for (ClassField field : expr.getDefinition().getNotImplementedFields()) {
-        if (!expr.isImplementedHere(field)) {
-          SortExpression sort = expr.getDefinition().getFieldType(field, expr.getLevels(field.getParentClass()), thisExpr).normalize(NormalizationMode.WHNF).getSortExpressionOfType();
-          if (sort == null) {
-            throw new CoreException(CoreErrorWrapper.make(new TypecheckingError("Cannot infer the type of field '" + field.getName() + "'", mySourceNode), expr));
-          }
-          sort = sort.subst(false, Collections.emptyList(), expr.getImplementedHere(), LevelSubstitution.EMPTY);
-          if (!SortExpression.compare(sort, exprSort, CMP.LE, myEquations, mySourceNode)) {
-            throw new CoreException(CoreErrorWrapper.make(new TypecheckingError("The sort " + sort + " of field '" + field.getName() + "' does not fit into the expected sort " + exprSort, mySourceNode), expr));
-          }
-        }
-      }
-    }
-
     if (expr.getUniverseKind().ordinal() < expr.getDefinition().getUniverseKind().ordinal()) {
       for (ClassField field : expr.getDefinition().getNotImplementedFields()) {
         if (expr.getUniverseKind().ordinal() < field.getUniverseKind().ordinal() && !expr.isImplementedHere(field)) {
@@ -934,7 +914,7 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
     }
     if (expr.getTail() != null) {
       TypedSingleDependentLink lamParam = new TypedSingleDependentLink(true, "j", DataCallExpression.make(Prelude.FIN, Levels.EMPTY, Collections.singletonList(tailLength)));
-      expr.getTail().accept(this, new ClassCallExpression(Prelude.DEP_ARRAY, expr.getLevels(), new SingletonMap<>(Prelude.ARRAY_ELEMENTS_TYPE, new LamExpression(lamParam, AppExpression.make(expr.getElementsType(), Suc(new ReferenceExpression(lamParam)), true))), expr.getLevels().toSort(), UniverseKind.NO_UNIVERSES));
+      expr.getTail().accept(this, new ClassCallExpression(Prelude.DEP_ARRAY, expr.getLevels(), new SingletonMap<>(Prelude.ARRAY_ELEMENTS_TYPE, new LamExpression(lamParam, AppExpression.make(expr.getElementsType(), Suc(new ReferenceExpression(lamParam)), true))), UniverseKind.NO_UNIVERSES));
     }
     return check(expectedType, expr.getType(), expr);
   }

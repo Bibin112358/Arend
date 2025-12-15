@@ -181,7 +181,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     }
 
     Levels levels = makeIdLevels();
-    ReferenceExpression thisExpr = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, levels, Collections.emptyMap(), mySort.subst(levels.makeSubstitution(this)), getUniverseKind())));
+    ReferenceExpression thisExpr = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, levels, Collections.emptyMap(), getUniverseKind())));
     Sort sort = Sort.PROP;
 
     for (ClassField field : myNotImplementedFields) {
@@ -533,7 +533,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
 
   @Override
   public ClassCallExpression getDefCall(Levels levels, List<Expression> args) {
-    return new ClassCallExpression(this, levels, Collections.emptyMap(), mySort.subst(levels.makeSubstitution(this)), getUniverseKind());
+    return new ClassCallExpression(this, levels, Collections.emptyMap(), getUniverseKind());
   }
 
   public void clear() {

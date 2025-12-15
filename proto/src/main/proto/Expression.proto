@@ -56,7 +56,6 @@ message Expression {
         int32 class_ref = 1;
         Levels levels = 7;
         repeated ImplEntry field_impl = 8;
-        Sort sort = 5;
         UniverseKind universe_kind = 6;
     }
     message ConCalls {

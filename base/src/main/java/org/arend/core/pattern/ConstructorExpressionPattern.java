@@ -6,7 +6,6 @@ import org.arend.core.context.param.EmptyDependentLink;
 import org.arend.core.definition.*;
 import org.arend.core.expr.*;
 import org.arend.core.expr.visitor.NormalizingFindBindingVisitor;
-import org.arend.core.sort.Sort;
 import org.arend.core.subst.ExprSubstitution;
 import org.arend.core.subst.Levels;
 import org.arend.ext.core.level.LevelSubstitution;
@@ -228,7 +227,7 @@ public class ConstructorExpressionPattern extends ConstructorPattern<Object> imp
 
     ClassCallExpression classCall = (ClassCallExpression) dataExpr;
     Map<ClassField, Expression> implementations = new LinkedHashMap<>();
-    ClassCallExpression resultClassCall = new ClassCallExpression(classCall.getDefinition(), classCall.getLevels(), implementations, Sort.PROP, UniverseKind.NO_UNIVERSES);
+    ClassCallExpression resultClassCall = new ClassCallExpression(classCall.getDefinition(), classCall.getLevels(), implementations, UniverseKind.NO_UNIVERSES);
     resultClassCall.copyImplementationsFrom(classCall);
     int i = 0;
     for (ClassField field : classCall.getDefinition().getNotImplementedFields()) {

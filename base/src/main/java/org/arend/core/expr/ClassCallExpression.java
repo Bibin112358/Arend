@@ -10,8 +10,6 @@ import org.arend.core.expr.visitor.ExpressionVisitor;
 import org.arend.core.expr.visitor.ExpressionVisitor2;
 import org.arend.core.expr.visitor.StripVisitor;
 import org.arend.core.pattern.ConstructorExpressionPattern;
-import org.arend.core.sort.Sort;
-import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.*;
 import org.arend.ext.core.definition.CoreClassField;
 import org.arend.ext.core.expr.CoreClassCallExpression;
@@ -33,7 +31,6 @@ import java.util.*;
 public class ClassCallExpression extends LeveledDefCallExpression implements CoreClassCallExpression {
   private final ClassCallBinding myThisBinding = new ClassCallBinding();
   private final Map<ClassField, Expression> myImplementations;
-  private SortExpression mySortExpression; // TODO[sorts]: Maybe compute it on the fly?
   private UniverseKind myUniverseKind;
 
   public class ClassCallBinding implements Binding {
@@ -67,20 +64,14 @@ public class ClassCallExpression extends LeveledDefCallExpression implements Cor
   public ClassCallExpression(ClassDefinition definition, Levels levels) {
     super(definition, levels);
     myImplementations = Collections.emptyMap();
-    mySortExpression = new SortExpression.Const(definition.getSort().subst(levels.makeSubstitution(definition)));
     myUniverseKind = definition.getUniverseKind();
   }
 
-  public ClassCallExpression(ClassDefinition definition, Levels levels, Map<ClassField, Expression> implementations, SortExpression sortExpression, UniverseKind universeKind) {
+  public ClassCallExpression(ClassDefinition definition, Levels levels, Map<ClassField, Expression> implementations, UniverseKind universeKind) {
     super(definition, levels);
     assert implementations instanceof LinkedHashMap || implementations.size() <= 1;
     myImplementations = implementations;
-    mySortExpression = sortExpression;
     myUniverseKind = universeKind.max(definition.getBaseUniverseKind());
-  }
-
-  public ClassCallExpression(ClassDefinition definition, Levels levels, Map<ClassField, Expression> implementations, Sort sort, UniverseKind universeKind) {
-    this(definition, levels, implementations, new SortExpression.Const(sort), universeKind);
   }
 
   @NotNull
@@ -299,7 +290,7 @@ public class ClassCallExpression extends LeveledDefCallExpression implements Cor
   @Override
   public @NotNull DependentLink getClassFieldParameters() {
     Map<ClassField, Expression> implementations = new LinkedHashMap<>();
-    NewExpression newExpr = new NewExpression(null, new ClassCallExpression(getDefinition(), getLevels(), implementations, Sort.PROP, UniverseKind.NO_UNIVERSES));
+    NewExpression newExpr = new NewExpression(null, new ClassCallExpression(getDefinition(), getLevels(), implementations, UniverseKind.NO_UNIVERSES));
     newExpr.getClassCall().copyImplementationsFrom(this);
 
     Set<? extends ClassField> fields = getDefinition().getNotImplementedFields();
@@ -329,7 +320,7 @@ public class ClassCallExpression extends LeveledDefCallExpression implements Cor
             type = type.normalize(NormalizationMode.WHNF);
             if (type instanceof ClassCallExpression classCall && getDefinition().isSubClassOf(classCall.getDefinition())) {
               Map<ClassField, Expression> subImplementations = new LinkedHashMap<>(classCall.getImplementedHere());
-              ClassCallExpression resultClassCall = new ClassCallExpression(classCall.getDefinition(), getLevels(classCall.getDefinition()), subImplementations, Sort.PROP, UniverseKind.NO_UNIVERSES);
+              ClassCallExpression resultClassCall = new ClassCallExpression(classCall.getDefinition(), getLevels(classCall.getDefinition()), subImplementations, UniverseKind.NO_UNIVERSES);
               Expression resultRef = new ReferenceExpression(resultClassCall.myThisBinding);
               for (ClassField field : classCall.getDefinition().getNotImplementedFields()) {
                 Expression impl = getImplementation(field, resultRef);
@@ -429,7 +420,7 @@ public class ClassCallExpression extends LeveledDefCallExpression implements Cor
         @Override
         public Expression visitClassCall(ClassCallExpression expr, Void params) {
           Map<ClassField, Expression> fieldSet = new LinkedHashMap<>();
-          ClassCallExpression result = new ClassCallExpression(expr.getDefinition(), expr.getLevels().subst(getLevelSubstitution()), fieldSet, expr.getSortExpression().subst(getLevelSubstitution()), expr.getUniverseKind());
+          ClassCallExpression result = new ClassCallExpression(expr.getDefinition(), expr.getLevels().subst(getLevelSubstitution()), fieldSet, expr.getUniverseKind());
           getExprSubstitution().add(expr.getThisBinding(), new ReferenceExpression(result.getThisBinding()));
           for (Map.Entry<ClassField, Expression> entry : expr.getImplementedHere().entrySet()) {
             Expression newArg = makeNewExpression(entry.getValue(), entry.getKey().getType().getCodomain());
@@ -460,30 +451,13 @@ public class ClassCallExpression extends LeveledDefCallExpression implements Cor
   }
 
   @Override
-  public SortExpression getSortExpressionOfType() {
-    return mySortExpression;
-  }
-
-  public SortExpression getSortExpression() {
-    return mySortExpression;
-  }
-
-  public void setSortExpression(SortExpression sortExpression) {
-    mySortExpression = sortExpression;
-  }
-
-  public void setSort(Sort sort) {
-    setSortExpression(new SortExpression.Const(sort));
-  }
-
-  @Override
   public UniverseKind getUniverseKind() {
     return myUniverseKind;
   }
 
   @Override
   public @NotNull Expression minimizeLevels() {
-    return new ClassCallExpression(getDefinition(), getMinimizedLevels(), myImplementations, mySortExpression, myUniverseKind);
+    return new ClassCallExpression(getDefinition(), getMinimizedLevels(), myImplementations, myUniverseKind);
   }
 
   @Override

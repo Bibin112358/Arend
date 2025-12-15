@@ -236,7 +236,7 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
     Levels argLevels = classCall.getLevels(superClass);
     if (argLevels != classCall.getLevels() && classCall.getUniverseKind() == UniverseKind.NO_UNIVERSES) {
       Map<ClassField, Expression> impls = new LinkedHashMap<>();
-      ClassCallExpression newClassCall = new ClassCallExpression(superClass, argLevels, impls, classCall.getSortExpression(), UniverseKind.NO_UNIVERSES);
+      ClassCallExpression newClassCall = new ClassCallExpression(superClass, argLevels, impls, UniverseKind.NO_UNIVERSES);
       for (Map.Entry<ClassField, AbsExpression> entry : classCall.getDefinition().getImplemented()) {
         if (entry.getKey().getUniverseKind() != UniverseKind.NO_UNIVERSES && superClass.isSubClassOf(entry.getKey().getParentClass())) {
           impls.put(entry.getKey(), entry.getValue().apply(new ReferenceExpression(classCall.getThisBinding()), LevelSubstitution.EMPTY).accept(new FieldCallSubstVisitor(classCall, new ReferenceExpression(newClassCall.getThisBinding())), null));
@@ -302,7 +302,36 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
 
   @Override
   public Expression visitClassCall(ClassCallExpression expr, Void params) {
-    return new UniverseExpression(expr.getSortExpression());
+    ClassDefinition classDef = expr.getDefinition();
+    Levels idLevels = classDef.makeIdLevels();
+    Expression thisExpr = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(classDef, idLevels)));
+    Integer hLevel = classDef.getUseLevel(expr.getImplementedHere(), expr.getThisBinding(), true);
+    if (hLevel != null && hLevel == -1) {
+      return new UniverseExpression(Sort.PROP);
+    }
+
+    List<SortExpression> sorts = new ArrayList<>();
+    for (ClassField field : classDef.getNotImplementedFields()) {
+      if (expr.isImplementedHere(field)) continue;
+      Expression fieldType = classDef.getFieldType(field, classDef.castLevels(field.getParentClass(), idLevels), thisExpr).normalize(NormalizationMode.WHNF);
+      if (!fieldType.isInstance(ErrorExpression.class)) {
+        SortExpression fieldSort = fieldType.getSortExpressionOfType();
+        if (fieldSort == null) {
+          return new ErrorExpression();
+        }
+        sorts.add(fieldSort.subst(false, Collections.emptyList(), expr.getImplementedHere(), expr.getLevelSubstitution()));
+      }
+    }
+
+    SortExpression sort = SortExpression.makeMax(sorts);
+    if (hLevel != null) {
+      Sort infSort = sort.withInfLevel();
+      if (!infSort.getHLevel().isClosed() || infSort.getHLevel().getConstant() > hLevel) {
+        sort = new SortExpression.Const(new Sort(infSort.getPLevel(), new Level(hLevel)));
+      }
+    }
+
+    return new UniverseExpression(sort);
   }
 
   @Override
@@ -468,7 +497,7 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
       implementations.put(Prelude.ARRAY_LENGTH, length);
     }
     implementations.put(Prelude.ARRAY_ELEMENTS_TYPE, expr.getElementsType());
-    return new ClassCallExpression(Prelude.DEP_ARRAY, expr.getLevels(), implementations, expr.getLevels().toSort(), UniverseKind.NO_UNIVERSES);
+    return new ClassCallExpression(Prelude.DEP_ARRAY, expr.getLevels(), implementations, UniverseKind.NO_UNIVERSES);
   }
 
   @Override
