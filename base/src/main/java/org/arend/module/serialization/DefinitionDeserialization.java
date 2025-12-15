@@ -141,10 +141,10 @@ public class DefinitionDeserialization implements ArendDeserializer {
     }
 
     for (int classFieldRef : classProto.getFieldRefList()) {
-      classDef.addField(myCallTargetProvider.getCallTarget(classFieldRef, ClassField.class));
+      // classDef.addField(myCallTargetProvider.getCallTarget(classFieldRef, ClassField.class));
     }
     for (int classFieldRef : classProto.getFieldRefList()) {
-      classDef.addField(myCallTargetProvider.getCallTarget(classFieldRef, ClassField.class));
+      // classDef.addField(myCallTargetProvider.getCallTarget(classFieldRef, ClassField.class));
     }
     for (Map.Entry<Integer, ExpressionProtos.Expression.Abs> entry : classProto.getImplementationsMap().entrySet()) {
       classDef.implementField(myCallTargetProvider.getCallTarget(entry.getKey(), ClassField.class), defDeserializer.readAbsExpr(entry.getValue()));

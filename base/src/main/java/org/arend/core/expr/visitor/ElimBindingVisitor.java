@@ -123,7 +123,7 @@ public class ElimBindingVisitor extends ExpressionTransformer<Void> {
 
   public ClassCallExpression visitClassCall(ClassCallExpression expr, boolean removeImplementations) {
     Map<ClassField, Expression> newFieldSet = new LinkedHashMap<>();
-    ClassCallExpression result = new ClassCallExpression(expr.getDefinition(), expr.getLevels(), newFieldSet, expr.getSort(), expr.getUniverseKind());
+    ClassCallExpression result = new ClassCallExpression(expr.getDefinition(), expr.getLevels(), newFieldSet, expr.getSortExpression(), expr.getUniverseKind());
     if (myKeepVisitor != null) {
       myKeepVisitor.getBindings().add(expr.getThisBinding());
     }

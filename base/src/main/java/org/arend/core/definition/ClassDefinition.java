@@ -43,7 +43,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
   private FunctionDefinition mySquasher;
   private Map<ClassDefinition, Levels> mySuperLevels = Collections.emptyMap();
   private final Set<ClassField> myOmegaFields = new HashSet<>();
-  private UniverseKind myBaseUniverseKind = UniverseKind.NO_UNIVERSES;
+  private UniverseKind myBaseUniverseKind = UniverseKind.NO_UNIVERSES; // TODO[sorts]: Delete this
 
   public ClassDefinition(TCDefReferable referable) {
     super(referable, TypeCheckingStatus.NEEDS_TYPE_CHECKING);
@@ -181,7 +181,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     }
 
     Levels levels = makeIdLevels();
-    ReferenceExpression thisExpr = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, levels, Collections.emptyMap(), mySort, getUniverseKind())));
+    ReferenceExpression thisExpr = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, levels, Collections.emptyMap(), mySort.subst(levels.makeSubstitution(this)), getUniverseKind())));
     Sort sort = Sort.PROP;
 
     for (ClassField field : myNotImplementedFields) {
@@ -332,10 +332,6 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
 
   public void addPersonalField(ClassField field) {
     myPersonalFields.add(field);
-  }
-
-  public void addFields(Collection<? extends ClassField> fields) {
-    myNotImplementedFields.addAll(fields);
   }
 
   @Override
@@ -537,7 +533,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
 
   @Override
   public ClassCallExpression getDefCall(Levels levels, List<Expression> args) {
-    return new ClassCallExpression(this, levels, Collections.emptyMap(), mySort, getUniverseKind());
+    return new ClassCallExpression(this, levels, Collections.emptyMap(), mySort.subst(levels.makeSubstitution(this)), getUniverseKind());
   }
 
   public void clear() {

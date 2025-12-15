@@ -52,7 +52,7 @@ public class InPlaceLevelSubstVisitor extends VoidExpressionVisitor<Void> {
   @Override
   public Void visitClassCall(ClassCallExpression expr, Void params) {
     expr.substSort(mySubstitution);
-    expr.setSort(expr.getSort().subst(mySubstitution));
+    expr.setSortExpression(expr.getSortExpression().subst(mySubstitution));
     super.visitClassCall(expr, null);
     return null;
   }

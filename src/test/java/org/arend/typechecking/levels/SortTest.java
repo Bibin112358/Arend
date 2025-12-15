@@ -99,4 +99,63 @@ public class SortTest extends TypeCheckingTestCase {
         | suc _ => A
       """, 1);
   }
+
+  @Test
+  public void recordTest() {
+    typeCheckModule("""
+      \\record R (A : \\Sort) (a : A)
+      \\record S \\extends R
+        | B : A -> \\Sort
+        | b : B a
+      """);
+    checkLevelParameters("R", "S");
+  }
+
+  @Test
+  public void recordTest2() {
+    typeCheckModule("""
+      \\record R (A : \\Sort) (a a' : A)
+      \\func test1 => R Nat 7
+      \\func test2 => R _ 7
+      \\func test3 => R Nat
+      \\func test4 (d : R _ 7) => d
+      \\func test5 {B : \\Sort} {b : B} (r : R _ b) => r
+      """);
+    checkLevelParameters("R", "test1", "test2", "test3", "test4", "test5");
+    assertEquals(new UniverseExpression(Sort.SET0), ((FunctionDefinition) getDefinition("test1")).getResultType());
+    assertEquals(new UniverseExpression(Sort.SET0), ((FunctionDefinition) getDefinition("test2")).getResultType());
+    assertEquals(new UniverseExpression(Sort.SET0), ((FunctionDefinition) getDefinition("test3")).getResultType());
+  }
+
+  @Test
+  public void recordTest3() {
+    typeCheckModule("""
+      \\record R (A : \\Sort) (a a' : A)
+      \\func test => R
+      """, 1);
+  }
+
+  @Test
+  public void recordTest4() {
+    typeCheckModule("""
+      \\record R (A B : \\Sort) (a : A) (b : B)
+      \\func test => R Nat
+      """, 1);
+  }
+
+  @Test
+  public void recordTest5() {
+    typeCheckModule("""
+      \\record R (A : \\Sort) (a a' : A)
+      \\func test (x : R) => x.a
+      """);
+  }
+
+  @Test
+  public void recordTest6() {
+    typeCheckModule("""
+      \\record R (A B : \\Sort) (a : A) (b : B)
+      \\func test (x : R Nat) => x.b
+      """);
+  }
 }

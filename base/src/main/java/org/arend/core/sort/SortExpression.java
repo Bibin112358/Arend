@@ -2,6 +2,7 @@ package org.arend.core.sort;
 
 import org.arend.core.context.binding.LevelVariable;
 import org.arend.core.context.binding.inference.InferenceLevelVariable;
+import org.arend.core.definition.ClassField;
 import org.arend.core.expr.Expression;
 import org.arend.core.expr.PiExpression;
 import org.arend.core.expr.UniverseExpression;
@@ -9,6 +10,7 @@ import org.arend.ext.core.level.LevelSubstitution;
 import org.arend.ext.core.ops.CMP;
 import org.arend.ext.core.ops.NormalizationMode;
 import org.arend.ext.core.sort.*;
+import org.arend.naming.reference.FieldReferableImpl;
 import org.arend.term.concrete.Concrete;
 import org.arend.typechecking.implicitargs.equations.Equations;
 import org.jetbrains.annotations.NotNull;
@@ -17,9 +19,13 @@ import org.jetbrains.annotations.Nullable;
 import java.math.BigInteger;
 import java.util.*;
 
-public sealed interface SortExpression extends CoreSortExpression permits SortExpression.Const, SortExpression.Max, SortExpression.Succ, SortExpression.Pi, SortExpression.Prev, SortExpression.Var {
-  @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution);
+public sealed interface SortExpression extends CoreSortExpression permits SortExpression.Const, SortExpression.Field, SortExpression.Max, SortExpression.Pi, SortExpression.Prev, SortExpression.Succ, SortExpression.Var {
+  @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull Map<? extends ClassField, ? extends Expression> fields, @NotNull LevelSubstitution substitution);
   @NotNull Sort withInfLevel();
+
+  default @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
+    return subst(isType, arguments, Collections.emptyMap(), substitution);
+  }
 
   default @NotNull SortExpression subst(@NotNull LevelSubstitution substitution) {
     return subst(false, Collections.emptyList(), substitution);
@@ -44,7 +50,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
   }
 
   static boolean compare(SortExpression sortExpr1, SortExpression sortExpr2, CMP cmp, Equations equations, Concrete.SourceNode sourceNode) {
-    if (sortExpr1 instanceof SortExpression.Const(Sort sort1) && (cmp == CMP.LE && sort1.isProp() || cmp == CMP.GE && sort1.isOmega()) || sortExpr2 instanceof SortExpression.Const(Sort sort2) && (cmp == CMP.LE && sort2.isOmega() || cmp == CMP.GE && sort2.isProp())) {
+    if (sortExpr1 instanceof SortExpression.Const(Sort sort1) && (cmp == CMP.LE && sort1.isProp() || cmp == CMP.GE && sort1.isOmega()) || sortExpr2 instanceof SortExpression.Const(Sort sort2) && (cmp == CMP.LE && sort2.isOmega() || cmp == CMP.GE && sort2.isProp()) || (sortExpr1 instanceof SortExpression.Field || sortExpr1 instanceof SortExpression.Var) && cmp == CMP.GE || (sortExpr2 instanceof SortExpression.Field || sortExpr2 instanceof SortExpression.Var) && cmp == CMP.LE) {
       return true;
     }
 
@@ -62,7 +68,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     }
 
     @Override
-    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
+    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull Map<? extends ClassField, ? extends Expression> fields, @NotNull LevelSubstitution substitution) {
       return new Const(sort.subst(substitution));
     }
 
@@ -78,24 +84,47 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
   }
 
   record Var(int index) implements SortExpression {
+    private static SortExpression getCodomainSort(Expression arg) {
+      if (arg == null) return new Const(Sort.INFINITY);
+      arg = arg.getType().normalize(NormalizationMode.WHNF);
+      while (arg instanceof PiExpression piExpr) {
+        arg = piExpr.getCodomain().normalize(NormalizationMode.WHNF);
+      }
+      SortExpression result = arg.toSortExpression();
+      return result == null ? new Const(Sort.INFINITY) : result;
+    }
+
     @Override
-    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
+    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull Map<? extends ClassField, ? extends Expression> fields, @NotNull LevelSubstitution substitution) {
       if (index >= arguments.size()) return this;
 
-      SortExpression result;
       if (isType) {
-        result = arguments.get(index) instanceof UniverseExpression universe ? universe.getSortExpression() : null;
+        SortExpression result = arguments.get(index) instanceof UniverseExpression universe ? universe.getSortExpression() : null;
+        return result == null ? this : result;
       } else {
-        Expression type = arguments.get(index);
-        if (type == null) return this;
-        type = type.getType().normalize(NormalizationMode.WHNF);
-        while (type instanceof PiExpression piExpr) {
-          type = piExpr.getCodomain().normalize(NormalizationMode.WHNF);
-        }
-        result = type.toSortExpression();
+        return getCodomainSort(arguments.get(index));
       }
+    }
 
-      return result == null ? this : result;
+    @Override
+    public @NotNull Sort withInfLevel() {
+      return Sort.INFINITY;
+    }
+  }
+
+  record Field(FieldReferableImpl field) implements SortExpression {
+    @Override
+    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull Map<? extends ClassField, ? extends Expression> fields, @NotNull LevelSubstitution substitution) {
+      if (!(field.getTypechecked() instanceof ClassField classField)) return new Const(Sort.INFINITY);
+      Expression arg = fields.get(classField);
+      if (arg == null) return this;
+
+      if (isType) {
+        SortExpression result = arg instanceof UniverseExpression universe ? universe.getSortExpression() : null;
+        return result == null ? this : result;
+      } else {
+        return Var.getCodomainSort(arg);
+      }
     }
 
     @Override
@@ -160,10 +189,10 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     }
 
     @Override
-    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
+    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull Map<? extends ClassField, ? extends Expression> fields, @NotNull LevelSubstitution substitution) {
       List<SortExpression> sorts = new ArrayList<>(mySorts.size());
       for (SortExpression sort : mySorts) {
-        sorts.add(sort.subst(isType, arguments, substitution));
+        sorts.add(sort.subst(isType, arguments, fields, substitution));
       }
       return makeMax(sorts);
     }
@@ -202,7 +231,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
   }
 
   static @NotNull SortExpression makeSucc(@NotNull SortExpression sort) {
-    return sort instanceof Const(Sort aSort) ? new Const(aSort.succ()) : new Succ(sort);
+    return sort instanceof Const(Sort aSort) ? new Const(aSort.succ()) : sort instanceof Var || sort instanceof Field ? new Const(Sort.INFINITY) : new Succ(sort);
   }
 
   final class Pi implements SortExpression, PiSortExpression {
@@ -225,12 +254,12 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     }
 
     @Override
-    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
+    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull Map<? extends ClassField, ? extends Expression> fields, @NotNull LevelSubstitution substitution) {
       List<SortExpression> domain = new ArrayList<>(myDomain.size());
       for (SortExpression sort : myDomain) {
-        domain.add(sort.subst(isType, arguments, substitution));
+        domain.add(sort.subst(isType, arguments, fields, substitution));
       }
-      return makePi(domain, myCodomain.subst(isType, arguments, substitution));
+      return makePi(domain, myCodomain.subst(isType, arguments, fields, substitution));
     }
 
     @Override
@@ -254,8 +283,8 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     }
 
     @Override
-    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
-      return makePrev(mySort.subst(isType, arguments, substitution));
+    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull Map<? extends ClassField, ? extends Expression> fields, @NotNull LevelSubstitution substitution) {
+      return makePrev(mySort.subst(isType, arguments, fields, substitution));
     }
 
     @Override
@@ -278,8 +307,8 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     }
 
     @Override
-    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
-      return makeSucc(mySort.subst(isType, arguments, substitution));
+    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull Map<? extends ClassField, ? extends Expression> fields, @NotNull LevelSubstitution substitution) {
+      return makeSucc(mySort.subst(isType, arguments, fields, substitution));
     }
 
     @Override

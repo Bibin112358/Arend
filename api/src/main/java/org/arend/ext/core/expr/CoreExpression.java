@@ -52,6 +52,7 @@ public interface CoreExpression extends CoreBody, UncheckedExpression, Abstracte
    */
   @NotNull TypedExpression computeTyped();
 
+  // TODO[sorts]: Delete this
   /**
    * @return an equivalent expression with minimized levels
    */

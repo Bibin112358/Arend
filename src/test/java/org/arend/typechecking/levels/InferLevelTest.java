@@ -389,7 +389,7 @@ public class InferLevelTest extends TypeCheckingTestCase {
   @Test
   public void recordTest() {
     typeCheckModule("""
-      \\record R (A : \\Type) (a : A) (p : a = a)
+      \\record R (A : \\Sort) (a : A) (p : a = a)
       \\lemma test {A : \\Set} (a : A) : R A a \\cowith
         | p => idp
       """);
@@ -466,5 +466,13 @@ public class InferLevelTest extends TypeCheckingTestCase {
       \\func test1 (e : E (\\suc \\lp)) : D \\lp => e
       """, 1);
     assertThatErrorsAre(typeMismatchError());
+  }
+
+  @Test
+  public void classLevelsTest() {
+    typeCheckModule("""
+      \\record R (A : \\Type) (a : A)
+      \\func test => R \\levels 1 1
+      """);
   }
 }

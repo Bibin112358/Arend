@@ -315,6 +315,10 @@ public final class Concrete {
       return accept(new SubstConcreteVisitor(map, null), null);
     }
 
+    public void setInfIndex(int index) {}
+
+    public void setInfField(FieldReferableImpl field) {}
+
     @Override
     public String toString() {
       StringBuilder builder = new StringBuilder();
@@ -1201,6 +1205,16 @@ public final class Concrete {
     }
 
     @Override
+    public void setInfIndex(int index) {
+      codomain.setInfIndex(index);
+    }
+
+    @Override
+    public void setInfField(FieldReferableImpl field) {
+      codomain.setInfField(field);
+    }
+
+    @Override
     public <P, R> R accept(ConcreteExpressionVisitor<? super P, ? extends R> visitor, P params) {
       return visitor.visitPi(this, params);
     }
@@ -1253,7 +1267,8 @@ public final class Concrete {
     private final LevelExpression myPLevel;
     private final LevelExpression myHLevel; // TODO[sorts]: Delete this
     private final Kind myKind;
-    public Integer infIndex;
+    private Integer myInfIndex;
+    private FieldReferableImpl myInfField;
 
     public UniverseExpression(Object data, LevelExpression pLevel, LevelExpression hLevel, Kind kind) {
       super(data);
@@ -1278,6 +1293,28 @@ public final class Concrete {
     @NotNull
     public Kind getKind() {
       return myKind;
+    }
+
+    public Integer getInfIndex() {
+      return myInfIndex;
+    }
+
+    public FieldReferableImpl getInfField() {
+      return myInfField;
+    }
+
+    @Override
+    public void setInfIndex(int index) {
+      if (myKind == Kind.SORT) {
+        myInfIndex = index;
+      }
+    }
+
+    @Override
+    public void setInfField(FieldReferableImpl field) {
+      if (myKind == Kind.SORT) {
+        myInfField = field;
+      }
     }
 
     @Override

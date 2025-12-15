@@ -350,7 +350,7 @@ public class CoreDefinitionChecker extends BaseDefinitionTypechecker {
 
       PiExpression fieldType = definition.getFieldType(field);
       myChecker.addBinding(fieldType.getParameters(), fieldType.getCodomain());
-      Expression typeType = fieldType.getCodomain().accept(myChecker, UniverseExpression.OMEGA);
+      Expression typeType = myChecker.checkInf(fieldType.getCodomain(), UniverseExpression.OMEGA, true);
       myChecker.removeBinding(fieldType.getParameters());
 
       Integer level;
@@ -387,13 +387,13 @@ public class CoreDefinitionChecker extends BaseDefinitionTypechecker {
         return false;
       }
 
-      Sort sort = typeType.toSort();
+      SortExpression sort = typeType.toSortExpression();
       if (sort == null) {
         errorReporter.report(CoreErrorWrapper.make(new TypecheckingError("Cannot infer the sort of the type of field '" + field.getName() + "'", null), fieldType));
         return false;
       }
 
-      if (!definition.isImplemented(field) && !checkDefinitionSort(definition.getSquasher() != null, field, sort, definition.getSort())) {
+      if (!definition.isImplemented(field) && !checkDefinitionSort(definition.getSquasher() != null, field, sort.withInfLevel(), definition.getSort())) {
         return false;
       }
 

@@ -7,7 +7,6 @@ import org.arend.core.context.param.TypedDependentLink;
 import org.arend.core.context.param.TypedSingleDependentLink;
 import org.arend.core.expr.*;
 import org.arend.core.pattern.ExpressionPattern;
-import org.arend.core.sort.Sort;
 import org.arend.core.subst.ExprSubstitution;
 import org.arend.core.subst.LevelPair;
 import org.arend.core.subst.Levels;
@@ -50,7 +49,7 @@ public class DConstructor extends FunctionDefinition {
 
   public DependentLink getArrayParameters(LevelPair levels, Expression length, Binding thisBinding, Expression elementsType) {
     if (this == Prelude.EMPTY_ARRAY) {
-      return elementsType != null ? EmptyDependentLink.getInstance() : DependentLink.Helper.subst(getParameters(), new ExprSubstitution(thisBinding, new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, levels, new SingletonMap<>(Prelude.ARRAY_LENGTH, Zero()), Sort.STD.succ(), UniverseKind.NO_UNIVERSES))), levels);
+      return elementsType != null ? EmptyDependentLink.getInstance() : DependentLink.Helper.subst(getParameters(), new ExprSubstitution(thisBinding, new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, levels, new SingletonMap<>(Prelude.ARRAY_LENGTH, Zero()), levels.toSort().succ(), UniverseKind.NO_UNIVERSES))), levels);
     }
 
     if ((elementsType == null || thisBinding == null) && length == null) {
@@ -70,10 +69,10 @@ public class DConstructor extends FunctionDefinition {
     Map<ClassField, Expression> impls = new LinkedHashMap<>();
     impls.put(Prelude.ARRAY_LENGTH, natRef);
     impls.put(Prelude.ARRAY_ELEMENTS_TYPE, elementsType);
-    Expression newElementsType = elementsType.subst(thisBinding, new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, levels, impls, Sort.STD.succ(), UniverseKind.ONLY_COVARIANT)));
+    Expression newElementsType = elementsType.subst(thisBinding, new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, levels, impls, levels.toSort(), UniverseKind.ONLY_COVARIANT)));
     TypedSingleDependentLink lamParam = new TypedSingleDependentLink(true, "j", DataCallExpression.make(Prelude.FIN, Levels.EMPTY, new SingletonList<>(natRef)));
     impls.put(Prelude.ARRAY_ELEMENTS_TYPE, new LamExpression(lamParam, AppExpression.make(newElementsType, Suc(new ReferenceExpression(lamParam)), true)));
-    nat.setNext(new TypedDependentLink(true, "a", AppExpression.make(newElementsType, Zero(), true), new TypedDependentLink(true, "l", new ClassCallExpression(Prelude.DEP_ARRAY, levels, impls, Sort.STD, UniverseKind.NO_UNIVERSES), EmptyDependentLink.getInstance())));
+    nat.setNext(new TypedDependentLink(true, "a", AppExpression.make(newElementsType, Zero(), true), new TypedDependentLink(true, "l", new ClassCallExpression(Prelude.DEP_ARRAY, levels, impls, levels.toSort(), UniverseKind.NO_UNIVERSES), EmptyDependentLink.getInstance())));
     return nat;
   }
 

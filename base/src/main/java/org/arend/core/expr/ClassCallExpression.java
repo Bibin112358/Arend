@@ -33,7 +33,7 @@ import java.util.*;
 public class ClassCallExpression extends LeveledDefCallExpression implements CoreClassCallExpression {
   private final ClassCallBinding myThisBinding = new ClassCallBinding();
   private final Map<ClassField, Expression> myImplementations;
-  private Sort mySort;
+  private SortExpression mySortExpression; // TODO[sorts]: Maybe compute it on the fly?
   private UniverseKind myUniverseKind;
 
   public class ClassCallBinding implements Binding {
@@ -67,16 +67,20 @@ public class ClassCallExpression extends LeveledDefCallExpression implements Cor
   public ClassCallExpression(ClassDefinition definition, Levels levels) {
     super(definition, levels);
     myImplementations = Collections.emptyMap();
-    mySort = definition.getSort().subst(levels.makeSubstitution(definition));
+    mySortExpression = new SortExpression.Const(definition.getSort().subst(levels.makeSubstitution(definition)));
     myUniverseKind = definition.getUniverseKind();
   }
 
-  public ClassCallExpression(ClassDefinition definition, Levels levels, Map<ClassField, Expression> implementations, Sort sort, UniverseKind universeKind) {
+  public ClassCallExpression(ClassDefinition definition, Levels levels, Map<ClassField, Expression> implementations, SortExpression sortExpression, UniverseKind universeKind) {
     super(definition, levels);
     assert implementations instanceof LinkedHashMap || implementations.size() <= 1;
     myImplementations = implementations;
-    mySort = sort;
+    mySortExpression = sortExpression;
     myUniverseKind = universeKind.max(definition.getBaseUniverseKind());
+  }
+
+  public ClassCallExpression(ClassDefinition definition, Levels levels, Map<ClassField, Expression> implementations, Sort sort, UniverseKind universeKind) {
+    this(definition, levels, implementations, new SortExpression.Const(sort), universeKind);
   }
 
   @NotNull
@@ -193,10 +197,6 @@ public class ClassCallExpression extends LeveledDefCallExpression implements Cor
     }
     AbsExpression impl = getDefinition().getImplementation(field);
     return impl == null ? null : impl.apply((Expression) thisExpr, getLevelSubstitution());
-  }
-
-  public LevelSubstitution getLevelSubstitution(ClassDefinition superClass) {
-    return getLevels(superClass).makeSubstitution(superClass);
   }
 
   private static void checkImplementation(CoreClassField field, Expression type) {
@@ -429,7 +429,7 @@ public class ClassCallExpression extends LeveledDefCallExpression implements Cor
         @Override
         public Expression visitClassCall(ClassCallExpression expr, Void params) {
           Map<ClassField, Expression> fieldSet = new LinkedHashMap<>();
-          ClassCallExpression result = new ClassCallExpression(expr.getDefinition(), expr.getLevels().subst(getLevelSubstitution()), fieldSet, expr.getSort(), expr.getUniverseKind());
+          ClassCallExpression result = new ClassCallExpression(expr.getDefinition(), expr.getLevels().subst(getLevelSubstitution()), fieldSet, expr.getSortExpression().subst(getLevelSubstitution()), expr.getUniverseKind());
           getExprSubstitution().add(expr.getThisBinding(), new ReferenceExpression(result.getThisBinding()));
           for (Map.Entry<ClassField, Expression> entry : expr.getImplementedHere().entrySet()) {
             Expression newArg = makeNewExpression(entry.getValue(), entry.getKey().getType().getCodomain());
@@ -461,20 +461,19 @@ public class ClassCallExpression extends LeveledDefCallExpression implements Cor
 
   @Override
   public SortExpression getSortExpressionOfType() {
-    return new SortExpression.Const(getSortOfType());
+    return mySortExpression;
   }
 
-  @Override
-  public Sort getSortOfType() {
-    return mySort.subst(getLevelSubstitution());
+  public SortExpression getSortExpression() {
+    return mySortExpression;
   }
 
-  public Sort getSort() {
-    return mySort;
+  public void setSortExpression(SortExpression sortExpression) {
+    mySortExpression = sortExpression;
   }
 
   public void setSort(Sort sort) {
-    mySort = sort;
+    setSortExpression(new SortExpression.Const(sort));
   }
 
   @Override
@@ -484,7 +483,7 @@ public class ClassCallExpression extends LeveledDefCallExpression implements Cor
 
   @Override
   public @NotNull Expression minimizeLevels() {
-    return new ClassCallExpression(getDefinition(), getMinimizedLevels(), myImplementations, mySort, myUniverseKind);
+    return new ClassCallExpression(getDefinition(), getMinimizedLevels(), myImplementations, mySortExpression, myUniverseKind);
   }
 
   @Override

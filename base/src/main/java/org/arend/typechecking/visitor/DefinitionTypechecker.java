@@ -467,13 +467,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       Expression paramResult = null;
       if (parameter.getType() != null) {
         if (def instanceof Concrete.FunctionDefinition || def instanceof Concrete.DataDefinition) {
-          Concrete.Expression type = parameter.getType();
-          while (type instanceof Concrete.PiExpression piExpr) {
-            type = piExpr.getCodomain();
-          }
-          if (type instanceof Concrete.UniverseExpression universe && universe.getKind() == ConcreteUniverseExpression.Kind.SORT) {
-            universe.infIndex = j;
-          }
+          parameter.getType().setInfIndex(j);
         }
 
         if (def instanceof Concrete.Constructor) {
@@ -1570,7 +1564,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
                 }
               }
               if (impls.size() != newClassCall.getImplementedHere().size()) {
-                newClassCall = new ClassCallExpression(newClassCall.getDefinition(), newClassCall.getLevels(), impls, newClassCall.getDefinition().getSort(), newClassCall.getDefinition().getUniverseKind());
+                newClassCall = new ClassCallExpression(newClassCall.getDefinition(), newClassCall.getLevels(), impls, newClassCall.getDefinition().getSort().subst(newClassCall.getLevelSubstitution()), newClassCall.getDefinition().getUniverseKind());
                 newClassCall.updateHasUniverses();
                 typechecker.fixClassExtSort(newClassCall, def.getResultType());
                 newType = newClassCall;
@@ -1661,7 +1655,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     ClassCallExpression typeClassCall = typedDef.getResultType().cast(ClassCallExpression.class);
     if (typeClassCall != null) {
       Map<ClassField, Expression> newImpls = new LinkedHashMap<>();
-      ClassCallExpression newClassCall = new ClassCallExpression(typeClassCall.getDefinition(), typeClassCall.getLevels(), newImpls, typeClassCall.getSort(), typeClassCall.getUniverseKind());
+      ClassCallExpression newClassCall = new ClassCallExpression(typeClassCall.getDefinition(), typeClassCall.getLevels(), newImpls, typeClassCall.getSortExpression(), typeClassCall.getUniverseKind());
       Expression newThisBinding = new ReferenceExpression(newClassCall.getThisBinding());
       boolean allImpl = true;
       for (ClassField field : typeClassCall.getDefinition().getNotImplementedFields()) {
@@ -1684,7 +1678,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
           if (typedDef.getReallyActualBody() instanceof NewExpression && ((NewExpression) typedDef.getReallyActualBody()).getRenewExpression() == null) {
             ClassCallExpression bodyClassCall = ((NewExpression) typedDef.getReallyActualBody()).getClassCall();
             Map<ClassField, Expression> newBodyImpls = new LinkedHashMap<>();
-            ClassCallExpression newBodyClassCall = new ClassCallExpression(bodyClassCall.getDefinition(), bodyClassCall.getLevels(), newBodyImpls, bodyClassCall.getSort(), bodyClassCall.getUniverseKind());
+            ClassCallExpression newBodyClassCall = new ClassCallExpression(bodyClassCall.getDefinition(), bodyClassCall.getLevels(), newBodyImpls, bodyClassCall.getSortExpression(), bodyClassCall.getUniverseKind());
             Expression newBodyThisBinding = new ReferenceExpression(newBodyClassCall.getThisBinding());
             for (ClassField field : bodyClassCall.getDefinition().getNotImplementedFields()) {
               if (field.isProperty()) {
@@ -1876,7 +1870,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       }
     }
 
-    dataDefinition.setSort(userSort); // TODO[sorts]: Delete this. Set only when actually specified.
+    dataDefinition.setSortExpression(userSort == null ? null : new SortExpression.Const(userSort)); // TODO[sorts]: Delete this. Set only when actually specified.
     calculateTypeClassParameters(dataDefinition);
     calculateParametersTypecheckingOrder(dataDefinition);
 
@@ -3068,6 +3062,9 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
 
   private ClassField typecheckClassField(Concrete.BaseClassField def, ClassDefinition parentClass, List<LocalInstance> localInstances, boolean hasClassifyingField, Concrete.ClassDefinition classDef) {
     ClassField typedDef = null;
+    if (def instanceof Concrete.ClassField field) {
+      def.getResultType().setInfField(field.getData());
+    }
     if (def instanceof Concrete.OverriddenField) {
       typedDef = typechecker.referableToClassField(((Concrete.OverriddenField) def).getOverriddenField(), def);
       if (typedDef == null) {

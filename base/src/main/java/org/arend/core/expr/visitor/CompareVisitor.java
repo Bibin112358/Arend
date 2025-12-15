@@ -1219,7 +1219,7 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
         lam = defCall1.getDefinition().getDefCall(defCall1.getLevels(), newDataArgs);
       } else {
         Map<ClassField, Expression> implementations = new LinkedHashMap<>();
-        ClassCallExpression classCall = new ClassCallExpression(classCall1.getDefinition(), classCall1.getLevels(), implementations, classCall1.getSort(), classCall1.getUniverseKind());
+        ClassCallExpression classCall = new ClassCallExpression(classCall1.getDefinition(), classCall1.getLevels(), implementations, classCall1.getSortExpression(), classCall1.getUniverseKind());
         int i = 0;
         for (ClassField field : classCall1.getDefinition().getNotImplementedFields()) {
           if (i < oldDataArgs.size() - args.size()) {
@@ -1947,14 +1947,14 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
               if (classCall1.isImplementedHere(field)) {
                 Map<ClassField, Expression> impls = new LinkedHashMap<>(classCall1.getImplementedHere());
                 impls.put(field, myResult.wholeExpr1);
-                myResult.wholeExpr1 = new NewExpression(null, new ClassCallExpression(classCall1.getDefinition(), classCall1.getLevels(), impls, classCall1.getSort(), classCall1.getUniverseKind()));
+                myResult.wholeExpr1 = new NewExpression(null, new ClassCallExpression(classCall1.getDefinition(), classCall1.getLevels(), impls, classCall1.getSortExpression(), classCall1.getUniverseKind()));
               } else {
                 myResult.wholeExpr1 = expr1;
               }
               if (classCall2.isImplementedHere(field)) {
                 Map<ClassField, Expression> impls = new LinkedHashMap<>(classCall2.getImplementedHere());
                 impls.put(field, myResult.wholeExpr2);
-                myResult.wholeExpr2 = new NewExpression(null, new ClassCallExpression(classCall2.getDefinition(), classCall2.getLevels(), impls, classCall2.getSort(), classCall2.getUniverseKind()));
+                myResult.wholeExpr2 = new NewExpression(null, new ClassCallExpression(classCall2.getDefinition(), classCall2.getLevels(), impls, classCall2.getSortExpression(), classCall2.getUniverseKind()));
               } else {
                 myResult.wholeExpr2 = expr2;
               }

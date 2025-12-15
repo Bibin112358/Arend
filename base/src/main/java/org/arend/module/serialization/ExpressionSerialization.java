@@ -403,7 +403,6 @@ class ExpressionSerialization implements ExpressionVisitor<Void, ExpressionProto
     for (Map.Entry<ClassField, Expression> entry : expr.getImplementedHere().entrySet()) {
       builder.addFieldImpl(ExpressionProtos.Expression.ClassCall.ImplEntry.newBuilder().setField(myCallTargetIndexProvider.getDefIndex(entry.getKey())).setImpl(writeExpr(entry.getValue())));
     }
-    builder.setSort(writeSort(expr.getSort()));
     builder.setUniverseKind(writeUniverseKind(expr.getUniverseKind()));
     return builder.build();
   }
