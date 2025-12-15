@@ -61,7 +61,7 @@ internal fun generateHtmlForArendLib(
             return null
         }
 
-        val version = versionArendLib ?: ("v" + (configService.version?.longString ?: run {
+        val version = versionArendLib ?: ("v" + (configService.getLibraryVersion()?.longString ?: run {
                 LOG.warn("The YAML file in arend-lib doesn't contain information about the library version. You need to pass the library version as an argument or write the library version to the yaml file")
                 return null
             }))

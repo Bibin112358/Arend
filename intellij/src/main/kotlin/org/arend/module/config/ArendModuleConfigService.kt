@@ -42,6 +42,7 @@ class ArendModuleConfigService(val module: Module) : LibraryConfig(module.projec
     override var extensionMainClassData = ""
     override var modules: List<ModulePath>? = null
     override var dependencies: List<LibraryDependency> = emptyList()
+
     override var versionString: String = ""
     override var langVersionString: String = ""
 
@@ -53,8 +54,8 @@ class ArendModuleConfigService(val module: Module) : LibraryConfig(module.projec
 
     override fun getExtensionMainClass() = flaggedExtensionMainClass
 
-    override val version: Version?
-        get() = Version.fromString(versionString)
+    override fun getLibraryVersion(): Version? =
+        Version.fromString(versionString)
 
     override val langVersion: Range<Version>
         get() = VersionRange.parseVersionRange(langVersionString) ?: Range.unbound()

@@ -5,6 +5,7 @@ import org.arend.ext.ui.ArendUI;
 import org.arend.library.classLoader.ClassLoaderDelegate;
 import org.arend.naming.reference.LocatedReferable;
 import org.arend.server.ArendLibrary;
+import org.arend.util.Version;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,14 +21,16 @@ public class ArendLibraryImpl implements ArendLibrary {
   private final List<String> myDependencies;
   private ArendExtension myExtension;
   private final Map<String, LocatedReferable> myGeneratedNames;
+  private final Version myVersion;
 
-  public ArendLibraryImpl(String libraryName, boolean externalLibrary, long modificationStamp, List<String> dependencies, ArendExtension extension, Map<String, LocatedReferable> generatedNames) {
+  public ArendLibraryImpl(String libraryName, Version version, boolean externalLibrary, long modificationStamp, List<String> dependencies, ArendExtension extension, Map<String, LocatedReferable> generatedNames) {
     myLibraryName = libraryName;
     myExternalLibrary = externalLibrary;
     myModificationStamp = modificationStamp;
     myDependencies = dependencies;
     myExtension = extension;
     myGeneratedNames = generatedNames == null ? new HashMap<>() : new HashMap<>(generatedNames);
+    myVersion = version;
   }
 
   @Override
@@ -39,6 +42,9 @@ public class ArendLibraryImpl implements ArendLibrary {
   public boolean isExternalLibrary() {
     return myExternalLibrary;
   }
+
+  @Override
+  public @Nullable Version getLibraryVersion() { return myVersion; }
 
   @Override
   public long getModificationStamp() {
