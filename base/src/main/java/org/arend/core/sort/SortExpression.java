@@ -54,11 +54,12 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
       return true;
     }
 
-    if (sortExpr1 instanceof SortExpression.Const(Sort sort1) && sortExpr2 instanceof SortExpression.Const(Sort sort2)) {
-      return Sort.compare(sort1, sort2, cmp, equations, sourceNode);
-    } else {
-      return equations.addEquation(sortExpr1, sortExpr2, cmp, sourceNode);
-    }
+    return switch (sortExpr1) {
+      case Const(Sort sort1) when sortExpr2 instanceof Const(Sort sort2) -> Sort.compare(sort1, sort2, cmp, equations, sourceNode);
+      case Var(int index1) when sortExpr2 instanceof Var(int index2) -> index1 == index2;
+      case Field(FieldReferableImpl field1) when sortExpr2 instanceof Field(FieldReferableImpl field2) -> field1.equals(field2);
+      case null, default -> equations.addEquation(sortExpr1, sortExpr2, cmp, sourceNode);
+    };
   }
 
   record Const(@NotNull Sort sort) implements SortExpression, ConstSortExpression {
@@ -115,7 +116,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
   record Field(FieldReferableImpl field) implements SortExpression {
     @Override
     public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull Map<? extends ClassField, ? extends Expression> fields, @NotNull LevelSubstitution substitution) {
-      if (!(field.getTypechecked() instanceof ClassField classField)) return new Const(Sort.INFINITY);
+      if (!(field.getTypechecked() instanceof ClassField classField)) return this;
       Expression arg = fields.get(classField);
       if (arg == null) return this;
 

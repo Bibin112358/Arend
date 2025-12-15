@@ -3,6 +3,7 @@ package org.arend.core.elimtree;
 import org.arend.core.constructor.*;
 import org.arend.core.definition.ClassField;
 import org.arend.core.expr.*;
+import org.arend.core.subst.Levels;
 import org.arend.ext.core.ops.NormalizationMode;
 import org.arend.prelude.Prelude;
 import org.arend.util.Decision;
@@ -315,7 +316,7 @@ public class BranchElimTree extends ElimTree {
             consArgs.add(array.getElementsType());
           }
           consArgs.addAll(newArgs.subList(0, 2 + (withLength ? 0 : 1) + (withElementsType ? 0 : 1)));
-          result.add(FunCallExpression.make(Prelude.ARRAY_CONS, array.getLevels(), consArgs));
+          result.add(FunCallExpression.make(Prelude.ARRAY_CONS, Levels.EMPTY, consArgs));
         }
         result.addAll(newArgs.subList((array.getElements().isEmpty() ? 0 : 2) + (withElementsType ? 0 : 1) + (withLength ? 0 : 1), newArgs.size()));
         return result;

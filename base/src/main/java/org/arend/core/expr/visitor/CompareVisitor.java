@@ -1826,7 +1826,7 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
     implementations.put(Prelude.ARRAY_LENGTH, length);
     TypedSingleDependentLink param = new TypedSingleDependentLink(true, "j", Fin(length));
     implementations.put(Prelude.ARRAY_AT, new LamExpression(param, AppExpression.make(FieldCall(Prelude.ARRAY_AT, expr), addSucs(new ReferenceExpression(param), n), true)));
-    return new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, classCall.getLevels(), implementations, UniverseKind.NO_UNIVERSES));
+    return new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, implementations, UniverseKind.NO_UNIVERSES));
   }
 
   private boolean compareClassInstances(Expression expr1, ClassCallExpression classCall1, Expression expr2, ClassCallExpression classCall2, Expression type) {
@@ -1857,9 +1857,9 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
           if (!m.equals(BigInteger.ZERO)) {
             for (BigInteger i = BigInteger.ZERO; i.compareTo(m) < 0; i = i.add(BigInteger.ONE)) {
               IntegerExpression index = new BigIntegerExpression(i);
-              if (!normalizedCompare(FunCallExpression.make(Prelude.ARRAY_INDEX, classCall1.getLevels(), Arrays.asList(expr1, index)).normalize(NormalizationMode.WHNF),
-                                     FunCallExpression.make(Prelude.ARRAY_INDEX, classCall2.getLevels(), Arrays.asList(expr2, index)).normalize(NormalizationMode.WHNF), null, true) ||
-                  !compare(dropElements(expr1, pair1.proj1, classCall1, m), dropElements(expr2, pair2.proj1, classCall2, m), new ClassCallExpression(Prelude.DEP_ARRAY, classCall1.getLevels()), true)) {
+              if (!normalizedCompare(FunCallExpression.make(Prelude.ARRAY_INDEX, Levels.EMPTY, Arrays.asList(expr1, index)).normalize(NormalizationMode.WHNF),
+                                     FunCallExpression.make(Prelude.ARRAY_INDEX, Levels.EMPTY, Arrays.asList(expr2, index)).normalize(NormalizationMode.WHNF), null, true) ||
+                  !compare(dropElements(expr1, pair1.proj1, classCall1, m), dropElements(expr2, pair2.proj1, classCall2, m), new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY), true)) {
                 myResult = null;
                 return false;
               }
@@ -2233,8 +2233,8 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
       if (myResult == null) {
         initResult(expr, other);
       } else {
-        myResult.wholeExpr1 = ArrayExpression.make(expr.getLevels(), myResult.wholeExpr1, expr.getElements(), expr.getTail());
-        myResult.wholeExpr2 = ArrayExpression.make(array2.getLevels(), myResult.wholeExpr2, array2.getElements(), array2.getTail());
+        myResult.wholeExpr1 = ArrayExpression.make(myResult.wholeExpr1, expr.getElements(), expr.getTail());
+        myResult.wholeExpr2 = ArrayExpression.make(myResult.wholeExpr2, array2.getElements(), array2.getTail());
       }
       return false;
     }
@@ -2248,8 +2248,8 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
           List<Expression> args2 = new ArrayList<>(array2.getElements());
           args1.set(i, myResult.wholeExpr1);
           args2.set(i, myResult.wholeExpr2);
-          myResult.wholeExpr1 = ArrayExpression.make(expr.getLevels(), expr.getElementsType(), args1, expr.getTail());
-          myResult.wholeExpr2 = ArrayExpression.make(array2.getLevels(), array2.getElementsType(), args2, array2.getTail());
+          myResult.wholeExpr1 = ArrayExpression.make(expr.getElementsType(), args1, expr.getTail());
+          myResult.wholeExpr2 = ArrayExpression.make(array2.getElementsType(), args2, array2.getTail());
         }
         return false;
       }
@@ -2279,8 +2279,8 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
       if (myResult == null) {
         initResult(expr, other);
       } else {
-        myResult.wholeExpr1 = ArrayExpression.make(expr.getLevels(), expr.getElementsType(), expr.getElements(), myResult.wholeExpr1);
-        myResult.wholeExpr2 = ArrayExpression.make(array2.getLevels(), array2.getElementsType(), array2.getElements(), myResult.wholeExpr2);
+        myResult.wholeExpr1 = ArrayExpression.make(expr.getElementsType(), expr.getElements(), myResult.wholeExpr1);
+        myResult.wholeExpr2 = ArrayExpression.make(array2.getElementsType(), array2.getElements(), myResult.wholeExpr2);
       }
       return false;
     }

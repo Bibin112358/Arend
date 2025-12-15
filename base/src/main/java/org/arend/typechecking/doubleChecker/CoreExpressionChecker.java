@@ -14,7 +14,6 @@ import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.ExprSubstitution;
-import org.arend.core.subst.LevelPair;
 import org.arend.core.subst.Levels;
 import org.arend.ext.core.level.LevelSubstitution;
 import org.arend.ext.core.ops.CMP;
@@ -643,7 +642,7 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
         throw new CoreException(CoreErrorWrapper.make(new TypecheckingError("Expected either '" + Prelude.EMPTY_ARRAY.getName() + "' or '" + Prelude.ARRAY_CONS.getName() + "'", mySourceNode), errorExpr));
       }
       if (!(type instanceof ClassCallExpression classCall && classCall.getDefinition() == Prelude.DEP_ARRAY)) {
-        throw new CoreException(CoreErrorWrapper.make(new TypeMismatchError(new ClassCallExpression(Prelude.DEP_ARRAY, LevelPair.STD), type, mySourceNode), errorExpr));
+        throw new CoreException(CoreErrorWrapper.make(new TypeMismatchError(new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY), type, mySourceNode), errorExpr));
       }
       Expression length = classCall.getAbsImplementationHere(Prelude.ARRAY_LENGTH);
       if (length != null) length = length.normalize(NormalizationMode.WHNF);
@@ -891,7 +890,6 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
 
   @Override
   public Expression visitArray(ArrayExpression expr, Expression expectedType) {
-    checkLevels(expr.getLevels(), Prelude.DEP_ARRAY, expr);
     Expression length;
     Expression tailLength = null;
     if (expr.getTail() == null) {
@@ -907,14 +905,14 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
       }
       length = Suc(tailLength);
     }
-    expr.getElementsType().accept(this, new PiExpression(new TypedSingleDependentLink(true, null, DataCallExpression.make(Prelude.FIN, Levels.EMPTY, Collections.singletonList(length))), new UniverseExpression(expr.getLevels().toSort())));
+    expr.getElementsType().accept(this, new PiExpression(new TypedSingleDependentLink(true, null, DataCallExpression.make(Prelude.FIN, Levels.EMPTY, Collections.singletonList(length))), new UniverseExpression(Sort.INFINITY)));
     List<Expression> elements = expr.getElements();
     for (int i = 0; i < elements.size(); i++) {
       elements.get(i).accept(this, AppExpression.make(expr.getElementsType(), new SmallIntegerExpression(i), true));
     }
     if (expr.getTail() != null) {
       TypedSingleDependentLink lamParam = new TypedSingleDependentLink(true, "j", DataCallExpression.make(Prelude.FIN, Levels.EMPTY, Collections.singletonList(tailLength)));
-      expr.getTail().accept(this, new ClassCallExpression(Prelude.DEP_ARRAY, expr.getLevels(), new SingletonMap<>(Prelude.ARRAY_ELEMENTS_TYPE, new LamExpression(lamParam, AppExpression.make(expr.getElementsType(), Suc(new ReferenceExpression(lamParam)), true))), UniverseKind.NO_UNIVERSES));
+      expr.getTail().accept(this, new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, new SingletonMap<>(Prelude.ARRAY_ELEMENTS_TYPE, new LamExpression(lamParam, AppExpression.make(expr.getElementsType(), Suc(new ReferenceExpression(lamParam)), true))), UniverseKind.NO_UNIVERSES));
     }
     return check(expectedType, expr.getType(), expr);
   }

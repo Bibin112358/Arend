@@ -1,15 +1,12 @@
 package org.arend.core.expr;
 
-import org.arend.core.context.binding.LevelVariable;
 import org.arend.core.context.param.TypedSingleDependentLink;
 import org.arend.core.definition.ClassField;
 import org.arend.core.definition.UniverseKind;
 import org.arend.core.expr.visitor.ExpressionVisitor;
 import org.arend.core.expr.visitor.ExpressionVisitor2;
-import org.arend.core.sort.Level;
-import org.arend.core.subst.LevelPair;
+import org.arend.core.subst.Levels;
 import org.arend.core.subst.ListLevels;
-import org.arend.ext.core.level.LevelSubstitution;
 import org.arend.ext.core.expr.CoreArrayExpression;
 import org.arend.ext.core.expr.CoreExpressionVisitor;
 import org.arend.ext.core.ops.NormalizationMode;
@@ -24,19 +21,17 @@ import static org.arend.core.expr.ExpressionFactory.Fin;
 import static org.arend.core.expr.ExpressionFactory.Suc;
 
 public class ArrayExpression extends Expression implements CoreArrayExpression {
-  private LevelPair myLevels;
   private final Expression myElementsType;
   private final List<Expression> myElements;
   private final Expression myTail;
 
-  private ArrayExpression(LevelPair levels, Expression elementsType, List<Expression> elements, Expression tail) {
-    myLevels = levels;
+  private ArrayExpression(Expression elementsType, List<Expression> elements, Expression tail) {
     myElementsType = elementsType;
     myElements = elements;
     myTail = tail;
   }
 
-  public static Expression make(LevelPair levels, Expression elementsType, List<Expression> elements, Expression tail) {
+  public static Expression make(Expression elementsType, List<Expression> elements, Expression tail) {
     if (tail instanceof ArrayExpression arrayExpr) {
       List<Expression> newElements;
       if (arrayExpr.myElements.isEmpty()) {
@@ -46,14 +41,14 @@ public class ArrayExpression extends Expression implements CoreArrayExpression {
         newElements.addAll(elements);
         newElements.addAll(arrayExpr.myElements);
       }
-      return new ArrayExpression(levels, elementsType, newElements, arrayExpr.myTail);
+      return new ArrayExpression(elementsType, newElements, arrayExpr.myTail);
     } else {
-      return tail != null && elements.isEmpty() ? tail : new ArrayExpression(levels, elementsType, elements, tail);
+      return tail != null && elements.isEmpty() ? tail : new ArrayExpression(elementsType, elements, tail);
     }
   }
 
-  public static ArrayExpression makeArray(LevelPair levels, Expression elementsType, List<Expression> elements, Expression tail) {
-    return (ArrayExpression) make(levels, elementsType, elements, tail);
+  public static ArrayExpression makeArray(Expression elementsType, List<Expression> elements, Expression tail) {
+    return (ArrayExpression) make(elementsType, elements, tail);
   }
 
   public static Expression makeTail(Expression length, Expression elementsType, ClassCallExpression classCall, Expression expr) {
@@ -63,16 +58,8 @@ public class ArrayExpression extends Expression implements CoreArrayExpression {
     Map<ClassField, Expression> impls = new LinkedHashMap<>();
     impls.put(Prelude.ARRAY_LENGTH, length_1);
     impls.put(Prelude.ARRAY_ELEMENTS_TYPE, new LamExpression(param, AppExpression.make(elementsType, Suc(new ReferenceExpression(param)), true)));
-    impls.put(Prelude.ARRAY_AT, new LamExpression(param, at != null ? AppExpression.make(at, Suc(new ReferenceExpression(param)), true) : FunCallExpression.make(Prelude.ARRAY_INDEX, classCall.getLevels(), Arrays.asList(expr, Suc(new ReferenceExpression(param))))));
-    return new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, classCall.getLevels(), impls, UniverseKind.NO_UNIVERSES));
-  }
-
-  public void substLevels(LevelSubstitution substitution) {
-    myLevels = myLevels.subst(substitution);
-  }
-
-  public void setLevels(LevelPair levels) {
-    myLevels = levels;
+    impls.put(Prelude.ARRAY_AT, new LamExpression(param, at != null ? AppExpression.make(at, Suc(new ReferenceExpression(param)), true) : FunCallExpression.make(Prelude.ARRAY_INDEX, Levels.EMPTY, Arrays.asList(expr, Suc(new ReferenceExpression(param))))));
+    return new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, impls, UniverseKind.NO_UNIVERSES));
   }
 
   public Expression drop(int n) {
@@ -88,7 +75,7 @@ public class ArrayExpression extends Expression implements CoreArrayExpression {
     for (int i = 0; i < n; i++) {
       index = Suc(index);
     }
-    return new ArrayExpression(myLevels, new LamExpression(param, AppExpression.make(myElementsType, index, true)), myElements.subList(n, myElements.size()), myTail);
+    return new ArrayExpression(new LamExpression(param, AppExpression.make(myElementsType, index, true)), myElements.subList(n, myElements.size()), myTail);
   }
 
   public Expression getLength() {
@@ -133,7 +120,7 @@ public class ArrayExpression extends Expression implements CoreArrayExpression {
         useTail = true;
       }
     }
-    result.add(useTail ? tail : new NewExpression(tail, new ClassCallExpression(Prelude.DEP_ARRAY, myLevels)));
+    result.add(useTail ? tail : new NewExpression(tail, new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY)));
     return result;
   }
 
@@ -144,20 +131,6 @@ public class ArrayExpression extends Expression implements CoreArrayExpression {
   @Override
   public @NotNull Expression getElementsType() {
     return myElementsType;
-  }
-
-  public @NotNull LevelPair getLevels() {
-    return myLevels;
-  }
-
-  @Override
-  public @NotNull Level getPLevel() {
-    return myLevels.get(LevelVariable.PVAR);
-  }
-
-  @Override
-  public @NotNull Level getHLevel() {
-    return myLevels.get(LevelVariable.HVAR);
   }
 
   @Override

@@ -170,7 +170,7 @@ public class ConstructorExpressionPattern extends ConstructorPattern<Object> imp
 
     DefCallExpression defCall = (DefCallExpression) dataExpr;
     if (defCall.getDefinition() == Prelude.EMPTY_ARRAY || defCall.getDefinition() == Prelude.ARRAY_CONS) {
-      return ((DConstructor) defCall.getDefinition()).getArrayParameters(getLevels().toLevelPair(), getArrayLength(), getArrayThisBinding(), getArrayElementsType());
+      return ((DConstructor) defCall.getDefinition()).getArrayParameters(getArrayLength(), getArrayThisBinding(), getArrayElementsType());
     } else {
       return defCall.getDefinition().getParameters();
     }
@@ -204,7 +204,7 @@ public class ConstructorExpressionPattern extends ConstructorPattern<Object> imp
     if (dataExpr instanceof FunCallExpression funCall) {
       List<Expression> newArgs;
       if (funCall.getDefinition() == Prelude.EMPTY_ARRAY) {
-        return ArrayExpression.make(funCall.getLevels().toLevelPair(), funCall.getDefCallArguments().isEmpty() ? arguments.getFirst() : funCall.getDefCallArguments().getFirst(), Collections.emptyList(), null);
+        return ArrayExpression.make(funCall.getDefCallArguments().isEmpty() ? arguments.getFirst() : funCall.getDefCallArguments().getFirst(), Collections.emptyList(), null);
       }
       if (!funCall.getDefCallArguments().isEmpty()) {
         newArgs = new ArrayList<>(funCall.getDefCallArguments().size() + arguments.size());

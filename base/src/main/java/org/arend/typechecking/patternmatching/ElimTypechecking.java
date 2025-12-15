@@ -16,7 +16,7 @@ import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.ExprSubstitution;
-import org.arend.core.subst.LevelPair;
+import org.arend.core.subst.Levels;
 import org.arend.ext.core.ops.CMP;
 import org.arend.ext.core.ops.NormalizationMode;
 import org.arend.ext.error.ErrorReporter;
@@ -414,12 +414,12 @@ public class ElimTypechecking {
       Boolean isEmpty = ConstructorExpressionPattern.isArrayEmpty(type);
       conPatterns = new ArrayList<>(2);
       if (isEmpty == null || isEmpty.equals(true)) {
-        conPatterns.add(new ConstructorExpressionPattern(new FunCallExpression(Prelude.EMPTY_ARRAY, LevelPair.STD, null, elementsType), null, isEmpty, Collections.emptyList()));
+        conPatterns.add(new ConstructorExpressionPattern(new FunCallExpression(Prelude.EMPTY_ARRAY, Levels.EMPTY, null, elementsType), null, isEmpty, Collections.emptyList()));
       }
       if (isEmpty == null || isEmpty.equals(false)) {
         Expression length = ((ClassCallExpression) type).getAbsImplementationHere(Prelude.ARRAY_LENGTH);
         ClassCallExpression.ClassCallBinding thisBinding = ((ClassCallExpression) type).getThisBinding();
-        conPatterns.add(new ConstructorExpressionPattern(new FunCallExpression(Prelude.ARRAY_CONS, LevelPair.STD, length == null ? FieldCallExpression.make(Prelude.ARRAY_LENGTH, new ReferenceExpression(thisBinding)) : length, elementsType), thisBinding, isEmpty, Collections.emptyList()));
+        conPatterns.add(new ConstructorExpressionPattern(new FunCallExpression(Prelude.ARRAY_CONS, Levels.EMPTY, length == null ? FieldCallExpression.make(Prelude.ARRAY_LENGTH, new ReferenceExpression(thisBinding)) : length, elementsType), thisBinding, isEmpty, Collections.emptyList()));
       }
     } else {
       conPatterns = null;
@@ -1042,7 +1042,7 @@ public class ElimTypechecking {
               if (arrayElementsType != null) {
                 arguments.add(arrayElementsType);
               }
-              substExpr = FunCallExpression.make(((ArrayConstructor) branchKey).getConstructor(), someConPattern.getLevels(), arguments);
+              substExpr = FunCallExpression.make(((ArrayConstructor) branchKey).getConstructor(), Levels.EMPTY, arguments);
               conParameters = branchKey.getParameters(someConPattern);
             } else {
               throw new IllegalStateException();
@@ -1073,7 +1073,7 @@ public class ElimTypechecking {
                     length = length.normalize(NormalizationMode.WHNF);
                     if (length instanceof ReferenceExpression && ((ReferenceExpression) length).getBinding() == patternBinding) {
                       Expression elementsType = classCall.getImplementationHere(Prelude.ARRAY_ELEMENTS_TYPE, new ReferenceExpression(binding));
-                      newSubstitution.addSubst(binding, new FunCallExpression(Prelude.EMPTY_ARRAY, classCall.getLevels(), null, elementsType != null ? elementsType : FieldCallExpression.make(Prelude.ARRAY_ELEMENTS_TYPE, new ReferenceExpression(classCall.getThisBinding()))));
+                      newSubstitution.addSubst(binding, new FunCallExpression(Prelude.EMPTY_ARRAY, Levels.EMPTY, null, elementsType != null ? elementsType : FieldCallExpression.make(Prelude.ARRAY_ELEMENTS_TYPE, new ReferenceExpression(classCall.getThisBinding()))));
                     }
                   }
                 }

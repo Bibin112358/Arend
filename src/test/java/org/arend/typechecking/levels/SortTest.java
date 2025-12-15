@@ -7,6 +7,7 @@ import org.arend.core.expr.ExpressionFactory;
 import org.arend.core.expr.PiExpression;
 import org.arend.core.expr.UniverseExpression;
 import org.arend.core.sort.Sort;
+import org.arend.core.sort.SortExpression;
 import org.arend.typechecking.TypeCheckingTestCase;
 import org.junit.Test;
 
@@ -98,6 +99,17 @@ public class SortTest extends TypeCheckingTestCase {
         | 0 => A
         | suc _ => A
       """, 1);
+  }
+
+  @Test
+  public void functionTest4() {
+    typeCheckModule("""
+      \\record R (A : \\Sort) (a a' : A)
+      \\func test (A : \\Sort) (a : A) => R A a
+      """);
+    checkLevelParameters("R", "test");
+    FunctionDefinition function = (FunctionDefinition) getDefinition("test");
+    assertEquals(new UniverseExpression(new SortExpression.Var(0)), function.getResultType());
   }
 
   @Test

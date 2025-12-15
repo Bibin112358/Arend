@@ -8,6 +8,7 @@ import org.arend.core.definition.Definition;
 import org.arend.core.definition.FunctionDefinition;
 import org.arend.core.expr.*;
 import org.arend.core.subst.ExprSubstitution;
+import org.arend.core.subst.Levels;
 import org.arend.ext.core.body.CorePattern;
 import org.arend.ext.core.context.CoreBinding;
 import org.arend.ext.prettyprinting.PrettyPrinterConfig;
@@ -105,7 +106,7 @@ public abstract class ConstructorPattern<T> implements Pattern {
         Definition def = getDefinition();
         if (def == Prelude.EMPTY_ARRAY || def == Prelude.ARRAY_CONS) {
           Expression length = classCall.getAbsImplementationHere(Prelude.ARRAY_LENGTH);
-          return new ConstructorExpressionPattern(new FunCallExpression((DConstructor) def, classCall.getLevels(), length, classCall.getAbsImplementationHere(Prelude.ARRAY_ELEMENTS_TYPE)), classCall.getThisBinding(), length, Pattern.toExpressionPatterns(mySubPatterns, ((DConstructor) def).getArrayParameters(classCall)));
+          return new ConstructorExpressionPattern(new FunCallExpression((DConstructor) def, Levels.EMPTY, length, classCall.getAbsImplementationHere(Prelude.ARRAY_ELEMENTS_TYPE)), classCall.getThisBinding(), length, Pattern.toExpressionPatterns(mySubPatterns, ((DConstructor) def).getArrayParameters(classCall)));
         }
       }
 

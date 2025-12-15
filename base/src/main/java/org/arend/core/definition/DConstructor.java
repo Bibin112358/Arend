@@ -8,8 +8,8 @@ import org.arend.core.context.param.TypedSingleDependentLink;
 import org.arend.core.expr.*;
 import org.arend.core.pattern.ExpressionPattern;
 import org.arend.core.subst.ExprSubstitution;
-import org.arend.core.subst.LevelPair;
 import org.arend.core.subst.Levels;
+import org.arend.ext.core.level.LevelSubstitution;
 import org.arend.ext.core.ops.NormalizationMode;
 import org.arend.naming.reference.TCDefReferable;
 import org.arend.prelude.Prelude;
@@ -47,13 +47,13 @@ public class DConstructor extends FunctionDefinition {
     myPattern = pattern;
   }
 
-  public DependentLink getArrayParameters(LevelPair levels, Expression length, Binding thisBinding, Expression elementsType) {
+  public DependentLink getArrayParameters(Expression length, Binding thisBinding, Expression elementsType) {
     if (this == Prelude.EMPTY_ARRAY) {
-      return elementsType != null ? EmptyDependentLink.getInstance() : DependentLink.Helper.subst(getParameters(), new ExprSubstitution(thisBinding, new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, levels, new SingletonMap<>(Prelude.ARRAY_LENGTH, Zero()), UniverseKind.NO_UNIVERSES))), levels);
+      return elementsType != null ? EmptyDependentLink.getInstance() : DependentLink.Helper.subst(getParameters(), new ExprSubstitution(thisBinding, new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, new SingletonMap<>(Prelude.ARRAY_LENGTH, Zero()), UniverseKind.NO_UNIVERSES))), LevelSubstitution.EMPTY);
     }
 
     if ((elementsType == null || thisBinding == null) && length == null) {
-      return levels.isEmpty() ? getParameters() : DependentLink.Helper.subst(getParameters(), new ExprSubstitution(), levels);
+      return getParameters();
     }
 
     if (length != null) {
@@ -61,7 +61,7 @@ public class DConstructor extends FunctionDefinition {
       if (elementsType != null) {
         substitution.add(getParameters().getNext(), elementsType);
       }
-      return DependentLink.Helper.subst(elementsType == null ? getParameters().getNext() : getParameters().getNext().getNext(), substitution, levels);
+      return DependentLink.Helper.subst(elementsType == null ? getParameters().getNext() : getParameters().getNext().getNext(), substitution, LevelSubstitution.EMPTY);
     }
 
     TypedDependentLink nat = new TypedDependentLink(false, "n", DataCallExpression.make(Prelude.NAT, Levels.EMPTY, Collections.emptyList()), EmptyDependentLink.getInstance());
@@ -69,16 +69,16 @@ public class DConstructor extends FunctionDefinition {
     Map<ClassField, Expression> impls = new LinkedHashMap<>();
     impls.put(Prelude.ARRAY_LENGTH, natRef);
     impls.put(Prelude.ARRAY_ELEMENTS_TYPE, elementsType);
-    Expression newElementsType = elementsType.subst(thisBinding, new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, levels, impls, UniverseKind.ONLY_COVARIANT)));
+    Expression newElementsType = elementsType.subst(thisBinding, new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, impls, UniverseKind.ONLY_COVARIANT)));
     TypedSingleDependentLink lamParam = new TypedSingleDependentLink(true, "j", DataCallExpression.make(Prelude.FIN, Levels.EMPTY, new SingletonList<>(natRef)));
     impls.put(Prelude.ARRAY_ELEMENTS_TYPE, new LamExpression(lamParam, AppExpression.make(newElementsType, Suc(new ReferenceExpression(lamParam)), true)));
-    nat.setNext(new TypedDependentLink(true, "a", AppExpression.make(newElementsType, Zero(), true), new TypedDependentLink(true, "l", new ClassCallExpression(Prelude.DEP_ARRAY, levels, impls, UniverseKind.NO_UNIVERSES), EmptyDependentLink.getInstance())));
+    nat.setNext(new TypedDependentLink(true, "a", AppExpression.make(newElementsType, Zero(), true), new TypedDependentLink(true, "l", new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, impls, UniverseKind.NO_UNIVERSES), EmptyDependentLink.getInstance())));
     return nat;
   }
 
   public DependentLink getArrayParameters(ClassCallExpression type) {
     Expression length = type.getAbsImplementationHere(Prelude.ARRAY_LENGTH);
     length = length == null || this == Prelude.EMPTY_ARRAY ? null : length.normalize(NormalizationMode.WHNF).pred();
-    return getArrayParameters(type.getLevels().toLevelPair(), length, type.getThisBinding(), type.getAbsImplementationHere(Prelude.ARRAY_ELEMENTS_TYPE));
+    return getArrayParameters(length, type.getThisBinding(), type.getAbsImplementationHere(Prelude.ARRAY_ELEMENTS_TYPE));
   }
 }

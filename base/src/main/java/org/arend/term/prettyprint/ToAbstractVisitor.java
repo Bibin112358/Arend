@@ -545,7 +545,7 @@ public class ToAbstractVisitor extends BaseExpressionVisitor<Void, Concrete.Expr
           if (at != null) {
             args.add(new Concrete.Argument(convertExpr(at), true));
           }
-          return Concrete.AppExpression.make(expr, makeReference(FunCallExpression.makeFunCall(Prelude.ARRAY, expr.getLevels(), Collections.emptyList())), args);
+          return Concrete.AppExpression.make(expr, makeReference(FunCallExpression.makeFunCall(Prelude.ARRAY, Levels.EMPTY, Collections.emptyList())), args);
         }
       }
     }
