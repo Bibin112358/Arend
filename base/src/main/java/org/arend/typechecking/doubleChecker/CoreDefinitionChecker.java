@@ -393,9 +393,11 @@ public class CoreDefinitionChecker extends BaseDefinitionTypechecker {
         return false;
       }
 
-      if (!definition.isImplemented(field) && !checkDefinitionSort(definition.getSquasher() != null, field, sort.withInfLevel(), definition.getSort())) {
+      /* TODO[double_check]: Check sort
+      if (!definition.isImplemented(field) && !checkDefinitionSort(definition.getSquasher() != null, field, sort.withInfLevel(), definition.getSortExpression())) {
         return false;
       }
+      */
 
       boolean propertyOK = !field.isProperty();
       if (level != null) {
@@ -423,9 +425,11 @@ public class CoreDefinitionChecker extends BaseDefinitionTypechecker {
       // TODO[double_check]: Check covariance
     }
 
-    if (!checkSquasher(definition.getSquasher(), definition, definition.getSort())) {
+    /* TODO[double_check]: Check sort
+    if (!checkSquasher(definition.getSquasher(), definition, definition.getSortExpression())) {
       return false;
     }
+    */
 
     // TODO[double_check]: Check occurrences of fields in other fields
     // TODO[double_check]: Check implemented

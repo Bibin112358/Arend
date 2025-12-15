@@ -6,6 +6,7 @@ import org.arend.core.expr.*;
 import org.arend.core.expr.visitor.FindBindingVisitor;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
+import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.ExprSubstitution;
 import org.arend.core.subst.Levels;
 import org.arend.core.subst.SubstVisitor;
@@ -34,7 +35,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
   private final Map<ClassField, Pair<PiExpression,ClassDefinition>> myOverridden = new HashMap<>();
   private final Set<ClassField> myCovariantFields = new HashSet<>();
   private ClassField myCoercingField;
-  private Sort mySort = Sort.PROP;
+  private SortExpression mySort = new SortExpression.Const(Sort.PROP); // TODO[sorts]: Delete this?
   private boolean myRecord = false;
   private final CoerceData myCoerce = new CoerceData(this);
   private Set<ClassField> myGoodThisFields = Collections.emptySet();
@@ -174,47 +175,53 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     return null;
   }
 
-  public Sort computeSort(Map<ClassField,Expression> implemented, Binding thisBinding) {
+  public SortExpression computeSort(Map<ClassField,Expression> implemented, Binding thisBinding, LevelSubstitution levelSubstitution) {
+    Levels idLevels = makeIdLevels();
+    Expression thisExpr = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, idLevels)));
     Integer hLevel = getUseLevel(implemented, thisBinding, true);
     if (hLevel != null && hLevel == -1) {
-      return Sort.PROP;
+      return new SortExpression.Const(Sort.PROP);
     }
 
-    Levels levels = makeIdLevels();
-    ReferenceExpression thisExpr = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, levels, Collections.emptyMap(), getUniverseKind())));
-    Sort sort = Sort.PROP;
-
+    List<SortExpression> sorts = new ArrayList<>();
     for (ClassField field : myNotImplementedFields) {
-      if (implemented.containsKey(field)) {
-        continue;
-      }
-
-      PiExpression fieldType = getFieldType(field, castLevels(field.getParentClass(), levels));
-      if (fieldType.getCodomain().isInstance(ErrorExpression.class)) {
-        continue;
-      }
-
-      Expression type = fieldType.applyExpression(thisExpr).normalize(NormalizationMode.WHNF).getType();
-      Sort sort1 = type == null ? null : type.toSort();
-      if (sort1 != null) {
-        sort = sort.max(sort1);
+      if (implemented.containsKey(field)) continue;
+      Expression fieldType = getFieldType(field, castLevels(field.getParentClass(), idLevels), thisExpr).normalize(NormalizationMode.WHNF);
+      if (!fieldType.isInstance(ErrorExpression.class)) {
+        SortExpression fieldSort = fieldType.getSortExpressionOfType();
+        if (fieldSort == null) {
+          return null;
+        }
+        sorts.add(fieldSort.subst(false, Collections.emptyList(), implemented, levelSubstitution));
       }
     }
 
-    return hLevel == null ? sort : new Sort(sort.getPLevel(), new Level(hLevel));
+    SortExpression sort = SortExpression.makeMax(sorts);
+    if (hLevel != null) {
+      Sort infSort = sort.withInfLevel();
+      if (!infSort.getHLevel().isClosed() || infSort.getHLevel().getConstant() > hLevel) {
+        sort = new SortExpression.Const(new Sort(infSort.getPLevel(), new Level(hLevel)));
+      }
+    }
+
+    return sort;
   }
 
   public void updateSort() {
-    mySort = computeSort(Collections.emptyMap(), null);
+    mySort = computeSort(Collections.emptyMap(), null, LevelSubstitution.EMPTY);
   }
 
   @NotNull
   @Override
-  public Sort getSort() {
+  public SortExpression getSortExpression() {
     return mySort;
   }
 
-  public void setSort(Sort sort) {
+  public @Nullable Sort getSort() {
+    return mySort instanceof SortExpression.Const(Sort sort) ? sort : null;
+  }
+
+  public void setSortExpression(SortExpression sort) {
     mySort = sort;
   }
 

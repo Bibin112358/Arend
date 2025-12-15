@@ -302,36 +302,8 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
 
   @Override
   public Expression visitClassCall(ClassCallExpression expr, Void params) {
-    ClassDefinition classDef = expr.getDefinition();
-    Levels idLevels = classDef.makeIdLevels();
-    Expression thisExpr = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(classDef, idLevels)));
-    Integer hLevel = classDef.getUseLevel(expr.getImplementedHere(), expr.getThisBinding(), true);
-    if (hLevel != null && hLevel == -1) {
-      return new UniverseExpression(Sort.PROP);
-    }
-
-    List<SortExpression> sorts = new ArrayList<>();
-    for (ClassField field : classDef.getNotImplementedFields()) {
-      if (expr.isImplementedHere(field)) continue;
-      Expression fieldType = classDef.getFieldType(field, classDef.castLevels(field.getParentClass(), idLevels), thisExpr).normalize(NormalizationMode.WHNF);
-      if (!fieldType.isInstance(ErrorExpression.class)) {
-        SortExpression fieldSort = fieldType.getSortExpressionOfType();
-        if (fieldSort == null) {
-          return new ErrorExpression();
-        }
-        sorts.add(fieldSort.subst(false, Collections.emptyList(), expr.getImplementedHere(), expr.getLevelSubstitution()));
-      }
-    }
-
-    SortExpression sort = SortExpression.makeMax(sorts);
-    if (hLevel != null) {
-      Sort infSort = sort.withInfLevel();
-      if (!infSort.getHLevel().isClosed() || infSort.getHLevel().getConstant() > hLevel) {
-        sort = new SortExpression.Const(new Sort(infSort.getPLevel(), new Level(hLevel)));
-      }
-    }
-
-    return new UniverseExpression(sort);
+    SortExpression sort = expr.getDefinition().computeSort(expr.getImplementedHere(), expr.getThisBinding(), expr.getLevelSubstitution());
+    return sort == null ? new ErrorExpression() : new UniverseExpression(sort);
   }
 
   @Override

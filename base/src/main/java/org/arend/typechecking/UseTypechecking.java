@@ -270,7 +270,7 @@ public class UseTypechecking {
       ClassDefinition.ParametersLevel classParametersLevel = (ClassDefinition.ParametersLevel) parametersLevel;
       if (classParametersLevel.fields == null) {
         classDef.setSquasher(useDefinition);
-        classDef.setSort(parametersLevel.level == -1 ? Sort.PROP : new Sort(classDef.getSort().getPLevel(), new Level(parametersLevel.level)));
+        classDef.setSortExpression(new SortExpression.Const(parametersLevel.level == -1 ? Sort.PROP : new Sort(classDef.getSortExpression().withInfLevel().getPLevel(), new Level(parametersLevel.level))));
       } else {
         classDef.addParametersLevel(classParametersLevel);
       }

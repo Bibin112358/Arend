@@ -167,7 +167,7 @@ public class DefinitionDeserialization implements ArendDeserializer {
     for (Integer fieldRef : classProto.getOmegaFieldList()) {
       classDef.addOmegaField(myCallTargetProvider.getCallTarget(fieldRef, ClassField.class));
     }
-    classDef.setSort(defDeserializer.readSort(classProto.getSort()));
+    // classDef.setSort(defDeserializer.readSort(classProto.getSort()));
 
     for (int superClassRef : classProto.getSuperClassRefList()) {
       ClassDefinition superClass = myCallTargetProvider.getCallTarget(superClassRef, ClassDefinition.class);

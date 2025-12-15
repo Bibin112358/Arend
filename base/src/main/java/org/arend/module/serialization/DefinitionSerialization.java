@@ -178,7 +178,7 @@ public class DefinitionSerialization implements ArendSerializer {
     for (ClassField field : definition.getOmegaFields()) {
       builder.addOmegaField(myCallTargetIndexProvider.getDefIndex(field));
     }
-    builder.setSort(defSerializer.writeSort(definition.getSort()));
+    // builder.setSort(defSerializer.writeSort(definition.getSortExpression()));
 
     for (ClassDefinition classDefinition : definition.getSuperClasses()) {
       builder.addSuperClassRef(myCallTargetIndexProvider.getDefIndex(classDefinition));
