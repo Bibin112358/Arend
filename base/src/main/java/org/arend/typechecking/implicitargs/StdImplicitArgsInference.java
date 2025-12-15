@@ -137,6 +137,10 @@ public class StdImplicitArgsInference implements ImplicitArgsInference {
           definition = null;
         }
         infVar = new FunctionInferenceVariable(definition, parameter, i + 1, type, expr, myVisitor.getAllBindings());
+        Expression newType = type.replaceInfinityLevel(infVar);
+        if (newType != null) {
+          infVar.setType(newType);
+        }
       }
 
       Expression argument;

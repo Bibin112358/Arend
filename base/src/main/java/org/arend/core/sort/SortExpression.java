@@ -2,6 +2,7 @@ package org.arend.core.sort;
 
 import org.arend.core.context.binding.LevelVariable;
 import org.arend.core.context.binding.inference.InferenceLevelVariable;
+import org.arend.core.context.binding.inference.InferenceVariable;
 import org.arend.core.definition.ClassField;
 import org.arend.core.expr.Expression;
 import org.arend.core.expr.PiExpression;
@@ -19,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import java.math.BigInteger;
 import java.util.*;
 
-public sealed interface SortExpression extends CoreSortExpression permits SortExpression.Const, SortExpression.Field, SortExpression.Max, SortExpression.Pi, SortExpression.Prev, SortExpression.Succ, SortExpression.Var {
+public sealed interface SortExpression extends CoreSortExpression permits SortExpression.Const, SortExpression.Field, SortExpression.InfVar, SortExpression.Max, SortExpression.Pi, SortExpression.Prev, SortExpression.Succ, SortExpression.Var {
   @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull Map<? extends ClassField, ? extends Expression> fields, @NotNull LevelSubstitution substitution);
   @NotNull Sort withInfLevel();
 
@@ -131,6 +132,36 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     @Override
     public @NotNull Sort withInfLevel() {
       return Sort.INFINITY;
+    }
+  }
+
+  final class InfVar implements SortExpression {
+    private final InferenceVariable variable;
+    private SortExpression sort;
+
+    public InfVar(InferenceVariable variable) {
+      this.variable = variable;
+    }
+
+    private void checkIfSolved() {
+      if (sort == null) {
+        Expression expr = variable.getSolution();
+        sort = expr.getSortExpressionOfType();
+        if (sort == null) {
+          sort = this;
+        }
+      }
+    }
+
+    @Override
+    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull Map<? extends ClassField, ? extends Expression> fields, @NotNull LevelSubstitution substitution) {
+      return sort == null || sort == this ? this : sort.subst(isType, arguments, fields, substitution);
+    }
+
+    @Override
+    public @NotNull Sort withInfLevel() {
+      checkIfSolved();
+      return sort == null || sort == this ? Sort.INFINITY : sort.withInfLevel();
     }
   }
 

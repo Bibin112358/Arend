@@ -170,4 +170,12 @@ public class SortTest extends TypeCheckingTestCase {
       \\func test (x : R Nat) => x.b
       """);
   }
+
+  @Test
+  public void inferenceTest() {
+    typeCheckModule("""
+      \\func foo {A : \\Prop} (a a' : A) => 0
+      \\func test : 0 = 0 -> Nat => foo idp
+      """);
+  }
 }

@@ -641,6 +641,10 @@ public abstract class Expression implements Body, CoreExpression {
     return expr instanceof UniverseExpression universe && universe.getSortExpression() instanceof SortExpression.Const(Sort sort) && sort.getPLevel().isInfinity();
   }
 
+  public Expression replaceInfinityLevel(InferenceVariable variable) {
+    return this;
+  }
+
   public Expression applyExpression(Expression expression) {
     return applyExpression(expression, true);
   }

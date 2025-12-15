@@ -1,5 +1,6 @@
 package org.arend.core.expr;
 
+import org.arend.core.context.binding.inference.InferenceVariable;
 import org.arend.core.expr.visitor.ExpressionVisitor;
 import org.arend.core.expr.visitor.ExpressionVisitor2;
 import org.arend.core.sort.Sort;
@@ -42,6 +43,11 @@ public class UniverseExpression extends Expression implements CoreUniverseExpres
   @Override
   public SortExpression getSortExpression() {
     return mySortExpression;
+  }
+
+  @Override
+  public Expression replaceInfinityLevel(InferenceVariable variable) {
+    return mySortExpression instanceof SortExpression.Const(Sort sort) && sort.getPLevel().isInfinity() ? new UniverseExpression(new SortExpression.InfVar(variable)) : null;
   }
 
   @Override
