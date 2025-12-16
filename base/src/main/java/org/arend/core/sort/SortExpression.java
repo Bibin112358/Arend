@@ -88,7 +88,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
   record Var(int index) implements SortExpression {
     private static SortExpression getCodomainSort(Expression arg) {
       if (arg == null) return new Const(Sort.INFINITY);
-      arg = arg.getType().normalize(NormalizationMode.WHNF);
+      arg = arg.normalize(NormalizationMode.WHNF).getType().normalize(NormalizationMode.WHNF);
       while (arg instanceof PiExpression piExpr) {
         arg = piExpr.getCodomain().normalize(NormalizationMode.WHNF);
       }

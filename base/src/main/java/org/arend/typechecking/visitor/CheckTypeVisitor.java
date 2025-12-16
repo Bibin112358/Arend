@@ -1588,7 +1588,12 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
     resultClassCall.fixOrderOfImplementations();
     resultClassCall.updateHasUniverses();
-    return checkResult(expectedType, new TypecheckingResult(resultClassCall, new UniverseExpression(resultClassCall.getSortExpressionOfType())), expr);
+    SortExpression sort = resultClassCall.getSortExpressionOfType();
+    if (sort == null) {
+      errorReporter.report(new TypecheckingError("Cannot infer the sort of the class extension", expr));
+      return null;
+    }
+    return checkResult(expectedType, new TypecheckingResult(resultClassCall, new UniverseExpression(sort)), expr);
   }
 
   static void setCaseLevel(Concrete.Expression expr, int level, boolean setSCase) {

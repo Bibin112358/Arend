@@ -177,7 +177,8 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
 
   public SortExpression computeSort(Map<ClassField,Expression> implemented, Binding thisBinding, LevelSubstitution levelSubstitution) {
     Levels idLevels = makeIdLevels();
-    Expression thisExpr = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, idLevels)));
+    Expression thisExpr1 = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, idLevels, implemented, myBaseUniverseKind)));
+    Expression thisExpr2 = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, idLevels)));
     Integer hLevel = getUseLevel(implemented, thisBinding, true);
     if (hLevel != null && hLevel == -1) {
       return new SortExpression.Const(Sort.PROP);
@@ -186,11 +187,14 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     List<SortExpression> sorts = new ArrayList<>();
     for (ClassField field : myNotImplementedFields) {
       if (implemented.containsKey(field)) continue;
-      Expression fieldType = getFieldType(field, castLevels(field.getParentClass(), idLevels), thisExpr).normalize(NormalizationMode.WHNF);
+      Expression fieldType = getFieldType(field, castLevels(field.getParentClass(), idLevels), thisExpr1).normalize(NormalizationMode.WHNF);
       if (!fieldType.isInstance(ErrorExpression.class)) {
         SortExpression fieldSort = fieldType.getSortExpressionOfType();
         if (fieldSort == null) {
-          return null;
+          fieldSort = getFieldType(field, castLevels(field.getParentClass(), idLevels), thisExpr2).normalize(NormalizationMode.WHNF).getSortExpressionOfType();
+          if (fieldSort == null) {
+            return null;
+          }
         }
         sorts.add(fieldSort.subst(false, Collections.emptyList(), implemented, levelSubstitution));
       }
