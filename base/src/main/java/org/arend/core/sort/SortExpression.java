@@ -146,9 +146,11 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     private void checkIfSolved() {
       if (sort == null) {
         Expression expr = variable.getSolution();
-        sort = expr.getSortExpressionOfType();
-        if (sort == null) {
-          sort = this;
+        if (expr != null) {
+          sort = expr.getSortExpressionOfType();
+          if (sort == null) {
+            sort = this;
+          }
         }
       }
     }

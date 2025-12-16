@@ -271,6 +271,12 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
       type = type.normalize(NormalizationMode.WHNF);
     }
     if (type instanceof ClassCallExpression classCall && classCall.getDefinition().isSubClassOf(expr.getDefinition().getParentClass())) {
+      if (expr.getDefinition().getType().isInfinityLevel()) {
+        Expression normExpr = NormalizeVisitor.INSTANCE.evalFieldCall(expr.getDefinition(), expr.getArgument());
+        if (normExpr != null) {
+          return normExpr.accept(this, null);
+        }
+      }
       return getFieldCallType(expr.getDefinition(), classCall, expr.getArgument());
     }
     return new ErrorExpression();
