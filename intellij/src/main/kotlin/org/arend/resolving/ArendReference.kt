@@ -46,7 +46,7 @@ abstract class ArendReferenceBase<T : ArendReferenceElement>(element: T, range: 
                 is ArendFile -> {
                     if (!ref.isValid || ref.project.isDisposed) null else
                         LookupElementBuilder
-                            .create((origElement as? ModuleReferable)?.path?.lastName ?: ref.name.removeSuffix(FileUtils.EXTENSION))
+                            .create(ref.referable, (origElement as? ModuleReferable)?.path?.lastName ?: ref.name.removeSuffix(FileUtils.EXTENSION))
                             .withIcon(ArendIcons.AREND_FILE)
                 }
                 is PsiNamedElement -> {
@@ -59,7 +59,7 @@ abstract class ArendReferenceBase<T : ArendReferenceElement>(element: T, range: 
                         val elementName = origElement?.refName ?: ref.name ?: ""
                         val lookupString = lookup ?: (elementName + aliasString)
                         // Prefer creating by string, then attach metadata to avoid ensureValid() on disposed project
-                        var builder = LookupElementBuilder.create(lookupString).withIcon(ref.getIcon(0))
+                        var builder = LookupElementBuilder.create((ref as? PsiLocatedReferable) ?: lookupString, lookupString).withIcon(ref.getIcon(0))
                         if (fullName) {
                             builder = builder.withPresentableText(((ref as? PsiLocatedReferable)?.fullNameText ?: elementName) + aliasString)
                         }
@@ -100,7 +100,9 @@ abstract class ArendReferenceBase<T : ArendReferenceElement>(element: T, range: 
                             }
                         }
                     }
-                    val result = LookupElementBuilder.create(if (ref is FullModuleReferable) ModuleReferable(ref.location.modulePath) else ref, ref.path.lastName)
+                    val result = LookupElementBuilder.create(
+                        if (ref is FullModuleReferable) ModuleReferable(ref.location.modulePath) else ref,
+                        ref.path.lastName)
                     when {
                         (module as? PsiFileSystemItem)?.isDirectory == true -> result.withIcon(ArendIcons.DIRECTORY)
                         module is ArendFile || module is FullModuleReferable -> result.withIcon(ArendIcons.AREND_FILE)
