@@ -1,14 +1,16 @@
 package org.arend.ui
 
-import com.intellij.notification.Notifications
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.ui.MessageType
-import com.intellij.openapi.updateSettings.impl.pluginsAdvertisement.notificationGroup
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.ui.*
 import com.intellij.ui.components.JBList
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridLayoutManager
 import org.arend.ArendIcons
+import org.arend.library.LibraryDependency
+import org.arend.module.AREND_LIB
+import org.arend.module.config.ExternalLibraryConfig
+import org.arend.util.findExternalLibrary
 import java.awt.Component
 import java.awt.Dimension
 import javax.swing.*
@@ -27,7 +29,13 @@ open class DualList<T : Comparable<T>>(module: Module, availableText: String, se
         override fun customizeCellRenderer(list: JList<out T>, value: T?, index: Int, selected: Boolean, hasFocus: Boolean) {
             if (value != null && isValueExists(value)) {
                 icon = getIcon(value)
-                append(value.toString(), if (isOK(value)) SimpleTextAttributes.REGULAR_ATTRIBUTES else SimpleTextAttributes.ERROR_ATTRIBUTES, true)
+                val fragment = value.toString() + if ((value as? LibraryDependency)?.name == AREND_LIB) {
+                    val version = (ProjectManager.getInstance().defaultProject.findExternalLibrary(AREND_LIB) as? ExternalLibraryConfig)?.version
+                    " ($version)"
+                } else {
+                    ""
+                }
+                append(fragment, if (isOK(value)) SimpleTextAttributes.REGULAR_ATTRIBUTES else SimpleTextAttributes.ERROR_ATTRIBUTES, true)
             }
         }
     }
