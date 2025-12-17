@@ -67,6 +67,11 @@ public class DummyEquations implements Equations {
   }
 
   @Override
+  public boolean isUniverseVariable(InferenceVariable var) {
+    return false;
+  }
+
+  @Override
   public Boolean solveInstance(TypeClassInferenceVariable variable, FieldCallExpression fieldCall, Expression expr) {
     return null;
   }

@@ -14,7 +14,7 @@
 \func transport2 {A B : \Type} (C : A -> B -> \Type) {a a' : A} {b b' : B} (p : a = a') (q : b = b') (c : C a b) : C a' b' \elim p, q
   | idp, idp => c
 
-\func inv {A : \Type} {a a' : A} (p : a = a') : a' = a \elim p
+\func inv {A : \Sort} {a a' : A} (p : a = a') : a' = a \elim p
   | idp => idp
 
 \func \infixr 9 *> {A : \Type} {a a' a'' : A} (p : a = a') (q : a' = a'') : a = a'' \elim q

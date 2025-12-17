@@ -433,4 +433,12 @@ public class CoerceTest extends TypeCheckingTestCase {
       \\func test (s : S) : D => s
       """);
   }
+
+  @Test
+  public void coerceTypeTest() {
+    typeCheckModule("""
+      \\class R (E : \\Set0)
+      \\func test (X : R) => Nat = X
+      """);
+  }
 }

@@ -75,6 +75,11 @@ public class LevelEquationsWrapper implements Equations {
   }
 
   @Override
+  public boolean isUniverseVariable(InferenceVariable var) {
+    return myEquations.isUniverseVariable(var);
+  }
+
+  @Override
   public Boolean solveInstance(TypeClassInferenceVariable variable, FieldCallExpression fieldCall, Expression expr) {
     return myEquations.solveInstance(variable, fieldCall, expr);
   }

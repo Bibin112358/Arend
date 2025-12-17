@@ -25,6 +25,7 @@ public interface Equations {
   boolean addVariable(InferenceLevelVariable var);
   void bindVariables(InferenceLevelVariable pVar, InferenceLevelVariable hVar);
   boolean remove(Equation equation);
+  boolean isUniverseVariable(InferenceVariable var);
   Boolean solveInstance(TypeClassInferenceVariable variable, FieldCallExpression fieldCall, Expression expr);
   void solveEquations();
   LevelEquationsSolver makeLevelEquationsSolver();

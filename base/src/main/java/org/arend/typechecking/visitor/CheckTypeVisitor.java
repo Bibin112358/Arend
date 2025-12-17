@@ -546,9 +546,16 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       return checkResultExpr(expectedType, result, expr);
     }
 
-    TypecheckingResult coercedResult = CoerceData.coerce(result, expectedType, expr, this);
-    if (coercedResult != null) {
-      return (TypecheckingResult) myArgsInference.inferTail(coercedResult, expectedType, expr);
+    Expression expectedType1 = expectedType.getUnderlyingExpression();
+    while (expectedType1 instanceof SubstExpression subst) {
+      expectedType1 = subst.getExpression();
+    }
+    Expression toCoerce = expectedType1 instanceof InferenceReferenceExpression infExpr ? (myEquations.isUniverseVariable(infExpr.getVariable()) ? UniverseExpression.OMEGA : null) : expectedType;
+    if (toCoerce != null) {
+      TypecheckingResult coercedResult = CoerceData.coerce(result, toCoerce, expr, this);
+      if (coercedResult != null) {
+        return (TypecheckingResult) myArgsInference.inferTail(coercedResult, expectedType, expr);
+      }
     }
 
     return isOmega ? result : checkResultExpr(expectedType, result, expr);

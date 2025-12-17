@@ -475,4 +475,9 @@ public class InferLevelTest extends TypeCheckingTestCase {
       \\func test => R \\levels 1 1
       """);
   }
+
+  @Test
+  public void commonLevelTest() {
+    typeCheckDef("\\func test (A : \\1-Type1) (B : \\2-Type2) => A = B");
+  }
 }

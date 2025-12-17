@@ -190,7 +190,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
       Expression fieldType = getFieldType(field, castLevels(field.getParentClass(), idLevels), thisExpr1).normalize(NormalizationMode.WHNF);
       if (!fieldType.isInstance(ErrorExpression.class)) {
         SortExpression fieldSort = fieldType.getSortExpressionOfType();
-        if (fieldSort == null) {
+        if (fieldSort == null || fieldSort instanceof SortExpression.Const(Sort sort) && sort.isOmega()) {
           fieldSort = getFieldType(field, castLevels(field.getParentClass(), idLevels), thisExpr2).normalize(NormalizationMode.WHNF).getSortExpressionOfType();
           if (fieldSort == null) {
             return null;
