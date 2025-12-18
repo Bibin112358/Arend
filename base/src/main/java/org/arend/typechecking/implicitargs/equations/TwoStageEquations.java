@@ -824,9 +824,15 @@ public class TwoStageEquations implements Equations {
               if (other != null) {
                 Expression expr = entry.getValue().subst(solution.getThisBinding(), new ReferenceExpression(bound.getThisBinding())).normalize(NormalizationMode.WHNF);
                 other = other.normalize(NormalizationMode.WHNF);
-                Expression type = expr.getType();
-                CompareVisitor cmpVisitor = new CompareVisitor(wrapper, CMP.EQ, pair.proj1.getSourceNode());
-                remove = !cmpVisitor.compare(type, other.getType(), UniverseExpression.OMEGA, false) || !cmpVisitor.normalizedCompare(expr, other, type, true);
+                if (expr instanceof InferenceReferenceExpression infRef) {
+                  remove = !solve(infRef.getVariable(), other);
+                } else if (other instanceof InferenceReferenceExpression infRef) {
+                  remove = !solve(infRef.getVariable(), expr);
+                } else {
+                  Expression type = expr.getType();
+                  CompareVisitor cmpVisitor = new CompareVisitor(wrapper, CMP.EQ, pair.proj1.getSourceNode());
+                  remove = !cmpVisitor.compare(type, other.getType(), UniverseExpression.OMEGA, false) || !cmpVisitor.normalizedCompare(expr, other, type, true);
+                }
               }
             }
             if (remove) {
