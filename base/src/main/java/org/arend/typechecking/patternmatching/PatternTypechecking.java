@@ -561,6 +561,10 @@ public class PatternTypechecking {
       }
 
       Expression expr = parameters.getType().subst(paramsSubst).normalize(NormalizationMode.WHNF);
+      if (expr instanceof ClassCallExpression classCall && classCall.getDefinition() == Prelude.DEP_ARRAY && !classCall.isImplemented(Prelude.ARRAY_ELEMENTS_TYPE)) {
+        myErrorReporter.report(new TypecheckingError("The type of elements of the array must be specified", pattern));
+        return null;
+      }
 
       if (pattern instanceof Concrete.NumberPattern) {
         var newPattern = translateNumberPatterns((Concrete.NumberPattern) pattern, expr);
