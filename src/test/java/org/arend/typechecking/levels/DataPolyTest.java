@@ -140,8 +140,15 @@ public class DataPolyTest extends TypeCheckingTestCase {
   @Test
   public void recursiveDataWithTuple() {
     typeCheckModule(
-      "\\record R (A : \\Sigma \\Type \\Type)\n" +
-      "\\data D | con (R (\\Sigma,D)) | con2 (R (D,\\Sigma))");
+      "\\record R (A : \\Sigma (\\hType 0) (\\hType 0))\n" +
+      "\\data D | con (R (\\Sigma,D)) | con2 (R (D,\\Sigma))", 2);
+  }
+
+  @Test
+  public void recursiveDataWithTuple2() {
+    typeCheckModule(
+      "\\record R \\plevels p (A : \\Sigma (\\Type p) (\\Type p))\n" +
+      "\\data D | con (R (\\Sigma,D)) | con2 (R (D,\\Sigma))", 2);
   }
 
   @Test

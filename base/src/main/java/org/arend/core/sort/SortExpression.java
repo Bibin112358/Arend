@@ -52,16 +52,31 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
   }
 
   static boolean compare(SortExpression sortExpr1, SortExpression sortExpr2, CMP cmp, Equations equations, Concrete.SourceNode sourceNode) {
-    if (sortExpr1 instanceof SortExpression.Const(Sort sort1) && (cmp == CMP.LE && sort1.isProp() || cmp == CMP.GE && sort1.isOmega()) || sortExpr2 instanceof SortExpression.Const(Sort sort2) && (cmp == CMP.LE && sort2.isOmega() || cmp == CMP.GE && sort2.isProp()) || (sortExpr1 instanceof SortExpression.Field || sortExpr1 instanceof SortExpression.Var) && cmp == CMP.GE || (sortExpr2 instanceof SortExpression.Field || sortExpr2 instanceof SortExpression.Var) && cmp == CMP.LE) {
+    if (sortExpr1 instanceof Const(Sort sort1) && (cmp == CMP.LE && sort1.isProp() || cmp == CMP.GE && sort1.isOmega()) || sortExpr2 instanceof Const(Sort sort2) && (cmp == CMP.LE && sort2.isOmega() || cmp == CMP.GE && sort2.isProp()) || (sortExpr1 instanceof Field || sortExpr1 instanceof Var) && cmp == CMP.GE || (sortExpr2 instanceof Field || sortExpr2 instanceof Var) && cmp == CMP.LE) {
       return true;
     }
 
-    return switch (sortExpr1) {
-      case Const(Sort sort1) when sortExpr2 instanceof Const(Sort sort2) -> Sort.compare(sort1, sort2, cmp, equations, sourceNode);
-      case Var(int index1) when sortExpr2 instanceof Var(int index2) -> index1 == index2;
-      case Field(FieldReferableImpl field1) when sortExpr2 instanceof Field(FieldReferableImpl field2) -> field1.equals(field2);
-      case null, default -> equations.addEquation(sortExpr1, sortExpr2, cmp, sourceNode);
-    };
+    switch (sortExpr1) {
+      case Const(Sort sort1) when sortExpr2 instanceof Const(Sort sort2) -> {
+        return Sort.compare(sort1, sort2, cmp, equations, sourceNode);
+      }
+      case Var(int index1) -> {
+        if (sortExpr2 instanceof Var(int index2)) {
+          return index1 == index2;
+        } else if (sortExpr2 instanceof Const(Sort sort2) && sort2.getPLevel().isClosed() && sort2.getHLevel().isClosed()) {
+          return sort2.getPLevel().isInfinity() && sort2.getHLevel().isInfinity();
+        }
+      }
+      case Field(FieldReferableImpl field1) -> {
+        if (sortExpr2 instanceof Field(FieldReferableImpl field2)) {
+          return field1.equals(field2);
+        } else if (sortExpr2 instanceof Const(Sort sort2) && sort2.getPLevel().isClosed() && sort2.getHLevel().isClosed()) {
+          return sort2.getPLevel().isInfinity() && sort2.getHLevel().isInfinity();
+        }
+      }
+      default -> {}
+    }
+    return equations.addEquation(sortExpr1, sortExpr2, cmp, sourceNode);
   }
 
   record Const(@NotNull Sort sort) implements SortExpression, ConstSortExpression {
