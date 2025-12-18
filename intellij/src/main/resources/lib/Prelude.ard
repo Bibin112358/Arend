@@ -27,14 +27,14 @@
   | _, left => a
   | _, right => a'
 
-\func coe (A : I -> \Type) (a : A left) (i : I) : A i \elim i
+\func coe (A : I -> \Sort) (a : A left) (i : I) : A i \elim i
   | left => a
 
-\func coe2 (A : I -> \Type) (i : I) (a : A i) (j : I) : A j \elim i, j
+\func coe2 (A : I -> \Sort) (i : I) (a : A i) (j : I) : A j \elim i, j
   | left, j => coe A a j
   | i, right => coe (\lam k => A (I.squeezeR i k)) a right
 
-\func iso {A B : \Type} (f : A -> B) (g : B -> A) (p : \Pi (x : A) -> g (f x) = x) (q : \Pi (y : B) -> f (g y) = y) (i : I) : \Type \elim i
+\func iso {A B : \Sort} (f : A -> B) (g : B -> A) (p : \Pi (x : A) -> g (f x) = x) (q : \Pi (y : B) -> f (g y) = y) (i : I) : \Sort \elim i
   | left => A
   | right => B
 

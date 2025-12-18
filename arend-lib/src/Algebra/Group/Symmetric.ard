@@ -14,7 +14,7 @@
 \import Data.Or
 \import Equiv
 \import Equiv.Sigma
-\import Equiv.Univalence
+\import Equiv.Univalence.Set
 \import Function
 \import Function.Meta
 \import Logic.Unique

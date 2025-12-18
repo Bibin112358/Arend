@@ -2,12 +2,13 @@
 \import Algebra.Meta
 \import Algebra.Monoid
 \import Algebra.Pointed (ide)
+\import Function.Meta
 \import Homotopy.Cube
 \import Logic
 \import Paths
 \import Equiv (QEquiv, Retraction, Section)
 \import Equiv
-\import Equiv.Univalence
+\import Equiv.Univalence.Set
 \import Paths.Meta
 
 \truncated \data K1 (G : Group) : \1-Type
@@ -20,23 +21,22 @@
     | i, right => loop (g * g') i
   }
   \where {
-    \func loop-comp {G : Group} (g g' : G) : path (loop g) *> path (loop g') = path (loop (g * g'))
-      => movePath2 (ret {=-to-Equiv (Cube2.equality (path (loop g)) (path (loop (g * g'))) idp (path (loop g')))}
-                             (path (\lam j => path (\lam i => relation g g' i j))))
+    \lemma loop-comp {G : Group} (g g' : G) : path (loop g) *> path (loop g') = path (loop (g * g'))
+      => movePath2 $ transportInv (\lam X => X) (Cube2.equality (path (loop g)) (path (loop (g * g'))) idp (path (loop g'))) $
+                             path (\lam j => path (\lam i => relation g g' i j))
 
-    \func loop-ide {G : Group} : path (loop (ide {G})) = idp
+    \lemma loop-ide {G : Group} : path (loop (ide {G})) = idp
       => idp-lemma (path (loop ide)) (path (loop ide)) (loop-comp ide ide *> simplify)
       \where {
-        \func idp-lemma {A : \Type} {a a' : A} (p : a = a') (q : a = a) (h : q *> p = p) : q = idp \elim p
+        \protected \func idp-lemma {A : \Type} {a a' : A} (p : a = a') (q : a = a) (h : q *> p = p) : q = idp \elim p
           | idp => h
       }
-
   }
 
-\func movePath1 {A : \1-Type} {a a' a'' : A} {p : a = a'} {q : a' = a''} {r : a = a''} (h : p *> q = r) : p = r *> inv q
-  => (inv (pmap (p *>) (*>_inv q)) *> inv (*>-assoc p q (inv q))) *> pmap (`*> inv q) h
+\lemma movePath1 {A : \1-Type} {a a' a'' : A} {p : a = a'} {q : a' = a''} {r : a = a''} (h : p *> q = r) : p = r *> inv q
+  => inv (pmap (p *>) (*>_inv q)) *> inv (*>-assoc p q (inv q)) *> pmap (`*> inv q) h
 
-\func movePath2 {A : \Type} {a a' a'' : A} {p : a = a'} {q : a' = a''} {r : a = a''} (h : p = r *> inv q) : p *> q = r
+\lemma movePath2 {A : \1-Type} {a a' a'' : A} {p : a = a'} {q : a' = a''} {r : a = a''} (h : p = r *> inv q) : p *> q = r
   => pmap (`*> q) h *> *>-assoc r (inv q) q *> pmap (r *>) (inv_*> q)
 
 \func leftMulEquiv {G : Group} (g : G) : QEquiv (g *) \cowith
@@ -55,7 +55,7 @@
 
 \lemma Equiv-to-=-functorial {A B C : \Set} (e1 : Equiv {A} {B}) (e2 : Equiv {B} {C})
   : Equiv-to-= e1 *> Equiv-to-= e2 = Equiv-to-= (e1 `transEquiv` e2)
-  => Equiv-to-= e1 *> Equiv-to-= e2                                             ==< inv (ret_f {univalence {A} {C}} (Equiv-to-= e1 *> Equiv-to-= e2)) >==
+  => Equiv-to-= e1 *> Equiv-to-= e2                                             ==< inv ((univalence {A} {C}).ret_f (Equiv-to-= e1 *> Equiv-to-= e2)) >==
      Equiv-to-= (=-to-Equiv (Equiv-to-= e1 *> Equiv-to-= e2))                   ==< pmap Equiv-to-= (=-to-Equiv-functorial (Equiv-to-= e1) (Equiv-to-= e2)) >==
      Equiv-to-= (=-to-Equiv (Equiv-to-= e1) `transEquiv` =-to-Equiv (Equiv-to-= e2)) ==< pmap (\lam x => Equiv-to-= (x `transEquiv` =-to-Equiv (Equiv-to-= e2))) (f_sec {univalence {A} {B}} e1) >==
      Equiv-to-= (e1 `transEquiv` =-to-Equiv (Equiv-to-= e2))                         ==< pmap (\lam x => Equiv-to-= (e1 `transEquiv` x)) (f_sec {univalence {B} {C}} e2) >==

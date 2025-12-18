@@ -196,6 +196,7 @@ public class Prelude implements ArendPrelude {
       }
       case "iso" -> {
         ISO = (FunctionDefinition) definition;
+        ISO.setResultType(new UniverseExpression(SortExpression.makeMax(Arrays.asList(new SortExpression.Var(0), new SortExpression.Var(1)))));
         ISO.setStatus(Definition.TypeCheckingStatus.NO_ERRORS);
       }
       case "fromNat" -> {

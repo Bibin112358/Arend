@@ -14,7 +14,7 @@
 \import Data.Array.Split
 \import Data.Fin (unfsuc)
 \import Equiv
-\import Equiv.Univalence (Equiv-to-=)
+\import Equiv.Univalence.Set (Equiv-to-=)
 \import Function (IsInj, IsSurj)
 \import Function.Meta
 \import Logic.Unique

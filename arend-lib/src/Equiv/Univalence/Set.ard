@@ -1,25 +1,24 @@
-\import Paths
-\import Paths.Meta
 \import Equiv
 \import Equiv.Path
+\import Paths
+\import Paths.Meta
 
-\func =-to-Equiv {A B : \hType} (p : A = B) : Equiv {A} {B} => rewriteI p idEquiv
+\func =-to-Equiv {A B : \Set} (p : A = B) : Equiv {A} {B} => rewriteI p idEquiv
 
-\func =-to-QEquiv {A B : \hType} (p : A = B) : QEquiv {A} {B} \cowith
+\func =-to-QEquiv {A B : \Set} (p : A = B) : QEquiv {A} {B} \cowith
   | f => transport (\lam X => X) p
   | ret => transport (\lam X => X) (inv p)
   | ret_f a => inv (transport_*> _ p (inv p) a) *> pmap (transport _ __ a) (*>_inv p)
   | f_sec b => inv (transport_*> _ (inv p) p b) *> pmap (transport _ __ b) (inv_*> p)
 
-\func QEquiv-to-= {A B : \hType} (e : QEquiv {A} {B}) : A = B => path (iso e.f e.ret e.ret_f e.f_sec)
+\func QEquiv-to-= {A B : \Set} (e : QEquiv {A} {B}) : A = B => path (iso e.f e.ret e.ret_f e.f_sec)
 
-\func Equiv-to-= {A B : \hType} (e : Equiv {A} {B}) : A = B => QEquiv-to-= (QEquiv.fromEquiv e)
+\func Equiv-to-= {A B : \Set} (e : Equiv {A} {B}) : A = B => QEquiv-to-= (QEquiv.fromEquiv e)
 
-\func univalence {X Y : \hType} : QEquiv {X = Y} {Equiv {X} {Y}}
+\func univalence {X Y : \Set} : QEquiv {X = Y} {Equiv {X} {Y}}
   => pathEquiv (Equiv {__} {__}) (\lam {A} {B} =>
       \new Retraction {
         | f => =-to-Equiv
         | sec => Equiv-to-=
         | f_sec e => Equiv.equals (Jl (\lam _ p => Equiv.f {=-to-Equiv p} = (\lam a => coe (p @) a right)) idp (Equiv-to-= e))
       })
-

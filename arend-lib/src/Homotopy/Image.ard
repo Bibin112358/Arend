@@ -59,7 +59,7 @@
                                        transport_path-left (ret (f a) ((MImageAppr n).2 p.1) (sec (inv p.2))) idp *> pmap inv (sec-ret (inv p.2)) *> inv_inv p.2)))))
     }
 
-\func YImage {A B : \Type} (S : A -> B -> \Type) => data.MImage
+\func YImage {A B : \hType} (S : A -> B -> \hType) => data.MImage
   \where {
     \open MJoin
 

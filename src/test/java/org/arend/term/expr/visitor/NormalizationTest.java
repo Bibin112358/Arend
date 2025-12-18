@@ -10,7 +10,6 @@ import org.arend.core.expr.*;
 import org.arend.core.expr.let.LetClause;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
-import org.arend.core.subst.LevelPair;
 import org.arend.core.subst.Levels;
 import org.arend.ext.core.ops.NormalizationMode;
 import org.arend.naming.reference.LocalReferable;
@@ -272,7 +271,7 @@ public class NormalizationTest extends TypeCheckingTestCase {
         Apps(Ref(f), Apps(Ref(g), Ref(b))),
         Ref(b));
     DependentLink rinv = param("rinv", Pi(b, rinvType));
-    Expression iso_expr = FunCall(Prelude.ISO, LevelPair.SET0,
+    Expression iso_expr = FunCall(Prelude.ISO, Levels.EMPTY,
         Ref(A), Ref(B),
         Ref(f), Ref(g),
         Ref(linv), Ref(rinv),
@@ -298,7 +297,7 @@ public class NormalizationTest extends TypeCheckingTestCase {
         Apps(Ref(f), Apps(Ref(g), Ref(b))),
         Ref(b));
     DependentLink rinv = param("rinv", Pi(b, rinvType));
-    Expression iso_expr = FunCall(Prelude.ISO, LevelPair.STD,
+    Expression iso_expr = FunCall(Prelude.ISO, Levels.EMPTY,
         Ref(A), Ref(B),
         Ref(f), Ref(g),
         Ref(linv), Ref(rinv),
@@ -326,12 +325,12 @@ public class NormalizationTest extends TypeCheckingTestCase {
         Ref(b));
     DependentLink rinv = param("rinv", Pi(b, rinvType));
     DependentLink aleft = param("aleft", Ref(A));
-    Expression iso_expr = FunCall(Prelude.ISO, LevelPair.SET0,
+    Expression iso_expr = FunCall(Prelude.ISO, Levels.EMPTY,
         Ref(A), Ref(B),
         Ref(f), Ref(g),
         Ref(linv), Ref(rinv),
         Ref(k));
-    Expression expr = FunCall(Prelude.COERCE, LevelPair.SET0,
+    Expression expr = FunCall(Prelude.COERCE, Levels.EMPTY,
         Lam(k, iso_expr),
         Ref(aleft),
         Right());
@@ -342,7 +341,6 @@ public class NormalizationTest extends TypeCheckingTestCase {
   public void testCoeIsoFreeVar() {
     SingleDependentLink k = singleParam("k", Interval());
     SingleDependentLink i = singleParam("i", Interval());
-    LevelPair levels = new LevelPair(new Level(0), Level.INFINITY);
     DataCallExpression A = DataCall(Prelude.PATH, Levels.EMPTY, Lam(i, Interval()), Ref(k), Ref(k));
     DependentLink B = param("B", Universe(Sort.SET0));
     DependentLink f = param("f", Pi(A, Ref(B)));
@@ -360,8 +358,8 @@ public class NormalizationTest extends TypeCheckingTestCase {
         Ref(b));
     DependentLink rinv = param("rinv", Pi(b, rinvType));
     DependentLink aleft = paramExpr("aleft", A.subst(k, Right()));
-    Expression expr = FunCall(Prelude.COERCE, levels,
-        Lam(k, FunCall(Prelude.ISO, levels,
+    Expression expr = FunCall(Prelude.COERCE, Levels.EMPTY,
+        Lam(k, FunCall(Prelude.ISO, Levels.EMPTY,
             DataCall(Prelude.PATH, Levels.EMPTY,
                 Lam(i, Interval()),
                 Ref(k),

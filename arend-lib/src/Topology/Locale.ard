@@ -22,7 +22,7 @@
 \import Data.Maybe
 \import Data.Or
 \import Equiv
-\import Equiv.Univalence (Equiv-to-=)
+\import Equiv.Univalence.Set (Equiv-to-=)
 \import Function (IsSurj)
 \import Function.Meta ($, repeat)
 \import Homotopy.Fibration

@@ -1,7 +1,7 @@
 \import Arith.Nat
 \import Data.Or
 \import Equiv (QEquiv)
-\import Equiv.Univalence
+\import Equiv.Univalence.Set
 \import Function.Meta
 \import Logic.Unique
 \import Logic
