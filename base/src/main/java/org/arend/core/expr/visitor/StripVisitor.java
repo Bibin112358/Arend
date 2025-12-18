@@ -16,6 +16,7 @@ import org.arend.core.expr.let.LetClause;
 import org.arend.core.expr.let.TypedHaveClause;
 import org.arend.core.expr.let.TypedLetClause;
 import org.arend.core.pattern.Pattern;
+import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
 import org.arend.ext.error.ErrorReporter;
 import org.arend.ext.error.ListErrorReporter;
@@ -211,7 +212,36 @@ public class StripVisitor implements ExpressionVisitor<Void, Expression> {
   }
 
   private SortExpression visitSort(SortExpression sort) {
-    return sort; // TODO[sorts]: Delete inference variables
+    return switch (sort) {
+      case SortExpression.Const aConst -> aConst;
+      case SortExpression.Field field -> field;
+      case SortExpression.InfVar infVar -> {
+        SortExpression simplified = infVar.simplify();
+        if (simplified instanceof SortExpression.InfVar infVar1) {
+          myErrorReporter.report(infVar1.getVariable().getErrorInfer());
+          yield new SortExpression.Const(Sort.INFINITY);
+        } else {
+          yield visitSort(simplified);
+        }
+      }
+      case SortExpression.Max max -> {
+        List<SortExpression> result = new ArrayList<>(max.getSorts().size());
+        for (SortExpression aSort : max.getSorts()) {
+          result.add(visitSort(aSort));
+        }
+        yield SortExpression.makeMax(result);
+      }
+      case SortExpression.Pi pi -> {
+        List<SortExpression> domain = new ArrayList<>(pi.getDomain().size());
+        for (SortExpression aSort : pi.getDomain()) {
+          domain.add(visitSort(aSort));
+        }
+        yield SortExpression.makePi(domain, visitSort(pi.getCodomain()));
+      }
+      case SortExpression.Prev prev -> SortExpression.makePrev(prev.getSort());
+      case SortExpression.Succ succ -> SortExpression.makeSucc(succ.getSort());
+      case SortExpression.Var var -> var;
+    };
   }
 
   @Override

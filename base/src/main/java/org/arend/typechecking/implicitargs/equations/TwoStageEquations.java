@@ -935,7 +935,7 @@ public class TwoStageEquations implements Equations {
       return SolveResult.SOLVED;
     }
 
-    if (fromEquations && expr.findBinding(var)) {
+    if (expr.getUnderlyingExpression().isInfinityLevel() || fromEquations && expr.findBinding(var)) {
       return inferenceError(var, expr);
     }
 

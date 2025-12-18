@@ -23,6 +23,7 @@ import java.util.*;
 public sealed interface SortExpression extends CoreSortExpression permits SortExpression.Const, SortExpression.Field, SortExpression.InfVar, SortExpression.Max, SortExpression.Pi, SortExpression.Prev, SortExpression.Succ, SortExpression.Var {
   @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull Map<? extends ClassField, ? extends Expression> fields, @NotNull LevelSubstitution substitution);
   @NotNull Sort withInfLevel();
+  boolean isInfinite();
 
   default @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
     return subst(isType, arguments, Collections.emptyMap(), substitution);
@@ -80,6 +81,11 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     }
 
     @Override
+    public boolean isInfinite() {
+      return sort.getPLevel().isInfinity();
+    }
+
+    @Override
     public @NotNull SortExpression simplify() {
       return this;
     }
@@ -112,6 +118,11 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     public @NotNull Sort withInfLevel() {
       return Sort.INFINITY;
     }
+
+    @Override
+    public boolean isInfinite() {
+      return true;
+    }
   }
 
   record Field(FieldReferableImpl field) implements SortExpression {
@@ -133,6 +144,11 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     public @NotNull Sort withInfLevel() {
       return Sort.INFINITY;
     }
+
+    @Override
+    public boolean isInfinite() {
+      return true;
+    }
   }
 
   final class InfVar implements SortExpression {
@@ -141,6 +157,10 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
 
     public InfVar(InferenceVariable variable) {
       this.variable = variable;
+    }
+
+    public InferenceVariable getVariable() {
+      return variable;
     }
 
     private void checkIfSolved() {
@@ -164,6 +184,11 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     public @NotNull Sort withInfLevel() {
       checkIfSolved();
       return sort == null || sort == this ? Sort.INFINITY : sort.withInfLevel();
+    }
+
+    @Override
+    public boolean isInfinite() {
+      return false;
     }
   }
 
@@ -203,7 +228,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
       if (sort1.getPLevel().isClosed() && sort1.getPLevel().getConstant() == 0) {
         return codomain;
       }
-      if (codomain instanceof Const (Sort sort2)) {
+      if (codomain instanceof Const(Sort sort2)) {
         return new Const(PiExpression.piSort(sort1, sort2));
       }
     }
@@ -238,6 +263,14 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
         result = result.max(sort.withInfLevel());
       }
       return result;
+    }
+
+    @Override
+    public boolean isInfinite() {
+      for (SortExpression sort : mySorts) {
+        if (sort.isInfinite()) return true;
+      }
+      return false;
     }
   }
 
@@ -302,6 +335,14 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
       Sort codomain = myCodomain.withInfLevel();
       return PiExpression.piSort(domain, codomain);
     }
+
+    @Override
+    public boolean isInfinite() {
+      for (SortExpression sort : myDomain) {
+        if (sort.isInfinite()) return true;
+      }
+      return myCodomain.isInfinite();
+    }
   }
 
   final class Prev implements SortExpression, PreviousSortExpression {
@@ -326,6 +367,11 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
       Sort result = mySort.withInfLevel();
       return result.isSet() || result.isProp() ? Sort.PROP : result.getHLevel().isInfinity() || !result.getHLevel().isClosed() ? result : new Sort(result.getPLevel(), new Level(result.getHLevel().getConstant() - 1));
     }
+
+    @Override
+    public boolean isInfinite() {
+      return mySort.isInfinite();
+    }
   }
 
   final class Succ implements SortExpression, NextSortExpression {
@@ -348,6 +394,11 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     @Override
     public @NotNull Sort withInfLevel() {
       return mySort.withInfLevel().succ();
+    }
+
+    @Override
+    public boolean isInfinite() {
+      return mySort.isInfinite();
     }
   }
 }

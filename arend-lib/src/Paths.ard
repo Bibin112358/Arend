@@ -17,7 +17,7 @@
 \func inv {A : \Sort} {a a' : A} (p : a = a') : a' = a \elim p
   | idp => idp
 
-\func \infixr 9 *> {A : \Type} {a a' a'' : A} (p : a = a') (q : a' = a'') : a = a'' \elim q
+\func \infixr 9 *> {A : \Sort} {a a' a'' : A} (p : a = a') (q : a' = a'') : a = a'' \elim q
   | idp => p
   \where
     \func concat {A : I -> \Type} {a : A left} {a' a'' : A right} (p : Path A a a') (q : a' = a'') : Path A a a'' \elim q
