@@ -308,7 +308,7 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
 
   @Override
   public Expression visitClassCall(ClassCallExpression expr, Void params) {
-    SortExpression sort = expr.getDefinition().computeSort(expr.getImplementedHere(), expr.getThisBinding(), expr.getLevelSubstitution());
+    SortExpression sort = expr.getDefinition().computeSort(expr.getImplementedHere(), expr.getThisBinding(), expr.getLevelSubstitution(), false);
     return sort == null ? new ErrorExpression() : new UniverseExpression(sort);
   }
 

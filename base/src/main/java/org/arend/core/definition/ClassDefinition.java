@@ -175,7 +175,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     return null;
   }
 
-  public SortExpression computeSort(Map<ClassField,Expression> implemented, Binding thisBinding, LevelSubstitution levelSubstitution) {
+  public SortExpression computeSort(Map<ClassField,Expression> implemented, Binding thisBinding, LevelSubstitution levelSubstitution, boolean ignoreErrors) {
     Levels idLevels = makeIdLevels();
     Expression thisExpr1 = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, idLevels, implemented, myBaseUniverseKind)));
     Expression thisExpr2 = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, idLevels)));
@@ -192,11 +192,13 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
         SortExpression fieldSort = fieldType.getSortExpressionOfType();
         if (fieldSort == null || fieldSort instanceof SortExpression.Const(Sort sort) && sort.isOmega()) {
           fieldSort = getFieldType(field, castLevels(field.getParentClass(), idLevels), thisExpr2).normalize(NormalizationMode.WHNF).getSortExpressionOfType();
-          if (fieldSort == null) {
+          if (!ignoreErrors && fieldSort == null) {
             return null;
           }
         }
-        sorts.add(fieldSort.subst(false, Collections.emptyList(), implemented, levelSubstitution));
+        if (fieldSort != null) {
+          sorts.add(fieldSort.subst(false, Collections.emptyList(), implemented, levelSubstitution));
+        }
       }
     }
 
@@ -212,7 +214,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
   }
 
   public void updateSort() {
-    mySort = computeSort(Collections.emptyMap(), null, LevelSubstitution.EMPTY);
+    mySort = computeSort(Collections.emptyMap(), null, LevelSubstitution.EMPTY, true);
   }
 
   @NotNull
