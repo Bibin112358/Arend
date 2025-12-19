@@ -14,7 +14,7 @@
     \use \level levelProp {E : \Prop} : isProp (Dec E)
       => isProp-prover
 
-    \func rec {R : \Type} {E : \Prop} (y : E -> R) (n : Not E -> R) (d : Dec E) : R \elim d
+    \func rec {R : \Sort} {E : \Prop} (y : E -> R) (n : Not E -> R) (d : Dec E) : R \elim d
       | yes e => y e
       | no q => n q
   }
@@ -179,9 +179,9 @@
     | no p, _ => p
   }
 
-\truncated \data Trunc0 (A : \Type) : \Set
+\truncated \data Trunc0 (A : \Sort) : \Set
   | in0 A
   \where {
-    \func map {A B : \Type} (t : Trunc0 A) (f : A -> B) : Trunc0 B \elim t
+    \func map {A B : \Sort} (t : Trunc0 A) (f : A -> B) : Trunc0 B \elim t
       | in0 a => in0 (f a)
   }
