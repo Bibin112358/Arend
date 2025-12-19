@@ -247,6 +247,9 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
   }
 
   static @NotNull SortExpression makePi(@NotNull SortExpression domain, @NotNull SortExpression codomain) {
+    if (codomain.isProp()) {
+      return codomain;
+    }
     if (domain instanceof Const(Sort sort1)) {
       if (sort1.getPLevel().isClosed() && sort1.getPLevel().getConstant() == 0) {
         return codomain;

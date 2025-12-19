@@ -37,7 +37,7 @@ public class Sort implements CoreSort {
   }
 
   private Sort(Level pLevel, Level hLevel, boolean isCat) {
-    myPLevel = hLevel.isProp() && !(pLevel.isClosed() && pLevel.getConstant() == 0) ? new Level(0) : pLevel;
+    myPLevel = hLevel.isProp() && (!(pLevel.isClosed() && pLevel.getConstant() == 0) || pLevel.isInfinity()) ? new Level(0) : pLevel;
     myHLevel = hLevel;
     myCat = false; // TODO[sorts]: Temporarily disable \Cat sorts.
   }
@@ -57,7 +57,7 @@ public class Sort implements CoreSort {
   }
 
   public static Sort make(Level pLevel, Level hLevel, boolean isCat) {
-    return isCat ? new Sort(pLevel, true) : new Sort(pLevel, hLevel);
+    return isCat ? new Sort(pLevel, true) : hLevel.isProp() ? Sort.PROP : new Sort(pLevel, hLevel);
   }
 
   @NotNull

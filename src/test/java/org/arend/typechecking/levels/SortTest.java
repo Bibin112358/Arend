@@ -198,4 +198,15 @@ public class SortTest extends TypeCheckingTestCase {
         | in a => in (f a)
       """);
   }
+
+  @Test
+  public void truncatedTest3() {
+    typeCheckModule("""
+      \\truncated \\data Trunc (A : \\Sort) : \\Prop
+        | in A
+      \\lemma test {A : \\Sort} (a : A) (n : Nat) : Trunc A \\elim n
+        | 0 => in a
+        | suc _ => in a
+      """);
+  }
 }
