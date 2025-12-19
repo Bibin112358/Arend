@@ -1456,8 +1456,8 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       if (elimParams != null) {
         clauses = typechecker.withErrorReporter(countingErrorReporter, tc -> new PatternTypechecking(PatternTypechecking.Mode.FUNCTION, typechecker, true, null, elimParams).typecheckClauses(elimBody.getClauses(), def.getParameters(), typedDef.getParameters(), expectedType, typedDef));
       }
-      Sort sort = expectedType.getSortOfType();
-      Body typedBody = clauses == null || def.getKind() == FunctionKind.AXIOM ? null : new ElimTypechecking(errorReporter, typechecker.getEquations(), expectedType, PatternTypechecking.Mode.FUNCTION, typeLevel, sort != null ? sort.getHLevel() : Level.INFINITY, kind.isSFunc() && kind != FunctionKind.TYPE, elimBody.getClauses(), typedDef.getParametersOriginalDefinitions().size(), def).typecheckElim(clauses, typedDef.getParameters(), elimParams);
+      SortExpression sort = expectedType.getSortExpressionOfType();
+      Body typedBody = clauses == null || def.getKind() == FunctionKind.AXIOM ? null : new ElimTypechecking(errorReporter, typechecker.getEquations(), expectedType, PatternTypechecking.Mode.FUNCTION, typeLevel, sort != null ? sort.withInfLevel().getHLevel() : Level.INFINITY, kind.isSFunc() && kind != FunctionKind.TYPE, elimBody.getClauses(), typedDef.getParametersOriginalDefinitions().size(), def).typecheckElim(clauses, typedDef.getParameters(), elimParams);
       if (typedBody != null) {
         typedDef.setBody(typedBody);
         typedDef.addStatus(Definition.TypeCheckingStatus.NO_ERRORS);
@@ -2130,7 +2130,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       countingErrorReporter.report(new DataUniverseError(inferredSort.withInfLevel(), userSort, def.getUniverse() == null ? def : def.getUniverse()));
     }
 
-    dataDefinition.setSortExpression(countingErrorReporter.getErrorsNumber() == 0 && userSort != null ? new SortExpression.Const(userSort) : inferredSort);
+    dataDefinition.setSortExpression(def.isTruncated() && userSort != null && userSort.getHLevel().isClosed() ? SortExpression.makeTrunc(inferredSort, userSort.getHLevel().getConstant()) : countingErrorReporter.getErrorsNumber() == 0 && userSort != null ? new SortExpression.Const(userSort) : inferredSort);
     typechecker.setStatus(def.getStatus().getTypecheckingStatus());
     dataDefinition.addStatus(typechecker.getStatus());
 

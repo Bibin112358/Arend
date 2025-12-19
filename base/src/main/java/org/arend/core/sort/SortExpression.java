@@ -182,7 +182,16 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
       if (sort == null) {
         Expression expr = variable.getSolution();
         if (expr != null) {
-          sort = expr.getSortExpressionOfType();
+          Expression type = expr.getType();
+          if (type != null) {
+            type = type.normalize(NormalizationMode.WHNF);
+            while (type instanceof PiExpression pi) {
+              type = pi.getCodomain().normalize(NormalizationMode.WHNF);
+            }
+            if (type instanceof UniverseExpression universe) {
+              sort = universe.getSortExpression();
+            }
+          }
           if (sort == null) {
             sort = this;
           }
@@ -286,6 +295,10 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
       }
       return false;
     }
+  }
+
+  static @NotNull SortExpression makeTrunc(@NotNull SortExpression sort, int level) {
+    return makePi(sort, new Const(new Sort(new Level(0), new Level(level))));
   }
 
   static @NotNull SortExpression makePrev(@NotNull SortExpression sort) {

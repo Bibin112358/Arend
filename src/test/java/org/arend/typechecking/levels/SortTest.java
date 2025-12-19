@@ -178,4 +178,24 @@ public class SortTest extends TypeCheckingTestCase {
       \\func test : 0 = 0 -> Nat => foo idp
       """);
   }
+
+  @Test
+  public void truncatedTest() {
+    typeCheckModule("""
+      \\truncated \\data Trunc (A : \\Sort) : \\Set
+        | in A
+      \\func test (A : \\3-Type7) : \\Set7 => Trunc A
+      """);
+    checkLevelParameters("Trunc", "test");
+  }
+
+  @Test
+  public void truncatedTest2() {
+    typeCheckModule("""
+      \\truncated \\data Trunc (A : \\Sort) : \\Set
+        | in A
+      \\func map {A B : \\Sort} (t : Trunc A) (f : A -> B) : Trunc B \\elim t
+        | in a => in (f a)
+      """);
+  }
 }

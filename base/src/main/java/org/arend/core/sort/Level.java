@@ -91,6 +91,14 @@ public class Level implements CoreLevel {
     return myVars != null && !myVars.isEmpty() && myConstant > myVars.keySet().iterator().next().getMinValue();
   }
 
+  public boolean hasInferenceVariables() {
+    if (myVars == null) return false;
+    for (LevelVariable variable : myVars.keySet()) {
+      if (variable instanceof InferenceLevelVariable) return true;
+    }
+    return false;
+  }
+
   public @Nullable LevelVariable getSingleVar() {
     if (myVars == null || myVars.size() != 1) return null;
     var entry = myVars.entrySet().iterator().next();
@@ -196,7 +204,7 @@ public class Level implements CoreLevel {
       return true;
     }
     if (level1.isInfinity()) {
-      return !level2.isClosed() && (equations == null || equations.addEquation(INFINITY, level2, CMP.LE, sourceNode));
+      return level2.hasInferenceVariables() && (equations == null || equations.addEquation(INFINITY, level2, CMP.LE, sourceNode));
     }
 
     if (level1.myConstant > level2.myConstant) {
