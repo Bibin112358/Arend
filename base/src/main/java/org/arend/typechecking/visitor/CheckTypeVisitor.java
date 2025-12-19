@@ -2617,7 +2617,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
         piExpr = new PiExpression(list.get(i), piExpr);
       }
 
-      return checkResult(expectedType, new TypecheckingResult(piExpr, new UniverseExpression(SortExpression.makePi(paramSorts, result.sort()))), expr);
+      return checkResult(expectedType, new TypecheckingResult(piExpr, new UniverseExpression(SortExpression.makePi(SortExpression.makeMax(paramSorts), result.sort()))), expr);
     }
   }
 

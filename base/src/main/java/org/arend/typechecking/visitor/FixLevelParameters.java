@@ -157,15 +157,9 @@ public class FixLevelParameters extends VoidExpressionVisitor<Void> {
         }
         yield SortExpression.makeMax(sorts);
       }
+      case SortExpression.Prev prev -> SortExpression.makePrev(removeVars(prev.getSort()));
       case SortExpression.Succ succ -> SortExpression.makeSucc(removeVars(succ.getSort()));
-      case SortExpression.Pi pi -> {
-        List<SortExpression> domain = new ArrayList<>(pi.getDomain().size());
-        for (SortExpression aSort : pi.getDomain()) {
-          domain.add(removeVars(aSort));
-        }
-        yield SortExpression.makePi(domain, removeVars(pi.getCodomain()));
-      }
-      case SortExpression.Prev prev -> SortExpression.makeSucc(removeVars(prev.getSort()));
+      case SortExpression.Pi pi -> SortExpression.makePi(removeVars(pi.getDomain()), removeVars(pi.getCodomain()));
       case SortExpression.Var var -> var;
       case SortExpression.Field field -> field;
       case SortExpression.InfVar var -> var;

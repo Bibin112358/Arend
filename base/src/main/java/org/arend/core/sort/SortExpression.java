@@ -237,8 +237,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     return new Max(newSorts);
   }
 
-  static @NotNull SortExpression makePi(@NotNull List<SortExpression> domainSorts, @NotNull SortExpression codomain) {
-    SortExpression domain = makeMax(domainSorts);
+  static @NotNull SortExpression makePi(@NotNull SortExpression domain, @NotNull SortExpression codomain) {
     if (domain instanceof Const(Sort sort1)) {
       if (sort1.getPLevel().isClosed() && sort1.getPLevel().getConstant() == 0) {
         return codomain;
@@ -247,7 +246,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
         return new Const(PiExpression.piSort(sort1, sort2));
       }
     }
-    return domain.equals(codomain) ? codomain : domain instanceof Max maxSort ? new Pi(maxSort.mySorts, codomain) : new Pi(Collections.singletonList(domain), codomain);
+    return domain.equals(codomain) ? codomain : new Pi(domain, codomain);
   }
 
   final class Max implements SortExpression, MaxSortExpression {
@@ -317,16 +316,16 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
   }
 
   final class Pi implements SortExpression, PiSortExpression {
-    private final List<SortExpression> myDomain;
+    private final SortExpression myDomain;
     private final SortExpression myCodomain;
 
-    private Pi(List<SortExpression> domain, SortExpression codomain) {
+    private Pi(SortExpression domain, SortExpression codomain) {
       myDomain = domain;
       myCodomain = codomain;
     }
 
     @Override
-    public @NotNull List<SortExpression> getDomain() {
+    public @NotNull SortExpression getDomain() {
       return myDomain;
     }
 
@@ -337,26 +336,19 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
 
     @Override
     public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull Map<? extends ClassField, ? extends Expression> fields, @NotNull LevelSubstitution substitution) {
-      List<SortExpression> domain = new ArrayList<>(myDomain.size());
-      for (SortExpression sort : myDomain) {
-        domain.add(sort.subst(isType, arguments, fields, substitution));
-      }
-      return makePi(domain, myCodomain.subst(isType, arguments, fields, substitution));
+      return makePi(myDomain.subst(isType, arguments, fields, substitution), myCodomain.subst(isType, arguments, fields, substitution));
     }
 
     @Override
     public @NotNull Sort withInfLevel() {
-      Sort domain = new Max(myDomain).withInfLevel();
+      Sort domain = myDomain.withInfLevel();
       Sort codomain = myCodomain.withInfLevel();
       return PiExpression.piSort(domain, codomain);
     }
 
     @Override
     public boolean isInfinite() {
-      for (SortExpression sort : myDomain) {
-        if (sort.isInfinite()) return true;
-      }
-      return myCodomain.isInfinite();
+      return myDomain.isInfinite() || myCodomain.isInfinite();
     }
   }
 

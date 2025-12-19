@@ -399,7 +399,7 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
     List<SortExpression> sort1 = checkDependentLinkWithResult(expr.getParameters(), null, expr);
     SortExpression sort2 = toSort(checkInf(expr.getCodomain(), null, allowInf));
     freeDependentLink(expr.getParameters());
-    return check(expectedType, new UniverseExpression(SortExpression.makePi(sort1, sort2)), expr);
+    return check(expectedType, new UniverseExpression(SortExpression.makePi(SortExpression.makeMax(sort1), sort2)), expr);
   }
 
   @Override

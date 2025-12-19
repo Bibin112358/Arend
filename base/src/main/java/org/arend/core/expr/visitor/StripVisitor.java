@@ -231,15 +231,9 @@ public class StripVisitor implements ExpressionVisitor<Void, Expression> {
         }
         yield SortExpression.makeMax(result);
       }
-      case SortExpression.Pi pi -> {
-        List<SortExpression> domain = new ArrayList<>(pi.getDomain().size());
-        for (SortExpression aSort : pi.getDomain()) {
-          domain.add(visitSort(aSort));
-        }
-        yield SortExpression.makePi(domain, visitSort(pi.getCodomain()));
-      }
-      case SortExpression.Prev prev -> SortExpression.makePrev(prev.getSort());
-      case SortExpression.Succ succ -> SortExpression.makeSucc(succ.getSort());
+      case SortExpression.Pi pi -> SortExpression.makePi(visitSort(pi.getDomain()), visitSort(pi.getCodomain()));
+      case SortExpression.Prev prev -> SortExpression.makePrev(visitSort(prev.getSort()));
+      case SortExpression.Succ succ -> SortExpression.makeSucc(visitSort(succ.getSort()));
       case SortExpression.Var var -> var;
     };
   }
