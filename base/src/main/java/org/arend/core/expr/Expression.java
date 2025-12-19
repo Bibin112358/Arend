@@ -642,7 +642,7 @@ public abstract class Expression implements Body, CoreExpression {
   }
 
   public Expression replaceInfinityLevel(InferenceVariable variable) {
-    return this;
+    return null;
   }
 
   public Expression applyExpression(Expression expression) {

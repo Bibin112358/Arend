@@ -276,10 +276,10 @@ public class StdImplicitArgsInference implements ImplicitArgsInference {
     return result.applyExpression(argResult.expression, isExplicit, myVisitor, fun);
   }
 
-  private void typecheckDeferredArgument(Pair<InferenceVariable, Concrete.Expression> pair, TResult result) {
-    TypecheckingResult argResult = myVisitor.checkArgument(pair.proj2, pair.proj1.getType(), result, pair.proj1);
+  private void typecheckDeferredArgument(DeferredArgument defArg, TResult result) {
+    TypecheckingResult argResult = myVisitor.checkArgument(defArg.expr, defArg.expectedType, result, defArg.variable);
     Expression argResultExpr = argResult == null ? new ErrorExpression() : argResult.expression;
-    pair.proj1.solve(myVisitor, argResultExpr);
+    defArg.variable.solve(myVisitor, argResultExpr);
   }
 
   private InferenceVariable getInferenceVariableFromElementsType(Expression elementsType) {
@@ -490,6 +490,8 @@ public class StdImplicitArgsInference implements ImplicitArgsInference {
     return result;
   }
 
+  private record DeferredArgument(InferenceVariable variable, Concrete.Expression expr, Expression expectedType) {}
+
   @Override
   public TResult infer(Concrete.AppExpression expr, Expression expectedType) {
     TResult result;
@@ -626,7 +628,7 @@ public class StdImplicitArgsInference implements ImplicitArgsInference {
     if (order != null) {
       int current = 0; // Position in arguments
       int numberOfImplicitArguments = 0; // Number of arguments not present in arguments
-      Map<Integer,Pair<InferenceVariable,Concrete.Expression>> deferredArguments = new LinkedHashMap<>();
+      Map<Integer,DeferredArgument> deferredArguments = new LinkedHashMap<>();
       for (Integer i : order) {
         if (i == -1) {
           Expression expectedType1 = dropPiParameters(definition, arguments, expectedType);
@@ -657,8 +659,16 @@ public class StdImplicitArgsInference implements ImplicitArgsInference {
             myVisitor.getErrorReporter().report(new ArgumentExplicitnessError(parameter.isExplicit(), argument.getExpression()));
             return null;
           }
-          InferenceVariable var = new ExpressionInferenceVariable(parameter.getType(), argument.getExpression(), myVisitor.getAllBindings(), false);
-          deferredArguments.put(current + numberOfImplicitArguments, new Pair<>(var, argument.getExpression()));
+          Expression type = parameter.getType();
+          boolean isHole = argument.getExpression() instanceof Concrete.HoleExpression;
+          InferenceVariable var = new FunctionInferenceVariable(definition, parameter, current + numberOfImplicitArguments, type, argument.getExpression(), myVisitor.getAllBindings(), isHole);
+          Expression newType = type.replaceInfinityLevel(var);
+          if (newType != null) {
+            var.setType(newType);
+          }
+          if (!isHole) {
+            deferredArguments.put(current + numberOfImplicitArguments, new DeferredArgument(var, argument.getExpression(), type));
+          }
           result = result.applyExpression(new InferenceReferenceExpression(var), parameter.isExplicit(), myVisitor, fun);
           current++;
         }
@@ -676,16 +686,16 @@ public class StdImplicitArgsInference implements ImplicitArgsInference {
           current++;
         } else {
           // If i-th argument were deferred, get it from the map and typecheck
-          Pair<InferenceVariable, Concrete.Expression> pair = deferredArguments.remove(i);
-          if (pair != null) {
-            typecheckDeferredArgument(pair, result);
+          DeferredArgument defArg = deferredArguments.remove(i);
+          if (defArg != null) {
+            typecheckDeferredArgument(defArg, result);
           }
         }
       }
 
       // Typecheck all deferred arguments
-      for (Pair<InferenceVariable, Concrete.Expression> pair : deferredArguments.values()) {
-        typecheckDeferredArgument(pair, result);
+      for (DeferredArgument defArg : deferredArguments.values()) {
+        typecheckDeferredArgument(defArg, result);
       }
 
       // Typecheck the rest of the arguments
