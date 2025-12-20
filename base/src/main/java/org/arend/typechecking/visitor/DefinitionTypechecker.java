@@ -456,20 +456,31 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     ExprSubstitution substitution = fieldType == null ? null : new ExprSubstitution();
     int skip = def instanceof Concrete.CoClauseFunctionDefinition ? ((Concrete.CoClauseFunctionDefinition) def).getNumberOfExternalParameters() : 0;
 
+    List<Concrete.Parameter> parameters = new ArrayList<>();
+    if (def instanceof Concrete.FunctionDefinition || def instanceof Concrete.DataDefinition) {
+      int index = 0;
+      for (Concrete.Parameter parameter : def.getParameters()) {
+        if (parameter instanceof Concrete.TelescopeParameter tele && tele.type != null && tele.type.isInfSort()) {
+          for (Referable ref : tele.getReferableList()) {
+            parameters.add(new Concrete.TelescopeParameter(parameter.getData(), parameter.isExplicit(), Collections.singletonList(ref), tele.type.withInfIndex(index++), tele.isProperty()));
+          }
+        } else {
+          parameters.add(parameter);
+          index += parameter.getNumberOfParameters();
+        }
+      }
+    } else {
+      parameters.addAll(def.getParameters());
+    }
+
     boolean first = true;
-    List<? extends Concrete.Parameter> parameters = def.getParameters();
-    for (int j = 0; j < parameters.size(); j++) {
-      Concrete.Parameter parameter = parameters.get(j);
+    for (Concrete.Parameter parameter : parameters) {
       if (skip == 0 && resultType != null && !(resultType instanceof ErrorExpression)) {
         resultType = resultType.normalize(NormalizationMode.WHNF).getUnderlyingExpression();
       }
 
       Expression paramResult = null;
       if (parameter.getType() != null) {
-        if (def instanceof Concrete.FunctionDefinition || def instanceof Concrete.DataDefinition) {
-          parameter.getType().setInfIndex(j);
-        }
-
         if (def instanceof Concrete.Constructor) {
           TypeExpression paramType = typechecker.checkType(parameter.getType(), UniverseExpression.OMEGA);
           if (paramType != null) {
@@ -534,7 +545,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
 
         List<String> names = parameter.getNames();
         param = paramResult == null ? null
-          : referableList.size() == 1 && referableList.getFirst() instanceof HiddenLocalReferable
+            : referableList.size() == 1 && referableList.getFirst() instanceof HiddenLocalReferable
             ? parameter(parameter.isExplicit(), isProperty, names.getFirst(), paramResult, true)
             : parameter(parameter.isExplicit(), isProperty, names, paramResult);
         numberOfParameters = names.size();

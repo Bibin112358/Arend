@@ -1,5 +1,6 @@
 package org.arend.typechecking.levels;
 
+import org.arend.Matchers;
 import org.arend.core.context.param.TypedSingleDependentLink;
 import org.arend.core.definition.Definition;
 import org.arend.core.definition.FunctionDefinition;
@@ -208,5 +209,27 @@ public class SortTest extends TypeCheckingTestCase {
         | 0 => in a
         | suc _ => in a
       """);
+  }
+
+  @Test
+  public void dataTwoVars() {
+    typeCheckModule("""
+      \\data Or (A B : \\Sort)
+        | inl A
+        | inr B
+      \\func test : \\Set0 => Or Nat \\Set1
+      """, 1);
+    assertThatErrorsAre(Matchers.typeMismatchError());
+  }
+
+  @Test
+  public void dataTwoVars2() {
+    typeCheckModule("""
+      \\data Or (A B : \\Sort)
+        | inl A
+        | inr B
+      \\func test : \\Set0 => Or \\Set1 Nat
+      """, 1);
+    assertThatErrorsAre(Matchers.typeMismatchError());
   }
 }

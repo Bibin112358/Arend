@@ -315,7 +315,13 @@ public final class Concrete {
       return accept(new SubstConcreteVisitor(map, null), null);
     }
 
-    public void setInfIndex(int index) {}
+    public boolean isInfSort() {
+      return false;
+    }
+
+    public Expression withInfIndex(int index) {
+      return this;
+    }
 
     public void setInfField(FieldReferableImpl field) {}
 
@@ -1205,8 +1211,13 @@ public final class Concrete {
     }
 
     @Override
-    public void setInfIndex(int index) {
-      codomain.setInfIndex(index);
+    public boolean isInfSort() {
+      return codomain.isInfSort();
+    }
+
+    @Override
+    public Expression withInfIndex(int index) {
+      return new PiExpression(getData(), myParameters, codomain.withInfIndex(index));
     }
 
     @Override
@@ -1267,14 +1278,19 @@ public final class Concrete {
     private final LevelExpression myPLevel;
     private final LevelExpression myHLevel; // TODO[sorts]: Delete this
     private final Kind myKind;
-    private Integer myInfIndex;
+    private final Integer myInfIndex;
     private FieldReferableImpl myInfField;
 
-    public UniverseExpression(Object data, LevelExpression pLevel, LevelExpression hLevel, Kind kind) {
+    private UniverseExpression(Object data, LevelExpression pLevel, LevelExpression hLevel, Kind kind, Integer infIndex) {
       super(data);
       myPLevel = pLevel;
       myHLevel = hLevel;
       myKind = kind;
+      myInfIndex = infIndex;
+    }
+
+    public UniverseExpression(Object data, LevelExpression pLevel, LevelExpression hLevel, Kind kind) {
+      this(data, pLevel, hLevel, kind, null);
     }
 
     @Override
@@ -1304,10 +1320,13 @@ public final class Concrete {
     }
 
     @Override
-    public void setInfIndex(int index) {
-      if (myKind == Kind.SORT) {
-        myInfIndex = index;
-      }
+    public boolean isInfSort() {
+      return myKind == Kind.SORT;
+    }
+
+    @Override
+    public Expression withInfIndex(int index) {
+      return isInfSort() ? new UniverseExpression(getData(), myPLevel, myHLevel, myKind, index) : this;
     }
 
     @Override
