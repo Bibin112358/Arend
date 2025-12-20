@@ -127,10 +127,10 @@
       }
 
 -- | Contractible types with a localization are local.
-\lemma contrLocal {U : ReflUniverse} (C : Contr) : Local C
-  => lem C (localization C)
+\lemma contrLocal {U : ReflUniverse} {X : \hType} (C : Contr X) : Local X
+  => lem C (localization X)
   \where
-    \lemma lem {U : Universe} (C : Contr) (L : Localization C) : Local C
+    \lemma lem {U : Universe} {X : \hType} (C : Contr X) (L : Localization X) : Local X
       => localizationWithRetraction.lem L (\new Section { | ret _ => C.center | ret_f => C.contraction })
 
 -- | The unit type is local if it has a localization.

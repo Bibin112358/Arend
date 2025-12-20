@@ -22,7 +22,6 @@
 \import Data.Or
 \import Equiv
 \import Equiv.Fiber
-\import Equiv.Univalence
 \import Function
 \import Function.Iterate
 \import Function.Meta
@@ -87,7 +86,7 @@
       }
 
     \use \level levelSet {R : AddPointed} : isSet (Poly R)
-      => transportInv isSet (Equiv-to-= toQPoly-equiv) (\lam _ _ _ _ => set-pi)
+      => isSet.equiv toQPoly-equiv (\lam _ _ _ _ => set-pi)
 
     \func poly-countable {R : AddPointed} (c : Countable R) : Countable (Poly R)
       => surj-countable (quotient-countable (array-countable c)) (Equiv.isSurj {symQEquiv toQPoly-equiv})
