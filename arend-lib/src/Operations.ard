@@ -10,4 +10,4 @@
   | Coproduct \alias \infixl 6 ⨿ : E -> E -> E
 
 \instance TypeHasCoproduct : HasCoproduct \Type
-  | Coproduct => Or
+  | Coproduct A B => Or A B

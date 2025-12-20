@@ -135,7 +135,7 @@
     | in~ x, in~ y => (\case __ \with {
       | inP (in~ z, p) => TruncP.map (make~ p).2 \lam s => div-to~ $ ldiv_nonZero $ LDiv.trans (LDiv.factor-left LDiv.id-div) s
     }, \case __ \with {
-      | inP (in~ z, p) => TruncP.map (make~ p).2 \lam (xz|y : LDiv (x nonZeroCMonoid.* z) y) =>
+      | inP (in~ z, p) => TruncP.map {LDiv (x nonZeroCMonoid.* z) y} (make~ p).2 \lam xz|y =>
           \new LDiv (map subMonoid.embedMonoid (inD {nonZeroCMonoid} x)) (map subMonoid.embedMonoid (inD {nonZeroCMonoid} y)) (inD (z.1 * xz|y.inv.1)) $ pmap inD $ inv *-assoc *> pmap __.1 xz|y.inv-right
     })
 

@@ -6,7 +6,7 @@
 \import Data.Fin (fpred, fsuc, fsuc/=, nat_fin_=)
 \import Data.Or
 \import Equiv
-\import Equiv.Univalence
+\import Equiv.Univalence.Set
 \import Function
 \import Function.Meta ($)
 \import Logic.Unique
@@ -324,7 +324,7 @@
 \instance OrFin (S T : FinSet) : FinSet (Or S T)
   | finCard => S.finCard + T.finCard
   | finEq => \case S.finEq, T.finEq \with {
-    | inP Se, inP Te => inP $ =-to-Equiv $ QEquiv-to-= (aux {S.finCard} {T.finCard}) *> pmap2 Or (Equiv-to-= Se) (Equiv-to-= Te)
+    | inP Se, inP Te => inP $ transEquiv (aux {S.finCard} {T.finCard}) (Or.Or_Equiv Se Te)
   }
   \where {
     \func aux {n m : Nat} : QEquiv {Fin (n + m)} {Or (Fin n) (Fin m)} \cowith

@@ -2,7 +2,7 @@
 \import Paths
 \import Logic
 
-\data \fixr 2 Or (A B : \Type)
+\data \fixr 2 Or (A B : \Sort)
   | inl A
   | inr B
   \where {
@@ -12,11 +12,11 @@
       | inr b, inl a => absurd (e a b)
       | inr b, inr b' => pmap inr prop-pi
 
-    \func map {A B C D : \Type} (e : Or A B) (f : A -> C) (g : B -> D) : Or C D \elim e
+    \func map {A B C D : \Sort} (e : Or A B) (f : A -> C) (g : B -> D) : Or C D \elim e
       | inl a => inl (f a)
       | inr b => inr (g b)
 
-    \func rec {A B C : \Type} (f : A -> C) (g : B -> C) (e : Or A B) : C \elim e
+    \func rec {A B C : \Sort} (f : A -> C) (g : B -> C) (e : Or A B) : C \elim e
       | inl a => f a
       | inr b => g b
 
