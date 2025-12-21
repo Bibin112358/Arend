@@ -11,7 +11,6 @@
 \import Data.SubList
 \import Logic.Rewriting.TRS.HRS
 \import Logic.Rewriting.TRS.Linearity
-\import Data.Maybe
 \import Logic.Rewriting.TRS.MetaContexts
 \import Logic.Rewriting.TRS.Substitutions
 \import Logic.Rewriting.TRS.Union

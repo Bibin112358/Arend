@@ -5,14 +5,14 @@
 \import Logic
 \import Paths
 
-\record Seq (A : Nat -> \Type) (f : \Pi {n : Nat} -> A n -> A (suc n))
+\record Seq (A : Nat -> \hType) (f : \Pi {n : Nat} -> A n -> A (suc n))
 
 \data SeqColimit (s : Seq)
   | inSC {n : Nat} (s.A n)
   | quotSC {n : Nat} (x : s.A n) : inSC x = inSC (s.f x)
   \where {
     -- | The total space of a fibration over a sequential colimit is equivalent to a sequential colimit of fibers of this fibration.
-    \func flattening {s : Seq} (P : SeqColimit s -> \Type) : total = (\Sigma (w : SeqColimit s) (P w))
+    \func flattening {s : Seq} (P : SeqColimit s -> \hType) : total = (\Sigma (w : SeqColimit s) (P w))
       => Equiv-to-= totalSeqColimitLeft *> path TotalSeqColimit *> Equiv-to-= totalSeqColimitRight
       \where {
         \func total => SeqColimit seq

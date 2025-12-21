@@ -42,7 +42,7 @@
     \sfunc sort-perm {A : LinearOrder.Dec} {n : Nat} {l : Array A n} : Perm l (sort l)
       => Perm.perm-sym $ EPerm.EPerm_Perm_transport (EPerm.eperm-sym sort-eperm) _
       \where {
-        \func list_perm {A : \Type} {l l' : List A} (p : Sort.Perm l l') : EPerm (fromList l) (fromList l') \elim l, l', p
+        \func list_perm {A : \Sort} {l l' : List A} (p : Sort.Perm l l') : EPerm (fromList l) (fromList l') \elim l, l', p
           | List.nil, List.nil, Sort.perm-nil => eperm-nil
           | x List.:: l, y List.:: l', Sort.perm-:: p q => eperm-:: p (list_perm q)
           | x List.:: (x' List.:: l), y List.:: (y' List.:: l'), Sort.perm-swap p1 p2 q => eperm-swap p1 p2 (pmap fromList q)
@@ -52,7 +52,7 @@
           => transport (EPerm __ _) fromList_toList $ list_perm (Sort.Insertion.sort-perm _)
       }
 
-    \func perm_list {A : \Type} {n : Nat} {l l' : Array A n} (p : Perm l l') : Sort.Perm (toList l) (toList l') \elim n, l, l', p
+    \func perm_list {A : \Sort} {n : Nat} {l l' : Array A n} (p : Perm l l') : Sort.Perm (toList l) (toList l') \elim n, l, l', p
       | 0, nil, nil, perm-nil => Sort.perm-nil
       | suc n, x :: l, y :: l', perm-:: p q => Sort.perm-:: p (perm_list q)
       | suc (suc n), x :: (x' :: l), y :: (y' :: l'), perm-swap p1 p2 q => Sort.perm-swap p1 p2 (pmap toList q)

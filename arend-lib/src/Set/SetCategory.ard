@@ -34,7 +34,7 @@
   => \have (p,q,s) => SIP SetCat Str isHom st e S1 S2 p q
      \in (p, q, \lam x => inv (transport_pi (\lam _ => X) (\lam Z => Z) p (\lam z => z) x) *> path (\lam i => (s @ i) x))
 
-\instance SetCoproduct {J : \Type} (F : J -> \Set) : Product {J} {SetCat.op} F
+\instance SetCoproduct {J : \hType} (F : J -> \Set) : Product {J} {SetCat.op} F
   | apex => Trunc0 (\Sigma (j : J) (F j))
   | proj j x => in0 (j,x)
   | tupleMap f (in0 (j,x)) => f j x

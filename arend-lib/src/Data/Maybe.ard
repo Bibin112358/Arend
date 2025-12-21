@@ -1,18 +1,18 @@
 \import Paths
 
-\data Maybe (A : \Type) | nothing | just A
+\data Maybe (A : \Sort) | nothing | just A
   \where {
-    \func map {A B : \Type} (f : A -> B) (m : Maybe A) : Maybe B \elim m
+    \func map {A B : \Sort} (f : A -> B) (m : Maybe A) : Maybe B \elim m
       | nothing => nothing
       | just a => just (f a)
   }
 
-\func maybe {A B : \Type} (b : B) (f : A -> B) (m : Maybe A) : B \elim m
+\func maybe {A B : \Sort} (b : B) (f : A -> B) (m : Maybe A) : B \elim m
   | nothing => b
   | just a => f a
 
-\func unjust {A : \Type} (a : A) (maybe : Maybe A) : A \elim maybe
+\func unjust {A : \Sort} (a : A) (maybe : Maybe A) : A \elim maybe
   | nothing => a
   | just a1 => a1
 
-\func just-injective {A : \Type} {a b : A} (eq : just a = just b) : a = b => pmap (unjust a) eq
+\func just-injective {A : \Sort} {a b : A} (eq : just a = just b) : a = b => pmap (unjust a) eq

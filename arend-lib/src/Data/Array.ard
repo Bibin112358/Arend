@@ -15,43 +15,43 @@
 \import Set
 \import Set.Fin
 
-\func mkArray {A : \Type} {n : Nat} (f : Fin n -> A) => \new Array A n f
+\func mkArray {A : \Sort} {n : Nat} (f : Fin n -> A) => \new Array A n f
 
-\func arrayExt {A : \Type} {n : Nat} {l l' : Array A n} (p : \Pi (j : Fin n) -> l j = l' j) : l = l'
+\func arrayExt {A : \Sort} {n : Nat} {l l' : Array A n} (p : \Pi (j : Fin n) -> l j = l' j) : l = l'
   => path (\lam i => \new Array A n (\lam j => p j i))
 
-\func tail {A : \Type} (l : Array A) : Array A \elim l
+\func tail {A : \Sort} (l : Array A) : Array A \elim l
   | nil => nil
   | _ :: a => a
 
-\func taild {n : Nat} {A : Fin (suc n) -> \Type} (a : DArray A) : DArray (\lam j => A (suc j)) \elim a
+\func taild {n : Nat} {A : Fin (suc n) -> \Sort} (a : DArray A) : DArray (\lam j => A (suc j)) \elim a
   | _ :: a => a
 
-\func array-unext {A : \Type} {n : Nat} {l l' : Array A n} (p : l = {Array A} l') (j : Fin n) : l j = l' j \elim n, l, l', j
+\func array-unext {A : \Sort} {n : Nat} {l l' : Array A n} (p : l = {Array A} l') (j : Fin n) : l j = l' j \elim n, l, l', j
   | suc n, a :: l, a1 :: l', 0 => unhead p
   | suc n, a :: l, a1 :: l', suc j => array-unext (pmap tail p) j
 
-\func len=0 {A : \Type} {l : Array A} (p : l.len = 0) : l = nil \elim l
+\func len=0 {A : \Sort} {l : Array A} (p : l.len = 0) : l = nil \elim l
   | nil => idp
 
-\func map {A B : \Type} (f : A -> B) (as : Array A) : Array B \cowith
+\func map {A B : \Sort} (f : A -> B) (as : Array A) : Array B \cowith
   | len => as.len
   | at i => f (as i)
 
-\func map_:: {A B : \Type} (f : A -> B) {a : A} {l : Array A} : map f (a :: l) = f a :: map f l => idp
+\func map_:: {A B : \Sort} (f : A -> B) {a : A} {l : Array A} : map f (a :: l) = f a :: map f l => idp
 
-\func cong_:: {A : \Type} {a a' : A} (p : a = a') {l l' : Array A} (q : l = l') : a :: l = a' :: l'
+\func cong_:: {A : \Sort} {a a' : A} (p : a = a') {l l' : Array A} (q : l = l') : a :: l = a' :: l'
   => path \lam i => p i :: q i
 
-\func \infixr 5 ++' {A : \Type} (xs : Array A) {n : Nat} (ys : Array A n) : Array A (xs.len Nat.+ n) \elim xs
+\func \infixr 5 ++' {A : \Sort} (xs : Array A) {n : Nat} (ys : Array A n) : Array A (xs.len Nat.+ n) \elim xs
   | nil => ys
   | a :: xs => a :: xs ++' ys
   \where {
-    \func ++'_index-left {A : \Type} {l : Array A} {n : Nat} {m : Array A n} {i : Fin l.len} : (l ++' m) (fin-inc i) = l i \elim l, i
+    \func ++'_index-left {A : \Sort} {l : Array A} {n : Nat} {m : Array A n} {i : Fin l.len} : (l ++' m) (fin-inc i) = l i \elim l, i
       | a :: l, 0 => idp
       | a :: l, suc i => ++'_index-left
 
-    \func ++'_index-right {A : \Type} {l : Array A} {n : Nat} {m : Array A n} {i : Fin n} : (l ++' m) (fin-raise i) = m i \elim l
+    \func ++'_index-right {A : \Sort} {l : Array A} {n : Nat} {m : Array A n} {i : Fin n} : (l ++' m) (fin-raise i) = m i \elim l
       | nil => idp
       | a :: l => ++'_index-right
 
@@ -63,57 +63,57 @@
       }
   }
 
-\func ++'-split {A : \Type} {n m : Nat} {l : Array A (n Nat.+ m)} : l = (\new Array A n \lam i => l (fin-inc i)) ++' (\new Array A m \lam j => l (fin-raise j)) \elim n, l
+\func ++'-split {A : \Sort} {n m : Nat} {l : Array A (n Nat.+ m)} : l = (\new Array A n \lam i => l (fin-inc i)) ++' (\new Array A m \lam j => l (fin-raise j)) \elim n, l
   | 0, l => idp
   | suc n, a :: l => cong ++'-split
 
-\func map_++' {A B : \Type} (f : A -> B) {l : Array A} {n : Nat} {l' : Array A n} : map f (l ++' l') = map f l ++' map f l' \elim l
+\func map_++' {A B : \Sort} (f : A -> B) {l : Array A} {n : Nat} {l' : Array A n} : map f (l ++' l') = map f l ++' map f l' \elim l
   | nil => idp
   | :: a l => path (\lam i => f a :: map_++' f i)
 
-\func map2_++' {A B C : \Type} (f : A -> B -> C) {n : Nat} {l1 : Array A n} {l2 : Array B n} {m : Nat} {l1' : Array A m} {l2' : Array B m}
+\func map2_++' {A B C : \Sort} (f : A -> B -> C) {n : Nat} {l1 : Array A n} {l2 : Array B n} {m : Nat} {l1' : Array A m} {l2' : Array B m}
   : mkArray (\lam j => f (++' l1 l1' j) (++' l2 l2' j)) = mkArray (\lam j => f (l1 j) (l2 j)) ++' mkArray (\lam j => f (l1' j) (l2' j)) \elim n, l1, l2
   | 0, nil, nil => idp
   | suc n, a1 :: l1, a2 :: l2 => path (\lam i => f a1 a2 :: map2_++' f i)
 
-\func \infixr 5 ++ {A : \Type} (xs ys : Array A) : Array A \elim xs
+\func \infixr 5 ++ {A : \Sort} (xs ys : Array A) : Array A \elim xs
   | nil => ys
   | :: a xs => a :: xs ++ ys
   \where {
-    \func index-left {A : \Type} {l m : Array A} (i : Fin l.len) : Fin (DArray.len {l ++ m}) \elim l, i
+    \func index-left {A : \Sort} {l m : Array A} (i : Fin l.len) : Fin (DArray.len {l ++ m}) \elim l, i
       | a :: l, 0 => 0
       | a :: l, suc i => suc (index-left i)
 
-    \func ++_index-left {A : \Type} {l m : Array A} (i : Fin l.len) : (l ++ m) (index-left i) = l i \elim l, i
+    \func ++_index-left {A : \Sort} {l m : Array A} (i : Fin l.len) : (l ++ m) (index-left i) = l i \elim l, i
       | a :: l, 0 => idp
       | a :: l, suc i => ++_index-left i
 
-    \lemma index-left-nat {A : \Type} {l m : Array A} {i : Fin l.len} : index-left {A} {l} {m} i = {Nat} i \elim l, i
+    \lemma index-left-nat {A : \Sort} {l m : Array A} {i : Fin l.len} : index-left {A} {l} {m} i = {Nat} i \elim l, i
       | a :: l, 0 => idp
       | a :: l, suc i => pmap suc index-left-nat
 
-    \lemma index-left-inj {A : \Type} {l m : Array A} : IsInj (index-left {A} {l} {m})
+    \lemma index-left-inj {A : \Sort} {l m : Array A} : IsInj (index-left {A} {l} {m})
       => \lam p => nat_fin_= $ inv index-left-nat *> p *> index-left-nat
 
-    \func index-right {A : \Type} {l m : Array A} (i : Fin m.len) : Fin (DArray.len {l ++ m}) \elim l
+    \func index-right {A : \Sort} {l m : Array A} (i : Fin m.len) : Fin (DArray.len {l ++ m}) \elim l
       | nil => i
       | a :: l => suc (index-right i)
 
-    \func ++_index-right {A : \Type} {l m : Array A} {i : Fin m.len} : (l ++ m) (index-right i) = m i \elim l
+    \func ++_index-right {A : \Sort} {l m : Array A} {i : Fin m.len} : (l ++ m) (index-right i) = m i \elim l
       | nil => idp
       | a :: l => ++_index-right
 
-    \lemma index-right-nat {A : \Type} {l m : Array A} {i : Fin m.len} : index-right {A} {l} i = {Nat} l.len Nat.+ i \elim l
+    \lemma index-right-nat {A : \Sort} {l m : Array A} {i : Fin m.len} : index-right {A} {l} i = {Nat} l.len Nat.+ i \elim l
       | nil => idp
       | a :: l => pmap suc index-right-nat
 
-    \lemma index-right-inj {A : \Type} {l m : Array A} : IsInj (index-right {A} {l} {m})
+    \lemma index-right-inj {A : \Sort} {l m : Array A} : IsInj (index-right {A} {l} {m})
       => \lam p => nat_fin_= $ NatSemiring.cancel-left l.len $ inv index-right-nat *> p *> index-right-nat
 
-    \lemma index-left/=right {A : \Type} {l m m' : Array A} {i : Fin l.len} {j : Fin m'.len} : index-left {A} {l} {m} i /= {Nat} index-right {A} {l} j
+    \lemma index-left/=right {A : \Sort} {l m m' : Array A} {i : Fin l.len} {j : Fin m'.len} : index-left {A} {l} {m} i /= {Nat} index-right {A} {l} j
       => \lam p => NatSemiring.<-irreflexive $ (fin_< i) NatSemiring.<∘l rewrite (inv index-left-nat *> p *> index-right-nat) (NatSemiring.<=_+ <=-refl zero<=_)
 
-    \func split-index {A : \Type} {l m : Array A} (i : Fin (DArray.len {l ++ m}))
+    \func split-index {A : \Sort} {l m : Array A} (i : Fin (DArray.len {l ++ m}))
       : Or (\Sigma (j : Fin l.len) (i = index-left j)) (\Sigma (j : Fin m.len) (i = index-right j)) \elim l, i
       | nil, i => inr (i,idp)
       | a :: l, 0 => inl (0,idp)
@@ -122,103 +122,103 @@
         | inr r => inr (r.1, \lam i => suc (r.2 i))
       }
 
-    \func ++-all {A : \Type} {P : A -> \Type} {l l' : Array A} (Pl : \Pi (i : Fin l.len) -> P (l i)) (Pl' : \Pi (i : Fin l'.len) -> P (l' i)) (j : Fin (l ++ l').len) : P ((l ++ l') j)
+    \func ++-all {A : \Sort} {P : A -> \Sort} {l l' : Array A} (Pl : \Pi (i : Fin l.len) -> P (l i)) (Pl' : \Pi (i : Fin l'.len) -> P (l' i)) (j : Fin (l ++ l').len) : P ((l ++ l') j)
       => \case ++.split-index j \with {
         | inl (i,p) => rewrite (p,++_index-left) (Pl i)
         | inr (i,p) => rewrite (p,++_index-right) (Pl' i)
       }
 
-    \func index-big {A : \Type} {ls : Array (Array A)} (i : Fin ls.len) (j : Fin (DArray.len {ls i})) : Fin (DArray.len {Big (++) nil ls}) \elim ls, i
+    \func index-big {A : \Sort} {ls : Array (Array A)} (i : Fin ls.len) (j : Fin (DArray.len {ls i})) : Fin (DArray.len {Big (++) nil ls}) \elim ls, i
       | l :: ls, 0 => index-left j
       | l :: ls, suc i => index-right (index-big i j)
 
-    \func Big++-index {A : \Type} {ls : Array (Array A)} {i : Fin ls.len} {j : Fin (DArray.len {ls i})} : Big (++) nil ls (index-big i j) = ls i j \elim ls, i
+    \func Big++-index {A : \Sort} {ls : Array (Array A)} {i : Fin ls.len} {j : Fin (DArray.len {ls i})} : Big (++) nil ls (index-big i j) = ls i j \elim ls, i
       | ls :: l, 0 => ++_index-left j
       | ls :: l, suc i => ++_index-right *> Big++-index
   }
 
-\func ++_++' {A : \Type} {l : Array A} {n : Nat} {l' : Array A n} : l ++ l' = l ++' l' \elim l
+\func ++_++' {A : \Sort} {l : Array A} {n : Nat} {l' : Array A n} : l ++ l' = l ++' l' \elim l
   | nil => idp
   | a :: l => pmap (a ::) ++_++'
 
-\func map_++ {A B : \Type} (f : A -> B) {l l' : Array A} : map f (l ++ l') = map f l ++ map f l' \elim l
+\func map_++ {A B : \Sort} (f : A -> B) {l l' : Array A} : map f (l ++ l') = map f l ++ map f l' \elim l
   | nil => idp
   | :: a l => pmap (f a ::) (map_++ f)
 
-\func ++_nil {A : \Type} {l : Array A} : l ++ nil = l \elim l
+\func ++_nil {A : \Sort} {l : Array A} : l ++ nil = l \elim l
   | nil => idp
   | :: a l => pmap (a ::) ++_nil
 
-\lemma len_++ {A : \Type} {l l' : Array A} : DArray.len {l ++ l'} = l.len Nat.+ l'.len \elim l
+\lemma len_++ {A : \Sort} {l l' : Array A} : DArray.len {l ++ l'} = l.len Nat.+ l'.len \elim l
   | nil => idp
   | a :: l => pmap suc len_++
 
-\func unhead {A : \Type} {a a' : A} {l l' : Array A} (p : a :: l = a' :: l') : a = a'
+\func unhead {A : \Sort} {a a' : A} {l l' : Array A} (p : a :: l = a' :: l') : a = a'
   => pmap (headDef a) p
   \where
-    \func headDef {A : \Type} (def : A) (l : Array A) : A \elim l
+    \func headDef {A : \Sort} (def : A) (l : Array A) : A \elim l
       | nil => def
       | a :: _ => a
 
-\func untail {A : \Type} {a a' : A} {l l' : Array A} (p : a :: l = a' :: l') : l = l'
+\func untail {A : \Sort} {a a' : A} {l l' : Array A} (p : a :: l = a' :: l') : l = l'
   => pmap (tailDef l) p
   \where
-    \func tailDef {A : \Type} (def : Array A) (l : Array A) : Array A \elim l
+    \func tailDef {A : \Sort} (def : Array A) (l : Array A) : Array A \elim l
       | nil => def
       | _ :: l => l
 
-\func ++-cancel-left {A : \Type} {l l1 l2 : Array A} (p : l ++ l1 = l ++ l2) : l1 = l2 \elim l
+\func ++-cancel-left {A : \Sort} {l l1 l2 : Array A} (p : l ++ l1 = l ++ l2) : l1 = l2 \elim l
   | nil => p
   | :: a l => ++-cancel-left (untail p)
 
-\func ++-cancel-right {A : \Type} {l l1 l2 : Array A} (p : l1 ++ l = l2 ++ l) : l1 = l2 \elim l1, l2
+\func ++-cancel-right {A : \Sort} {l l1 l2 : Array A} (p : l1 ++ l = l2 ++ l) : l1 = l2 \elim l1, l2
   | nil, nil => idp
   | nil, :: a l2 => absurd (contr p)
   | :: a l1, nil => absurd (contr (inv p))
   | :: a1 l1, :: a2 l2 => path (\lam i => unhead p i :: ++-cancel-right (untail p) i)
   \where
-    \lemma contr {A : \Type} {l l' : Array A} {a : A} (p : l = a :: l' ++ l) : Empty
+    \lemma contr {A : \Sort} {l l' : Array A} {a : A} (p : l = a :: l' ++ l) : Empty
       => \case NatSemiring.cancel-right {0} {suc l'.len} l.len (pmap (DArray.len {__}) p *> pmap suc len_++)
 
-\func ++-assoc {A : \Type} {xs ys zs : Array A} : (xs ++ ys) ++ zs = xs ++ (ys ++ zs) \elim xs
+\func ++-assoc {A : \Sort} {xs ys zs : Array A} : (xs ++ ys) ++ zs = xs ++ (ys ++ zs) \elim xs
   | nil => idp
   | :: x xs => pmap (x ::) ++-assoc
 
-\func replicate_+ {A : \Type} {n m : Nat} {a : A} : replicate (n Nat.+ m) a = replicate n a ++ replicate m a \elim n
+\func replicate_+ {A : \Sort} {n m : Nat} {a : A} : replicate (n Nat.+ m) a = replicate n a ++ replicate m a \elim n
   | 0 => idp
   | suc n => pmap (a ::) replicate_+
 
-\func Index {A : \Type} (x : A) (l : Array A) => \Sigma (i : Fin l.len) (l i = x)
+\func Index {A : \Sort} (x : A) (l : Array A) => \Sigma (i : Fin l.len) (l i = x)
 
-\func index-left {A : \Type} {x : A} {l l' : Array A} (i : Index x l) : Index x (l ++ l') \elim l, i
+\func index-left {A : \Sort} {x : A} {l l' : Array A} (i : Index x l) : Index x (l ++ l') \elim l, i
   | nil, ((), _)
   | :: y l, (0, e) => (0, e)
   | :: y l, (suc i, e) => \have (j,p) => index-left (i, e) \in (suc j, p)
 
-\func index-right {A : \Type} {x : A} {l l' : Array A} (i : Index x l') : Index x (l ++ l') \elim l
+\func index-right {A : \Sort} {x : A} {l l' : Array A} (i : Index x l') : Index x (l ++ l') \elim l
   | nil => i
   | :: y l => \have (j,p) => index-right i \in (suc j, p)
 
-\func filter {A : \Type} (p : A -> Bool) (l : Array A) : Array A \elim l
+\func filter {A : \Sort} (p : A -> Bool) (l : Array A) : Array A \elim l
   | nil => nil
   | :: a l => if (p a) (a :: filter p l) (filter p l)
 
-\lemma filter-sat {A : \Type} (p : A -> Bool) (l : Array A) (i : Fin (DArray.len {filter p l})) : p (filter p l i) = true \elim l
+\lemma filter-sat {A : \Sort} (p : A -> Bool) (l : Array A) (i : Fin (DArray.len {filter p l})) : p (filter p l i) = true \elim l
   | :: a l => cases (p a arg addPath, i) \with {
     | false, _, i => filter-sat p l i
     | true, q, 0 => q
     | true, q, suc i => filter-sat p l i
   }
 
-\func filter_true {A : \Type} {p : A -> Bool} {l : Array A} (c : \Pi (j : Fin l.len) -> p (l j) = true) : filter p l = l \elim l
+\func filter_true {A : \Sort} {p : A -> Bool} {l : Array A} (c : \Pi (j : Fin l.len) -> p (l j) = true) : filter p l = l \elim l
   | nil => idp
   | a :: l => rewrite (c 0) $ pmap (a ::) $ filter_true \lam j => c (suc j)
 
-\func filter_false {A : \Type} {p : A -> Bool} {l : Array A} (c : \Pi (j : Fin l.len) -> p (l j) = false) : filter p l = nil \elim l
+\func filter_false {A : \Sort} {p : A -> Bool} {l : Array A} (c : \Pi (j : Fin l.len) -> p (l j) = false) : filter p l = nil \elim l
   | nil => idp
   | a :: l => rewrite (c 0) $ filter_false \lam j => c (suc j)
 
-\func filter-index {A : \Type} (p : A -> Bool) (l : Array A) (i : Fin l.len) (px : p (l i) = true) : Index (l i) (filter p l) \elim l, i
+\func filter-index {A : \Sort} (p : A -> Bool) (l : Array A) (i : Fin l.len) (px : p (l i) = true) : Index (l i) (filter p l) \elim l, i
   | nil, ()
   | :: a l, 0 => rewrite px (0, idp)
   | :: a l, suc i => mcases {if} \with {
@@ -226,26 +226,26 @@
     | false => filter-index p l i px
   }
 
-\func Big {A B : \Type} (op : A -> B -> B) (b : B) (l : Array A) : B \elim l
+\func Big {A B : \Sort} (op : A -> B -> B) (b : B) (l : Array A) : B \elim l
   | nil => b
   | :: a l => op a (Big op b l)
 
-\func Big++_map {A B : \Type} (f : A -> B) {ls : Array (Array A)} : Big (++) nil (map (map f) ls) = map f (Big (++) nil ls) \elim ls
+\func Big++_map {A B : \Sort} (f : A -> B) {ls : Array (Array A)} : Big (++) nil (map (map f) ls) = map f (Big (++) nil ls) \elim ls
   | nil => idp
   | l :: ls => pmap (_ ++) (Big++_map f) *> inv (map_++ f)
 
-\func Big++-split {A : \Type} {l : Array A} : l = Big (++) nil (map (`:: nil) l) \elim l
+\func Big++-split {A : \Sort} {l : Array A} : l = Big (++) nil (map (`:: nil) l) \elim l
   | nil => idp
   | a :: l => pmap (a ::) Big++-split
 
-\func filterMap {A B : \Type} (f : A -> Maybe B) (l : Array A) : Array B \elim l
+\func filterMap {A B : \Sort} (f : A -> Maybe B) (l : Array A) : Array B \elim l
   | nil => nil
   | :: a l => \case f a \with {
     | nothing => filterMap f l
     | just b => b :: filterMap f l
   }
 
-\func filterMap-index {A B : \Type} (f : A -> Maybe B) (l : Array A) {b : B} {j : Fin l.len} (p : f (l j) = just b) : Index b (filterMap f l) \elim l, j
+\func filterMap-index {A B : \Sort} (f : A -> Maybe B) (l : Array A) {b : B} {j : Fin l.len} (p : f (l j) = just b) : Index b (filterMap f l) \elim l, j
   | :: a l, 0 => rewrite p (0,idp)
   | :: a l, suc j => mcases \with {
     | nothing => filterMap-index f l p
@@ -259,27 +259,27 @@
   | len => l.len
   | at j => (j, l j)
 
-\func replicate {A : \Type} (n : Nat) (a : A)
+\func replicate {A : \Sort} (n : Nat) (a : A)
   => \new Array A n (\lam _ => a)
 
-\func keep {A : \Type} {P : A -> \Prop} (D : \Pi (a : A) -> Dec (P a)) (l : Array A) : Array A \elim l
+\func keep {A : \Sort} {P : A -> \Prop} (D : \Pi (a : A) -> Dec (P a)) (l : Array A) : Array A \elim l
   | nil => nil
   | a :: l => \case D a \with {
     | yes _ => a :: keep D l
     | no _ => keep D l
   }
   \where {
-    \lemma satisfies {A : \Type} {P : A -> \Prop} (D : \Pi (a : A) -> Dec (P a)) {l : Array A} {i : Fin (DArray.len {keep D l})} : P (keep D l i) \elim l
+    \lemma satisfies {A : \Sort} {P : A -> \Prop} (D : \Pi (a : A) -> Dec (P a)) {l : Array A} {i : Fin (DArray.len {keep D l})} : P (keep D l i) \elim l
       | a :: l => cases (D a, i) \with {
         | yes e, 0 => e
         | yes e, suc i => satisfies D
         | no n, i => satisfies D
       }
 
-    \func element {A : \Type} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} {j : Fin l.len} (p : P (l j)) : Index (l j) (keep D l)
+    \func element {A : \Sort} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} {j : Fin l.len} (p : P (l j)) : Index (l j) (keep D l)
       => rewrite keep=remove (remove.element $ later \lam q => q p)
 
-    \func preimage {A : \Type} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} (i : Fin (DArray.len {keep D l})) : \Sigma (j : Fin l.len) (keep D l i = l j) \elim l
+    \func preimage {A : \Sort} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} (i : Fin (DArray.len {keep D l})) : \Sigma (j : Fin l.len) (keep D l i = l j) \elim l
       | nil => (i,idp)
       | a :: l => cases (D a, i) \with {
         | yes e, 0 => (0,idp)
@@ -287,7 +287,7 @@
         | no q, i => \let t => preimage i \in (suc t.1, t.2)
       }
 
-    \lemma no-repeats {A : \Type} {l : Array A} (p : \Pi {i j : Fin l.len} -> l i = l j -> i = j) {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {i j : Fin (DArray.len {keep D l})} (q : keep D l i = keep D l j) : i = j \elim l
+    \lemma no-repeats {A : \Sort} {l : Array A} (p : \Pi {i j : Fin l.len} -> l i = l j -> i = j) {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {i j : Fin (DArray.len {keep D l})} (q : keep D l i = keep D l j) : i = j \elim l
       | a :: l => cases (D a, i, j, q) \with {
         | no _, i, j, q => no-repeats (\lam {i'} {j'} s => pmap (fpred i') $ p {suc i'} {suc j'} s) q
         | yes _, 0, 0, q => idp
@@ -297,33 +297,33 @@
       }
   }
 
-\func keep_++ {A : \Type} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l l' : Array A} : keep D (l ++ l') = keep D l ++ keep D l' \elim l
+\func keep_++ {A : \Sort} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l l' : Array A} : keep D (l ++ l') = keep D l ++ keep D l' \elim l
   | nil => idp
   | a :: l => mcases \with {
     | yes p => pmap (a ::) keep_++
     | no n => keep_++
   }
 
-\func keep-all {A : \Type} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} (p : \Pi (j : Fin l.len) -> P (l j)) : keep D l = l \elim l
+\func keep-all {A : \Sort} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} (p : \Pi (j : Fin l.len) -> P (l j)) : keep D l = l \elim l
   | nil => idp
   | a :: l => rewrite (dec_yes_reduce (p 0)) $ pmap (a ::) $ keep-all \lam j => p (suc j)
 
-\func keep-none {A : \Type} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} (p : \Pi (j : Fin l.len) -> Not (P (l j))) : keep D l = nil \elim l
+\func keep-none {A : \Sort} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} (p : \Pi (j : Fin l.len) -> Not (P (l j))) : keep D l = nil \elim l
   | nil => idp
   | a :: l => rewrite (dec_no_reduce (p 0)) $ keep-none (\lam j => p (suc j))
 
-\func keep-unique {A : \Type} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} {j : Fin l.len} (Pj : P (l j)) (nPj : \Pi (i : Fin l.len) -> P (l i) -> i = j) : keep D l = l j :: nil \elim l, j
+\func keep-unique {A : \Sort} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} {j : Fin l.len} (Pj : P (l j)) (nPj : \Pi (i : Fin l.len) -> P (l i) -> i = j) : keep D l = l j :: nil \elim l, j
   | a :: l, 0 => rewrite (dec_yes_reduce Pj) $ pmap (a ::) {_} {nil} $ keep-none \lam i Pi => \case nPj (suc i) Pi
   | a :: l, suc j => rewrite (dec_no_reduce \lam Pa => \case nPj 0 Pa) $ keep-unique Pj \lam i Pi => unfsuc $ nPj (suc i) Pi
 
-\func remove {A : \Type} {P : A -> \Prop} (D : \Pi (a : A) -> Dec (P a)) (l : Array A) : Array A \elim l
+\func remove {A : \Sort} {P : A -> \Prop} (D : \Pi (a : A) -> Dec (P a)) (l : Array A) : Array A \elim l
   | nil => nil
   | a :: l => \case D a \with {
     | yes _ => remove D l
     | no _ => a :: remove D l
   }
   \where {
-    \lemma no-element {A : \Type} {P : A -> \Prop} (D : \Pi (a : A) -> Dec (P a)) {l : Array A} {i : Fin (DArray.len {remove D l})} (p : P (remove D l i)) : Empty \elim l
+    \lemma no-element {A : \Sort} {P : A -> \Prop} (D : \Pi (a : A) -> Dec (P a)) {l : Array A} {i : Fin (DArray.len {remove D l})} (p : P (remove D l i)) : Empty \elim l
       | nil => \case i
       | a :: l => cases (D a, i, p) \with {
         | yes e, i, p => no-element D p
@@ -331,7 +331,7 @@
         | no q, suc i, p => no-element D p
       }
 
-    \func element {A : \Type} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} {j : Fin l.len} (p : Not (P (l j))) : Index (l j) (remove D l) \elim l
+    \func element {A : \Sort} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} {j : Fin l.len} (p : Not (P (l j))) : Index (l j) (remove D l) \elim l
       | a :: l => \case \elim j, \elim p \with {
         | 0, p => mcases \with {
           | yes e => absurd (p e)
@@ -344,7 +344,7 @@
         }
       }
 
-    \func preimage {A : \Type} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} (i : Fin (DArray.len {remove D l})) : \Sigma (j : Fin l.len) (remove D l i = l j) \elim l
+    \func preimage {A : \Sort} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} (i : Fin (DArray.len {remove D l})) : \Sigma (j : Fin l.len) (remove D l i = l j) \elim l
       | nil => (i,idp)
       | a :: l => cases (D a, i) \with {
         | yes e, i => \let t => preimage i \in (suc t.1, t.2)
@@ -352,7 +352,7 @@
         | no q, suc i => \let t => preimage i \in (suc t.1, t.2)
       }
 
-    \lemma no-repeats {A : \Type} {l : Array A} (p : \Pi {i j : Fin l.len} -> l i = l j -> i = j) {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {i j : Fin (DArray.len {remove D l})} (q : remove D l i = remove D l j) : i = j \elim l
+    \lemma no-repeats {A : \Sort} {l : Array A} (p : \Pi {i j : Fin l.len} -> l i = l j -> i = j) {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {i j : Fin (DArray.len {remove D l})} (q : remove D l i = remove D l j) : i = j \elim l
       | nil => \case i
       | a :: l => cases (D a, i, j, q) \with {
         | yes _, i, j, q => no-repeats (\lam {i'} {j'} s => pmap (fpred i') $ p {suc i'} {suc j'} s) q
@@ -362,7 +362,7 @@
         | no s, suc i, suc j, q => pmap fsuc (no-repeats (\lam {i'} {j'} s => pmap (fpred i') $ p {suc i'} {suc j'} s) q)
       }
 
-    \func equals {A : \Type} {P Q : A -> \Prop} (pq : \Pi {a : A} -> P a -> Q a) (qp : \Pi {a : A} -> Q a -> P a)
+    \func equals {A : \Sort} {P Q : A -> \Prop} (pq : \Pi {a : A} -> P a -> Q a) (qp : \Pi {a : A} -> Q a -> P a)
                  {DP : \Pi (a : A) -> Dec (P a)} {DQ : \Pi (a : A) -> Dec (Q a)} {l : Array A} : remove DP l = remove DQ l \elim l
       | nil => idp
       | a :: l => cases (DP a) \with {
@@ -371,32 +371,32 @@
       }
   }
 
-\func remove-none {A : \Type} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} (p : \Pi (j : Fin l.len) -> Not (P (l j))) : remove D l = l \elim l
+\func remove-none {A : \Sort} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} (p : \Pi (j : Fin l.len) -> Not (P (l j))) : remove D l = l \elim l
   | nil => idp
   | a :: l => rewrite (dec_no_reduce (p 0)) $ pmap (a ::) $ remove-none \lam j => p (suc j)
 
-\func remove_map {A B : \Type} (f : A -> B) {P : B -> \Prop} {D : \Pi (b : B) -> Dec (P b)} {l : Array A} : remove D (map f l) = map f (remove (\lam a => D (f a)) l) \elim l
+\func remove_map {A B : \Sort} (f : A -> B) {P : B -> \Prop} {D : \Pi (b : B) -> Dec (P b)} {l : Array A} : remove D (map f l) = map f (remove (\lam a => D (f a)) l) \elim l
   | nil => idp
   | a :: l => mcases \with {
     | yes p => remove_map f
     | no q => pmap (f a ::) (remove_map f)
   }
 
-\func keep=remove {A : \Type} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} : keep D l = remove (\lam a => NotDec (D a)) l \elim l
+\func keep=remove {A : \Sort} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} : keep D l = remove (\lam a => NotDec (D a)) l \elim l
   | nil => idp
   | a :: l => cases (D a) \with {
     | yes e => rewrite (dec_no_reduce $ later \lam p => p e) $ pmap (a ::) keep=remove
     | no q => rewrite (dec_yes_reduce q) keep=remove
   }
 
-\func remove=keep {A : \Type} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} : remove D l = keep (\lam a => NotDec (D a)) l \elim l
+\func remove=keep {A : \Sort} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} : remove D l = keep (\lam a => NotDec (D a)) l \elim l
   | nil => idp
   | a :: l => cases (D a) \with {
     | yes e => rewrite (dec_no_reduce $ later \lam p => p e) $ remove=keep
     | no q => rewrite (dec_yes_reduce q) $ pmap (a ::) remove=keep
   }
 
-\func remove_remove {A : \Type} {P Q : A -> \Prop} {DP : \Pi (a : A) -> Dec (P a)} {DQ : \Pi (a : A) -> Dec (Q a)} {l : Array A}
+\func remove_remove {A : \Sort} {P Q : A -> \Prop} {DP : \Pi (a : A) -> Dec (P a)} {DQ : \Pi (a : A) -> Dec (Q a)} {l : Array A}
   : remove DP (remove DQ l) = remove (\lam a => Dec_|| (DP a) (DQ a)) l \elim l
   | nil => idp
   | a :: l => mcases \with {
@@ -412,11 +412,11 @@
     }
   }
 
-\func remove-swap {A : \Type} {P Q : A -> \Prop} {DP : \Pi (a : A) -> Dec (P a)} {DQ : \Pi (a : A) -> Dec (Q a)} {l : Array A}
+\func remove-swap {A : \Sort} {P Q : A -> \Prop} {DP : \Pi (a : A) -> Dec (P a)} {DQ : \Pi (a : A) -> Dec (Q a)} {l : Array A}
   : remove DP (remove DQ l) = remove DQ (remove DP l)
   => remove_remove *> remove.equals (\lam {a} => ||.rec' byRight byLeft) (\lam {a} => ||.rec' byRight byLeft) *> inv remove_remove
 
-\func keep_remove=keep {A : \Type} {P Q : A -> \Prop} {DP : \Pi (a : A) -> Dec (P a)} {DQ : \Pi (a : A) -> Dec (Q a)} (PQ : \Pi {a : A} -> P a -> Q a -> Empty) {l : Array A} : keep DP (remove DQ l) = keep DP l \elim l
+\func keep_remove=keep {A : \Sort} {P Q : A -> \Prop} {DP : \Pi (a : A) -> Dec (P a)} {DQ : \Pi (a : A) -> Dec (Q a)} (PQ : \Pi {a : A} -> P a -> Q a -> Empty) {l : Array A} : keep DP (remove DQ l) = keep DP l \elim l
   | nil => idp
   | a :: l => mcases \with {
     | yes q, yes p => absurd (PQ p q)
@@ -425,7 +425,7 @@
     | no n, no n1 => rewrite (dec_no_reduce n1) (keep_remove=keep PQ)
   }
 
-\lemma remove<= {A : \Type} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} : DArray.len {remove D l} <= l.len \elim l
+\lemma remove<= {A : \Sort} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} : DArray.len {remove D l} <= l.len \elim l
   | nil => <=-refl
   | a :: l => mcases \with {
     | yes p => remove<= <=∘ id<=suc
@@ -545,21 +545,21 @@
   | nil => idp
   | a :: l => pmap (a ::) $ remove-none (\lam j p => \case inj {0} {suc (nub-preimage j).1} $ p *> (nub-preimage j).2) *> nub_id \lam p => unfsuc (inj p)
 
-\func insert {A : \Type} (a : A) (l : Array A) (j : Fin (suc l.len)) : Array A (suc l.len) \elim l, j
+\func insert {A : \Sort} (a : A) (l : Array A) (j : Fin (suc l.len)) : Array A (suc l.len) \elim l, j
   | nil, j => a :: nil
   | b :: l, 0 => a :: b :: l
   | b :: l, suc j => b :: insert a l j
 
-\func insert_zro {A : \Type} {n : Nat} {a : A} {l : Array A n} : insert a l 0 = a :: l \elim n, l
+\func insert_zro {A : \Sort} {n : Nat} {a : A} {l : Array A n} : insert a l 0 = a :: l \elim n, l
   | 0, nil => idp
   | suc n, b :: l => idp
 
-\func insert-index {A : \Type} {a : A} {l : Array A} {j : Fin (suc l.len)} : insert a l j j = a \elim l, j
+\func insert-index {A : \Sort} {a : A} {l : Array A} {j : Fin (suc l.len)} : insert a l j j = a \elim l, j
   | nil, 0 => idp
   | b :: l, 0 => idp
   | b :: l, suc j => insert-index
 
-\func skip {A : \Type} {n : Nat} (l : Array A (suc n)) (k : Fin (suc n)) : Array A n \elim n, l, k
+\func skip {A : \Sort} {n : Nat} (l : Array A (suc n)) (k : Fin (suc n)) : Array A n \elim n, l, k
   | n, _ :: l, 0 => l
   | suc n, a :: l, suc k => a :: skip l k
   \where {
@@ -579,51 +579,51 @@
       | suc n, suc i, suc j, suc k, suc<suc q => suc<suc (newIndex_< q)
   }
 
-\func skip_++' {A : \Type} {n m : Nat} {l : Array A (suc n)} {l' : Array A m} {k : Fin (suc n)} : skip (l ++' l') (fin-inc k) = skip l k ++' l' \elim n, l, k
+\func skip_++' {A : \Sort} {n m : Nat} {l : Array A (suc n)} {l' : Array A m} {k : Fin (suc n)} : skip (l ++' l') (fin-inc k) = skip l k ++' l' \elim n, l, k
   | 0, a :: nil, 0 => exts \lam j => skip_0
   | suc n, a :: l, 0 => idp
   | suc n, a :: l, suc k => cong skip_++'
 
-\func skipExt {A : \Type} {n : Nat} {l l' : Array A (suc n)} {k : Fin (suc n)} (p : \Pi (i : Fin (suc n)) -> i /= k -> l i = l' i) : skip l k = skip l' k \elim n, l, l', k
+\func skipExt {A : \Sort} {n : Nat} {l l' : Array A (suc n)} {k : Fin (suc n)} (p : \Pi (i : Fin (suc n)) -> i /= k -> l i = l' i) : skip l k = skip l' k \elim n, l, l', k
   | 0, l, l', 0 => idp
   | suc n, a :: l, a' :: l', 0 => arrayExt \lam j => p (suc j) (\case __)
   | suc n, a :: l, a' :: l', suc k => pmap2 (::) (p 0 (\case __)) $ skipExt \lam i q => p (suc i) (fsuc/= q)
 
-\func skip_0 {A : \Type} {n : Nat} {l : Array A (suc n)} {j : Fin n} : skip l 0 j = l (suc j) \elim n, l
+\func skip_0 {A : \Sort} {n : Nat} {l : Array A (suc n)} {j : Fin n} : skip l 0 j = l (suc j) \elim n, l
   | 0, a :: l => idp
   | suc n, a :: l => idp
 
-\func skip_map {A B : \Type} (f : A -> B) {n : Nat} {l : Array A (suc n)} {k : Fin (suc n)} : map f (skip l k) = skip (map f l) k \elim n, l, k
+\func skip_map {A B : \Sort} (f : A -> B) {n : Nat} {l : Array A (suc n)} {k : Fin (suc n)} : map f (skip l k) = skip (map f l) k \elim n, l, k
   | 0, a :: l, 0 => idp
   | suc n, a :: l, 0 => idp
   | suc n, a :: l, suc k => path (\lam i => f a :: skip_map f i)
 
-\func replace {A : \Type} (l : Array A) (i : Fin l.len) (a : A) : Array A l.len \elim l, i
+\func replace {A : \Sort} (l : Array A) (i : Fin l.len) (a : A) : Array A l.len \elim l, i
   | b :: l, 0 => a :: l
   | b :: l, suc i => b :: replace l i a
 
-\func replace-index {A : \Type} {l : Array A} {i : Fin l.len} {a : A} : replace l i a i = a \elim l, i
+\func replace-index {A : \Sort} {l : Array A} {i : Fin l.len} {a : A} : replace l i a i = a \elim l, i
   | b :: l, 0 => idp
   | b :: l, suc i => replace-index
 
-\func replace-notIndex {A : \Type} {l : Array A} {i j : Fin l.len} (i/=j : i /= {Nat} j) {a : A} : replace l i a j = l j \elim l, i, j
+\func replace-notIndex {A : \Sort} {l : Array A} {i j : Fin l.len} (i/=j : i /= {Nat} j) {a : A} : replace l i a j = l j \elim l, i, j
   | b :: l, 0, 0 => absurd (i/=j idp)
   | b :: l, 0, suc j => idp
   | b :: l, suc i, 0 => idp
   | b :: l, suc i, suc j => replace-notIndex \lam p => i/=j (pmap suc p)
 
-\func replace_insert {A : \Type} {l : Array A} {i : Fin (suc l.len)} {a b : A} : replace (insert a l i) i b = insert b l i \elim l, i
+\func replace_insert {A : \Sort} {l : Array A} {i : Fin (suc l.len)} {a b : A} : replace (insert a l i) i b = insert b l i \elim l, i
   | nil, 0 => idp
   | c :: l, 0 => idp
   | c :: l, suc i => cong replace_insert
 
-\func skip_replace_= {A : \Type} {n : Nat} {l : Array A (suc n)} {i : Fin (suc n)} {a : A}
+\func skip_replace_= {A : \Sort} {n : Nat} {l : Array A (suc n)} {i : Fin (suc n)} {a : A}
   : skip (replace l i a) i = skip l i \elim n, l, i
   | 0, b :: l, 0 => idp
   | suc n, b :: l, 0 => idp
   | suc n, b :: l, suc i => path (\lam i => b :: skip_replace_= i)
 
-\func skip_replace_/= {A : \Type} {n : Nat} {l : Array A (suc n)} {j i : Fin (suc n)} {a : A} (p : j /= i)
+\func skip_replace_/= {A : \Sort} {n : Nat} {l : Array A (suc n)} {j i : Fin (suc n)} {a : A} (p : j /= i)
   : skip (replace l j a) i = replace (skip l i) (skip.newIndex p) a \elim n, l, j, i
   | _, _, 0, 0 => absurd (p idp)
   | suc n, b :: l, 0, suc 0 => idp
@@ -631,34 +631,34 @@
   | suc n, b :: l, suc j, 0 => idp
   | suc n, b :: l, suc j, suc i => cong (skip_replace_/= _)
 
-\func skip-index {A : \Type} {n : Nat} {l : Array A (suc n)} {i j : Fin (suc n)} {p : j /= i} : skip l i (skip.newIndex p) = l j \elim n, l, i, j
+\func skip-index {A : \Sort} {n : Nat} {l : Array A (suc n)} {i j : Fin (suc n)} {p : j /= i} : skip l i (skip.newIndex p) = l j \elim n, l, i, j
   | _, _, 0, 0 => absurd (p idp)
   | suc n, a :: l, 0, suc j => idp
   | suc n, a :: l, suc i, 0 => idp
   | suc n, a :: l, suc i, suc j => skip-index
 
-\func skip_replicate {A : \Type} {n : Nat} (a : A) {k : Fin (suc n)} : skip (replicate (suc n) a) k = replicate n a \elim n, k
+\func skip_replicate {A : \Sort} {n : Nat} (a : A) {k : Fin (suc n)} : skip (replicate (suc n) a) k = replicate n a \elim n, k
   | 0, 0 => idp
   | suc n, 0 => idp
   | suc n, suc k => path (\lam i => a :: skip_replicate a i)
 
-\func map_replace {A B : \Type} (f : A -> B) {l : Array A} {i : Fin l.len} {a : A}
+\func map_replace {A B : \Sort} (f : A -> B) {l : Array A} {i : Fin l.len} {a : A}
   : map f (replace l i a) = replace (map f l) i (f a) \elim l, i
   | b :: l, 0 => idp
   | b :: l, suc i => path (\lam i => f b :: map_replace f i)
 
-\func insert_skip {A : \Type} {n : Nat} {l : Array A (suc n)} {k : Fin (suc n)} {a : A}
+\func insert_skip {A : \Sort} {n : Nat} {l : Array A (suc n)} {k : Fin (suc n)} {a : A}
   : insert a (skip l k) k = replace l k a \elim n, l, k
   | 0, b :: nil, 0 => idp
   | suc n, b :: l, 0 => idp
   | suc n, b :: l, suc k => cong insert_skip
 
-\func skip_insert_= {A : \Type} {n : Nat} {a : A} {l : Array A n} {j : Fin (suc n)} : skip (insert a l j) j = l \elim n, l, j
+\func skip_insert_= {A : \Sort} {n : Nat} {a : A} {l : Array A n} {j : Fin (suc n)} : skip (insert a l j) j = l \elim n, l, j
   | 0, nil, 0 => idp
   | suc n, b :: l, 0 => idp
   | suc n, b :: l, suc j => cong skip_insert_=
 
-\func map_insert {A B : \Type} (f : A -> B) {a : A} {l : Array A} {j : Fin (suc l.len)}
+\func map_insert {A B : \Sort} (f : A -> B) {a : A} {l : Array A} {j : Fin (suc l.len)}
   : map f (insert a l j) = insert (f a) (map f l) j \elim l, j
   | nil, 0 => idp
   | b :: l, 0 => idp
@@ -704,7 +704,7 @@
     | no q => keep_count
   }
 
-\func find {A : \Type} (P : A -> Decide) (l : Array A) : Or (\Sigma (j : Fin l.len) (P (l j)) (\Pi {i : Fin l.len} -> i NatOrder.< j -> P (l i) -> Empty)) (\Pi {j : Fin l.len} -> P (l j) -> Empty) \elim l
+\func find {A : \Sort} (P : A -> Decide) (l : Array A) : Or (\Sigma (j : Fin l.len) (P (l j)) (\Pi {i : Fin l.len} -> i NatOrder.< j -> P (l i) -> Empty)) (\Pi {j : Fin l.len} -> P (l j) -> Empty) \elim l
   | nil => inr \lam {j} => \case j
   | a :: l => \case decide {P a} \with {
     | yes e => inl (0, e, \case __)
@@ -741,33 +741,33 @@
     }
   }
 
-\func forall {A : \Type} (p : A -> Bool) (l : Array A) : Bool \elim l
+\func forall {A : \Sort} (p : A -> Bool) (l : Array A) : Bool \elim l
   | nil => true
   | a :: l => p a and forall p l
 
-\lemma forall-char {A : \Type} {p : A -> Bool} {l : Array A} (s : forall p l = true) (j : Fin l.len) : p (l j) = true \elim l, j
+\lemma forall-char {A : \Sort} {p : A -> Bool} {l : Array A} (s : forall p l = true) (j : Fin l.len) : p (l j) = true \elim l, j
   | a :: l, 0 => (and.toSigma s).1
   | a :: l, suc j => forall-char (and.toSigma s).2 j
 
-\func fit {A : \Type} (a : A) {n : Nat} (l : Array A) : Array A n \elim n, l
+\func fit {A : \Sort} (a : A) {n : Nat} (l : Array A) : Array A n \elim n, l
   | 0, _ => nil
   | suc n, nil => replicate (suc n) a
   | suc n, b :: l => b :: fit a l
 
-\func fit_< {A : \Type} {a : A} {n : Nat} (l : Array A) {j : Fin n} (p : j NatOrder.< l.len) : fit a l j = l (toFin j p) \elim n, l, j, p
+\func fit_< {A : \Sort} {a : A} {n : Nat} (l : Array A) {j : Fin n} (p : j NatOrder.< l.len) : fit a l j = l (toFin j p) \elim n, l, j, p
   | suc n, b :: l, 0, _ => idp
   | suc n, b :: l, suc j, NatOrder.suc<suc p => fit_< _ p
 
-\func fit_>= {A : \Type} {a : A} {n : Nat} (l : Array A) {j : Fin n} (p : l.len <= j) : fit a l j = a \elim n, l, j
+\func fit_>= {A : \Sort} {a : A} {n : Nat} (l : Array A) {j : Fin n} (p : l.len <= j) : fit a l j = a \elim n, l, j
   | suc n, nil, j => idp
   | suc n, b :: l, 0 => absurd linarith
   | suc n, b :: l, suc j => fit_>= l (suc<=suc.conv p)
 
-\func fit_<' {A : \Type} {a : A} {n : Nat} (l : Array A) {j : Fin l.len} (p : j NatOrder.< n) : fit a l (toFin j p) = l j \elim n, l, j, p
+\func fit_<' {A : \Sort} {a : A} {n : Nat} (l : Array A) {j : Fin l.len} (p : j NatOrder.< n) : fit a l (toFin j p) = l j \elim n, l, j, p
   | suc n, b :: l, 0, _ => idp
   | suc n, b :: l, suc j, NatOrder.suc<suc p => fit_<' _ p
 
-\func fit_map {A B : \Type} (f : A -> B) {a : A} {b : B} (p : f a = b) {n : Nat} {l : Array A} : map f (fit a {n} l) = fit b (map f l) \elim n, l
+\func fit_map {A B : \Sort} (f : A -> B) {a : A} {b : B} (p : f a = b) {n : Nat} {l : Array A} : map f (fit a {n} l) = fit b (map f l) \elim n, l
   | 0, l => idp
   | suc n, nil => pmap (replicate (suc n)) p
   | suc n, a' :: l => path (\lam i => f a' :: fit_map f p i)
@@ -780,43 +780,43 @@
     | no a/=a' => (0, a/=a')
   }
 
-\func toList {A : \Type} (l : Array A) : List A \elim l
+\func toList {A : \Sort} (l : Array A) : List A \elim l
   | nil => List.nil
   | a :: l => a List.:: toList l
 
-\lemma toList_length {A : \Type} {l : Array A} : length (toList l) = l.len \elim l
+\lemma toList_length {A : \Sort} {l : Array A} : length (toList l) = l.len \elim l
   | nil => idp
   | a :: l => pmap suc toList_length
 
-\func fromList {A : \Type} (l : List A) : Array A (length l) \elim l
+\func fromList {A : \Sort} (l : List A) : Array A (length l) \elim l
   | List.nil => nil
   | a List.:: l => a :: fromList l
 
-\func fromList_toList {A : \Type} {l : Array A} : fromList (toList l) = l \elim l
+\func fromList_toList {A : \Sort} {l : Array A} : fromList (toList l) = l \elim l
   | nil => idp
   | a :: l => pmap (a ::) fromList_toList
 
-\func take {A : \Type} (n : Nat) (l : Array A) (p : n <= l.len) : Array A n \elim n, l
+\func take {A : \Sort} (n : Nat) (l : Array A) (p : n <= l.len) : Array A n \elim n, l
   | 0, l => nil
   | suc n, nil => absurd (p NatOrder.zero<suc)
   | suc n, a :: l => a :: take n l (suc<=suc.conv p)
 
-\func take-index {A : \Type} {n : Nat} {l : Array A} {p : n <= l.len} {j : Fin n} : take n l p j = l (fin-inc_<= p j) \elim n, l, j
+\func take-index {A : \Sort} {n : Nat} {l : Array A} {p : n <= l.len} {j : Fin n} : take n l p j = l (fin-inc_<= p j) \elim n, l, j
   | suc n, nil, j => absurd (p NatOrder.zero<suc)
   | suc n, a :: l, 0 => idp
   | suc n, a :: l, suc j => take-index
 
-\func singleAt {A : \Type} {n : Nat} (j : Fin n) (value def : A) : Array A n \cowith
+\func singleAt {A : \Sort} {n : Nat} (j : Fin n) (value def : A) : Array A n \cowith
   | at i => \case decideEq j i \with {
     | yes _ => value
     | no _ => def
   }
   \where \protected {
-    \func alt {A : \Type} {n : Nat} (j : Fin n) (value def : A) : Array A n \elim n, j
+    \func alt {A : \Sort} {n : Nat} (j : Fin n) (value def : A) : Array A n \elim n, j
       | suc n, 0 => value :: replicate n def
       | suc n, suc j => def :: alt j value def
 
-    \sfunc char {A : \Type} {n : Nat} {j : Fin n} {value def : A} : singleAt j value def = alt j value def \elim n, j
+    \sfunc char {A : \Sort} {n : Nat} {j : Fin n} {value def : A} : singleAt j value def = alt j value def \elim n, j
       | suc n, 0 => idp
       | suc n, suc j => exts (\case \elim __ \with {
         | 0 => idp

@@ -10,7 +10,7 @@
   | 0 => def
   | suc x => x
 
-\func fcase {A : \Type} {n : Nat} (a : A) (f : Fin n -> A) (j : Fin (suc n)) : A \elim j
+\func fcase {A : \Sort} {n : Nat} (a : A) (f : Fin n -> A) (j : Fin (suc n)) : A \elim j
   | 0 => a
   | suc j => f j
 
