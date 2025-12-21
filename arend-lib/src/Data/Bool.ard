@@ -22,7 +22,7 @@
 \lemma not-isInv {b : Bool} : not (not b) = b
   => cases b idp
 
-\func if {A : \Type} (b : Bool) (then else : A) : A \elim b
+\func if {A : \Sort} (b : Bool) (then else : A) : A \elim b
   | true => then
   | false => else
 

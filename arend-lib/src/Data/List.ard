@@ -15,63 +15,63 @@
 \import Paths.Meta
 \import Set
 
-\data List (A : \Type)
+\data List (A : \Sort)
   | nil
   | \infixr 5 :: A (List A)
 
-\func length {A : \Type} (l : List A) : Nat \elim l
+\func length {A : \Sort} (l : List A) : Nat \elim l
   | nil => 0
   | :: a l => suc (length l)
 
-\func \infixl 9 !! {A : \Type} (l : List A) (i : Fin (length l)) : A \elim l, i
+\func \infixl 9 !! {A : \Sort} (l : List A) (i : Fin (length l)) : A \elim l, i
   | :: a l, 0 => a
   | :: a l, suc i => l !! i
 
-\func \infixr 5 ++ {A : \Type} (xs ys : List A) : List A \elim xs
+\func \infixr 5 ++ {A : \Sort} (xs ys : List A) : List A \elim xs
   | nil => ys
   | :: a xs => a :: xs ++ ys
 
-\func ++-assoc {A : \Type} {xs ys zs : List A} : (xs ++ ys) ++ zs = xs ++ (ys ++ zs) \elim xs
+\func ++-assoc {A : \Sort} {xs ys zs : List A} : (xs ++ ys) ++ zs = xs ++ (ys ++ zs) \elim xs
   | nil => idp
   | :: x xs => pmap (x ::) ++-assoc
 
-\func ++_nil {A : \Type} {l : List A} : l ++ nil = l \elim l
+\func ++_nil {A : \Sort} {l : List A} : l ++ nil = l \elim l
   | nil => idp
   | :: a l => pmap (a ::) ++_nil
 
-\lemma length_++ {A : \Type} {l l' : List A} : length (l ++ l') = length l Nat.+ length l' \elim l
+\lemma length_++ {A : \Sort} {l l' : List A} : length (l ++ l') = length l Nat.+ length l' \elim l
   | nil => idp
   | :: a l => pmap suc length_++
 
-\func replicate {A : \Type} (n : Nat) (a : A) : List A \elim n
+\func replicate {A : \Sort} (n : Nat) (a : A) : List A \elim n
   | 0 => nil
   | suc n => a :: replicate n a
 
-\lemma length_replicate {A : \Type} {n : Nat} {a : A} : length (replicate n a) = n \elim n
+\lemma length_replicate {A : \Sort} {n : Nat} {a : A} : length (replicate n a) = n \elim n
   | 0 => idp
   | suc n => pmap suc length_replicate
 
-\func map {A B : \Type} (f : A -> B) (l : List A) : List B \elim l
+\func map {A B : \Sort} (f : A -> B) (l : List A) : List B \elim l
   | nil => nil
   | :: a l => f a :: map f l
 
-\func length_map {A B : \Type} (f : A -> B) (l : List A) : length (map f l) = length l \elim l
+\func length_map {A B : \Sort} (f : A -> B) (l : List A) : length (map f l) = length l \elim l
   | nil => idp
   | :: a l => pmap suc (length_map f l)
 
-\func map_id {A : \Type} {l : List A} : map (\lam x => x) l = l \elim l
+\func map_id {A : \Sort} {l : List A} : map (\lam x => x) l = l \elim l
   | nil => idp
   | :: a l => pmap (_ ::) map_id
 
-\func map_comp {A B C : \Type} (g : B -> C) (f : A -> B) (l : List A) : map (\lam x => g (f x)) l = map g (map f l) \elim l
+\func map_comp {A B C : \Sort} (g : B -> C) (f : A -> B) (l : List A) : map (\lam x => g (f x)) l = map g (map f l) \elim l
   | nil => idp
   | :: a l => pmap (_ ::) (map_comp g f l)
 
-\func headDef {A : \Type} (x : A) (xs : List A) : A \elim xs
+\func headDef {A : \Sort} (x : A) (xs : List A) : A \elim xs
   | nil => x
   | :: a _ => a
 
-\func tail {A : \Type} (l : List A) : List A \elim l
+\func tail {A : \Sort} (l : List A) : List A \elim l
   | nil => nil
   | :: a l => l
 
@@ -82,60 +82,60 @@
   | ide-right => ++_nil
   | *-assoc => ++-assoc
 
-\func splitAt {A : \Type} (n : Nat) (l : List A) : \Sigma (List A) (List A) \elim n, l
+\func splitAt {A : \Sort} (n : Nat) (l : List A) : \Sigma (List A) (List A) \elim n, l
   | 0, l => (nil, l)
   | suc _, nil => (nil, nil)
   | suc n, :: a l =>
       \let! (l1, l2) => splitAt n l
       \in (a :: l1, l2)
   \where
-    \func appendLem {A : \Type} (n : Nat) (l : List A) : take n l ++ drop n l = l \elim n, l
+    \func appendLem {A : \Sort} (n : Nat) (l : List A) : take n l ++ drop n l = l \elim n, l
       | 0, l => idp
       | suc n, nil => idp
       | suc n, :: a l => pmap (a ::) (appendLem n l)
 
-\func take {A : \Type} (n : Nat) (l : List A) => (splitAt n l).1
+\func take {A : \Sort} (n : Nat) (l : List A) => (splitAt n l).1
 
-\func drop {A : \Type} (n : Nat) (l : List A) => (splitAt n l).2
+\func drop {A : \Sort} (n : Nat) (l : List A) => (splitAt n l).2
 
-\func replace {A : \Type} (l : List A) (i s : Nat) (r : List A) =>
+\func replace {A : \Sort} (l : List A) (i s : Nat) (r : List A) =>
   \let! (l1, l2) => splitAt i l
   \in l1 ++ r ++ drop s l2
 
-\func slice {A : \Type} (l : List A) (i s : Nat) => take s (drop i l)
+\func slice {A : \Sort} (l : List A) (i s : Nat) => take s (drop i l)
   \where
-    \func appendLem {A : \Type} (l : List A) (i s : Nat) : take i l ++ slice l i s ++ drop s (drop i l) = l \elim l, i, s
+    \func appendLem {A : \Sort} (l : List A) (i s : Nat) : take i l ++ slice l i s ++ drop s (drop i l) = l \elim l, i, s
       | l, 0, s => splitAt.appendLem s l
       | nil, suc i, 0 => idp
       | nil, suc i, suc s => idp
       | :: a l, suc i, s => pmap (a ::) (appendLem l i s)
 
-\data All {A : \Type} (P : A -> \Prop) (l : List A) \elim l
+\data All {A : \Sort} (P : A -> \Prop) (l : List A) \elim l
   | nil => all-nil
   | :: x l => all-cons (P x) (All P l)
 
-\lemma all-map {A B : \Type} (f : A -> B) {P : B -> \Prop} {l : List A} (a : All P (map f l)) : All (\lam a => P (f a)) l \elim l, a
+\lemma all-map {A B : \Sort} (f : A -> B) {P : B -> \Prop} {l : List A} (a : All P (map f l)) : All (\lam a => P (f a)) l \elim l, a
   | nil, all-nil => all-nil
   | :: x l, all-cons p a => all-cons p (all-map f a)
 
-\lemma all-implies {A : \Type} {P Q : A -> \Prop} {l : List A} (a : All P l) (p : All (\lam a => P a -> Q a) l) : All Q l \elim l, a, p
+\lemma all-implies {A : \Sort} {P Q : A -> \Prop} {l : List A} (a : All P l) (p : All (\lam a => P a -> Q a) l) : All Q l \elim l, a, p
   | nil, all-nil, all-nil => all-nil
   | :: x l, all-cons c a, all-cons f p => all-cons (f c) (all-implies a p)
 
-\lemma all-forall {A : \Type} {P : A -> \Prop} {l : List A} (p : \Pi (a : A) -> P a) : All P l \elim l
+\lemma all-forall {A : \Sort} {P : A -> \Prop} {l : List A} (p : \Pi (a : A) -> P a) : All P l \elim l
   | nil => all-nil
   | :: a l => all-cons (p a) (all-forall p)
 
-\data All2 {A : \Type} (P : A -> A -> \Prop) (l : List A) \elim l
+\data All2 {A : \Sort} (P : A -> A -> \Prop) (l : List A) \elim l
   | nil => all2-nil
   | :: x l => all2-cons (All (P x) l) (All2 P l)
 
-\data AllC {A : \Type} (P : A -> A -> \Prop) (l : List A) \elim l
+\data AllC {A : \Sort} (P : A -> A -> \Prop) (l : List A) \elim l
   | nil => allC-nil
   | :: x nil => allC-single
   | :: x (:: y l) => allC-cons (P x y) (AllC P (y :: l))
 
-\lemma allC-tail {A : \Type} {a : A} {l : List A} {P : A -> A -> \Prop} (a : AllC P (a :: l)) : AllC P l \elim l, a
+\lemma allC-tail {A : \Sort} {a : A} {l : List A} {P : A -> A -> \Prop} (a : AllC P (a :: l)) : AllC P l \elim l, a
   | nil, allC-single => allC-nil
   | :: y l, allC-cons p a => a
 
@@ -256,27 +256,27 @@
   }
 
 \module Sort \where {
-  \data Perm {A : \Type} (xs ys : List A) \elim xs, ys
+  \data Perm {A : \Sort} (xs ys : List A) \elim xs, ys
     | nil, nil => perm-nil
     | :: x xs, :: y ys => perm-:: (x = y) (Perm xs ys)
     | :: x (:: x' xs), :: y (:: y' ys) => perm-swap (x = y') (x' = y) (xs = ys)
     | xs, ys => perm-trans {zs : List A} (Perm xs zs) (Perm zs ys)
     \where {
-      \func perm-refl {A : \Type} {xs : List A} : Perm xs xs \elim xs
+      \func perm-refl {A : \Sort} {xs : List A} : Perm xs xs \elim xs
         | nil => perm-nil
         | :: a l => perm-:: idp perm-refl
 
-      \func perm-sym {A : \Type} {xs ys : List A} (p : Perm xs ys) : Perm ys xs \elim xs, ys, p
+      \func perm-sym {A : \Sort} {xs ys : List A} (p : Perm xs ys) : Perm ys xs \elim xs, ys, p
         | nil, nil, perm-nil => perm-nil
         | :: x xs, :: y ys, perm-:: p p1 => perm-:: (inv p) (perm-sym p1)
         | :: x (:: x' xs), :: y (:: y' ys), perm-swap p p1 p2 => perm-swap (inv p1) (inv p) (inv p2)
         | xs, ys, perm-trans p1 p2 => perm-trans (perm-sym p2) (perm-sym p1)
 
-      \func perm-head {A : \Type} {a : A} {xs ys : List A} : Perm (a :: xs ++ ys) (xs ++ a :: ys) \elim xs
+      \func perm-head {A : \Sort} {a : A} {xs ys : List A} : Perm (a :: xs ++ ys) (xs ++ a :: ys) \elim xs
         | nil => perm-refl
         | :: a1 xs => perm-trans (perm-swap idp idp idp) (perm-:: idp perm-head)
 
-      \lemma perm_length {A : \Type} {xs ys : List A} (p : Perm xs ys) : length xs = length ys \elim xs, ys, p
+      \lemma perm_length {A : \Sort} {xs ys : List A} (p : Perm xs ys) : length xs = length ys \elim xs, ys, p
         | nil, nil, perm-nil => idp
         | x :: xs, y :: ys, perm-:: _ q => pmap suc (perm_length q)
         | x :: (x' :: xs), y :: (y' :: _), perm-swap _ _ idp => idp
@@ -386,9 +386,9 @@
       \where {
         \data Color | red | black
 
-        \data RBTree (A : \Type) | rbLeaf | rbBranch Color (RBTree A) A (RBTree A)
+        \data RBTree (A : \Sort) | rbLeaf | rbBranch Color (RBTree A) A (RBTree A)
 
-        \func rbTreeToList {A : \Type} (t : RBTree A) (r : List A) : List A \elim t
+        \func rbTreeToList {A : \Sort} (t : RBTree A) (r : List A) : List A \elim t
           | rbLeaf => r
           | rbBranch _ t1 a t2 => rbTreeToList t1 (a :: rbTreeToList t2 r)
 
@@ -396,7 +396,7 @@
           | nil => r
           | :: a l => aux l (repaint (insert a r))
 
-        \func repaint {A : \Type} (t : RBTree A) : RBTree A
+        \func repaint {A : \Sort} (t : RBTree A) : RBTree A
           | rbBranch red l a r => rbBranch black l a r
           | t => t
 
@@ -407,12 +407,12 @@
             | inr a<=a1 => balanceLeft c (insert a l1) a1 l2
           }
 
-        \func balanceLeft {A : \Type} (c : Color) (\strict l : RBTree A) (v : A) (r : RBTree A) : RBTree A \elim c, l
+        \func balanceLeft {A : \Sort} (c : Color) (\strict l : RBTree A) (v : A) (r : RBTree A) : RBTree A \elim c, l
           | black, rbBranch red (rbBranch red a x b) y c => rbBranch red (rbBranch black a x b) y (rbBranch black c v r)
           | black, rbBranch red a x (rbBranch red b y c) => rbBranch red (rbBranch black a x b) y (rbBranch black c v r)
           | c, a => rbBranch c a v r
 
-        \func balanceRight {A : \Type} (c : Color) (l : RBTree A) (v : A) (\strict r : RBTree A) : RBTree A \elim c, r
+        \func balanceRight {A : \Sort} (c : Color) (l : RBTree A) (v : A) (\strict r : RBTree A) : RBTree A \elim c, r
           | black, rbBranch red (rbBranch red b y c) z d => rbBranch red (rbBranch black l v b) y (rbBranch black c z d)
           | black, rbBranch red b y (rbBranch red c z d) => rbBranch red (rbBranch black l v b) y (rbBranch black c z d)
           | c, b => rbBranch c l v b
@@ -420,7 +420,7 @@
 
     \open sort
 
-    \func toList {A : \Type} (t : RBTree A) : List A \elim t
+    \func toList {A : \Sort} (t : RBTree A) : List A \elim t
       | rbLeaf => nil
       | rbBranch _ t1 a t2 => toList t1 ++ a :: toList t2
       \where {
@@ -507,29 +507,29 @@
   | nil => l'
   | a :: l => if (contains l' a) (union l l') (a :: union l l')
 
-\truncated \data InList {A : \Type} (a : A) (l : List A) : \Prop \elim l
+\truncated \data InList {A : \Sort} (a : A) (l : List A) : \Prop \elim l
   | a' :: l => { here (a = a') | there (InList a l) }
   \where {
-    \func \infix 4 ~ {A : \Type} (l l' : List A) => \Pi (a : A) -> InList a l <-> InList a l'
+    \func \infix 4 ~ {A : \Sort} (l l' : List A) => \Pi (a : A) -> InList a l <-> InList a l'
 
-    \lemma ~_:: {A : \Type} {a : A} {l l' : List A} (p : l ~ l') : a :: l ~ a :: l'
+    \lemma ~_:: {A : \Sort} {a : A} {l l' : List A} (p : l ~ l') : a :: l ~ a :: l'
       => \lam b => (InList_:: (p b).1, InList_:: (p b).2)
       \where
-        \lemma InList_:: {A : \Type} {a b : A} {l l' : List A} (p : InList b l -> InList b l') (c : InList b (a :: l)) : InList b (a :: l') \elim c
+        \lemma InList_:: {A : \Sort} {a b : A} {l l' : List A} (p : InList b l -> InList b l') (c : InList b (a :: l)) : InList b (a :: l') \elim c
           | here q => here q
           | there c => there (p c)
   }
 
-\lemma InList_++ {A : \Type} {a : A} {l l' : List A} (p : InList a (l ++ l')) : InList a l || InList a l' \elim l, p
+\lemma InList_++ {A : \Sort} {a : A} {l l' : List A} (p : InList a (l ++ l')) : InList a l || InList a l' \elim l, p
   | nil, p => byRight p
   | a' :: l, here p => byLeft (here p)
   | a' :: l, there p => ||.map there id (InList_++ p)
 
-\lemma InList_++-left {A : \Type} {a : A} {l l' : List A} (p : InList a l) : InList a (l ++ l') \elim l, p
+\lemma InList_++-left {A : \Sort} {a : A} {l l' : List A} (p : InList a l) : InList a (l ++ l') \elim l, p
   | a' :: l, here p => here p
   | a' :: l, there p => there (InList_++-left p)
 
-\lemma InList_++-right {A : \Type} {a : A} {l l' : List A} (p : InList a l') : InList a (l ++ l') \elim l
+\lemma InList_++-right {A : \Sort} {a : A} {l l' : List A} (p : InList a l') : InList a (l ++ l') \elim l
   | nil => p
   | a' :: l => there (InList_++-right p)
 
