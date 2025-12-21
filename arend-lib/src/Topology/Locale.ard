@@ -1524,11 +1524,11 @@
               }),
               \lam j k+1<=j => unfold F (rewrite (decideEq/=_reduce (\lam (k=j : k = j) => <-irreflexive (id<suc <∘l (rewrite (inv k=j) in k+1<=j)))) (S j (<=-less id<suc <=∘ k+1<=j))))
 
-    \func ++_singleton {A : \Type} (l : Array A) : Big (++) nil (map (`:: nil) l) = l \elim l
+    \func ++_singleton {A : \Sort} (l : Array A) : Big (++) nil (map (`:: nil) l) = l \elim l
       | nil => idp
       | :: a l => pmap (a ::) (++_singleton l)
 
-    \func split_++ {A : \Type} {l1 l2 : Array A} (k : Fin (DArray.len {l1 ++ l2}))
+    \func split_++ {A : \Sort} {l1 l2 : Array A} (k : Fin (DArray.len {l1 ++ l2}))
       : Or (\Sigma (i : Fin l1.len) ((l1 ++ l2) k = l1 i)) (\Sigma (i : Fin l2.len) ((l1 ++ l2) k = l2 i)) \elim l1, k
       | nil, k => inr (k,idp)
       | :: a l1, 0 => inl (0,idp)
@@ -1537,7 +1537,7 @@
         | inr (i,p) => inr (i,p)
       }
 
-    \func split {A : \Type} {n : Nat} (g : Fin n -> Array A) (k : Fin (DArray.len {Big (++) nil (mkArray g)}))
+    \func split {A : \Sort} {n : Nat} (g : Fin n -> Array A) (k : Fin (DArray.len {Big (++) nil (mkArray g)}))
       : \Sigma (i : Fin n) (j : Fin (DArray.len {g i})) (Big (++) nil g k = g i j) \elim n
       | suc n => \case split_++ k \with {
         | inl (j,p) => (0,j,p)
@@ -1546,11 +1546,11 @@
           \in (suc i, j, p *> q)
       }
 
-    \func unsplit {A : \Type} {n : Nat} (S : Fin n -> Array A) (i : Fin n) (j : Fin (DArray.len {S i})) : Index (S i j) (Big (++) nil S) \elim n, i
+    \func unsplit {A : \Sort} {n : Nat} (S : Fin n -> Array A) (i : Fin n) (j : Fin (DArray.len {S i})) : Index (S i j) (Big (++) nil S) \elim n, i
       | suc n, 0 => index-left (j,idp)
       | suc n, suc i => index-right (unsplit (\lam k => S (suc k)) i j)
 
-    \func unsplit2 {A : \Type} {n : Nat} (Q : Fin n -> Nat) (S : \Sigma (i : Fin n) (Fin (Q i)) -> Array A) (i : Fin n) (j : Fin (Q i)) (k : Fin (DArray.len {S (i,j)}))
+    \func unsplit2 {A : \Sort} {n : Nat} (Q : Fin n -> Nat) (S : \Sigma (i : Fin n) (Fin (Q i)) -> Array A) (i : Fin n) (j : Fin (Q i)) (k : Fin (DArray.len {S (i,j)}))
       : Index (S (i,j) k) (Big (++) nil (\lam i => Big (++) nil (mkArray (\lam j => S (i,j))))) \elim n, i
       | suc n, 0 => index-left (unsplit (\lam j => S (0,j)) j k)
       | suc n, suc i => index-right (unsplit2 (\lam i => Q (suc i)) (\lam p => S (suc p.1, p.2)) i j k)

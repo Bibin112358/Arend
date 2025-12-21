@@ -129,7 +129,7 @@ public class Utils {
     return factory.app(expr, true, args);
   }
 
-  public static List<ConcreteExpression> addArguments(ConcreteExpression expr, ExpressionTypechecker typechecker, ConcreteFactory factory, int expectedParameters, boolean addGoals) {
+  public static List<ConcreteArgument> addArguments(ConcreteExpression expr, ExpressionTypechecker typechecker, ConcreteFactory factory, int expectedParameters, boolean addGoals) {
     ConcreteReferenceExpression refExpr = null;
     if (expr instanceof ConcreteReferenceExpression) {
       refExpr = (ConcreteReferenceExpression) expr;
@@ -144,7 +144,7 @@ public class Utils {
       return Collections.emptyList();
     }
 
-    int numberOfArgs = 0;
+    List<ConcreteArgument> result = new ArrayList<>();
     ArendRef ref = refExpr.getReferent();
     if (ref instanceof MetaRef) {
       MetaDefinition meta = ((MetaRef) ref).getDefinition();
@@ -152,9 +152,7 @@ public class Utils {
         boolean[] explicitness = ((BaseMetaDefinition) meta).argumentExplicitness();
         if (explicitness != null) {
           for (boolean explicit : explicitness) {
-            if (explicit) {
-              numberOfArgs++;
-            }
+            result.add(factory.arg(addGoals && explicit ? factory.goal() : factory.hole(), explicit));
           }
         }
       }
@@ -163,32 +161,45 @@ public class Utils {
       if (argDef == null) {
         return Collections.emptyList();
       }
-      numberOfArgs = numberOfExplicitParameters(argDef) - expectedParameters;
-    }
+      for (CoreParameter parameter = argDef.getParameters(); parameter.hasNext(); parameter = parameter.getNext()) {
+        result.add(factory.arg(addGoals && parameter.isExplicit() ? factory.goal() : factory.hole(), parameter.isExplicit()));
+      }
+      if (argDef instanceof CoreFunctionDefinition function) {
+        List<CoreParameter> parameters = new ArrayList<>();
+        function.getResultType().getPiParameters(parameters);
+        for (CoreParameter parameter : parameters) {
+          result.add(factory.arg(addGoals && parameter.isExplicit() ? factory.goal() : factory.hole(), parameter.isExplicit()));
+        }
+      }
 
-    if (expr instanceof ConcreteAppExpression && numberOfArgs > 0) {
-      for (ConcreteArgument argument : ((ConcreteAppExpression) expr).getArguments()) {
-        if (argument.isExplicit()) {
-          numberOfArgs--;
+      while (expectedParameters > 0 && !result.isEmpty()) {
+        if (result.removeLast().isExplicit()) {
+          expectedParameters--;
         }
       }
     }
 
-    if (numberOfArgs <= 0) {
-      return Collections.emptyList();
+    int index = 0;
+    if (expr instanceof ConcreteAppExpression && !result.isEmpty()) {
+      List<? extends ConcreteArgument> exprArgs = ((ConcreteAppExpression) expr).getArguments();
+      for (int i = 0; i < exprArgs.size() && index < result.size();) {
+        if (exprArgs.get(i).isExplicit() == result.get(index).isExplicit()) {
+          index++;
+          i++;
+        } else if (exprArgs.get(i).isExplicit()) {
+          index++;
+        } else {
+          i++;
+        }
+      }
     }
 
-    List<ConcreteExpression> args = new ArrayList<>(numberOfArgs);
-    for (int i = 0; i < numberOfArgs; i++) {
-      args.add(addGoals ? factory.goal() : factory.hole());
-    }
-    return args;
+    return index == result.size() ? Collections.emptyList() : index == 0 ? result : result.subList(index, result.size());
   }
 
   public static TypedExpression typecheckWithAdditionalArguments(ConcreteExpression expr, ExpressionTypechecker typechecker, int expectedParameters, boolean addGoals) {
     ConcreteFactory factory = typechecker.getFactory().withData(expr);
-    List<ConcreteExpression> args = addArguments(expr, typechecker, factory.withData(expr), expectedParameters, addGoals);
-    TypedExpression result = typechecker.typecheck(args.isEmpty() ? expr : factory.app(expr, true, args), null);
+    TypedExpression result = typechecker.typecheck(factory.app(expr, addArguments(expr, typechecker, factory.withData(expr), expectedParameters, addGoals)), null);
     if (result == null) {
       return null;
     }

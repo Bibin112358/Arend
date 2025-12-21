@@ -17,9 +17,9 @@
     \lemma Union-cond {X : \hType} {S : Set X -> \hType} {U : Set X} (SU : S U) : U ⊆ Union S
       => \lam Ux => inP (U,SU,Ux)
 
-    \func Total {X : \Type} (U : Set X) => \Sigma (x : X) (\property U x)
+    \func Total {X : \Sort} (U : Set X) => \Sigma (x : X) (\property U x)
 
-    \func restrict {X : \Type} {U : Set X} (V : Set X) : Set (Total U)
+    \func restrict {X : \Sort} {U : Set X} (V : Set X) : Set (Total U)
       => \lam s => V s.1
 
     \func Prod {X Y : \hType} (U : Set X) (V : Set Y) : Set (\Sigma X Y)
@@ -32,7 +32,7 @@
       => Big CoverInter (single (top {SetLattice X})) Cs
   }
 
-\type Elem {X : \Type} (U : Set X) => \Sigma (x : X) (\property U x)
+\type Elem {X : \Sort} (U : Set X) => \Sigma (x : X) (\property U x)
 
 \func single {X : \Set} (a : X) : Set X
   => a =
@@ -112,22 +112,22 @@
       }, p *> pmap (U ∧) q),
       \lam (inP (Us,CsUs,p)) => inP (Us 0, CsUs 0, _, inP (\lam j => Us (suc j), \lam j => CsUs (suc j), idp), p))
 
-\func extend {X : \Type} {U : Set X} (V : Set (Set.Total U)) : Set X
+\func extend {X : \Sort} {U : Set X} (V : Set (Set.Total U)) : Set X
   => \lam x => \Sigma (Ux : U x) (V (x,Ux))
 
-\lemma extend-sub {X : \Type} {U : Set X} {V : Set (Set.Total U)} : extend V ⊆ U
+\lemma extend-sub {X : \Sort} {U : Set X} {V : Set (Set.Total U)} : extend V ⊆ U
   => __.1
 
-\lemma extend-mono {X : \Type} {U : Set X} {V W : Set (Set.Total U)} (p : V ⊆ W) : extend V ⊆ extend W
+\lemma extend-mono {X : \Sort} {U : Set X} {V W : Set (Set.Total U)} (p : V ⊆ W) : extend V ⊆ extend W
   => \lam {x} (Ux,Vx) => (Ux, p Vx)
 
-\lemma extend_meet {X : \Type} {U : Set X} {V W : Set (Set.Total U)} : extend (V ∧ W) = extend V ∧ extend W
+\lemma extend_meet {X : \Sort} {U : Set X} {V W : Set (Set.Total U)} : extend (V ∧ W) = extend V ∧ extend W
   => <=-antisymmetric (\lam e => ((e.1, e.2.1), (e.1, e.2.2))) (\lam e => (e.1.1, (e.1.2, transport W (ext idp) e.2.2)))
 
-\lemma restrict_extend {X : \Type} {U : Set X} {V : Set (Set.Total U)} : Set.restrict (extend V) = V
+\lemma restrict_extend {X : \Sort} {U : Set X} {V : Set (Set.Total U)} : Set.restrict (extend V) = V
   => <=-antisymmetric (\lam r => transport V (ext idp) r.2) (\lam {x} Vx => (x.2,Vx))
 
-\lemma extend_restrict {X : \Type} {U : Set X} {V : Set X} : extend (Set.restrict {X} {U} V) ⊆ V
+\lemma extend_restrict {X : \Sort} {U : Set X} {V : Set X} : extend (Set.restrict {X} {U} V) ⊆ V
   => __.2
 
 \lemma ^-1_<= {A B : \hType} (f : A -> B) {U V : Set B} (p : U ⊆ V) : f ^-1 U ⊆ f ^-1 V
