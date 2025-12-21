@@ -355,8 +355,7 @@
               | idp, idp => idp
           }
 
-        \func decompose-transport2
-          {A B : \Type} (C : A -> B -> \Type) {a a' : A} (eq : a = a') {b b' : B} (eq' : b = b') (x : C a b) : transport (C __ b') eq (transport (C a __) eq' x) = transport2 C eq eq' x \elim eq, eq'
+        \func decompose-transport2 {A B : \Sort} (C : A -> B -> \Sort) {a a' : A} (eq : a = a') {b b' : B} (eq' : b = b') (x : C a b) : transport (C __ b') eq (transport (C a __) eq' x) = transport2 C eq eq' x \elim eq, eq'
           | idp, idp => idp
 
         \func end-over-transport-2
@@ -493,7 +492,7 @@
       ext (\lam i => rewrite (inv (decompose-transport2 _ _ _ _), move-under-transport, transport-move, append-context-right-commute-with-transport, transport_id_inv, weakening.over-transport-ctx, Transports.extension-to-nil-right, transport_id_inv)  (inv (weakening.over-identity (subst i))))
       \where {
 
-        \func decompose-transport2 {A B : \Type} (C : A -> B -> \Type) {a a' : A} (eq : a = a') {b b' : B} (eq' : b = b') (x : C a b) : transport (C a') eq' (transport (C __ b) eq x) = transport2 C eq eq' x \elim eq, eq'
+        \func decompose-transport2 {A B : \Sort} (C : A -> B -> \Sort) {a a' : A} (eq : a = a') {b b' : B} (eq' : b = b') (x : C a b) : transport (C a') eq' (transport (C __ b) eq x) = transport2 C eq eq' x \elim eq, eq'
           | idp, idp => idp
 
         \func move-under-transport
@@ -505,17 +504,17 @@
         \elim eq
           | idp => idp
 
-        \func indexing-exteded-list {A : \Type} {a : List A} (i : Index a)
+        \func indexing-exteded-list {A : \Sort} {a : List A} (i : Index a)
           : (a ++ nil) !! transport (\lam ctx => Index ctx) (inv ++_nil) i = a !! i => unifier i (inv ++_nil)
           \where {
-            \func unifier {A : \Type} {a b : List A} (i : Index a) (eq : a = b): b !! transport Index eq i = a !! i \elim eq
+            \func unifier {A : \Sort} {a b : List A} (i : Index a) (eq : a = b): b !! transport Index eq i = a !! i \elim eq
               | idp => idp
           }
 
-        \func indexing-extended-list-2 {A : \Type} {a : List A} (fin : Index (a ++ nil))
+        \func indexing-extended-list-2 {A : \Sort} {a : List A} (fin : Index (a ++ nil))
           : a !! transport (\lam ctx => Index ctx) ++_nil fin = (a ++ nil) !! fin => unifier _ _
           \where {
-            \func unifier {A : \Type} {a b : List A} (fin : Index b) (eq : b = a) : a !! transport (\lam ctx => Index ctx) eq fin = b !! fin \elim eq | idp => idp
+            \func unifier {A : \Sort} {a b : List A} (fin : Index b) (eq : b = a) : a !! transport (\lam ctx => Index ctx) eq fin = b !! fin \elim eq | idp => idp
           }
 
         \func transport-move
@@ -567,19 +566,19 @@
               : transport (Term env context __ mc) eq1 t = transport (Term env context __ mc) eq2 t
               => rewrite (prop-isProp eq1 eq2) idp
 
-            \lemma unexpand-fin {A : \Type} {a : List A} (i1 : Index a)
+            \lemma unexpand-fin {A : \Sort} {a : List A} (i1 : Index a)
               : i1 = transport (\lam ctx => Index ctx) ++_nil (expand-fin-left i1) \elim a, i1
               | :: a a1, 0 => add-lemma {_} {a} ++_nil
               | :: a a1, suc i1 => suc-lemma {_} {a} ++_nil _ _ (unexpand-fin i1)
               \where {
-                \func add-lemma {A : \Type} {x : A} {a b : List A} (eq : a = b) : 0 = {Index (x :: b)} transport (\lam ctx => Index ctx) (path (\lam (i : I) => x :: eq @ i)) 0 \elim eq
+                \func add-lemma {A : \Sort} {x : A} {a b : List A} (eq : a = b) : 0 = {Index (x :: b)} transport (\lam ctx => Index ctx) (path (\lam (i : I) => x :: eq @ i)) 0 \elim eq
                   | idp => idp
 
-                \func suc-lemma {A : \Type} {x : A} {a b : List A} (eq : a = b) (j : Index b) (k : Index a) (eq' : j = transport (\lam ctx => Index ctx) (path (\lam (i : I) => eq @ i)) k) : suc j = {Index (x :: b)} transport (\lam ctx => Index ctx) (path (\lam (i : I) => x :: eq @ i)) (suc k) \elim eq
+                \func suc-lemma {A : \Sort} {x : A} {a b : List A} (eq : a = b) (j : Index b) (k : Index a) (eq' : j = transport (\lam ctx => Index ctx) (path (\lam (i : I) => eq @ i)) k) : suc j = {Index (x :: b)} transport (\lam ctx => Index ctx) (path (\lam (i : I) => x :: eq @ i)) (suc k) \elim eq
                   | idp => pmap fsuc eq'
               }
 
-            \lemma unexpand-fin-2 {A : \Type} {a : List A} (i1 : Index a)
+            \lemma unexpand-fin-2 {A : \Sort} {a : List A} (i1 : Index a)
               : transport (\lam ctx => Index ctx) (inv ++_nil) i1 = expand-fin-left i1 =>
               pmap (transport (\lam ctx => Index ctx) (inv ++_nil)) (unexpand-fin i1) *> transport_inv_id (\lam ctx => Index ctx) ++_nil (expand-fin-left i1)
           }

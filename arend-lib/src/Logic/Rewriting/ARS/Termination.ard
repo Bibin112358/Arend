@@ -15,7 +15,8 @@
 \data Acc {A : \Set} (R : Rel A) (a : A)
   | acc (\Pi (a' : A) -> a `R` a' -> Acc R a')
 
-\func Acc-Trans {A : \Set} (R : Rel A) (a : A) : \Type => Acc (transitive-closure R) a
+\func Acc-Trans {A : \Set} (R : Rel A) (a : A) : \Prop
+  => Acc (transitive-closure R) a
 
 \lemma Acc=>AccTrans
   {A : \Set} {R : Rel A}
@@ -51,13 +52,13 @@
       (Acc=>AccTrans a term)
 
 \func well-founded-induction
-  {A : \Set} {R : Rel A} (C : A -> \Type)
+  {A : \Set} {R : Rel A} (C : A -> \Sort)
   (induction : \Pi (a : A) (\Pi (b : A) (a `R` b) -> C b) -> C a)
   (a : A) (a-is-accessible : Acc R a) : C a
 \elim a-is-accessible
   | acc successors => induction a (\lam b a~>b => well-founded-induction C induction b (successors b a~>b))
 
-\func well-founded-induction-transitive {A : \Set} {R : Rel A} (C : A -> \Type)
+\func well-founded-induction-transitive {A : \Set} {R : Rel A} (C : A -> \Sort)
                                         (induction : \Pi (a : A) (\Pi (b : A) (transitive-closure R a b) -> C b) -> C a)
                                         (a : A) (a-is-accessible : Acc-Trans R a) : C a \elim a-is-accessible
   | acc successors => induction a (\lam b a~>b => well-founded-induction C induction b (successors b a~>b))

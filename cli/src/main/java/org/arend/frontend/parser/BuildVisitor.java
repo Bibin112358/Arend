@@ -1447,7 +1447,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
   public Concrete.UniverseExpression visitUniTruncatedUniverse(UniTruncatedUniverseContext ctx) {
     Position position = tokenPosition(ctx.start);
     String text = ctx.TRUNCATED_UNIVERSE().getText();
-    text = text.substring(text.indexOf('-') + "-Type".length());
+    text = text.substring(text.indexOf('T') + "Type".length());
     Concrete.LevelExpression pLevel = text.isEmpty() ? null : new Concrete.NumberLevelExpression(position, Integer.parseInt(text));
     return new Concrete.UniverseExpression(position, pLevel, parseTruncatedUniverse(ctx.TRUNCATED_UNIVERSE()), ConcreteUniverseExpression.Kind.TYPE);
   }

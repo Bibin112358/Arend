@@ -28,7 +28,7 @@
       }
     }
 
-  \lemma ||-search {A : \Type} {B : E -> \Prop} (f : \Pi (x : E) -> A || B x) : A || (\Pi (x : E) -> B x)
+  \lemma ||-search {A : \Sort} {B : E -> \Prop} (f : \Pi (x : E) -> A || B x) : A || (\Pi (x : E) -> B x)
     => \case finSurj \with {
       | inP (g,gs) => \case FinSet.||-finiteAC (\lam i => f (g i)) \with {
         | byLeft a => byLeft a
@@ -68,5 +68,5 @@
       }
 }
 
-\lemma QuotientKFin {A : KFinSet} {R : A -> A -> \Type} : KFinSet (Quotient R) A.finCard \cowith
+\lemma QuotientKFin {A : KFinSet} {R : A -> A -> \Sort} : KFinSet (Quotient R) A.finCard \cowith
   | finSurj => TruncP.map A.finSurj \lam s => (\lam j => in~ (s.1 j), \lam (in~ x) => TruncP.map (s.2 x) \lam r => (r.1, pmap in~ r.2))
