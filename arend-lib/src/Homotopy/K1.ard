@@ -28,7 +28,7 @@
     \lemma loop-ide {G : Group} : path (loop (ide {G})) = idp
       => idp-lemma (path (loop ide)) (path (loop ide)) (loop-comp ide ide *> simplify)
       \where {
-        \protected \func idp-lemma {A : \Type} {a a' : A} (p : a = a') (q : a = a) (h : q *> p = p) : q = idp \elim p
+        \protected \func idp-lemma {A : \Sort} {a a' : A} (p : a = a') (q : a = a) (h : q *> p = p) : q = idp \elim p
           | idp => h
       }
   }

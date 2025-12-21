@@ -89,7 +89,8 @@ public class ElimTypechecking {
         }
       }
 
-      Sort pathSort = pathType.getSortOfType();
+      SortExpression pathSortExpr = pathType.getSortExpressionOfType();
+      Sort pathSort = pathSortExpr == null ? null : pathSortExpr.withInfLevel();
       if (pathSort != null && !pathSort.getHLevel().isInfinity()) {
         actualLevel = pathSort.getHLevel();
         if (actualLevel.isClosed() && actualLevel.getConstant() - actualLevelSub < -1) {

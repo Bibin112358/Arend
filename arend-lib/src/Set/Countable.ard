@@ -67,7 +67,7 @@
      }
    }
 
-\func sum-countable {B : Nat -> \Type} (e : \Pi {n : Nat} -> QEquiv {B n} {Nat}) : QEquiv {Nat} {\Sigma (n : Nat) (B n)}
+\func sum-countable {B : Nat -> \Sort} (e : \Pi {n : Nat} -> QEquiv {B n} {Nat}) : QEquiv {Nat} {\Sigma (n : Nat) (B n)}
   => natPair-countable `transQEquiv` later \new QEquiv {
     | f p => (p.1, e.ret p.2)
     | ret p => (p.1, e p.2)
@@ -75,7 +75,7 @@
     | f_sec (n,b) => ext (idp, e.ret_f b)
   }
 
-\func maybe-countable {A : \Type} (e : QEquiv {Nat} {A}) : QEquiv {Nat} {Maybe A} \cowith
+\func maybe-countable {A : \Sort} (e : QEquiv {Nat} {A}) : QEquiv {Nat} {Maybe A} \cowith
   | f => \case __ \with {
     | 0 => nothing
     | suc n => just (e n)
@@ -96,7 +96,7 @@
 \func natArray-countable : QEquiv {Nat} {Array Nat}
   => maybe-countable (sum-countable \lam {n} => symQEquiv (natTuple-countable {n})) `transQEquiv` symQEquiv array-sum
   \where {
-    \func array-sum {A : \Type} : QEquiv {Array A} {Maybe (\Sigma (n : Nat) (Array A (suc n)))} \cowith
+    \func array-sum {A : \Sort} : QEquiv {Array A} {Maybe (\Sigma (n : Nat) (Array A (suc n)))} \cowith
       | f => \case __ \with {
         | nil => nothing
         | a :: l => just (_, a :: l)
@@ -115,7 +115,7 @@
       }
   }
 
-\type Countable (A : \Type) => \Sigma (f : Nat -> Maybe A) (\Pi (a : A) -> ∃ (n : Nat) (f n = just a))
+\type Countable (A : \Sort) => \Sigma (f : Nat -> Maybe A) (\Pi (a : A) -> ∃ (n : Nat) (f n = just a))
 
 \func fin-countable (A : KFinSet) : TruncP (Countable A)
   => TruncP.map A.finSurj \lam (f,fs) => (\lam n => \case LinearOrder.dec<_<= n A.finCard \with {
@@ -123,54 +123,54 @@
        | inr q => nothing
      }, \lam a => TruncP.map (fs a) \lam (j,fj=a) => (j, rewrite (LinearOrder.dec<_reduce $ fin_< j) $ pmap just $ pmap f (fin_nat-inj toFin=id) *> fj=a))
 
-\func countable-func {A : \Type} (c : Countable A) (n : Nat) : Maybe A \elim n
+\func countable-func {A : \Sort} (c : Countable A) (n : Nat) : Maybe A \elim n
    | 0 => nothing
    | suc n => c.1 n
 
-\lemma countable-func-surj {A : \Type} (c : Countable A) : IsSurj (countable-func c)
+\lemma countable-func-surj {A : \Sort} (c : Countable A) : IsSurj (countable-func c)
   => \case \elim __ \with {
     | nothing => inP (0, idp)
     | just a => TruncP.map (c.2 a) \lam (n,p) => (suc n, p)
   }
 
-\func func-countable {A : \Type} (f : Nat -> A) (fs : IsSurj f) : Countable A
+\func func-countable {A : \Sort} (f : Nat -> A) (fs : IsSurj f) : Countable A
   => (\lam n => just (f n), \lam a => TruncP.map (fs a) (\lam (n,p) => (n, pmap just p)))
 
-\func pointed-countable {A : \Type} (a0 : A) (c : Countable A) (n : Nat) : A
+\func pointed-countable {A : \Sort} (a0 : A) (c : Countable A) (n : Nat) : A
   => maybe a0 (\lam a => a) (c.1 n)
 
-\func pointed-countable-surj {A : \Type} (a0 : A) (c : Countable A) : IsSurj (pointed-countable a0 c)
+\func pointed-countable-surj {A : \Sort} (a0 : A) (c : Countable A) : IsSurj (pointed-countable a0 c)
   => \lam a => TruncP.map (c.2 a) \lam (n,p) => (n, pmap (maybe a0 \lam a => a) p)
 
-\func surj-countable {A B : \Type} (c : Countable A) {f : A -> B} (fs : IsSurj f) : Countable B
+\func surj-countable {A B : \Sort} (c : Countable A) {f : A -> B} (fs : IsSurj f) : Countable B
   => (\lam n => Maybe.map f (c.1 n), \lam b => \case fs b \with {
        | inP (a,fa=b) => \case c.2 a \with {
          | inP (n,p) => inP (n, rewrite p $ pmap just fa=b)
        }
      })
 
-\func array-countable {A : \Type} (c : Countable A) : Countable (Array A)
+\func array-countable {A : \Sort} (c : Countable A) : Countable (Array A)
   => surj-countable (surj-countable (func-countable natArray-countable natArray-countable.isSurj) {map (countable-func c)} (map-surj (countable-func-surj c))) func-array-surj
   \where {
-    \func map-surj {A B : \Type} {f : A -> B} (fs : IsSurj f) : IsSurj (map f)
+    \func map-surj {A B : \Sort} {f : A -> B} (fs : IsSurj f) : IsSurj (map f)
       => \lam (l : Array B) => \case FinSet.finiteAC (\lam j => fs (l j)) \with {
            | inP g => inP (\lam j => (g j).1, exts \lam j => (g j).2)
          }
 
-    \func func-array {A : \Type} (l : Array (Maybe A)) : Array A \elim l
+    \func func-array {A : \Sort} (l : Array (Maybe A)) : Array A \elim l
       | nil => nil
       | nothing :: l => nil
       | just a :: l => a :: func-array l
 
-    \func func-array_just {A : \Type} (l : Array A) : func-array (map just l) = l \elim l
+    \func func-array_just {A : \Sort} (l : Array A) : func-array (map just l) = l \elim l
       | nil => idp
       | a :: l => pmap (a ::) (func-array_just l)
 
-    \lemma func-array-surj {A : \Type} : IsSurj (func-array {A})
+    \lemma func-array-surj {A : \Sort} : IsSurj (func-array {A})
       => \lam l => inP (map just l, func-array_just l)
   }
 
-\func quotient-countable {A : \Type} (c : Countable A) {R : A -> A -> \Type} : Countable (Quotient R)
+\func quotient-countable {A : \Sort} (c : Countable A) {R : A -> A -> \Sort} : Countable (Quotient R)
   => surj-countable c Quotient.in-surj
 
 \func factor-countable {I : Ideal} (c : Countable I.S) : Countable (FactorRing I)

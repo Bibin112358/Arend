@@ -258,7 +258,7 @@
       | family j => F.Func (g j).2 e
       | isMatching j j' => pmap (__ e) $ inv Func-o *> pmap F.Func (pbCoh {pullback (g j).2 (g j').2}) *> Func-o
 
-    \func piEquiv (e : Equiv) (Z : \Type) : Equiv {Z -> e.A} {Z -> e.B} \cowith
+    \func piEquiv (e : Equiv) (Z : \Sort) : Equiv {Z -> e.A} {Z -> e.B} \cowith
       | f g z => e (g z)
       | ret h z => e.ret (h z)
       | ret_f g => ext (\lam z => e.ret_f (g z))

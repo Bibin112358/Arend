@@ -29,23 +29,23 @@
 \import Set
 \import Set.Fin
 
-\type Matrix (R : \Type) (n m : Nat) => Array (Array R m) n
+\type Matrix (R : \Sort) (n m : Nat) => Array (Array R m) n
 
-\func mkMatrix {R : \Type} {n m : Nat} (f : Fin n -> Fin m -> R) : Matrix R n m
+\func mkMatrix {R : \Sort} {n m : Nat} (f : Fin n -> Fin m -> R) : Matrix R n m
   => \new Array (Array R m) n \lam i => \new Array R m (f i)
 
-\func makeMatrix {R : \Type} {n m : Nat} (M : Array (Array R m) n) : Matrix R n m => M
+\func makeMatrix {R : \Sort} {n m : Nat} (M : Array (Array R m) n) : Matrix R n m => M
 
-\func mkColumn {R : \Type} (l : Array R) : Matrix R l.len 1
+\func mkColumn {R : \Sort} (l : Array R) : Matrix R l.len 1
   => mkMatrix \lam i _ => l i
 
-\func mkRow {R : \Type} (l : Array R) : Matrix R 1 l.len
+\func mkRow {R : \Sort} (l : Array R) : Matrix R 1 l.len
   => mkMatrix \lam _ => l
 
-\func addColumn {R : \Type} {n m : Nat} (l : Array R n) (M : Matrix R n m) : Matrix R n (suc m)
+\func addColumn {R : \Sort} {n m : Nat} (l : Array R n) (M : Matrix R n m) : Matrix R n (suc m)
   => makeMatrix \lam j => l j :: M j
 
-\func addRow {R : \Type} {n m : Nat} (l : Array R m) (M : Matrix R n m) : Matrix R (suc n) m
+\func addRow {R : \Sort} {n m : Nat} (l : Array R m) (M : Matrix R n m) : Matrix R (suc n) m
   => l :: M
 
 \func blockMatrix {R : AddPointed} {n m n' m' : Nat} (A : Matrix R n m) (B : Matrix R n' m') : Matrix R (n + n') (m + m')
@@ -100,13 +100,13 @@
     | inr (j',p) => rewrite p $ pmap2 (+) (R.BigSum_zro \lam i' => pmap (_ *) (blockMatrix.elem01 i' j') *> zro_*-right) (pmap R.BigSum $ exts \lam i' => pmap2 (*) ++'.++'_index-right (blockMatrix.elem11 i' j')) *> zro-left *> inv ++'.++'_index-right
   }
 
-\func matrixExt {R : \Type} {n m : Nat} {M N : Matrix R n m} (p : \Pi (i : Fin n) (j : Fin m) -> M i j = N i j) : M = N
+\func matrixExt {R : \Sort} {n m : Nat} {M N : Matrix R n m} (p : \Pi (i : Fin n) (j : Fin m) -> M i j = N i j) : M = N
   => path (\lam i => mkMatrix (\lam j k => p j k i))
 
-\func matrixExt' {R : \Type} {n m : Nat} {M N : Matrix R n m} (p : M = {Array (Array R m) n} N) : M = N
+\func matrixExt' {R : \Sort} {n m : Nat} {M N : Matrix R n m} (p : M = {Array (Array R m) n} N) : M = N
   => path (\lam i => p i)
 
-\func matrix-map {A B : \Type} (f : A -> B) {n m : Nat} (M : Matrix A n m) : Matrix B n m
+\func matrix-map {A B : \Sort} (f : A -> B) {n m : Nat} (M : Matrix A n m) : Matrix B n m
   => mkMatrix \lam i j => f (M i j)
 
 \instance MatrixAbGroup (A : AbGroup) (n m : Nat) : AbGroup (Matrix A n m) \cowith
@@ -249,30 +249,30 @@
 \func determinant {R : CRing} {n : Nat} (M : Matrix R n n)
   => R.FinSum \lam (e : Sym n) => sign e * R.BigProd (\lam j => M (e j) j)
   \where {
-    \func minor {R : \Type} {n m : Nat} (M : Matrix R (suc n) (suc m)) (i0 : Fin (suc n)) (j0 : Fin (suc m)) : Matrix R n m
+    \func minor {R : \Sort} {n m : Nat} (M : Matrix R (suc n) (suc m)) (i0 : Fin (suc n)) (j0 : Fin (suc m)) : Matrix R n m
       => map (skip __ j0) (skip M i0)
 
-    \func minorExt {R : \Type} {n m : Nat} {M M' : Array (Array R (suc m)) (suc n)} {i : Fin (suc n)} {j : Fin (suc m)}
+    \func minorExt {R : \Sort} {n m : Nat} {M M' : Array (Array R (suc m)) (suc n)} {i : Fin (suc n)} {j : Fin (suc m)}
                    (p : \Pi {i' : Fin (suc n)} {j' : Fin (suc m)} -> i' /= i -> j' /= j -> M i' j' = M' i' j')
       : minor M i j = minor M' i j \elim n, M, M', i
       | 0, l :: nil, l' :: nil, 0 => idp
       | suc n, l :: M, l' :: M', 0 => matrixExt \lam i' j' => path (\lam ii => skipExt (\lam k => p {suc i'} (\case __)) ii j')
       | suc n, l :: M, l' :: M', suc i => path (\lam ii => skipExt (\lam k => p {0} (\case __)) ii :: minorExt (\lam q => p (fsuc/= q)) ii)
 
-    \func minor' {R : \Type} {n m : Nat} (M : Matrix R (suc n) (suc m)) (i0 : Fin (suc n)) (j0 : Fin (suc m)) : Matrix R n m
+    \func minor' {R : \Sort} {n m : Nat} (M : Matrix R (suc n) (suc m)) (i0 : Fin (suc n)) (j0 : Fin (suc m)) : Matrix R n m
       => skip (map (skip __ j0) M) i0
 
-    \func minor=minor' {R : \Type} {n m : Nat} (M : Matrix R (suc n) (suc m)) (i0 : Fin (suc n)) (j0 : Fin (suc m)) : minor M i0 j0 = minor' M i0 j0
+    \func minor=minor' {R : \Sort} {n m : Nat} (M : Matrix R (suc n) (suc m)) (i0 : Fin (suc n)) (j0 : Fin (suc m)) : minor M i0 j0 = minor' M i0 j0
       => matrixExt (aux M i0 j0)
       \where {
-        \func aux {R : \Type} {n m : Nat} (M : Matrix R (suc n) (suc m)) (i0 : Fin (suc n)) (j0 : Fin (suc m)) (i : Fin n) (j : Fin m)
+        \func aux {R : \Sort} {n m : Nat} (M : Matrix R (suc n) (suc m)) (i0 : Fin (suc n)) (j0 : Fin (suc m)) (i : Fin n) (j : Fin m)
           : skip (skip M i0 i) j0 j = skip {Array R m} (map (skip __ j0) M) i0 i j \elim n, M, i0, i
           | suc n, l :: M, 0, i => idp
           | suc n, l :: M, suc i0, 0 => idp
           | suc n, l :: M, suc i0, suc i => aux M i0 j0 i j
       }
 
-    \func skip_transpose {R : \Type} {n m : Nat} {M : Array (Array R m) (suc n)} {i : Fin (suc n)}
+    \func skip_transpose {R : \Sort} {n m : Nat} {M : Array (Array R m) (suc n)} {i : Fin (suc n)}
       : transpose (skip M i) = map (skip __ i) (transpose M) \elim n, M, i
       | 0, l :: nil, 0 => idp
       | suc n, l :: M, 0 => idp
@@ -281,13 +281,13 @@
         | suc j' => aux
       }
       \where
-        \func aux {R : \Type} {n m : Nat} {M : Array (Array R m) (suc n)} {i : Fin (suc n)} {i' : Fin m} {j' : Fin n}
+        \func aux {R : \Sort} {n m : Nat} {M : Array (Array R m) (suc n)} {i : Fin (suc n)} {i' : Fin m} {j' : Fin n}
           : skip {Array R m} M i j' i' = skip (M __ i') i j' \elim n, M, i, j'
           | suc n, l :: M, 0, j' => idp
           | suc n, l :: M, suc i, 0 => idp
           | suc n, l :: M, suc i, suc j' => aux
 
-    \func minor_transpose {R : \Type} {n m : Nat} (M : Matrix R (suc n) (suc m)) {i : Fin (suc m)} {j : Fin (suc n)}
+    \func minor_transpose {R : \Sort} {n m : Nat} (M : Matrix R (suc n) (suc m)) {i : Fin (suc m)} {j : Fin (suc n)}
       : minor (transpose M) i j = transpose (minor M j i)
       => path (\lam i' => map (skip __ j) (pmap transpose skip_transpose i')) *> inv skip_transpose *> inv (pmap transpose (minor=minor' M j i))
 
@@ -302,7 +302,7 @@
     \lemma alternatingT {R : CRing} {n : Nat} : isAlternating {R} {n} (\lam M => determinant (transpose M))
       => transportInv (isAlternating {R}) (ext \lam M => determinant_transpose M) alternating
 
-    \func minor00 {R : \Type} {n m : Nat} (M : Matrix R (suc n) (suc m)) : minor M 0 0 = mkMatrix \lam i j => M (suc i) (suc j)
+    \func minor00 {R : \Sort} {n m : Nat} (M : Matrix R (suc n) (suc m)) : minor M 0 0 = mkMatrix \lam i j => M (suc i) (suc j)
       => matrixExt \lam i j => skip_0 *> rewrite skip_0 idp
   }
 
@@ -350,22 +350,22 @@
       \where {
         \open NatOrder
 
-        \func permutation1 {R : \Type} {n : Nat} (j : Fin (suc n)) (l : Array R (suc n)) : Perm l (l j :: skip l j) \elim n, j, l
+        \func permutation1 {R : \Sort} {n : Nat} (j : Fin (suc n)) (l : Array R (suc n)) : Perm l (l j :: skip l j) \elim n, j, l
           | 0, 0, l => Perm.perm-refl
           | suc n, 0, l => Perm.perm-refl
           | suc n, suc j, a :: l => perm-trans (perm-:: idp (permutation1 j l)) (perm-swap idp idp idp)
 
-        \func permutation {R : \Type} {n : Nat} {i j : Fin (suc n)} (p : i < j) (l : Array R (suc n)) (q : l i = l j) : Perm (skip l i) (skip l j) \elim n, i, j, p, l, q
+        \func permutation {R : \Sort} {n : Nat} {i j : Fin (suc n)} (p : i < j) (l : Array R (suc n)) (q : l i = l j) : Perm (skip l i) (skip l j) \elim n, i, j, p, l, q
           | 0, 0, 0, (), _, _
           | suc n, 0, suc j, _, a :: l, idp => permutation1 j l
           | suc n, suc i, suc j, suc<suc p, a :: l, q => perm-:: idp (permutation p l q)
 
-        \lemma permutation1_inversions {R : \Type} {n : Nat} {j : Fin (suc n)} {l : Array R (suc n)} : Perm.inversions (permutation1 j l) = j \elim n, j, l
+        \lemma permutation1_inversions {R : \Sort} {n : Nat} {j : Fin (suc n)} {l : Array R (suc n)} : Perm.inversions (permutation1 j l) = j \elim n, j, l
           | 0, 0, l => idp
           | suc n, 0, a :: l => Perm.inversions_perm-:: *> Perm.inversions_perm-refl
           | suc n, suc j, a :: l => pmap suc permutation1_inversions
 
-        \lemma permutation_inversions {R : \Type} {n : Nat} {i j : Fin (suc n)} {p : i < j} {l : Array R (suc n)} {q : l i = l j} : Perm.inversions (permutation p l q) = j -' suc i \elim n, i, j, p, l, q
+        \lemma permutation_inversions {R : \Sort} {n : Nat} {i j : Fin (suc n)} {p : i < j} {l : Array R (suc n)} {q : l i = l j} : Perm.inversions (permutation p l q) = j -' suc i \elim n, i, j, p, l, q
           | 0, 0, 0, (), _, _
           | suc n, 0, suc j, _, a :: l, idp => permutation1_inversions *> inv -'0
           | suc n, suc i, suc j, suc<suc p, a :: l, q => Perm.inversions_perm-:: *> permutation_inversions
@@ -426,13 +426,13 @@
              FinSum (\lam i => M i 0 * pow -1 i * determinant (minor M i 0)) ==< FinSum=BigSum >==
              R.BigSum (\lam i => M i 0 * pow -1 i * determinant (minor M i 0)) `qed
       \where {
-        \func skip_skip {A : \Type} {n : Nat} {l : Array A (suc n)} {k j : Fin (suc n)} {d : k /= j} : skip l k (FinSet.skip k j d) = l j \elim n, l, k, j
+        \func skip_skip {A : \Sort} {n : Nat} {l : Array A (suc n)} {k j : Fin (suc n)} {d : k /= j} : skip l k (FinSet.skip k j d) = l j \elim n, l, k, j
           | n, l, 0, 0 => absurd (d idp)
           | suc n, a :: l, 0, suc j => idp
           | suc n, a :: l, suc k, 0 => idp
           | suc n, a :: l, suc k, suc j => skip_skip
 
-        \func minor_Sym {A : \Type} {n : Nat} {M : Matrix A (suc n) (suc n)} {e : Sym (suc n)} {j : Fin n} : minor M (e 0) 0 (Sym.reduce e j) j = M (e (suc j)) (suc j)
+        \func minor_Sym {A : \Sort} {n : Nat} {M : Matrix A (suc n) (suc n)} {e : Sym (suc n)} {j : Fin n} : minor M (e 0) 0 (Sym.reduce e j) j = M (e (suc j)) (suc j)
           => skip_0 *> pmap {Array A (suc n)} (__ (suc j)) (skip_skip {Array A (suc n)})
       }
   }
@@ -475,7 +475,7 @@
       (pmap determinant ide-left *> inv (pmap (`* _) determinant_ide *> ide-left))
       M
 
-\func transpose {R : \Type} {n m : Nat} (M : Matrix R n m) : Matrix R m n
+\func transpose {R : \Sort} {n m : Nat} (M : Matrix R n m) : Matrix R m n
   => mkMatrix (\lam i j => M j i)
   \where {
     \lemma isInv {R : CRing} {n : Nat} (A : Monoid.Inv {MatrixRing R n}) : Monoid.Inv (transpose A.val)

@@ -352,13 +352,13 @@
                             (replace2 (replicate (suc n) zro) 0 k (A 0 0) (A 1 0))
                             (replace2 (replicate (suc n) zro) 0 k (A 0 1) (A 1 1))
   \where {
-    \func replace2 {A : \Type} (l : Array A) (i j : Fin l.len) (a b : A) : Array A l.len
+    \func replace2 {A : \Sort} (l : Array A) (i j : Fin l.len) (a b : A) : Array A l.len
       => replace (replace l i a) j b
 
-    \func replace2-first {A : \Type} {l : Array A} {i j : Fin l.len} {a b : A} (i/=j : i /= {Nat} j) : replace2 l i j a b i = a
+    \func replace2-first {A : \Sort} {l : Array A} {i j : Fin l.len} {a b : A} (i/=j : i /= {Nat} j) : replace2 l i j a b i = a
       => replace-notIndex {A} {replace l i a} (/=-sym i/=j) *> replace-index
 
-    \func replace2-second {A : \Type} {l : Array A} {i j : Fin l.len} {a b : A} : replace2 l i j a b j = b
+    \func replace2-second {A : \Sort} {l : Array A} {i j : Fin l.len} {a b : A} : replace2 l i j a b j = b
       => replace-index
   }
 
@@ -425,10 +425,10 @@
        | (inP d, inP d') => R.div-associates d d'
      }
   \where {
-    \func subMatrix {R : \Type} {n m : Nat} (A : Matrix R n m) (li : Array (Fin n)) (lj : Array (Fin m)) : Matrix R li.len lj.len
+    \func subMatrix {R : \Sort} {n m : Nat} (A : Matrix R n m) (li : Array (Fin n)) (lj : Array (Fin m)) : Matrix R li.len lj.len
       => mkMatrix \lam i j => A (li i) (lj j)
 
-    \func subMatrix_perm {R : \Type} {n m : Nat} {A : Matrix R n m} {k : Nat} {li li' : Array (Fin n) k} {lj : Array (Fin m)} (p : Perm li li')
+    \func subMatrix_perm {R : \Sort} {n m : Nat} {A : Matrix R n m} {k : Nat} {li li' : Array (Fin n) k} {lj : Array (Fin m)} (p : Perm li li')
       : Perm (subMatrix A li lj) (subMatrix A li' lj) \elim k, li, li', p
       | 0, nil, nil, perm-nil => perm-nil
       | suc k, x :: li, _ :: li', perm-:: idp q => perm-:: idp (subMatrix_perm q)
