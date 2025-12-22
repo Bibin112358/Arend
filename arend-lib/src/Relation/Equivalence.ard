@@ -10,25 +10,25 @@
   | \infix 4 ~ : A -> A -> \Prop
   | ~-transitive {x y z : A} : x ~ y -> y ~ z -> x ~ z
   \where {
-    \truncated \data Closure {A : \Type} (R : A -> A -> \Type) (x y : A) : \Prop
+    \truncated \data Closure {A : \Sort} (R : A -> A -> \Sort) (x y : A) : \Prop
       | cin (R x y)
       | ctrans {z : A} (Closure R x z) (Closure R z y)
       \where {
-        \func isTransitive {A : \Set} (R : A -> A -> \Type) : Transitive A \cowith
+        \func isTransitive {A : \Set} (R : A -> A -> \Sort) : Transitive A \cowith
           | ~ x y => Closure R x y
           | ~-transitive => ctrans
 
-        \lemma isSymmetric {A : \Set} {R : A -> A -> \Type} (sym : \Pi {a a' : A} -> R a a' -> R a' a) {a a' : A} (c : Closure R a a') : Closure R a' a \elim c
+        \lemma isSymmetric {A : \Set} {R : A -> A -> \Sort} (sym : \Pi {a a' : A} -> R a a' -> R a' a) {a a' : A} (c : Closure R a a') : Closure R a' a \elim c
           | cin r => cin (sym r)
           | ctrans c1 c2 => ctrans (isSymmetric sym c2) (isSymmetric sym c1)
 
-        \lemma univ {A : \Set} {R : A -> A -> \Type} (E : Transitive A) (f : \Pi {x y : A} -> R x y -> x ~ y) {x y : A} (c : Closure R x y) : x ~ y \elim c
+        \lemma univ {A : \Set} {R : A -> A -> \Sort} (E : Transitive A) (f : \Pi {x y : A} -> R x y -> x ~ y) {x y : A} (c : Closure R x y) : x ~ y \elim c
           | cin r => f r
           | ctrans p q => ~-transitive (univ E f p) (univ E f q)
 
         \lemma ofTransitive (E : Transitive) {x y : E} (c : Closure (~) x y) : x ~ y => univ E (\lam p => p) c
 
-        \lemma toEquality {A B : \Set} (f : A -> B) {R : A -> A -> \Type} (p : \Pi {a a' : A} -> R a a' -> f a = f a') {a a' : A} (c : Closure R a a') : f a = f a'
+        \lemma toEquality {A B : \Set} (f : A -> B) {R : A -> A -> \Sort} (p : \Pi {a a' : A} -> R a a' -> f a = f a') {a a' : A} (c : Closure R a a') : f a = f a'
           => univ (\new Transitive A (f __ = f __) (*>)) p c
       }
   }
@@ -43,19 +43,19 @@
       | ~-reflexive => ~-reflexive
       | ~-symmetric => ~-symmetric
 
-    \truncated \data Closure {A : \Type} (R : A -> A -> \Type) (x y : A) : \Prop
+    \truncated \data Closure {A : \Sort} (R : A -> A -> \Sort) (x y : A) : \Prop
       | cin (R x y)
       | crefl (x = y)
       | csym (Closure R y x)
       | ctrans {z : A} (Closure R x z) (Closure R z y)
       \where {
-        \func isEquivalence {A : \Set} (R : A -> A -> \Type) : Equivalence A \cowith
+        \func isEquivalence {A : \Set} (R : A -> A -> \Sort) : Equivalence A \cowith
           | ~ x y => Closure R x y
           | ~-reflexive {x} => crefl idp
           | ~-symmetric {x} {y} x~y => csym x~y
           | ~-transitive {x} {y} {z} x~y y~z => ctrans x~y y~z
 
-        \lemma univ {A : \Set} {R : A -> A -> \Type} (E : Equivalence A) (f : \Pi {x y : A} -> R x y -> x ~ y) {x y : A} (c : Closure R x y) : x ~ y \elim c
+        \lemma univ {A : \Set} {R : A -> A -> \Sort} (E : Equivalence A) (f : \Pi {x y : A} -> R x y -> x ~ y) {x y : A} (c : Closure R x y) : x ~ y \elim c
           | cin r => f r
           | crefl x=y => transport (x ~) x=y ~-reflexive
           | csym p => ~-symmetric (univ E f p)
@@ -65,16 +65,16 @@
       }
   }
 
-\truncated \data Quotient {A : \Type} (R : A -> A -> \Type) : \Set
+\truncated \data Quotient {A : \Sort} (R : A -> A -> \Sort) : \Set
   | in~ A
   | ~-equiv (x y : A) (R x y) : in~ x = in~ y
   \where {
     \open Equivalence
 
-    \lemma in-surj {A : \Type} {R : A -> A -> \Type} : IsSurj (in~ {A} {R})
+    \lemma in-surj {A : \Sort} {R : A -> A -> \Sort} : IsSurj (in~ {A} {R})
       => \lam (in~ a) => inP (a,idp)
 
-    \lemma equality {A : \Type} {R : A -> A -> \Type} {x y : A} (p : in~ x = {Quotient R} in~ y) : Closure R x y =>
+    \lemma equality {A : \Sort} {R : A -> A -> \Sort} {x y : A} (p : in~ x = {Quotient R} in~ y) : Closure R x y =>
       \let | R' ([x] [y] : Quotient R) : \Prop =>
               \case [x], [y] \with {
                 | in~ x, in~ y => Closure R x y
@@ -91,20 +91,20 @@
     \lemma equalityEquiv (E : Equivalence) {x y : E} (p : in~ x = {Quotient (~)} in~ y) : x ~ y
       => Closure.ofEquivalence E (equality p)
 
-    \lemma equalityClosure (E : Equivalence) {R : E -> E -> \Type} (s : \Pi {x y : E} -> R x y -> x ~ y) {x y : E} (p : in~ x = {Quotient R} in~ y) : x ~ y
+    \lemma equalityClosure (E : Equivalence) {R : E -> E -> \Sort} (s : \Pi {x y : E} -> R x y -> x ~ y) {x y : E} (p : in~ x = {Quotient R} in~ y) : x ~ y
       => Closure.univ E s (equality p)
 
-    \lemma fromEquality {A : \Type} {R : A -> A -> \Type} {x y : A} (p : Closure R x y) : in~ x = {Quotient R} in~ y \elim p
+    \lemma fromEquality {A : \Sort} {R : A -> A -> \Sort} {x y : A} (p : Closure R x y) : in~ x = {Quotient R} in~ y \elim p
       | cin r => path (~-equiv x y r)
       | crefl p => pmap in~ p
       | csym p => inv (fromEquality p)
       | ctrans p1 p2 => fromEquality p1 *> fromEquality p2
 
-    \func map {A B : \Type} (f : A -> B) {R : A -> A -> \Type} {Q : B -> B -> \Type} (p : \Pi {a a' : A} -> R a a' -> Q (f a) (f a')) (x : Quotient R) : Quotient Q \elim x
+    \func map {A B : \Sort} (f : A -> B) {R : A -> A -> \Sort} {Q : B -> B -> \Sort} (p : \Pi {a a' : A} -> R a a' -> Q (f a) (f a')) (x : Quotient R) : Quotient Q \elim x
       | in~ a => in~ (f a)
       | ~-equiv x y r => ~-pequiv (p r)
 
-    \func liftArray {k : Nat} {A : Fin k -> \Type} (R : \Pi {j : Fin k} -> A j -> A j -> \Type) (refl : \Pi {j : Fin k} (x : A j) -> R x x) (ts : DArray (\lam j => Quotient (R {j})))
+    \func liftArray {k : Nat} {A : Fin k -> \Sort} (R : \Pi {j : Fin k} -> A j -> A j -> \Sort) (refl : \Pi {j : Fin k} (x : A j) -> R x x) (ts : DArray (\lam j => Quotient (R {j})))
       : Quotient {DArray A} (\lam f g => \Pi (j : Fin ts.len) -> R (f j) (g j)) \elim k, ts
       | 0, nil => in~ nil
       | suc k, :: a l => \case \elim a, liftArray (\lam {j} => R {suc j}) (\lam {j} => refl {suc j}) l \with {
@@ -119,7 +119,7 @@
         }) i
       }
 
-    \func liftArrayFun {k : Nat} {A : Fin k -> \Type} (R : \Pi {j : Fin k} -> A j -> A j -> \Type) (refl : \Pi {j : Fin k} (x : A j) -> R x x) {B : \Type} (S : B -> B -> \Type) (h : DArray A -> B)
+    \func liftArrayFun {k : Nat} {A : Fin k -> \Sort} (R : \Pi {j : Fin k} -> A j -> A j -> \Sort) (refl : \Pi {j : Fin k} (x : A j) -> R x x) {B : \Sort} (S : B -> B -> \Sort) (h : DArray A -> B)
                        (p : \Pi (l l' : DArray A) -> (\Pi (j : Fin k) -> R (l j) (l' j)) -> S (h l) (h l'))
                        (ts : DArray (\lam j => Quotient (R {j}))) : Quotient S
       => \case liftArray R refl ts \with {
@@ -127,15 +127,15 @@
         | ~-equiv x y r i => ~-equiv (h x) (h y) (p x y r) i
       }
 
-    \lemma liftChoice {A : Choice} (B : A -> \Set) (R : \Pi {a : A} -> B a -> B a -> \Type) (f : \Pi (a : A) -> Quotient (\lam b b' => R {a} b b'))
+    \lemma liftChoice {A : Choice} (B : A -> \Set) (R : \Pi {a : A} -> B a -> B a -> \Sort) (f : \Pi (a : A) -> Quotient (\lam b b' => R {a} b b'))
       : ∃ (g : \Pi (a : A) -> B a) ∀ a (in~ (g a) = f a)
       => TruncP.map (choice {_} {\lam a => \Sigma (b : B a) (in~ b = f a)} (\lam a => cases (f a) \with { | in~ b => inP (b,idp) }))
           (\lam g => (\lam a => (g a).1, \lam a => (g a).2))
   }
 
-\func ~-pequiv {A : \Type} {R : A -> A -> \Type} {x y : A} (r : R x y) : in~ x = in~ y => path (~-equiv x y r)
+\func ~-pequiv {A : \Sort} {R : A -> A -> \Sort} {x y : A} (r : R x y) : in~ x = in~ y => path (~-equiv x y r)
 
-\type SubQuotient {A : \Type} (R : A -> A -> \Type)
+\type SubQuotient {A : \Sort} (R : A -> A -> \Sort)
   => Quotient {\Sigma (a : A) (R a a)} (\lam p q => R p.1 q.1)
 
 \func QuotientDec {R : Equivalence} (D : \Pi (a a' : R) -> Dec (a ~ a')) : DecSet (Quotient (~)) \cowith

@@ -36,25 +36,25 @@
     \open PushoutData
 
     \class Family
-      | J : \Type
-      | X : J -> \Type
-      | Y : J -> \Type
+      | J : \hType
+      | X : J -> \hType
+      | Y : J -> \hType
       | F : \Pi (j : J) -> X j -> Y j
 
     \instance universe {fam : Family} : Universe \cowith
       | isLocal Z => \Pi (j : J) -> Equiv {Y j -> Z} {X j -> Z} (`o F j)
 
-    \data LData {fam : Family} (A : \Type)
+    \data LData {fam : Family} (A : \hType)
       | alpha A
       | ext {j : J} (X j -> LData A) (Y j)
       | isExt {j : J} (f : X j -> LData A) (x : X j) : ext f (F j x) = f x
 
-    \func dataExt {fam : Family} {A : \Type} {Z : Local} (h : A -> Z) (d : LData A) : Z \elim d
+    \func dataExt {fam : Family} {A : \hType} {Z : Local} (h : A -> Z) (d : LData A) : Z \elim d
       | alpha a => h a
       | ext {j} f y => sec {Z.local j} (\lam x => dataExt h (f x)) y
       | isExt {j} f x i => (f_sec {Z.local j} (\lam x => dataExt h (f x)) @ i) x
 
-    \func dataExt-unique {fam : Family} {A : \Type} {Z : Local} (H1 H2 : LData A -> Z) (K : \Pi (a : A) -> H1 (alpha a) = H2 (alpha a)) (d : LData A) : H1 d = H2 d \elim d
+    \func dataExt-unique {fam : Family} {A : \hType} {Z : Local} (H1 H2 : LData A -> Z) (K : \Pi (a : A) -> H1 (alpha a) = H2 (alpha a)) (d : LData A) : H1 d = H2 d \elim d
       | alpha a => K a
       | ext {j} f y =>
         \have p x => path (\lam i => H1 (isExt f x i)) <* dataExt-unique H1 H2 K (f x) *> inv (path (\lam i => H2 (isExt f x i)))
@@ -66,7 +66,7 @@
              | s : q = p x => path (\lam k => path (\lam i => (e.f_sec (path (\lam i' x => p x @ i')) @ k @ i) x))
         \in Cube2.map _ _ _ _ s i
 
-    \lemma alpha-equiv {fam : Family} {A : \Type} {Z : Local} : Equiv {LData A -> Z} {A -> Z} (-o alpha) =>
+    \lemma alpha-equiv {fam : Family} {A : \hType} {Z : Local} : Equiv {LData A -> Z} {A -> Z} (-o alpha) =>
       \new QEquiv {
         | ret => dataExt
         | ret_f h => path (\lam i d => dataExt-unique (dataExt (h `o` alpha)) h (\lam _ => idp) d @ i)
@@ -77,7 +77,7 @@
       | inl j => X j
       | inr j => PushoutData (F j) (F j)
 
-    \func CHat {fam : Family} (k : J `Or` J) : \Type \elim k
+    \func CHat {fam : Family} (k : J `Or` J) : \hType \elim k
       | inl j => Y j
       | inr j => Y j
 
@@ -87,7 +87,7 @@
 
     \func famHat {fam : Family} => \new Family (J `Or` J) DHat CHat FHat
 
-    \lemma pushout_pullback-equiv {X Y Z : \Type} (f : X -> Y)
+    \lemma pushout_pullback-equiv {X Y Z : \hType} (f : X -> Y)
       : Equiv {\Sigma (g1 g2 : Y -> Z) (g1 `o` f = g2 `o` f)}
               {PushoutData f f -> Z}
               (\lam t => rec t.1 t.2 (\lam x => path ((t.3 @ __) x)))
@@ -102,7 +102,7 @@
       }
   }
 
-\func nullFamUniverse {J : \Type} (X : J -> \Type) : Modality \cowith
+\func nullFamUniverse {J : \hType} (X : J -> \hType) : Modality \cowith
   | ReflUniverse => famUniverse {\new famUniverse.Family J X (\lam _ => \Sigma) (\lam _ _ => ())}
   | isModality A B => \new Local {
     | local j => equation
@@ -113,12 +113,12 @@
         (X j -> \Sigma (a : A) (B a))
   }
   \where {
-    \lemma localDesc (Z : \Type) : isLocal {nullFamUniverse X} Z = (\Pi (j : J) -> Equiv {Z} {X j -> Z} (\lam z _ => z))
+    \lemma localDesc (Z : \hType) : isLocal {nullFamUniverse X} Z = (\Pi (j : J) -> Equiv {Z} {X j -> Z} (\lam z _ => z))
       => path (\lam i => \Pi (j : J) -> Equiv {equiv= (unit-func Z) @ i} {X j -> Z} (\lam t _ => coe2 (equiv= (unit-func Z) @) i t right))
   }
 
-\func nullTypeUniverse (M : \Type) : Modality => nullFamUniverse {\Sigma} (\lam _ => M)
+\func nullTypeUniverse (M : \hType) : Modality => nullFamUniverse {\Sigma} (\lam _ => M)
   \where {
-    \lemma localDesc (M Z : \Type) : isLocal {nullTypeUniverse M} Z = Equiv {Z} {M -> Z} (\lam z _ => z)
+    \lemma localDesc (M Z : \hType) : isLocal {nullTypeUniverse M} Z = Equiv {Z} {M -> Z} (\lam z _ => z)
       => nullFamUniverse.localDesc Z *> equiv= (unit-func (Equiv {Z} {M -> Z} (\lam z _ => z)))
   }

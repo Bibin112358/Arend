@@ -10,7 +10,7 @@
 \import Paths
 \import Paths.Meta
 
-\class Truncated_-1+ (n : Nat) (\classifying A : \Type)
+\class Truncated_-1+ (n : Nat) (\classifying A : \hType)
   | isTruncated : A ofHLevel_-1+ n
   \where {
     \func ext {n : Nat} (t t' : Truncated_-1+ n) (p : t.A = t'.A) : t = t' =>

@@ -16,7 +16,6 @@ import org.arend.core.expr.*;
 import org.arend.core.expr.visitor.*;
 import org.arend.core.pattern.*;
 import org.arend.core.sort.Level;
-import org.arend.core.sort.Sort;
 import org.arend.core.subst.ExprSubstitution;
 import org.arend.core.subst.Levels;
 import org.arend.ext.core.definition.CoreFunctionDefinition;
@@ -199,11 +198,6 @@ public class PatternTypechecking {
           }
           if (!(body instanceof ElimBody)) {
             myErrorReporter.report(new TypecheckingError("Incorrect body", clause));
-            return false;
-          }
-          Sort sort = expectedType.getSortOfType();
-          if (sort == null) {
-            myErrorReporter.report(new TypecheckingError("Cannot infer the sort of the type", clause));
             return false;
           }
 

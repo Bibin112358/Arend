@@ -38,12 +38,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
   }
 
   @Override
-  default @Nullable BigInteger getSortHLevel() {
-    SortExpression simplified = simplify();
-    if (!(simplified instanceof Const(Sort sort))) return null;
-    Level level = sort.getHLevel();
-    return level.isClosed() ? BigInteger.valueOf(level.getConstant()) : null;
-  }
+  @Nullable BigInteger getSortHLevel();
 
   @Override
   default boolean isProp() {
@@ -104,6 +99,12 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     public @NotNull SortExpression simplify() {
       return this;
     }
+
+    @Override
+    public @Nullable BigInteger getSortHLevel() {
+      Level level = sort.getHLevel();
+      return level.isClosed() ? BigInteger.valueOf(level.getConstant()) : null;
+    }
   }
 
   record Var(int index) implements SortExpression {
@@ -138,6 +139,11 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     public boolean isInfinite() {
       return true;
     }
+
+    @Override
+    public @Nullable BigInteger getSortHLevel() {
+      return null;
+    }
   }
 
   record Field(FieldReferableImpl field) implements SortExpression {
@@ -163,6 +169,11 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     @Override
     public boolean isInfinite() {
       return true;
+    }
+
+    @Override
+    public @Nullable BigInteger getSortHLevel() {
+      return null;
     }
   }
 
@@ -213,6 +224,11 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     @Override
     public boolean isInfinite() {
       return false;
+    }
+
+    @Override
+    public @Nullable BigInteger getSortHLevel() {
+      return sort == null || sort == this ? null : sort.getSortHLevel();
     }
   }
 
@@ -298,6 +314,17 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
       }
       return false;
     }
+
+    @Override
+    public @Nullable BigInteger getSortHLevel() {
+      BigInteger result = BigInteger.ONE.negate();
+      for (SortExpression sort : mySorts) {
+        BigInteger level = sort.getSortHLevel();
+        if (level == null) return null;
+        result = result.max(level);
+      }
+      return result;
+    }
   }
 
   static @NotNull SortExpression makeTrunc(@NotNull SortExpression sort, int level) {
@@ -366,6 +393,11 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     public boolean isInfinite() {
       return myDomain.isInfinite() || myCodomain.isInfinite();
     }
+
+    @Override
+    public @Nullable BigInteger getSortHLevel() {
+      return myCodomain.getSortHLevel();
+    }
   }
 
   final class Prev implements SortExpression, PreviousSortExpression {
@@ -395,6 +427,12 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     public boolean isInfinite() {
       return mySort.isInfinite();
     }
+
+    @Override
+    public @Nullable BigInteger getSortHLevel() {
+      BigInteger level = mySort.getSortHLevel();
+      return level == null ? null : level.compareTo(BigInteger.ZERO) < 0 ? level : level.subtract(BigInteger.ONE);
+    }
   }
 
   final class Succ implements SortExpression, NextSortExpression {
@@ -422,6 +460,12 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     @Override
     public boolean isInfinite() {
       return mySort.isInfinite();
+    }
+
+    @Override
+    public @Nullable BigInteger getSortHLevel() {
+      BigInteger level = mySort.getSortHLevel();
+      return level == null ? null : level.add(BigInteger.ONE);
     }
   }
 }

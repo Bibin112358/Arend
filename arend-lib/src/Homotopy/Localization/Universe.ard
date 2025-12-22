@@ -156,12 +156,12 @@
  - The [pullback]{Square.pull} of this square along ``inL`` is the original pullback square.
  - By the universal property of pullbacks, we have a map ``h : L U -> U`` such that ``h `o` inL`` is the identity map.
  -}
-\lemma pullbackLocal {U : ReflUniverse} (P : Pullback \lp \oo) (VL : Local P.square.V) (XL : Local P.square.X) (YL : Local P.square.Y) : Local P.square.U
+\lemma pullbackLocal {U : ReflUniverse} (P : Pullback) (VL : Local P.square.V) (XL : Local P.square.X) (YL : Local P.square.Y) : Local P.square.U
   => lem P (localization P.square.U) VL XL YL
   \where {
     \open Square (pull)
 
-    \lemma lem {U : Universe} (P : Pullback \lp \oo) (L : Localization P.square.U) (VL : Local P.square.V) (XL : Local P.square.X) (YL : Local P.square.Y) : Local P.square.U =>
+    \lemma lem {U : Universe} (P : Pullback) (L : Localization P.square.U) (VL : Local P.square.V) (XL : Local P.square.X) (YL : Local P.square.Y) : Local P.square.U =>
       \let | lux => lift P.square.ux
            | luv => lift P.square.uv
            | pux u => pmap P.square.xy (lift-prop P.square.ux u)

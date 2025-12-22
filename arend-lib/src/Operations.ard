@@ -3,11 +3,17 @@
 \class HasProduct (E : \hType)
   | Product \alias \infixl 7 ⨯ : E -> E -> E
 
-\instance TypeHasProduct : HasProduct \Type
+\instance TypeHasProduct : HasProduct \hType
+  | Product A B => \Sigma A B
+
+\instance SetHasProduct : HasProduct \Set
   | Product A B => \Sigma A B
 
 \class HasCoproduct (E : \hType)
   | Coproduct \alias \infixl 6 ⨿ : E -> E -> E
 
-\instance TypeHasCoproduct : HasCoproduct \Type
+\instance TypeHasCoproduct : HasCoproduct \hType
+  | Coproduct A B => Or A B
+
+\instance SetHasCoproduct : HasCoproduct \Set
   | Coproduct A B => Or A B
