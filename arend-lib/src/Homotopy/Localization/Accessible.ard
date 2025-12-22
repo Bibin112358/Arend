@@ -113,12 +113,12 @@
         (X j -> \Sigma (a : A) (B a))
   }
   \where {
-    \lemma localDesc (Z : \hType) : isLocal {nullFamUniverse X} Z = (\Pi (j : J) -> Equiv {Z} {X j -> Z} (\lam z _ => z))
+    \lemma localDesc (Z : \hType) : (nullFamUniverse X).isLocal Z = (\Pi (j : J) -> Equiv {Z} {X j -> Z} (\lam z _ => z))
       => path (\lam i => \Pi (j : J) -> Equiv {equiv= (unit-func Z) @ i} {X j -> Z} (\lam t _ => coe2 (equiv= (unit-func Z) @) i t right))
   }
 
 \func nullTypeUniverse (M : \hType) : Modality => nullFamUniverse {\Sigma} (\lam _ => M)
   \where {
-    \lemma localDesc (M Z : \hType) : isLocal {nullTypeUniverse M} Z = Equiv {Z} {M -> Z} (\lam z _ => z)
+    \lemma localDesc (M Z : \hType) : (nullTypeUniverse M).isLocal Z = Equiv {Z} {M -> Z} (\lam z _ => z)
       => nullFamUniverse.localDesc Z *> equiv= (unit-func (Equiv {Z} {M -> Z} (\lam z _ => z)))
   }

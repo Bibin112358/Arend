@@ -15,7 +15,8 @@
   | center => (a0,idp)
   | contraction p => Jl (\lam x q => (a0,idp) = {\Sigma (y : A) (y = a0)} (x, inv q)) idp (inv p.2) *> path (\lam i => (p.1, inv_inv p.2 @ i))
 
-\func equiv= (e : QEquiv) : e.A = e.B => path (iso e.f e.ret e.ret_f e.f_sec)
+\func equiv= {A B : \Sort} (e : QEquiv {A} {B}) (i : I) : \Sort
+  => iso e.f e.ret e.ret_f e.f_sec i
 
 \func contr-left {A : \Sort} (c : Contr A) {B : A -> \Sort} : QEquiv {\Sigma (x : A) (B x)} {B c.center} \cowith
   | f p => transport B (inv (c.contraction p.1)) p.2
@@ -41,13 +42,13 @@
   | ret_f h => path (\lam i a p => Jl.Jr (\lam x q => Jl.Jr B (h a' idp) q = h x q) idp p @ i)
   | f_sec => idpe
 
-\func sigma-left {A A' : \hType} {B' : A' -> \hType} (e : HAEquiv {A} {A'}) : QEquiv {\Sigma (a : A) (B' (e a))} {\Sigma (a' : A') (B' a')} \cowith
+\func sigma-left {A A' : \Sort} {B' : A' -> \Sort} (e : HAEquiv {A} {A'}) : QEquiv {\Sigma (a : A) (B' (e a))} {\Sigma (a' : A') (B' a')} \cowith
   | f p => (e p.1, p.2)
   | ret p => (e.ret p.1, transport B' (inv (e.f_sec p.1)) p.2)
   | ret_f p => ext (e.ret_f p.1, path (\lam i => coe (\lam j => B' (e.f_ret_f=f_sec_f p.1 i j) ) _ right) *> transport_id_inv B' _ _)
   | f_sec p => ext (e.f_sec p.1, transport_id_inv B' _ _)
   \where {
-    \func path-func (p : A = A') : (\Sigma (x : A) (B' (coe (p @) x right))) = (\Sigma (x' : A') (B' x')) =>
+    \func path-func {A A' : \hType} {B' : A' -> \hType} (p : A = A') : (\Sigma (x : A) (B' (coe (p @) x right))) = (\Sigma (x' : A') (B' x')) =>
       path (\lam i => \Sigma (x : p @ i) (B' (coe2 (p @) i x right)))
   }
 
