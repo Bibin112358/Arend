@@ -43,13 +43,7 @@ fun VirtualFile.getRelativeFile(path: Collection<String>, ext: String = "", crea
 
 val VirtualFile.configFile: VirtualFile?
     get() = when {
-        isDirectory -> {
-            var configFile: VirtualFile? = null
-            ApplicationManager.getApplication().executeOnPooledThread {
-                configFile = findChild(FileUtils.LIBRARY_CONFIG_FILE)
-            }.get()
-            configFile
-        }
+        isDirectory -> findChild(FileUtils.LIBRARY_CONFIG_FILE)
         name == FileUtils.LIBRARY_CONFIG_FILE -> this
         name.endsWith(FileUtils.ZIP_EXTENSION) -> JarFileSystem.getInstance().getJarRootForLocalFile(this)?.findChild(FileUtils.LIBRARY_CONFIG_FILE)
         else -> null

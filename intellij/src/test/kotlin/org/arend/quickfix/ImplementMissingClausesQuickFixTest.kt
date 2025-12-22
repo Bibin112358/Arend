@@ -227,25 +227,25 @@ class ImplementMissingClausesQuickFixTest: QuickFixTestBase() {
 
     fun testResolveReference() = typedQuickFixTest(fixName,
         """
-        -- ! Logic.ard 
+        -- ! MyLogic.ard 
         \data || (A B : \Type)
           | byLeft A
           | byRight B
  
         -- ! Main.ard    
-        \import Logic ()
+        \import MyLogic ()
 
         \func byLeft => 101
 
-        \func lol{-caret-} {A B : \Type} (a b : Logic.|| A B) : Nat
-          | Logic.byLeft x, Logic.byLeft y => {?} 
+        \func lol{-caret-} {A B : \Type} (a b : MyLogic.|| A B) : Nat
+          | MyLogic.byLeft x, MyLogic.byLeft y => {?} 
         """, """
-        \import Logic (byRight, ||)
+        \import MyLogic (byRight, ||)
 
         \func byLeft => 101
 
-        \func lol {A B : \Type} (a b : Logic.|| A B) : Nat
-          | Logic.byLeft x, Logic.byLeft y => {?}
+        \func lol {A B : \Type} (a b : MyLogic.|| A B) : Nat
+          | MyLogic.byLeft x, MyLogic.byLeft y => {?}
           | byRight b, b1 => {?}
           | ||.byLeft x, byRight b => {?} 
         """)

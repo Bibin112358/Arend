@@ -58,7 +58,7 @@ public abstract class SourceLibrary implements ArendLibrary {
     return new ArendCliUI();
   }
 
-  public @Nullable Version getVersion() {
+  public @Nullable Version getLibraryVersion() {
     return myVersion;
   }
 

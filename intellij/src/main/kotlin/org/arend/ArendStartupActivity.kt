@@ -11,12 +11,17 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.*
 import com.intellij.openapi.startup.ProjectActivity
+import org.arend.module.AREND_LIB
 import org.arend.module.ArendModuleType
 import org.arend.module.ModuleSynchronizer
+import org.arend.module.checkForUpdates
 import org.arend.module.config.ArendModuleConfigService
+import org.arend.module.config.ExternalLibraryConfig
+import org.arend.server.ArendServerListener
 import org.arend.server.ArendServerService
 import org.arend.util.ArendBundle
 import org.arend.util.arendModules
+import org.arend.util.findExternalLibrary
 import org.arend.util.register
 import org.arend.util.unregister
 import org.arend.yaml.YAMLFileListener
@@ -54,21 +59,22 @@ class ArendStartupActivity : ProjectActivity {
         })
         */
 
-        if (!ApplicationManager.getApplication().isUnitTestMode) DumbService.getInstance(project).queueTask(object : DumbModeTask() {
-            override fun performInDumbMode(indicator: ProgressIndicator) {
-                ApplicationManager.getApplication().executeOnPooledThread {
-                    val modules = project.arendModules
-                    indicator.text = ArendBundle.message("arend.startup.loading.arend.modules")
-                    indicator.isIndeterminate = false
-                    indicator.fraction = 0.0
-                    val progressFraction = 1.0 / modules.size.toDouble()
-                    for (module in modules) {
-                        module.register()
-                        indicator.fraction += progressFraction
+        if (!ApplicationManager.getApplication().isUnitTestMode) DumbService.getInstance(project)
+            .queueTask(object : DumbModeTask() {
+                override fun performInDumbMode(indicator: ProgressIndicator) {
+                    ApplicationManager.getApplication().executeOnPooledThread {
+                        val modules = project.arendModules
+                        indicator.text = ArendBundle.message("arend.startup.loading.arend.modules")
+                        indicator.isIndeterminate = false
+                        indicator.fraction = 0.0
+                        val progressFraction = 1.0 / modules.size.toDouble()
+                        for (module in modules) {
+                            module.register()
+                            indicator.fraction += progressFraction
+                        }
                     }
                 }
-            }
-        })
+            })
 
         ApplicationManager.getApplication().messageBus.connect(service)
             .subscribe<AppLifecycleListener>(AppLifecycleListener.TOPIC, object : AppLifecycleListener {
@@ -84,6 +90,20 @@ class ArendStartupActivity : ProjectActivity {
         EditorFactory.getInstance().eventMulticaster.addDocumentListener(yamlFileListener, project)
 
         ModuleSynchronizer(project).install()
+
+        service.server.addListener(object : ArendServerListener {
+            override fun onLibraryUpdated(libraryName: String) {
+                val library = service.server.getLibrary(libraryName)
+                library?.libraryDependencies?.forEach {
+                    if (it == AREND_LIB) {
+                        val version = (project.findExternalLibrary(AREND_LIB) as? ExternalLibraryConfig)?.version
+                        checkForUpdates(project, version)
+                    }
+                }
+
+                super.onLibraryUpdated(libraryName)
+            }
+        })
 
         disableActions()
     }

@@ -248,17 +248,4 @@ class ProofSearchUISettings(private val project: Project) {
     fun shouldLimitSearch() : Boolean = truncateResults
 }
 
-fun getCompleteModuleLocation(def: ReferableBase<*>): String? {
-    var file: String? = null
-    ApplicationManager.getApplication().run {
-        executeOnPooledThread {
-            runReadAction {
-                file = (def.containingFile as? ArendFile)?.moduleLocation?.toString()
-            }
-        }.get()
-    }
-    file ?: return null
-
-    val module = def.parentsOfType<ArendGroup>(false).toList().reversed().drop(1).map { it.name }
-    return (listOf(file) + module).joinToString(".")
-}
+fun getCompleteModuleLocation(def: ReferableBase<*>): String? = def.tcReferable?.refFullName?.module?.modulePath?.toString() ?: "???"

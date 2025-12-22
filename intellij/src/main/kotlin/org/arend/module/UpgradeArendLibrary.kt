@@ -36,7 +36,7 @@ internal fun getVersion(): String? {
             val range = VersionRange.parseVersionRange(str.take(index)) ?: continue
             if (!range.inRange(Prelude.VERSION)) continue
             val result = str.substring(index + 2, str.length).trim()
-            if (result.isNotEmpty()) return result
+            if (result.isNotEmpty()) return@getVersion result
         }
         return Prelude.VERSION.longString
     }
@@ -86,11 +86,11 @@ private fun downloadArendLib(project: Project, indicator: ProgressIndicator, pat
     }
 }
 
-fun checkForUpdates(project: Project, version: Version?) {
+fun checkForUpdates(project: Project, actualVersion: Version?) {
     ApplicationManager.getApplication().executeOnPooledThread {
         val newVersion = try { Version.fromString(getVersion()) } catch (e: IOException) { null }
-        if (newVersion != null && (version != null && /* TODO: Replace with version == null || */ newVersion > version)) {
-            showDownloadNotification(project, Reason.UPDATE, newVersion.toString())
+        if (newVersion != null && (actualVersion == null || newVersion > actualVersion)) {
+            showDownloadNotification(project, Reason.UPDATE, newVersion.longString)
         }
     }
 }

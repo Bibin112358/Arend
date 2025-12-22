@@ -36,6 +36,7 @@ import org.arend.typechecking.result.TypecheckingResult
 import org.arend.util.FileUtils
 import org.arend.util.FileUtils.USER_HOME
 import org.arend.util.SingletonList
+import org.arend.util.Version
 import org.arend.util.arendModules
 import org.arend.util.findExternalLibrary
 import java.nio.file.Files
@@ -157,6 +158,7 @@ abstract class IntellijRepl private constructor(
         override val modules: List<ModulePath>
             get() = listOf(replModuleLocation.modulePath)
         override fun isExternalLibrary() = true
+        override fun getLibraryVersion(): Version? = null
     }
 
     override fun checkExpr(expr: Concrete.Expression, expectedType: Expression?, continuation: Consumer<TypecheckingResult>) {

@@ -8,6 +8,7 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotificationProvider
@@ -21,7 +22,7 @@ class YamlNotificationProvider : EditorNotificationProvider {
 
     override fun collectNotificationData(project: Project, virtualFile: VirtualFile): Function<in FileEditor, out JComponent?>? {
         val yamlFileService = project.service<YamlFileService>()
-        return if (virtualFile.fileType !is YAMLFileType) {
+        return if (!ProjectFileIndex.getInstance(project).isInProject(virtualFile) || virtualFile.fileType !is YAMLFileType) {
             null
         } else if (yamlFileService.getSameFields().isNotEmpty() || yamlFileService.checkSameFields(virtualFile)) {
             Function<FileEditor, EditorNotificationPanel?> { fileEditor: FileEditor? ->
@@ -50,10 +51,7 @@ class YamlNotificationProvider : EditorNotificationProvider {
             yamlFileService.removeChangedFile(file)
 
             val applicationManager = ApplicationManager.getApplication()
-            var module: Module? = null
-            applicationManager.executeOnPooledThread {
-                module = ModuleUtilCore.findModuleForFile(file, project)
-            }.get()
+            var module: Module? = ModuleUtilCore.findModuleForFile(file, project)
             val arendModuleConfigService = ArendModuleConfigService.getInstance(module)
 
             invokeLater {

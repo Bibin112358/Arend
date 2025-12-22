@@ -2,12 +2,15 @@ package org.arend.navigation
 
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.navigation.ItemPresentation
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiElement
 import org.arend.psi.ArendFile
+import org.arend.psi.ext.ArendClassFieldBase
+import org.arend.psi.ext.ArendClassImplement
 import org.arend.psi.ext.ArendCompositeElement
+import org.arend.psi.ext.ArendConstructor
+import org.arend.psi.ext.ArendGroup
 import org.arend.psi.ext.PsiReferable
-import javax.swing.Icon
 
 fun getPresentation(psi: ArendCompositeElement): ItemPresentation {
     val location = run {
@@ -16,13 +19,12 @@ fun getPresentation(psi: ArendCompositeElement): ItemPresentation {
     }
 
     val name = presentableName(psi)
-    var icon: Icon? = null
-    ApplicationManager.getApplication().run {
-        executeOnPooledThread {
-            runReadAction {
-                icon = psi.getIcon(0)
-            }
-        }.get()
+    val icon = runReadAction {
+        if (psi is ArendGroup || psi is ArendClassFieldBase<*> || psi is ArendClassImplement || psi is ArendConstructor) {
+            psi.getIcon(0)
+        } else {
+            null
+        }
     }
 
     return PresentationData(name, location, icon, null)

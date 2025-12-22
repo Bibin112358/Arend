@@ -22,6 +22,8 @@ class ExternalLibraryConfig(override val name: String, yaml: YAMLFile) : Library
         if (it.isEmpty()) Range.unbound() else VersionRange.parseVersionRange(it)
     }
 
+    override fun getLibraryVersion(): Version? = version
+
     override fun getExtensionMainClass() = extensionMainClass
 
     override fun isExternalLibrary() = true
