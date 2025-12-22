@@ -184,7 +184,7 @@
 
 \meta SmallCat => Cat \lp
 
-\func DiscretePrecat (X : \Type) : Precat X \cowith
+\func DiscretePrecat (X : \hType) : Precat X \cowith
   | Hom x y => Trunc0 (x = y)
   | id x => in0 idp
   | o {x y z : X} (t : Trunc0 (y = z)) (s : Trunc0 (x = y)) : Trunc0 (x = z) \elim t, s {
@@ -194,7 +194,7 @@
   | id-right {_} {_} {p} => cases p (pmap in0 (idp_*> _))
   | o-assoc {_} {_} {_} {_} {p} {q} {r} => cases (p,q,r) (pmap in0 (inv (*>-assoc _ _ _)))
   \where {
-    \func map {X : \Type} {D : Precat} (f : X -> D) {x y : X} (h : Hom {DiscretePrecat X} x y) : Hom (f x) (f y) \elim h
+    \func map {X : \hType} {D : Precat} (f : X -> D) {x y : X} (h : Hom {DiscretePrecat X} x y) : Hom (f x) (f y) \elim h
       | in0 idp => id _
   }
 
