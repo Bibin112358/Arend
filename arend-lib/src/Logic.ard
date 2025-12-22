@@ -49,7 +49,7 @@
   }
 
 \lemma prop-pi {A : \Prop} {a a' : A} : a = a'
-  => \case truncP (inP a) (inP a') __ \with {
+  => path \case truncP (inP a) (inP a') __ \with {
     | inP x => x
   }
 

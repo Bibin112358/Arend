@@ -105,6 +105,9 @@
       | f_sec => e.f_sec
   }
 
+\func QEquiv_= {A B : \Sort} (e : QEquiv {A} {B}) (i : I) : \Sort
+  => iso e.f e.ret e.ret_f e.f_sec i
+
 -- # Examples of equialences
 
 \func idEquiv {A : \Type} : QEquiv \cowith

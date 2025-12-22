@@ -28,7 +28,6 @@ import org.arend.lib.error.SubclassError;
 import org.arend.lib.error.TypeError;
 import org.arend.lib.meta.pi_tree.*;
 import org.arend.lib.meta.util.SubstitutionMeta;
-import org.arend.lib.util.Names;
 import org.arend.lib.util.Utils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,12 +42,11 @@ public class ExtMeta extends BaseMetaDefinition {
   @Dependency private ArendRef simp_coe;
   @Dependency private ArendRef later;
   @Dependency private ArendRef propExt;
-  @Dependency private ArendRef Equiv;
+  @Dependency private ArendRef QEquiv;
   @Dependency private ArendRef pathOver;
   @Dependency(name = "prop-isProp") private ArendRef propIsProp;
   @Dependency(name = "prop-dpi") private ArendRef propDPI;
-  @Dependency(name = "Equiv-to-=") private ArendRef equivToEq;
-  @Dependency(name = "QEquiv-to-=") private ArendRef qEquivToEq;
+  @Dependency(name = "QEquiv_=") private ArendRef qEquivToEq;
 
   public ExtMeta(boolean withSimpCoe) {
     this.withSimpCoe = withSimpCoe;
@@ -811,12 +809,11 @@ public class ExtMeta extends BaseMetaDefinition {
         ConcreteExpression result = factory.app(factory.ref(propExt), true, Arrays.asList(factory.proj(concreteResult, 0), factory.proj(concreteResult, 1)));
         return typechecker.typecheck(letRef == null ? result : factory.letExpr(true, false, Collections.singletonList(factory.letClause(letRef, Collections.emptyList(), null, concreteArg)), result), contextData.getExpectedType());
       } else {
-        TypedExpression expectedType = typechecker.typecheck(factory.app(factory.ref(Equiv), false, Arrays.asList(left, right)), null);
+        TypedExpression expectedType = typechecker.typecheck(factory.app(factory.ref(QEquiv), false, Arrays.asList(left, right)), null);
         if (expectedType == null) return null;
         TypedExpression typedArg = typechecker.typecheck(arg, expectedType.getExpression());
         if (typedArg == null) return null;
-        CoreExpression actualType = typedArg.getType().normalize(NormalizationMode.WHNF);
-        return typechecker.typecheck(factory.app(factory.ref(actualType instanceof CoreClassCallExpression && Names.isSubClass(((CoreClassCallExpression) actualType).getDefinition(), Names.Q_EQUIV) ? qEquivToEq : equivToEq), true, Collections.singletonList(factory.core(typedArg))), contextData.getExpectedType());
+        return typechecker.typecheck(factory.path(factory.app(factory.ref(qEquivToEq), true, Collections.singletonList(factory.core(typedArg)))), contextData.getExpectedType());
       }
     }
 

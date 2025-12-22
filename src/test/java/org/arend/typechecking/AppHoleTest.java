@@ -51,7 +51,7 @@ public class AppHoleTest extends TypeCheckingTestCase {
   public void inNestedAppInOp() {
     Concrete.Expression expression = resolveNamesExpr("suc (suc __) Nat.+ 233");
     assertNotNull(expression);
-    Concrete.Expression sucSuc__ = ((Concrete.AppExpression) expression).getArguments().get(0).expression;
+    Concrete.Expression sucSuc__ = ((Concrete.AppExpression) expression).getArguments().getFirst().expression;
     assertTrue(sucSuc__ instanceof Concrete.AppExpression);
     typeCheckExpr(expression, null, 1);
   }
@@ -78,9 +78,10 @@ public class AppHoleTest extends TypeCheckingTestCase {
   @Test
   public void inCase() {
     checkAsLam("Nat -> Nat -> Nat",
-        "\\case __, 666 Nat.+ __ \\return Nat \\with {\n" +
-            "  | _, _ => 1\n" +
-            "}");
+        """
+            \\case __, 666 Nat.+ __ \\return Nat \\with {
+              | _, _ => 1
+            }""");
   }
 
   @Test
@@ -107,7 +108,7 @@ public class AppHoleTest extends TypeCheckingTestCase {
 
   @Test
   public void implicit() {
-    assertTrue(typeCheckExpr("idp {__} {__}", null)
+    assertTrue(typeCheckExpr("(idp {__} {__} : \\Pi (X : \\Set0) (x : X) -> x = x)", null)
         .expression instanceof LamExpression);
   }
 

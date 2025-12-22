@@ -633,6 +633,7 @@ public abstract class Expression implements Body, CoreExpression {
     return body;
   }
 
+  @Override
   public boolean isInfinityLevel() {
     Expression expr = this;
     while (expr instanceof PiExpression piExpr) {

@@ -22,7 +22,6 @@ public class Names {
   public static final FullName NEGATIVE = fullName(getGroupModule(), new LongName("AddGroup", "negative"));
   public static final FullName NAT_COEF = fullName(getSemiringModule(), new LongName("Semiring", "natCoef"));
   public static final FullName EQUIV = fullName(getEquivModule(), new LongName("Equiv"));
-  public static final FullName Q_EQUIV = fullName(getEquivModule(), new LongName("QEquiv"));
   public static final FullName SET_HOM = fullName(getSetHomModule(), new LongName("SetHom"));
   public static final FullName EQUIV_MAP = fullName(getEquivModule(), new LongName("Map"));
   public static final FullName CAT_MAP = fullName(getCategoryModule(), new LongName("Map"));

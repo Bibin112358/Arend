@@ -232,4 +232,12 @@ public class SortTest extends TypeCheckingTestCase {
       """, 1);
     assertThatErrorsAre(Matchers.typeMismatchError());
   }
+
+  @Test
+  public void lamTest() {
+    typeCheckDef("""
+      \\func test {A : \\Sort} (B : A -> \\Sort) : Nat
+        => \\let T => \\lam x => B x \\in 0
+      """);
+  }
 }

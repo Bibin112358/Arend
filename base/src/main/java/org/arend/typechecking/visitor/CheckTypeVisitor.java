@@ -2205,33 +2205,13 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     return expr.getLeft().accept(this, base).max(expr.getRight().accept(this, base));
   }
 
-  // Sorts
-
-  public Sort getSortOfType(Expression expr, Concrete.SourceNode sourceNode) {
-    Expression type = expr.getType();
-    Sort sort = type == null ? null : type.toSort();
-    if (sort == null) {
-      assert type != null;
-      if (type.isInstance(ErrorExpression.class)) {
-        return Sort.STD;
-      }
-      Sort result = Sort.generateInferVars(getEquations(), false, sourceNode);
-      if (!CompareVisitor.compare(getEquations(), CMP.LE, type, new UniverseExpression(result), UniverseExpression.OMEGA, sourceNode)) {
-        errorReporter.report(new TypeMismatchError(DocFactory.text("a type"), type, sourceNode));
-      }
-      return result;
-    } else {
-      return sort;
-    }
-  }
-
   // Parameters
 
   private TypedSingleDependentLink visitNameParameter(Concrete.NameParameter param, Concrete.SourceNode sourceNode) {
     Referable referable = param.getReferable();
     String name = referable == null ? null : referable.textRepresentation();
-    Sort sort = Sort.generateInferVars(myEquations, false, sourceNode);
-    InferenceVariable inferenceVariable = new LambdaInferenceVariable(name == null ? "_" : "type-of-" + name, new UniverseExpression(sort), param.getReferable(), false, sourceNode, getAllBindings());
+    InferenceVariable inferenceVariable = new LambdaInferenceVariable(name == null ? "_" : "type-of-" + name, UniverseExpression.OMEGA, param.getReferable(), false, sourceNode, getAllBindings());
+    inferenceVariable.setType(new UniverseExpression(new SortExpression.InfVar(inferenceVariable)));
     Expression argType = InferenceReferenceExpression.make(inferenceVariable, myEquations);
     TypedSingleDependentLink link = new TypedSingleDependentLink(param.isExplicit(), name, argType);
     addBinding(referable, link);
@@ -2411,11 +2391,10 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       if (param instanceof Concrete.NameParameter) {
         if (piParam == null) {
           TypedSingleDependentLink link = visitNameParameter((Concrete.NameParameter) param, expr);
-          TypecheckingResult bodyResult = visitLam(parameters.subList(1, parameters.size()), expr, new ExpressionParametersProvider(new InferenceReferenceExpression(new ExpressionInferenceVariable(new UniverseExpression(Sort.generateInferVars(myEquations, false, expr)), expr, getAllBindings(), true, true))));
-          if (bodyResult == null) return new Pair<>(null, true);
-          TypecheckingResult result = new TypecheckingResult(new LamExpression(link, bodyResult.expression), new PiExpression(link, bodyResult.type));
-          Expression expectedType = newProvider.getType();
-          return new Pair<>(expectedType == null ? result : checkResult(expectedType, result, expr), true);
+          InferenceVariable infVar = new ExpressionInferenceVariable(UniverseExpression.OMEGA, expr, getAllBindings(), true, true, true);
+          infVar.setType(new UniverseExpression(new SortExpression.InfVar(infVar)));
+          TypecheckingResult bodyResult = visitLam(parameters.subList(1, parameters.size()), expr, new ExpressionParametersProvider(new InferenceReferenceExpression(infVar)));
+          return new Pair<>(bodyResult == null ? null : checkResult(newProvider.getType(), new TypecheckingResult(new LamExpression(link, bodyResult.expression), new PiExpression(link, bodyResult.type)), expr), true);
         } else {
           Referable referable = ((Concrete.NameParameter) param).getReferable();
           if (piParam.isExplicit() && !param.isExplicit()) {

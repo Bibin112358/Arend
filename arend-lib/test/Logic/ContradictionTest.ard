@@ -61,12 +61,12 @@
 \lemma irreflexivity3 {A : StrictPoset} {x y z : A} (p : x < y) (q : x = z) (s : y = z) : Empty
   => contradiction
 
-\lemma cases {A : \Type} (d : D (Not A)) (a : A) : Empty
+\lemma cases {A : \Sort} (d : D (Not A)) (a : A) : Empty
   => contradiction
   \where
-    \data D (A : \Type) | con1 Empty | con2 A
+    \data D (A : \Sort) | con1 Empty | con2 A
 
-\lemma cases2 {A B : \Type} (d : Not (Or A B)) (p : Or B A) : Empty
+\lemma cases2 {A B : \Sort} (d : Not (Or A B)) (p : Or B A) : Empty
   => contradiction
 
 \lemma cases3 {A : StrictPoset} {x y : A} (d : Not (Or (Or (x < y) (x = y)) (x > y))) (p : Or (x = y) (Or (y < x) (y > x))) : Empty
@@ -110,7 +110,7 @@
 \lemma notTest2 {A : Poset} {x y z w : A} (p : x <= y) (q : y = z) (r : z <= w) (s : Not (x <= w)) : Empty
   => contradiction
 
-\lemma notTest3 {A : \Type} {x y z w : A} (p : x = y) (q : y = z) (r : z = w) (s : Not (x = w)) : Empty
+\lemma notTest3 {A : \Sort} {x y z w : A} (p : x = y) (q : y = z) (r : z = w) (s : Not (x = w)) : Empty
   => contradiction
 
 \lemma failTest {A : StrictPoset} {x y z : A} (p : Not (y < x)) (q : Not (z < y)) (s : z < x)

@@ -86,6 +86,10 @@ public abstract class InferenceVariable implements Variable, CoreInferenceVariab
     }
   }
 
+  public boolean canBeInfinite() {
+    return false;
+  }
+
   public void solve(CheckTypeVisitor checker, Expression solution) {
     if (isSolved()) {
       return;

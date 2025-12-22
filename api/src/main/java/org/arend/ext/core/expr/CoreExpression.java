@@ -63,6 +63,9 @@ public interface CoreExpression extends CoreBody, UncheckedExpression, Abstracte
    */
   @Override @NotNull CoreExpression normalize(@NotNull NormalizationMode mode);
 
+
+  boolean isInfinityLevel();
+
   /**
    * Normalizes and unfolds \type expressions.
    */

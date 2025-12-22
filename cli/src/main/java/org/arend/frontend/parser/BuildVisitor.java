@@ -1634,7 +1634,9 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
             parameters.add(new Concrete.TypeParameter(true, visitExpr(teleUniverseContext.universeAtom()), false));
             continue;
           }
-          case null, default -> throw new IllegalStateException();
+          case null, default -> {
+            continue;
+          }
         }
       } else {
         typedExpr = ((ImplicitContext) tele).typedExpr();

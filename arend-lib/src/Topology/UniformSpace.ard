@@ -230,7 +230,7 @@
   => X.makeCauchy p
 
 \lemma s<=*_<=* {X : PreuniformSpace} {V U : Set X} (p : V s<=* U) : V <=* U
-  => <=*-char.2 $ uniform-subset (unfolds in p) \lam {W} e s => \case \elim e \with {
+  => <=*-char.2 $ uniform-subset (unfolds in p) $ later \lam {W} e s => \case \elim e \with {
     | byLeft q => absurd $ later $ (rewrite q in s.2.2) s.2.1
     | byRight q => =_<= q
   }

@@ -87,8 +87,9 @@ public class PiTreeMaker {
         params.clear();
         codomain = expr;
       }
-      concrete = factory.core(codomain.computeTyped());
-      useLet = !(expr instanceof CoreReferenceExpression);
+      TypedExpression typedCodomain = codomain.computeTyped();
+      concrete = factory.core(typedCodomain);
+      useLet = !(expr instanceof CoreReferenceExpression || typedCodomain.getType().isInfinityLevel());
     } else {
       List<ConcreteParameter> redLamParams;
       List<SubstitutionPair> redSubstitution;
@@ -107,7 +108,7 @@ public class PiTreeMaker {
       TypedExpression result = typechecker.typecheck(factory.lam(redLamParams, factory.meta("ext_sigma_pi_param", new SubstitutionMeta(codomain, redSubstitution))), null);
       if (result == null) return null;
       concrete = factory.core(result);
-      useLet = !(result.getExpression() instanceof CoreReferenceExpression);
+      useLet = !(result.getExpression() instanceof CoreReferenceExpression || result.getType().isInfinityLevel());
     }
 
     ConcreteExpression altHead;

@@ -192,7 +192,6 @@ public class StdExtension implements ArendExtension {
 
     ModulePath pathsMeta = new ModulePath("Paths", "Meta");
     contributor.declare(pathsMeta, Names.getEquivModule());
-    contributor.declare(pathsMeta, Names.getUnivalenceModule(), "Equiv-to-=", "QEquiv-to-=");
     contributor.declare(pathsMeta, Names.getLogicModule());
     contributor.declare(pathsMeta, meta);
     contributor.declare(pathsMeta, Names.getPathsModule());
