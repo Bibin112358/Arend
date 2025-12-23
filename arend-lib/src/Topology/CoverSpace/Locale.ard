@@ -175,8 +175,8 @@
   | Func-id => idp
   | Func-o => idp
 
-\func LocaleCoverSpaceFunctor-fullyFaithful {L M : Locale} (Ld : HasDensePoints L) (Mr : M.IsRegularLocale) : Equiv (LocaleCoverSpaceFunctor.Func {L} {M})
-  => Equiv.fromInjSurj _
+\lemma LocaleCoverSpaceFunctor-fullyFaithful {L M : Locale} (Ld : HasDensePoints L) (Mr : M.IsRegularLocale) : IsEquiv (LocaleCoverSpaceFunctor.Func {L} {M})
+  => IsEquiv.fromInjSurj
       (\have r {f g : FrameHom M L} (p : LocaleCoverSpaceFunctor.Func f = LocaleCoverSpaceFunctor.Func g) {a : M} : f a <= g a => later $
         f.func-<= (Mr a) <=∘ func-Join>= <=∘ Join-univ \lam s => meet-univ <=-refl top-univ <=∘
             MeetSemilattice.meet-monotone <=-refl (func-top>= <=∘ g.func-<= s.2 <=∘ g.func-join>=) <=∘

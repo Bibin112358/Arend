@@ -15,7 +15,7 @@
     \use \level levelProp (A : \Sort) (e e' : isProp A) : e = e'
       => path \lam i a a' => =>isSet e a a' (e a a') (e' a a') i
 
-    \lemma equiv (e : Equiv) (As : isProp e.B) : isProp e.A
+    \lemma equiv (e : QEquiv) (As : isProp e.B) : isProp e.A
       => \lam a a' => inv (e.ret_f a) *> pmap e.ret (As _ _) *> e.ret_f a'
   }
 
@@ -24,7 +24,7 @@
     \use \level levelProp {A : \Sort} (e e' : isSet A) : e = e'
       => path \lam i a a' => isProp.levelProp (a = a') (e a a') (e' a a') i
 
-    \lemma equiv (e : Equiv) (As : isSet e.B) : isSet e.A
+    \lemma equiv (e : QEquiv) (As : isSet e.B) : isSet e.A
       => \lam a a' => isProp.equiv (pmapEquiv e) (As _ _)
   }
 
@@ -45,8 +45,8 @@
     })
   }
 
-\lemma contr-equiv (A B : Contr) {f : A -> B} : Equiv f
-  => \new QEquiv {
+\lemma contr-equiv (A B : Contr) {f : A -> B} : IsEquiv f
+  => inP \new QEquiv {
     | ret _ => A.center
     | ret_f x => A.contraction x
     | f_sec y => isContr=>isProp B _ _

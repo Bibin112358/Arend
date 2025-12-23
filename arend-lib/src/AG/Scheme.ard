@@ -316,7 +316,7 @@
   | R : VSheaf CRingCat (framePresSite (SpecPres R))
     => sheaf-reflect CRingCat.forget CRingCat.forget.reflectsLimit (functor R) $
           sheafOnSiteWithBasis _ $ later \lam x {J} g c => \case \elim c \with {
-            | inP (y, x<=y, f, c', q) => FramePres.indexing-transport (\lam {J} e h => \Pi (y : R) (g : J -> SlicePrecat y) -> Cover1 y e -> (\Pi (j : J) -> Cover1 (conj y (h j)) (g j).1) -> Equiv {_} {MatchingFamily y g} (matchingFamily y g))
+            | inP (y, x<=y, f, c', q) => FramePres.indexing-transport (\lam {J} e h => \Pi (y : R) (g : J -> SlicePrecat y) -> Cover1 y e -> (\Pi (j : J) -> Cover1 (conj y (h j)) (g j).1) -> IsEquiv {_} {MatchingFamily y g} (matchingFamily y g))
                 (hiding (c',x,J,g,x<=y,q) $ later \case \elim __ \with {
                   | nothing => \lam z ef z<=0 _ => contr-equiv (LocRing.trivial (\case SpecPres.cover_ideal z<=0 \with {
                       | inP (n, inP p) => inP (n, p.2 *> R.BigSum_zro (\lam j => zro_*-right))
@@ -398,8 +398,8 @@
       \in inP (t, s, l, q' *> equation)
 
     \lemma localization-lem {R : CRing} {e : R} {c d : R} (g : Bool -> SlicePrecat {framePresSite (SpecPres R)} e) {n : Nat} (p : pow e n = (g true).1 * c + (g false).1 * d)
-      : Equiv {_} {MatchingFamily _ _} (matchingFamily {_} {Comp CRingCat.forget (functor R)} e g)
-      => contrFibers=>Equiv \lam (mf : MatchingFamily) =>
+      : IsEquiv {_} {MatchingFamily _ _} (matchingFamily {_} {Comp CRingCat.forget (functor R)} e g)
+      => contrFibers=>IsEquiv \lam (mf : MatchingFamily) =>
            \have | (inP (n1,t1)) => SpecPres.cover_ideal (g true).2
                  | (inP (c1,a^n1=e*c1)) => closure1-lem.1 t1
                  | (inP (n2,t2)) => SpecPres.cover_ideal (g false).2

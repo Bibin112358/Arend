@@ -25,7 +25,7 @@
       | greater c => (t.2, t.1, c, inv t.4)
     }
 
-  \lemma isEquiv (f : E -> E) (inj : IsInj f) : Equiv f
+  \lemma isEquiv (f : E -> E) (inj : IsInj f) : IsEquiv f
     => isDFin.isEquiv (isDFin.fromPigeonhole \this) f inj
 }
 

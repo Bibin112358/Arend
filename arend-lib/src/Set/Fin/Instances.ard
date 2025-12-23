@@ -55,6 +55,6 @@
 \instance ProdFin (A B : FinSet) : FinSet (\Sigma A B) (A.finCard Nat.* B.finCard)
   => transport (FinSet _) Semiring.FinSum_replicate $ SigmaFin A (\lam _ => B)
   \where {
-    \func prod_equiv {n m : Nat} : Equiv {Fin (n Nat.* m)} {\Sigma (Fin n) (Fin m)}
-      => transport (\lam x => Equiv {Fin x} {_}) Semiring.BigSum_replicate $ SigmaFin.aux {n} {\lam _ => m}
+    \func prod_equiv {n m : Nat} : QEquiv {Fin (n Nat.* m)} {\Sigma (Fin n) (Fin m)}
+      => transport (\lam x => QEquiv {Fin x} {_}) Semiring.BigSum_replicate $ SigmaFin.aux {n} {\lam _ => m}
   }

@@ -39,7 +39,7 @@
       => pmap fromEquiv (Equiv.equals (ext p))
 
     \func reduce {n : Nat} (e : Sym (suc n)) : Sym n
-      => PigeonholeSet.isEquiv (\lam j => FinSet.skip (e 0) (e (suc j)) \lam p => \case Equiv.isInj p) \lam p => unfsuc $ Equiv.isInj (FinSet.skip-isInj p)
+      => IsEquiv.toEquiv $ PigeonholeSet.isEquiv (\lam j => FinSet.skip (e 0) (e (suc j)) \lam p => \case Equiv.isInj p) \lam p => unfsuc $ Equiv.isInj (FinSet.skip-isInj p)
 
     \lemma reduce_id {n : Nat} : reduce {n} idEquiv = idEquiv
       => Sym.equals \lam j => cases (n,j) idp
@@ -139,7 +139,7 @@
 
 \func cycle {n k : Nat} (l : Array (Fin n) k) (inj : IsInj l) : Sym n \elim k
   | 0 => ide
-  | suc k => PigeonholeSet.isEquiv (func l) (func-inj inj)
+  | suc k => IsEquiv.toEquiv $ PigeonholeSet.isEquiv (func l) (func-inj inj)
   \where {
     \func func {n k : Nat} (l : Array (Fin n) (suc k)) (j : Fin n) : Fin n
       => \case index-dec l j \with {
@@ -173,7 +173,7 @@
       }
 
     \lemma steps {n k : Nat} {m : Fin (suc k)} {l : Array (Fin n) (suc k)} {inj : IsInj l}
-      : Monoid.pow {SymmetricGroup n} (PigeonholeSet.isEquiv (func l) (func-inj inj)) m (l 0) = l m \elim k, m
+      : Monoid.pow {SymmetricGroup n} (IsEquiv.toEquiv $ PigeonholeSet.isEquiv (func l) (func-inj inj)) m (l 0) = l m \elim k, m
       | k, 0 => idp
       | suc k, suc m => unfold $ rewrite steps $ step NatOrder.zero<suc inj m *> pmap l (nat_fin_= $ mod_< $ NatOrder.suc<suc $ fin_< m)
   }
@@ -260,7 +260,7 @@
 
 \func symmetric-rec {n : Nat} : QEquiv {Sym (suc n)} {\Sigma (Fin (suc n)) (Sym n)} \cowith
   | f e => (e 0, Sym.reduce e)
-  | ret s => PigeonholeSet.isEquiv {FinFin (suc n)}
+  | ret s => IsEquiv.toEquiv $ PigeonholeSet.isEquiv {FinFin (suc n)}
       (\case __ \with {
         | 0 => s.1
         | suc j => sface s.1 (s.2 j)

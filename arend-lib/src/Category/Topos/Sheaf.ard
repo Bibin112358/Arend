@@ -68,7 +68,7 @@
 
   \lemma direct_image {C C' : SiteWithBasis} (f : SiteWithBasisPrehom C C') (S : VSheaf { | C => C' }) : VSheaf S.D C (Comp S f.op)
     => vsheafOnSiteWithBasis (Comp S f.op) \lam x {J} g c z =>
-         transEquiv (vsheafMatchingFamily S (f x) {J} (\lam j => (f (g j).1, f.Func (g j).2)) (f.F-basicCover c) z) $ later \new QEquiv {
+         IsEquiv.trans (vsheafMatchingFamily S (f x) {J} (\lam j => (f (g j).1, f.Func (g j).2)) (f.F-basicCover c) z) $ inP \new QEquiv {
            | f (m : MatchingFamily) => \new MatchingFamily {
              | family => m.family
              | isMatching j j' =>
@@ -144,20 +144,20 @@
   | isSheaf {x} {s : Sieve x} c => G-lim (Comp F s.diagram.op) (Cone.map F s.cone) (S.isSheaf c)
 
 \lemma vsheafOnSiteWithBasis {C : SiteWithBasis} {D : Cat (\suc \lp)} (F : Functor C.op D)
-  (p : \Pi (x : C) {J : \Set} (g : J -> SlicePrecat x) (c : isBasicCover x g) (z : D) -> Equiv (matchingFamily x g z))
+  (p : \Pi (x : C) {J : \Set} (g : J -> SlicePrecat x) (c : isBasicCover x g) (z : D) -> IsEquiv (matchingFamily x g z))
   : VSheaf D C F \cowith
   | isSheaf {x} {s : Sieve} (inP (J,g,c,d)) => \new Limit {
     | isLimit z =>
-      \have | e : Equiv => p x g c z
+      \have | e => p x g c z
             | mf (c' : Cone (Comp F s.diagram.op) z) : MatchingFamily x g z => \new MatchingFamily {
               | family j => c'.coneMap (g j, d j)
               | isMatching j j' => cone-isMatching z (g j, d j) (g j', d j')
             }
       \in \new QEquiv {
-        | ret (c' : Cone) => e.ret (mf c')
-        | ret_f h => pmap e.ret (ext idp) *> e.ret_f h
-        | f_sec c' => exts \lam ((y,Hyx),ys) => Equiv.isInj {p y (\lam j => pullbackFunctor Hyx (g j)) (basicCover-stable Hyx c) z} $
-            exts \lam j => inv o-assoc *> pmap (`∘ _) (inv F.Func-o *> pmap F.Func pbCoh *> Func-o) *> o-assoc *> path (\lam i => _ ∘ family {e.f_ret (mf c') @ i} j) *> inv (cone-isMatching z ((y,Hyx),ys) (g j, d j))
+        | ret (c' : Cone) => IsEquiv.ret e (mf c')
+        | ret_f h => pmap (IsEquiv.ret e) (ext idp) *> IsEquiv.ret_f e
+        | f_sec c' => exts \lam ((y,Hyx),ys) => IsEquiv.isInj (p y (\lam j => pullbackFunctor Hyx (g j)) (basicCover-stable Hyx c) z) $
+            exts \lam j => inv o-assoc *> pmap (`∘ _) (inv F.Func-o *> pmap F.Func pbCoh *> Func-o) *> o-assoc *> path (\lam i => _ ∘ (IsEquiv.f_ret e i).family j) *> inv (cone-isMatching z ((y,Hyx),ys) (g j, d j))
       }
   } \where {
     \record MatchingFamily (x : C) {J : \Set} (g : J -> SlicePrecat x) (z : D)
@@ -177,16 +177,16 @@
 
 \open vsheafOnSiteWithBasis
 
-\lemma vsheafMatchingFamily {C : SiteWithBasis} {D : Cat (\suc \lp)} (F : VSheaf D C) (x : C) {J : \Set} (g : J -> SlicePrecat x) (c : isBasicCover x g) (z : D) : Equiv (matchingFamily x g z)
+\lemma vsheafMatchingFamily {C : SiteWithBasis} {D : Cat (\suc \lp)} (F : VSheaf D C) (x : C) {J : \Set} (g : J -> SlicePrecat x) (c : isBasicCover x g) (z : D) : IsEquiv (matchingFamily x g z)
   => \have lim : Limit => F.isSheaf {x} {\new Sieve {
                                           | S {y} k => ∃ (j : J) (h : Hom y (g j).1) (k = (g j).2 ∘ h)
                                           | isSieve {z} {y} z->y {y->x} (inP (j,h,p)) => inP (j, h ∘ z->y, rewrite p o-assoc)
                                         }} (inP (J, g, c, \lam j => inP (j, id _, inv id-right)))
-     \in \new ESEquiv {_} {MatchingFamily x g z} {
-      | Embedding => Embedding.fromInjection \lam {f} {f'} p => lim.limUnique \lam (y, inP (j,h,q)) =>
-          \have t => pmap {MatchingFamily x g z} {Hom z (F (g j).1)} (family {__} j) p
-          \in pmap (F.F.Func __ ∘ f) q *> pmap (`∘ f) Func-o *> o-assoc *> pmap (_ ∘) t *> inv o-assoc *> pmap (`∘ f') (inv Func-o) *> pmap (F.F.Func __ ∘ f') (inv q)
-      | isSurjMap (m : MatchingFamily) =>
+     \in IsEquiv.fromInjSurj
+      (\lam {f} {f'} p => lim.limUnique \lam (y, inP (j,h,q)) =>
+          \have t => pmap {MatchingFamily x g z} (family {__} j) {matchingFamily x g z f} p
+          \in pmap (F.F.Func __ ∘ f) q *> pmap (`∘ f) Func-o *> o-assoc *> pmap (_ ∘) t *> inv o-assoc *> pmap (`∘ f') (inv Func-o) *> pmap (F.F.Func __ ∘ f') (inv q))
+      (\lam (m : MatchingFamily x g z) =>
         \let | st (y : ObOver x) => \Sigma (h : Hom z (F y.1)) (∃ (j : J) (q : Hom y (g j)) (h = Func q.1 ∘ m.family j))
              | mapUnique {j j' : J} {y : ObOver x} (f : Hom y (g j)) (f' : Hom y (g j')) : F.F.Func f.1 ∘ m.family j = F.F.Func f'.1 ∘ m.family j'
                => pmap (F.F.Func __ ∘ _) (inv $ pbBeta1 {pullback (g j).2 (g j').2}) *> later (rewrite (F.F.Func-o,F.F.Func-o) $ o-assoc *> pmap (_ ∘) (m.isMatching j j') *> inv o-assoc) *> pmap (F.F.Func __ ∘ _) (pbBeta2 {pullback (g j).2 (g j').2} {y.1} {f.1} {f'.1} {f.2 *> inv f'.2})
@@ -195,8 +195,7 @@
         \in inP (lim.limMap \new Cone {
                                 | coneMap => makeMap
                                 | coneCoh {(y, inP s)} {(y', inP s')} h => pmap {st y} (F.F.Func h.1 ∘ __.1) TruncP.rec-eval *> inv o-assoc *> pmap (`∘ _) (inv Func-o) *> mapUnique (s.2 ∘ h.1, inv o-assoc *> pmap (`∘ h.1) (inv s.3) *> h.2) (s'.2, inv s'.3) *> pmap {st y'} __.1 (inv TruncP.rec-eval)
-                              }, exts \lam j => lim.limBeta _ (g j, inP (j, id _, inv id-right)) *> pmap {st (g j)} __.1 TruncP.rec-eval *> rewrite F.F.Func-id id-left)
-    }
+                              }, exts \lam j => lim.limBeta _ (g j, inP (j, id _, inv id-right)) *> pmap {st (g j)} __.1 TruncP.rec-eval *> rewrite F.F.Func-id id-left))
 
 \lemma vsheafOnSiteWithBasis-equalizer {C : SiteWithBasis} {D : CompleteCat (\suc \lp)} (F : Functor C.op D)
   (p : \Pi (x : C) {J : \Set} (g : J -> SlicePrecat x) (c : isBasicCover x g) -> Equalizer (leftMap x g) (rightMap x g) (F x) (eqMap x g))
@@ -204,16 +203,17 @@
   => vsheafOnSiteWithBasis F \lam x {J} g c z =>
       \let | P1 => product1 x g
            | P2 => product2 x g
-           | t (c : Equiv.B {isEqualizer {p x g c} z}) => \new MatchingFamily x g z {
+           | t (c : Equiv.B {isEqualizer {p x g c} z}) =>
+             \new MatchingFamily x g z {
              | family j => proj {P1} j ∘ c.1
              | isMatching j j' => inv o-assoc *> pmap (`∘ c.1) (inv (tupleBeta {P2})) *> o-assoc *> pmap (proj {P2} (j,j') ∘) c.2 *> inv o-assoc *> pmap (`∘ c.1) (tupleBeta {P2}) *> o-assoc
            }
-           | e => \new QEquiv t {
+           | e => inP \new QEquiv t {
              | ret (m : MatchingFamily x g z) => (tupleMap m.family, tupleEq \lam j => inv o-assoc *> pmap (`∘ _) (tupleBeta {P2}) *> o-assoc *> pmap (_ ∘) (tupleBeta {P1}) *> m.isMatching j.1 j.2 *> inv (pmap (`∘ _) (tupleBeta {P2}) *> o-assoc  *> pmap (_ ∘) (tupleBeta {P1})) *> o-assoc)
              | ret_f c => ext (Product.tupleEta {P1})
              | f_sec m => exts (\lam j => tupleBeta {P1})
            }
-      \in transport (Equiv __) (ext \lam h => exts \lam j => inv o-assoc *> pmap (`∘ h) (tupleBeta {P1})) (transEquiv (isEqualizer {p x g c} z) e)
+      \in transport (IsEquiv __) (ext \lam h => exts \lam j => inv o-assoc *> pmap (`∘ h) (tupleBeta {P1})) (IsEquiv.trans (inP $ isEqualizer {p x g c} z) e)
   \where {
     \open vsheafOnSiteWithBasis
 
@@ -234,9 +234,9 @@
   }
 
 \lemma sheafOnSiteWithBasis {C : SiteWithBasis} (F : Functor C.op SetCat)
-  (p : \Pi (x : C) {J : \Set} (g : J -> SlicePrecat x) (c : isBasicCover x g) -> Equiv (matchingFamily x g))
+  (p : \Pi (x : C) {J : \Set} (g : J -> SlicePrecat x) (c : isBasicCover x g) -> IsEquiv (matchingFamily x g))
   : Sheaf C F \cowith
-  | VSheaf => vsheafOnSiteWithBasis F \lam x g c Z => transEquiv (piEquiv (p x g c) Z)
+  | VSheaf => vsheafOnSiteWithBasis F \lam x g c Z => IsEquiv.trans (o-_IsEquiv (p x g c)) $ inP
     \new QEquiv {Z -> MatchingFamily x g} {vsheafOnSiteWithBasis.MatchingFamily x g Z} {
       | f g => \new vsheafOnSiteWithBasis.MatchingFamily {
         | family j z => family {g z} j
@@ -257,13 +257,6 @@
     \func matchingFamily (x : C) {J : \Set} (g : J -> SlicePrecat x) (e : F x) : MatchingFamily x g \cowith
       | family j => F.Func (g j).2 e
       | isMatching j j' => pmap (__ e) $ inv Func-o *> pmap F.Func (pbCoh {pullback (g j).2 (g j').2}) *> Func-o
-
-    \func piEquiv (e : Equiv) (Z : \Sort) : Equiv {Z -> e.A} {Z -> e.B} \cowith
-      | f g z => e (g z)
-      | ret h z => e.ret (h z)
-      | ret_f g => ext (\lam z => e.ret_f (g z))
-      | sec h z => e.sec (h z)
-      | f_sec h => ext (\lam z => e.f_sec (h z))
   }
 
 {-

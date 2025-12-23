@@ -108,6 +108,34 @@
 \func QEquiv_= {A B : \Sort} (e : QEquiv {A} {B}) (i : I) : \Sort
   => iso e.f e.ret e.ret_f e.f_sec i
 
+\type IsEquiv {A B : \Sort} (f : A -> B) : \Prop
+  => TruncP (QEquiv f)
+  \where {
+    \lemma toEquiv (e : IsEquiv f) : Equiv f
+      | inP e => e
+
+    \sfunc ret (e : IsEquiv f) (b : B) : A
+      => (toEquiv e).ret b
+
+    \sfunc ret_f (e : IsEquiv f) {a : A} : ret e (f a) = a
+      => (\peval ret e (f a)) *> (toEquiv e).ret_f a
+
+    \sfunc f_ret (e : IsEquiv f) {b : B} : f (ret e b) = b
+      => pmap f (\peval ret e b) *> (toEquiv e).f_ret b
+
+    \func isInj (e : IsEquiv f) {a a' : A} (p : f a = f a') : a = a'
+      => inv (ret_f e) *> pmap (ret e) p *> ret_f e
+
+    \lemma fromInjSurj {A B : \Set} {f : A -> B} (inj : IsInj f) (surj : IsSurj f) : IsEquiv f
+      => inP $ QEquiv.fromEquiv \new ESEquiv {
+        | Embedding => Embedding.fromInjection inj
+        | isSurjMap => surj
+      }
+
+    \lemma trans {A B C : \Sort} {f : A -> B} {g : B -> C} (e : IsEquiv f) (e' : IsEquiv g) : IsEquiv \lam a => g (f a) \elim e, e'
+      | inP e, inP e' => inP (transQEquiv e e')
+  }
+
 -- # Examples of equialences
 
 \func idEquiv {A : \Type} : QEquiv \cowith
@@ -187,6 +215,12 @@
   | ret_f g => path (\lam i x => g (e.f_sec x @ i))
   | sec => -o e.ret
   | f_sec g => path (\lam i x => g (e.ret_f x @ i))
+
+\lemma o-_IsEquiv {A B C : \Sort} {f : A -> B} (e : IsEquiv f) : IsEquiv {C -> A} {C -> B} (f `o-) => inP \new QEquiv {
+  | ret => IsEquiv.ret e `o-
+  | ret_f g => path (\lam i x => IsEquiv.ret_f e {g x} i)
+  | f_sec g => path (\lam i x => IsEquiv.f_ret e {g x} i)
+}
 
 \func o-_Equiv {C : \Type} (e : Equiv) : Equiv {C -> e.A} (e `o-) \cowith
   | ret => e.ret `o-

@@ -77,7 +77,7 @@
     | in~ (U,Uo,Ux,f) => ~-cgequiv Uo Ux (\lam u => ((),u)) <=-refl \lam Ux => zro-left *> pmap f (ext idp)
   }
   | +-assoc {f} {g} {h} => \case \elim f, \elim g, \elim h \with {
-    | in~ (U,Uo,Ux,f), in~ (V,Vo,Vx,g), in~ (W,Wo,Wx,h) => ~-cgequiv (open-inter Uo (open-inter Vo Wo)) (Ux,(Vx,Wx)) (\lam (u,(v,w)) => ((u,v),w)) <=-refl
+    | in~ (U,Uo,Ux,f), in~ (V,Vo,Vx,g), in~ (W,Wo,Wx,h) => ~-cgequiv (open-inter Uo (open-inter Vo Wo)) (Ux,(Vx,Wx)) (later \lam (u,(v,w)) => ((u,v),w)) <=-refl
                                                             \lam _ => +-assoc *> pmap2 (f __ +) (ext idp) (pmap2 (g __ + h __) (ext idp) (ext idp))
   }
   | negative f => ContGerm.comp-right f negative-cont
@@ -100,7 +100,7 @@
     | in~ (U,Uo,Ux,f) => ~-cgequiv Uo Ux (\lam u => (u,())) <=-refl \lam Ux => ide-right *> pmap f (ext idp)
   }
   | *-assoc {f} {g} {h} => \case \elim f, \elim g, \elim h \with {
-    | in~ (U,Uo,Ux,f), in~ (V,Vo,Vx,g), in~ (W,Wo,Wx,h) => ~-cgequiv (open-inter Uo (open-inter Vo Wo)) (Ux,(Vx,Wx)) (\lam (u,(v,w)) => ((u,v),w)) <=-refl
+    | in~ (U,Uo,Ux,f), in~ (V,Vo,Vx,g), in~ (W,Wo,Wx,h) => ~-cgequiv (open-inter Uo (open-inter Vo Wo)) (Ux,(Vx,Wx)) (later \lam (u,(v,w)) => ((u,v),w)) <=-refl
                                                             \lam _ => *-assoc *> pmap2 (f __ *) (ext idp) (pmap2 (g __ * h __) (ext idp) (ext idp))
   }
   | ldistr {f} {g} {h} => \case \elim f, \elim g, \elim h \with {
@@ -108,7 +108,7 @@
                                                             \lam _ => ldistr *> pmap2 (+) (pmap2 (f __ * g __) (ext idp) (ext idp)) (pmap2 (f __ * h __) (ext idp) (ext idp))
   }
   | rdistr {f} {g} {h} => \case \elim f, \elim g, \elim h \with {
-    | in~ (U,Uo,Ux,f), in~ (V,Vo,Vx,g), in~ (W,Wo,Wx,h) => ~-cgequiv (open-inter Uo (open-inter Vo Wo)) (Ux,(Vx,Wx)) (\lam (u,(v,w)) => ((u,v),w)) (\lam (u,(v,w)) => ((u,w),(v,w)))
+    | in~ (U,Uo,Ux,f), in~ (V,Vo,Vx,g), in~ (W,Wo,Wx,h) => ~-cgequiv (open-inter Uo (open-inter Vo Wo)) (Ux,(Vx,Wx)) (later \lam (u,(v,w)) => ((u,v),w)) (\lam (u,(v,w)) => ((u,w),(v,w)))
                                                             \lam _ => rdistr *> pmap2 (+) (pmap2 (f __ * h __) (ext idp) (ext idp)) (pmap2 (g __ * h __) (ext idp) (ext idp))
   }
 
@@ -120,7 +120,7 @@
     | ~-equiv y z r i, in~ b => ContGerm.comp-right (ContGerm.tuple (~-equiv y z r i) (in~ b)) *c-cont
   }
   | *c-assoc {f} {g} {h} => \case \elim f, \elim g, \elim h \with {
-    | in~ (U,Uo,Ux,f), in~ (V,Vo,Vx,g), in~ (W,Wo,Wx,h) => ~-cgequiv (open-inter Uo (open-inter Vo Wo)) (Ux,(Vx,Wx)) (\lam (u,(v,w)) => ((u,v),w)) <=-refl
+    | in~ (U,Uo,Ux,f), in~ (V,Vo,Vx,g), in~ (W,Wo,Wx,h) => ~-cgequiv (open-inter Uo (open-inter Vo Wo)) (Ux,(Vx,Wx)) (later \lam (u,(v,w)) => ((u,v),w)) <=-refl
         \lam _ => *c-assoc *> pmap2 (f __ LModule. *c) (ext idp) (pmap2 (g __ LModule.*c h __) (ext idp) (ext idp))
   }
   | *c-ldistr {f} {g} {h} => \case \elim f, \elim g, \elim h \with {
@@ -128,7 +128,7 @@
         \lam _ => *c-ldistr *> pmap2 (+) (pmap2 (f __ LModule.*c g __) (ext idp) (ext idp)) (pmap2 (f __ LModule.*c h __) (ext idp) (ext idp))
   }
   | *c-rdistr {f} {g} {h} => \case \elim f, \elim g, \elim h \with {
-    | in~ (U,Uo,Ux,f), in~ (V,Vo,Vx,g), in~ (W,Wo,Wx,h) => ~-cgequiv (open-inter Uo (open-inter Vo Wo)) (Ux,(Vx,Wx)) (\lam (u,(v,w)) => ((u,v),w)) (\lam (u,(v,w)) => ((u,w),(v,w)))
+    | in~ (U,Uo,Ux,f), in~ (V,Vo,Vx,g), in~ (W,Wo,Wx,h) => ~-cgequiv (open-inter Uo (open-inter Vo Wo)) (Ux,(Vx,Wx)) (later \lam (u,(v,w)) => ((u,v),w)) (\lam (u,(v,w)) => ((u,w),(v,w)))
         \lam _ => *c-rdistr *> pmap2 (+) (pmap2 (f __ LModule.*c h __) (ext idp) (ext idp)) (pmap2 (g __ LModule.*c h __) (ext idp) (ext idp))
   }
   | ide_*c {f} => \case \elim f \with {
