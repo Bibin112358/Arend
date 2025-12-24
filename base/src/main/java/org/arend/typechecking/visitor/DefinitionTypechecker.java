@@ -1524,7 +1524,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       boolean useExpectedType = !expectedType.isError();
       TypecheckingResult nonFinalResult = typechecker.checkExpr(bodyTerm, useExpectedType ? expectedType : null);
       if (useExpectedType && !expectedType.isOmega()) {
-        if (kind == FunctionKind.LEMMA || def.getData().getKind() == GlobalReferable.Kind.DEFINED_CONSTRUCTOR || nonFinalResult == null || !nonFinalResult.type.isInstance(ClassCallExpression.class)) {
+        if (kind == FunctionKind.LEMMA || kind == FunctionKind.SFUNC || def.getData().getKind() == GlobalReferable.Kind.DEFINED_CONSTRUCTOR || nonFinalResult == null || !nonFinalResult.type.isInstance(ClassCallExpression.class)) {
           if (nonFinalResult == null) {
             nonFinalResult = new TypecheckingResult(null, expectedType);
           } else {
@@ -1561,31 +1561,10 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
         }
 
         if (!def.isRecursive()) {
-          Expression newType = termResult.type;
-          if ((typedDef.isSFunc() || kind == FunctionKind.CONS) && typedDef.getResultType() != null) {
-            Expression normNewType = newType.normalize(NormalizationMode.WHNF);
-            Expression oldType = typedDef.getResultType().normalize(NormalizationMode.WHNF);
-            if (oldType instanceof ClassCallExpression oldClassCall && normNewType instanceof ClassCallExpression newClassCall) {
-              Map<ClassField, Expression> impls = new LinkedHashMap<>();
-              for (Map.Entry<ClassField, Expression> entry : newClassCall.getImplementedHere().entrySet()) {
-                if (oldClassCall.isImplemented(entry.getKey())) {
-                  impls.put(entry.getKey(), entry.getValue());
-                }
-              }
-              if (impls.size() != newClassCall.getImplementedHere().size()) {
-                newClassCall = new ClassCallExpression(newClassCall.getDefinition(), newClassCall.getLevels(), impls, newClassCall.getDefinition().getUniverseKind());
-                newClassCall.updateHasUniverses();
-                newType = newClassCall;
-              }
-            }
-          }
-          typedDef.setResultType(newType);
+          typedDef.setResultType(termResult.type);
         }
         if (termResult.expression != null) {
           typedDef.setBody(termResult.expression);
-        }
-        if (termResult.expression instanceof NewExpression && def.getData().getKind() != GlobalReferable.Kind.DEFINED_CONSTRUCTOR && (expectedType.isError() || !typedDef.isSFunc()) && !def.isRecursive()) {
-          typedDef.setResultType(((NewExpression) termResult.expression).getType());
         }
       }
     } else {
