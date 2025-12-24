@@ -47,7 +47,7 @@
   | apex => Quotient (\lam y y' => \Sigma (x : X) (f x = y) (g x = y'))
   | eql => in~
   | equal => ext (\lam x => path (~-equiv _ _ (later (x,idp,idp))))
-  | isEqualizer Z => \new QEquiv {
+  | isEqualizer Z => inP \new QEquiv {
     | ret (h,p) => \case __ \with {
       | in~ y => h y
       | ~-equiv y y' (x,fx=y,gx=y') => inv (pmap h fx=y) *> pmap (__ x) p *> pmap h gx=y'
@@ -64,7 +64,7 @@
     | apex => Cone F (\Sigma)
     | coneMap j x => coneMap {x} j ()
     | coneCoh h => ext (\lam s => pmap (__ ()) (coneCoh {s}  h))
-    | isLimit Z => \new QEquiv {
+    | isLimit Z => inP \new QEquiv {
       | ret c z => \new Cone {
         | coneMap j _ => coneMap {c} j z
         | coneCoh h => ext (\lam _ => pmap (__ z) (coneCoh {c} h ))
@@ -80,7 +80,7 @@
         \have coneMap (z : Z) (c' : Cone c.G Z) : Cone c.G (\Sigma) => \new Cone {
           | coneMap j _ => c'.coneMap j z
           | coneCoh h => ext \lam _ => path (\lam i => c'.coneCoh h i z)
-        } \in \new QEquiv {
+        } \in inP \new QEquiv {
           | ret c' z => IsEquiv.ret e (coneMap z c') ()
           | ret_f h => ext \lam z => path (\lam i => IsEquiv.ret_f e i ())
           | f_sec c' => exts \lam j => ext \lam z => path (\lam i => (IsEquiv.f_ret e i).coneMap j ())

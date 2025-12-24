@@ -1071,7 +1071,7 @@
       | func-Join => idp
     }
     | coneCoh h => exts (\lam P => P.2 h)
-    | isLimit Z => \new QEquiv {
+    | isLimit Z => inP \new QEquiv {
       | ret (c : Cone) => \new FrameHom {
         | func z => (\lam j => c.coneMap j z, \lam h => path (\lam i => func {c.coneCoh h @ i} z))
         | func-top => exts (\lam j => func-top)
@@ -1255,21 +1255,20 @@
 
 \lemma surj_regular {L M : Locale} {f : FrameHom M L} (sur : IsSurj f) : isRegularMono {LocaleCat} f
   => \let pb : Pullback => FrameBicat.pullback f f
-     \in inP (\new Equalizer {LocaleCat} {M} {pb} pb.pbProj1 pb.pbProj2 L f pb.pbCoh {
-       | isEqualizer Z => \new ESEquiv {
-         | isSurjMap (h,p) =>
+     \in inP \new Equalizer {LocaleCat} {M} {pb} pb.pbProj1 pb.pbProj2 L f pb.pbCoh {
+       | isEqualizer Z => IsEquiv.fromInjSurj
+         (\lam {h} {h'} p => exts \case sur __ \with {
+           | inP (x,q) => inv (pmap h q) *> pmap (\lam z => z.1 x) p *> pmap h' q
+         })
+         (\lam (h,p) =>
            \have lem (x : M) => path (\lam i => p i (f.direct (f x), x, FrameHom.surjective-split sur (f x)))
            \in inP (\new FrameHom {
              | func x => h (f.direct x)
              | func-top => pmap h f.direct-top *> func-top
              | func-meet => pmap h f.direct-meet *> func-meet
              | func-Join {J} {g} => inv (pmap (\lam z => h (f.direct z)) func-Join *> path (\lam i => h (f.direct (Join (\lam j => FrameHom.surjective-split sur (g j) i))))) *> lem _ *> func-Join
-           }, ext (exts lem))
-         | Embedding => Embedding.fromInjection \lam {h} {h'} p => exts \case sur __ \with {
-           | inP (x,q) => inv (pmap h q) *> pmap (\lam z => z.1 x) p *> pmap h' q
-         }
+           }, ext (exts lem)))
        }
-     })
 
 \func surj_equiv {f : FrameHom} (sur : IsSurj f) : Iso {FrameCat} {f.image.locale} {f.Cod}
   => FrameCat.equiv_iso {\new FrameHom f.image.locale f.Cod {

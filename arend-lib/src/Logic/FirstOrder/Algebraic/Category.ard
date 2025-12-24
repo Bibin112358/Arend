@@ -4,7 +4,7 @@
 \import Category.Limit
 \import Data.Array
 \import Data.Or
-\import Equiv (Equiv, QEquiv)
+\import Equiv
 \import Function.Meta
 \import Logic
 \import Logic.Classical
@@ -195,7 +195,7 @@
         | qapply (inl h) d => unfold (cong (ext (\lam j => qinterpret=map f (d j)))) *> inv (f.func-op h d)
         | qapply (inr (in0 (j,x))) d => idp
 
-      \lemma isColimit (M : Model T) : Equiv (conePullback {_} {_} {G.op} colimitCone M) => \new QEquiv {
+      \lemma isColimit (M : Model T) : IsEquiv (conePullback {_} {_} {G.op} colimitCone M) => inP \new QEquiv {
         | ret => modelExtHom
         | ret_f f => exts (qinterpret=map f)
         | f_sec C => exts (\lam j => exts (\lam x => idp))

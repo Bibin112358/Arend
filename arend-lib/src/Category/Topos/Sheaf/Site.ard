@@ -26,7 +26,7 @@
     => exts \lam h => pmap S id-left
 } \where {
   \lemma idLimit {C D : Precat} {F : Functor C.op D} {x : C} (S : Presieve x) (xS : S (id x)) : Limit { | Cone => Cone.map F S.cone } \cowith
-    | isLimit z => \new QEquiv {
+    | isLimit z => inP \new QEquiv {
       | ret (c : Cone) => c.coneMap ((x, id x), xS)
       | ret_f h => pmap (`∘ _) Func-id *> id-left
       | f_sec (c : Cone) => exts \lam ((y,Hyx),yS) => c.coneCoh (Hyx, id-left)
@@ -44,13 +44,13 @@
               \new Cone {
                 | coneMap ((x,Hxa),xS1) => limMap {L2 xS1} (\new Cone {
                   | coneMap ((y,Hyx),yS2) => c.coneMap ((y, Hxa ∘ Hyx), yS2)
-                  | coneCoh {((y,Hyx),yS2)} {((y',Hy'x),y'S2)} h => c.coneCoh {((y, Hxa ∘ Hyx), yS2)} {((y', Hxa ∘ Hy'x), y'S2)} (h.1, o-assoc *> pmap (Hxa ∘) h.2)
+                  | coneCoh {((y,Hyx),yS2)} {((y',Hy'x),y'S2)} h => c.coneCoh {(y, Hxa ∘ Hyx), yS2} {(y', Hxa ∘ Hy'x), y'S2} (h.1, o-assoc *> pmap (Hxa ∘) h.2)
                 })
                 | coneCoh {k} {k'} h => limUnique {L2 k'.2} \lam j =>
                     inv o-assoc *> pmap (`∘ _) (inv Func-o) *> limBeta {L2 k.2} _ ((j.1.1, h.1 ∘ j.1.2), transport (S2 __) (pmap (`∘ j.1.2) (inv h.2) *> o-assoc) j.2) *>
                         path (\lam i => c.coneMap ((j.1.1, (inv o-assoc *> pmap (`∘ j.1.2) h.2) @ i), prop-dpi _ _ _ @ i)) *> inv (limBeta {L2 k'.2} _ j)
               }
-      \in \new QEquiv {
+      \in inP \new QEquiv {
         | ret c => L.limMap (cm c)
         | ret_f h => L.limUniqueBeta \lam j => limUniqueBeta {L2 j.2} (\lam k => pmap (`∘ h) Func-o *> o-assoc)
         | f_sec c => exts \lam j => limUnique {L1 j.1.2} \lam k =>

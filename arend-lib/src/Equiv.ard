@@ -138,6 +138,9 @@
     \func isInj (e : IsEquiv f) {a a' : A} (p : f a = f a') : a = a'
       => inv (ret_f e) *> pmap (ret e) p *> ret_f e
 
+    \lemma isSurj (e : IsEquiv f) : IsSurj f \elim e
+      | inP e => e.isSurj
+
     \lemma fromInjSurj {A B : \Set} {f : A -> B} (inj : IsInj f) (surj : IsSurj f) : IsEquiv f
       => inP (QEquiv.fromInjSurj inj surj)
 

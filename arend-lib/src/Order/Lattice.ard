@@ -250,8 +250,8 @@
 
   \lemma FinJoin-cond {J : FinSet} (j : J) {a : J -> E} : a j <= FinJoin a
     => \case AbMonoid.FinSum.aux.2 \with {
-         | inP (e : Equiv, q) => \have t => (\peval FinJoin a) *> (\peval AbMonoid.FinSum a) *> inv q
-                                 \in transport2 (<=) (pmap a (e.f_ret j)) (inv t) (BigJoin-cond (e.ret j))
+         | inP (e,q) => \have t => (\peval FinJoin a) *> (\peval AbMonoid.FinSum a) *> inv q
+                        \in transport2 (<=) (pmap a (e.f_ret j)) (inv t) (BigJoin-cond (e.ret j))
        }
 
   \lemma FinJoin-univ {J : FinSet} {a : J -> E} {x : E} (p : \Pi (j : J) -> a j <= x) : FinJoin a <= x
@@ -260,7 +260,7 @@
                         \in transportInv (`<= x) t $ BigJoin-univ \lam j => p (e j)
        }
 
-  \lemma FinJoin_Equiv {A B : FinSet} (e : Equiv {A} {B}) {x : B -> E} : FinJoin x = FinJoin (\lam a => x (e a))
+  \lemma FinJoin_Equiv {A B : FinSet} (e : QEquiv {A} {B}) {x : B -> E} : FinJoin x = FinJoin (\lam a => x (e a))
     => (\peval FinJoin x) *> \this.FinSum_Equiv e *> inv (\peval FinJoin _)
 
   \lemma FinJoin=BigJoin {n : Nat} {x : Fin n -> E} : FinJoin x = BigJoin x
@@ -367,7 +367,7 @@
     | apex => Meet (Total.proj (\lam x => ∃ (j : J) (G j = x)))
     | coneMap j => Meet-cond (later (G j, inP (j, idp)))
     | coneCoh _ => prop-pi
-    | isLimit x => \new QEquiv {
+    | isLimit x => inP \new QEquiv {
       | ret (c : Cone) => Meet-univ (\lam (y, inP (j,p)) => transport (x <=) p (c.coneMap j))
       | ret_f h => prop-pi
       | f_sec c => exts (\lam j => prop-pi)

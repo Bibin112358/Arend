@@ -534,17 +534,17 @@
   \sfunc FinSum {A : FinSet} (x : A -> E) : E
     => aux.1
     \where {
-      \lemma aux : \Sigma (r : E) (∃ (e : Equiv {Fin A.finCard} {A}) (BigSum (\lam j => x (e j)) = r))
+      \lemma aux : \Sigma (r : E) (∃ (e : QEquiv {Fin A.finCard} {A}) (BigSum (\lam j => x (e j)) = r))
         => TruncP.rec-set A.finEq _ aux
         \where
-          \lemma aux (e e' : Equiv {Fin A.finCard} {A}) : BigSum (\lam j => x (e j)) = BigSum (\lam j => x (e' j))
+          \lemma aux (e e' : QEquiv {Fin A.finCard} {A}) : BigSum (\lam j => x (e j)) = BigSum (\lam j => x (e' j))
             => BigSum_Perm $ transport (Perm _) (arrayExt \lam j => pmap x $ e.f_ret _) $ Perm.equiv_perm $ transEquiv e' (symQEquiv e)
     }
 
-  \lemma FinSum_char {A : FinSet} (x : A -> E) : ∃ (e : Equiv {Fin A.finCard} {A}) (FinSum {_} {A} x = BigSum (\lam j => x (e j)))
+  \lemma FinSum_char {A : FinSet} (x : A -> E) : ∃ (e : QEquiv {Fin A.finCard} {A}) (FinSum {_} {A} x = BigSum (\lam j => x (e j)))
     => TruncP.map FinSum.aux.2 \lam t => (t.1, (\peval FinSum {_} {A} x) *> inv t.2)
 
-  \lemma FinSum_char2 {A : FinSet} {x : A -> E} (e : Equiv {Fin A.finCard} {A}) : FinSum x = BigSum (\lam j => x (e j))
+  \lemma FinSum_char2 {A : FinSet} {x : A -> E} (e : QEquiv {Fin A.finCard} {A}) : FinSum x = BigSum (\lam j => x (e j))
     => \case FinSum_char x \with {
       | inP p => p.2 *> FinSum.aux.aux {_} {_} {x} p.1 e
     }
@@ -578,13 +578,13 @@
   \lemma FinSum=BigSum {n : Nat} {x : Fin n -> E} : FinSum x = BigSum x
     => FinSum_char2 idEquiv
 
-  \lemma FinSum_Equiv {A B : FinSet} (e : Equiv {A} {B}) {x : B -> E} : FinSum x = FinSum (\lam a => x (e a))
+  \lemma FinSum_Equiv {A B : FinSet} (e : QEquiv {A} {B}) {x : B -> E} : FinSum x = FinSum (\lam a => x (e a))
     => \case FinSum_char _ \with {
       | inP p => \let A' => \new FinSet A B.finCard { | finEq => TruncP.map B.finEq \lam e' => transQEquiv e' (symQEquiv e)}
                  \in FinSum_char2 (transEquiv p.1 e) *> inv p.2 *> pmap {FinSet A} (FinSum {_} {__} _) (FinSet.levelProp A' A)
     }
 
-  \lemma FinSum_Equiv2 {A B : FinSet} (e : Equiv {A} {B}) {x : A -> E} {y : B -> E} (p : \Pi (a : A) -> x a = y (e a)) : FinSum x = FinSum y
+  \lemma FinSum_Equiv2 {A B : FinSet} (e : QEquiv {A} {B}) {x : A -> E} {y : B -> E} (p : \Pi (a : A) -> x a = y (e a)) : FinSum x = FinSum y
     => pmap FinSum (ext p) *> inv (FinSum_Equiv e)
 
   \lemma FinSum-inj {A B : FinSet} (f : A -> B) (inj : IsInj f) {x : B -> E} (p : \Pi (b : B) -> (\Pi (a : A) -> f a /= b) -> x b = 0) : FinSum x = FinSum (\lam a => x (f a))
@@ -594,7 +594,7 @@
            | inl s => s.1
            | inr s => s.1
          }
-         | ret b => \case decide {dec b} \with {
+         | ret b => \case (dec b).decide \with {
            | yes e => inl (b,e)
            | no q => inr (b,q)
          }
@@ -603,8 +603,8 @@
            | inr s => rewrite (dec_no_reduce s.2) idp
          }
          | f_sec b => mcases {2} idp
-       }) *> FinSum_Or {_} {SigmaFin B \lam b => DecFin (decide {dec b})} {SigmaFin B \lam b => DecFin (decide {NotDecide (dec b)})} *>
-             pmap2 (+) (FinSum_Equiv $ later $ Equiv.fromInjSurj {A} {\Sigma (b : B) (∃ (a : A) (f a = b))} (\lam a => (f a, inP (a,idp))) (\lam {a} {a'} q => inj $ pmap __.1 q) \lam s => TruncP.map s.2 \lam t => (t.1, ext t.2))
+       }) *> FinSum_Or {_} {SigmaFin B \lam b => DecFin (dec b).decide} {SigmaFin B \lam b => DecFin (NotDecide (dec b)).decide} *>
+             pmap2 (+) (FinSum_Equiv $ later $ QEquiv.fromInjSurj {A} {\Sigma (b : B) (∃ (a : A) (f a = b))} {\lam a => (f a, inP (a,idp))} (\lam {a} {a'} q => inj $ pmap __.1 q) \lam s => TruncP.map s.2 \lam t => (t.1, ext t.2))
                        (FinSum_zro $ later \lam j => p j.1 \lam a q => j.2 $ inP (a,q)) *> zro-right
 
   \lemma FinSum_Or {A B : FinSet} {x : Or A B -> E} : FinSum x = FinSum (\lam a => x (inl a)) + FinSum (\lam b => x (inr b))
@@ -614,7 +614,7 @@
 
   \lemma FinSum-unique {J : FinSet} {a : J -> E} (j : J) (p : \Pi (j' : J) -> j' /= j -> a j' = 0) : FinSum a = a j
     => \case FinSum_char a \with {
-         | inP (e : Equiv, q) => q *> BigSum-unique (e.ret j) (\lam i c => p (e i) \lam s => c $ inv $ e.adjoint s) *> pmap a (e.f_ret j)
+         | inP (e,q) => q *> BigSum-unique (e.ret j) (\lam i c => p (e i) \lam s => c $ inv $ e.adjoint s) *> pmap a (e.f_ret j)
        }
 
   \lemma FinSum-unique2 {J : FinSet} {i j : J} (i/=j : i /= j) {x : J -> E} (p : \Pi (k : J) -> k /= i -> k /= j -> x k = 0) : FinSum x = x i + x j

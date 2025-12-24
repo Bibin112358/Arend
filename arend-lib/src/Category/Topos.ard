@@ -16,7 +16,6 @@
 \import Paths.Meta
 --\import Relation.Equivalence
 \import Set.SetCategory
---\import Topology.Locale
 \open PrecatWithBprod
 
 \class ToposPrecat \extends FinCompletePrecat, CartesianClosedPrecat {
@@ -198,7 +197,7 @@
     | equal =>
       rewrite (pbCoh {char-pullback m}, o-assoc) $
       rewrite terminal-unique idp
-    | isEqualizer _ => \new QEquiv {
+    | isEqualizer _ => inP \new QEquiv {
       | ret (h, com) => pbMap {char-pullback m} h terminalMap
           (rewriteI com $ rewrite o-assoc $ rewrite terminal-unique idp)
       | ret_f _ => pbEta {char-pullback m} (rewrite (pbBeta1 {char-pullback m}) $ idp)
@@ -374,10 +373,10 @@
         ext (\lam p =>
                  \let preimage : terminal.apex -> S => pbMap {pullback} (name' b) (terminalMap {SetBicat}) (unfold (unfold name' $ exts (\lam _ => sigma-prop-ext p))) \in
                    SetTopos.isContained (unname' preimage)
-                       (\let b-image : Mono.f {m} ∘ {SetBicat} preimage = name' b => pbBeta1 {pullback} \in name-inj
-                           (rewriteI (name-f (Mono.f {m})) $ rewrite (global-elements-iso.f_ret preimage) b-image)),
-             \let ss : phi ∘ {SetBicat} (Mono.f {m}) = terminalMap ∘ {SetBicat} true-map => pbCoh {pullback}
-                  | ss-impl (x : S) : phi (Mono.f {m} x) = (\Sigma) => path (\lam i => (ss @ i) x) \in
+                       (\let b-image : m.f ∘ {SetBicat} preimage = name' b => pbBeta1 {pullback} \in name-inj
+                           (rewriteI (name-f m.f) $ rewrite (global-elements-iso.f_ret preimage) b-image)),
+             \let ss : phi ∘ {SetBicat} m.f = terminalMap ∘ {SetBicat} true-map => pbCoh {pullback}
+                  | ss-impl (x : S) : phi (m.f x) = (\Sigma) => path (\lam i => ss i x) \in
                \lam c => cases c \with {
                  | SetTopos.isContained a p => rewriteI p $ sigma-prop-ext-inv (ss-impl a)
                }
