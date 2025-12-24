@@ -6,6 +6,7 @@
 \import Category.Product
 \import Equiv
 \import Function.Meta
+\import Logic
 \import Logic.Unique
 \import Meta
 \import Paths
@@ -50,12 +51,10 @@
   \func name {X Y : Ob} (f : Hom X Y) : Hom terminal (exp X Y)
     => transpose $ f ∘ terminal-prod-left.hinv
 
-  \func global-elements-iso {X Y : Ob} : Equiv {Hom X Y} {Hom terminal (exp X Y)} name
-    => \new QEquiv {
-      | ret f => antitranspose f ∘ terminal-prod-left.f
-      | ret_f _ => unfold name $ rewrite (eval-transpose _, o-assoc, terminal-prod-left.hinv_f, id-right) idp
-      | f_sec y => unfold name $ rewrite (o-assoc, terminal-prod-left.f_hinv, id-right) $ RightAdjoint.eta_epsilon-equiv.f_ret y
-    }
+  \func global-elements-iso {X Y : Ob} : QEquiv {Hom X Y} {Hom terminal (exp X Y)} name \cowith
+    | ret f => antitranspose f ∘ terminal-prod-left.f
+    | ret_f _ => unfold name $ rewrite (eval-transpose _, o-assoc, terminal-prod-left.hinv_f, id-right) idp
+    | f_sec y => unfold name $ rewrite (o-assoc, terminal-prod-left.f_hinv, id-right) $ RightAdjoint.eta_epsilon-equiv.f_ret y
 
   \func internal-homFunctor : Functor (ProductPrecat (Precat.op {\this}) \this) \this \cowith
     | F (X, Y) => exp X Y
@@ -86,7 +85,7 @@
     \func power-coreflection (X Z : SetBicat) : Coreflection (SetBicat.bprodFunctorRight X) Z \cowith
       | Coreflected => X -> Z
       | corefl-map => apply
-      | isCoreflection {_} => \new QEquiv {
+      | isCoreflection => inP \new QEquiv {
         | ret => curry
         | ret_f f => ext (\lam _ _ => unfold $ unfold (apply, curry) $ rewrite (proj1-prodMap-applied f (id X) _, proj2-prodMap f (id X) _, proj1-unname-pair, proj2-unname-pair) idp)
         | f_sec => f_sec

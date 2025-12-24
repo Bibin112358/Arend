@@ -66,8 +66,8 @@
     | f_sec c => exts (limBeta c)
   }
 
-  \lemma limUniqueBeta {z : D} {c : Cone G z} {g : Hom z apex} (p : \Pi (j : J) -> c.coneMap j = coneMap j ∘ g) : limMap c = g =>
-    limUnique (\lam j => limBeta c j *> p j)
+  \lemma limUniqueBeta {z : D} {c : Cone G z} {g : Hom z apex} (p : \Pi (j : J) -> c.coneMap j = coneMap j ∘ g) : limMap c = g
+    => limUnique (\lam j => limBeta c j *> p j)
 } \where {
   \use \level levelProp {J : SmallPrecat} {D : Precat} (G : Functor J D) (apex : D)
                         (cm : \Pi (j : J) -> Hom apex (G j)) (L L' : Limit G apex cm) : L = L' =>
@@ -530,7 +530,7 @@
 \lemma terminal-unique' {C : Precat} {terminal : terminal-obj C} {x : C} {f g : Hom x terminal} : f = g => tupleEq (\case __)
 
 \func terminal-prop {C : Cat} : isProp (terminal-obj C)
-  => \lam a a' => exts (C.univalence.ret (unfold $ terminal-obj-iso a a'), \lam j => absurd j, \lam {Z} f => terminal-unique')
+  => \lam a a' => exts (C.isotoid (unfold $ terminal-obj-iso a a'), \lam j => absurd j, \lam {Z} f => terminal-unique')
 
 \class PrecatWithTerminal \extends Precat {
   | terminal : terminal-obj \this
@@ -712,7 +712,7 @@
                                (pmap (`∘ _) (inv (NatTrans.natural {E.eta.iso E.eta-iso} (G.Func h))))
         | limMap c => E.eta_epsilon-equiv $ lim.limMap (Cone.map E.LAdj c)
         | limBeta c j => o-assoc *> pmap (_ ∘) (inv o-assoc *> pmap (`∘ _) (inv E.Func-o *> pmap E.Func (lim.limBeta (Cone.map E.LAdj c) j)) *> inv (E.eta.natural (coneMap j))) *> inv o-assoc *> pmap (`∘ _) E.eta-iso.hinv_f *> id-left
-        | limUnique p => Equiv.isInj {symQEquiv E.eta_epsilon-equiv} $ lim.limUnique \lam j => inv o-assoc *> pmap (`∘ _) (inv (E.epsilon.natural _)) *> o-assoc *> pmap (_ ∘) (inv Func-o *> pmap E.LAdj.Func (E.eta-iso.reverse.isMono (inv o-assoc *> p j *> o-assoc)) *> Func-o) *> inv o-assoc *> pmap (`∘ _) (E.epsilon.natural _) *> o-assoc
+        | limUnique p => (symQEquiv E.eta_epsilon-equiv).isInj $ lim.limUnique \lam j => inv o-assoc *> pmap (`∘ _) (inv (E.epsilon.natural _)) *> o-assoc *> pmap (_ ∘) (inv Func-o *> pmap E.LAdj.Func (E.eta-iso.reverse.isMono (inv o-assoc *> p j *> o-assoc)) *> Func-o) *> inv o-assoc *> pmap (`∘ _) (E.epsilon.natural _) *> o-assoc
       }
 }
 

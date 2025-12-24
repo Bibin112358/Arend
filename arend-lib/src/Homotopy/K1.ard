@@ -5,6 +5,7 @@
 \import Function.Meta
 \import Homotopy.Cube
 \import Logic
+\import Meta
 \import Paths
 \import Equiv (QEquiv, Retraction, Section)
 \import Equiv
@@ -49,35 +50,16 @@
   | ret_f h => simplify
   | f_sec h => simplify
 
-\func =-to-Equiv-functorial {A B C : \Set} (p : A = B) (q : B = C)
-  : =-to-Equiv (p *> q) = (=-to-Equiv p `transEquiv` =-to-Equiv q) \elim q
-  | idp => prop-isProp {Equiv (=-to-Equiv p)} (=-to-Equiv p) (=-to-Equiv p `transEquiv` =-to-Equiv idp)
-
-\lemma Equiv-to-=-functorial {A B C : \Set} (e1 : Equiv {A} {B}) (e2 : Equiv {B} {C})
-  : Equiv-to-= e1 *> Equiv-to-= e2 = Equiv-to-= (e1 `transEquiv` e2)
-  => Equiv-to-= e1 *> Equiv-to-= e2                                             ==< inv ((univalence {A} {C}).ret_f (Equiv-to-= e1 *> Equiv-to-= e2)) >==
-     Equiv-to-= (=-to-Equiv (Equiv-to-= e1 *> Equiv-to-= e2))                   ==< pmap Equiv-to-= (=-to-Equiv-functorial (Equiv-to-= e1) (Equiv-to-= e2)) >==
-     Equiv-to-= (=-to-Equiv (Equiv-to-= e1) `transEquiv` =-to-Equiv (Equiv-to-= e2)) ==< pmap (\lam x => Equiv-to-= (x `transEquiv` =-to-Equiv (Equiv-to-= e2))) (f_sec {univalence {A} {B}} e1) >==
-     Equiv-to-= (e1 `transEquiv` =-to-Equiv (Equiv-to-= e2))                         ==< pmap (\lam x => Equiv-to-= (e1 `transEquiv` x)) (f_sec {univalence {B} {C}} e2) >==
-     Equiv-to-= (e1 `transEquiv` e2) `qed
-
 \func rMul-functorial {G : Group} (g g' : G) : (\lam x => rightMulEquiv g' (rightMulEquiv g x)) = rightMulEquiv (g * g')
   => ext (\lam x => *-assoc)
 
-\func equivFibr {G : Group} (g g' : G) (i : I) => Equiv {G} {G} (rMul-functorial g g' @ i)
-
-\lemma compToMult {G : Group} (g g' : G) : Path (equivFibr g g') (rightMulEquiv g `transEquiv` rightMulEquiv g') (rightMulEquiv (g * g'))
-  => prop-dpi _ _ _
-
-\lemma equivPathComposition {G : Group} (g g' : G) : Equiv-to-= (rightMulEquiv g) *> Equiv-to-= (rightMulEquiv g') = Equiv-to-= (rightMulEquiv (g * g'))
-  => Equiv-to-= (rightMulEquiv g) *> Equiv-to-= (rightMulEquiv g')  ==< Equiv-to-=-functorial (rightMulEquiv g) (rightMulEquiv g') >==
-     Equiv-to-= (rightMulEquiv g `transEquiv` rightMulEquiv g')     ==< pmap Equiv-to-= (compToMult g g') >==
-     Equiv-to-= (rightMulEquiv (g * g'))                            `qed
+\lemma equivPathComposition {G : Group} (g g' : G) : QEquiv-to-= (rightMulEquiv g) *> QEquiv-to-= (rightMulEquiv g') = QEquiv-to-= (rightMulEquiv (g * g'))
+  => QEquiv-to-=-functorial (rightMulEquiv g) (rightMulEquiv g') *> pmap QEquiv-to-= (QEquiv.equals {_} {_} {_} {rightMulEquiv (g * g')} \lam a => *-assoc)
 
 \func code {G : Group} (x : K1 G) : \Set \elim x
   | base => G
-  | loop g => Equiv-to-= (rightMulEquiv g)
-  | relation g g' i j => Cube2.map (Equiv-to-= (rightMulEquiv g)) (Equiv-to-= (rightMulEquiv (g * g'))) idp (Equiv-to-= (rightMulEquiv g'))
+  | loop g => QEquiv-to-= (rightMulEquiv g)
+  | relation g g' i j => Cube2.map (QEquiv-to-= (rightMulEquiv g)) (QEquiv-to-= (rightMulEquiv (g * g'))) idp (QEquiv-to-= (rightMulEquiv g'))
                                    (movePath1 (equivPathComposition g g')) @ j @ i
 
 \func encode {G : Group} (x : K1 G) (p : base = x) : code x

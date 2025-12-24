@@ -14,7 +14,6 @@
 \import Data.Or
 \import Equiv
 \import Equiv.Sigma
-\import Equiv.Univalence.Set
 \import Function
 \import Function.Meta
 \import Logic.Unique
@@ -294,12 +293,12 @@
 
 \instance EquivFin (A B : FinSet) : FinSet (QEquiv {A} {B})
   => \case decideEq A.finCard B.finCard, A.finEq, B.finEq \with {
-    | yes e, inP Ae, inP Be => transport FinSet (QEquiv-to-= (later \new QEquiv {
+    | yes e, inP Ae, inP Be => transport FinSet (QEquiv_= (later \new QEquiv {
       | f e => e
       | ret e => e
       | ret_f => idpe
       | f_sec => idpe
-    }) *> pmap2 (QEquiv {__} {__}) (QEquiv-to-= $ transport (\lam x => QEquiv {Fin x} {A}) e Ae) (QEquiv-to-= Be)) (SymFin B.finCard)
+    }) *> pmap2 (QEquiv {__} {__}) (QEquiv_= $ transport (\lam x => QEquiv {Fin x} {A}) e Ae) (QEquiv_= Be)) (SymFin B.finCard)
     | no q, _, _ => \new FinSet {
       | finCard => 0
       | finEq => inP $ emptyEquiv (later \case __) \lam e => q \case A.finEq, B.finEq \with {

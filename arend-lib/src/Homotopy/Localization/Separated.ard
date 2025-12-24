@@ -27,7 +27,7 @@
 
     \func F {U : ReflUniverse} {A : \hType} (a : A) => YImage.dom-map {_} {_} {S} a
 
-    \func pathEquiv {U : ReflUniverse} {A : \hType} (a a' : A) : (F a = F a') = LType (a = a') => Equiv-to-= (=-to-Equiv (
+    \func pathEquiv {U : ReflUniverse} {A : \hType} (a a' : A) : (F a = F a') = LType (a = a') => QEquiv-to-= (=-to-QEquiv (
       \let | E => \Pi (x : A) -> Equiv {S a' x} {S a x}
            | emb => transEmbedding (\new Embedding {E} (\lam h x => (h x).f) (\lam e e' =>
                                           \new Retraction { | sec p => path (\lam i x => Equiv.equals (path ((p @ __) x)) @ i) | f_sec => idpe }))

@@ -156,22 +156,22 @@
 }
 
 \class FullyFaithfulFunctor \extends FullFunctor, FaithfulFunctor {
-  | isFullyFaithful {X Y : C} : Equiv (Func {_} {X} {Y})
-  | isFull f => isSurjMap {ESEquiv.fromEquiv isFullyFaithful} f
-  | isFaithful p => isFullyFaithful.isInj p
+  | isFullyFaithful {X Y : C} : IsEquiv (Func {_} {X} {Y})
+  | isFull f => IsEquiv.isSurj isFullyFaithful f
+  | isFaithful p => IsEquiv.isInj isFullyFaithful p
 
   \protected \func op : FullyFaithfulFunctor \cowith
     | Functor => Functor.op
     | isFullyFaithful => isFullyFaithful
 
   \protected \func inverse {X Y : C} (f : Hom (F X) (F Y)) : Hom X Y
-    => isFullyFaithful.ret f
+    => IsEquiv.ret isFullyFaithful f
 
   \protected \lemma inverse-left {X Y : C} {f : Hom X Y} : inverse (Func f) = f
-    => isFullyFaithful.ret_f f
+    => IsEquiv.ret_f isFullyFaithful
 
   \protected \lemma inverse-right {X Y : C} {f : Hom (F X) (F Y)} : Func (inverse f) = f
-    => isFullyFaithful.f_ret f
+    => IsEquiv.f_ret isFullyFaithful
 
   \lemma inverse-id {x : C} : inverse (id (F x)) = id x
     => pmap inverse (inv Func-id) *> inverse-left

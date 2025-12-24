@@ -44,13 +44,13 @@
     => corefl-map {p-exponential B}
 
   \use \func p-transpose {A B : Ob} (f : Hom (Bprod A B) omega) : Hom A (Power B)
-    => ret {isCoreflection {p-exponential B}} f
+    => IsEquiv.ret (p-exponential B).isCoreflection f
 
   \use \lemma p-transpose-univ {A B : Ob} (f : Hom (Bprod A B) omega) : f = belongs ∘ (prodMap (p-transpose f) (id B))
-    => inv $ Equiv.f_ret {isCoreflection {p-exponential B}} f
+    => inv $ IsEquiv.f_ret (p-exponential B).isCoreflection
 
   \use \lemma p-transpose-unique {A B : Ob} {f : Hom (Bprod A B) omega} {g : Hom A (Power B)} (comm : f = belongs ∘ prodMap g (id B)) : g = p-transpose f
-    => Equiv.adjoint {isCoreflection {p-exponential B}} (inv comm)
+    => IsEquiv.adjoint (p-exponential B).isCoreflection (inv comm)
 
   \use \func anti-transpose  {A B : Ob} (g : Hom A (Power B)) : Hom (Bprod A B) omega
     => belongs ∘ (prodMap g (id B))
@@ -333,7 +333,7 @@
     | coreflection C => \new Coreflection (bprodFunctorRight B) C {
       | Coreflected => graphs.apex B C
       | corefl-map => eval
-      | isCoreflection => \new QEquiv {
+      | isCoreflection => inP \new QEquiv {
         | ret => transpose'
         | ret_f _ => transpose-unique' idp
         | f_sec g => inv $ transpose-univ' g

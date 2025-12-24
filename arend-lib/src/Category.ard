@@ -126,11 +126,11 @@
   | hinv_f => o-assoc *> pmap (_ ∘) (inv o-assoc *> pmap (`∘ _) f.hinv_f *> id-left) *> e.hinv_f
 
 \class Cat \extends Precat {
-  | univalence {a b : Ob} : Equiv (idtoiso {_} {a} {b})
+  | univalence {a b : Ob} : IsEquiv (idtoiso {_} {a} {b})
 
   \protected \func op : Cat \cowith
     | Precat => Precat.op
-    | univalence => univalenceFromEquiv {Precat.op} (\lam {a} {b} => transEquiv univalence $ later \new QEquiv {
+    | univalence => univalenceFromQEquiv {Precat.op} (\lam {a} {b} => transQEquiv (IsEquiv.toQEquiv univalence) $ later \new QEquiv {
       | f (e : Iso) => e.op.reverse
       | ret (e : Iso) => e.op.reverse
       | ret_f => idpe
@@ -138,10 +138,10 @@
     }) (\lam {c} => idp)
 
   \func isotoid {a b : Ob} (e : Iso {\this} {a} {b}) : a = b
-    => univalence.ret e
+    => IsEquiv.ret univalence e
 
   \lemma transport_iso (e : Iso {\this}) : transport (Hom e.dom) (isotoid e) (id e.dom) = e
-    => Jl (\lam b p => transport (Hom e.dom) p (id e.dom) = idtoiso p) idp (isotoid e) *> path (\lam i => Iso.f {univalence.f_ret e i})
+    => Jl (\lam b p => transport (Hom e.dom) p (id e.dom) = idtoiso p) idp (isotoid e) *> path (\lam i => (IsEquiv.f_ret univalence i).f)
 
   \func univalenceToTransport (e : Iso {\this}) : \Sigma (p : e.dom = e.cod) (transport (Hom e.dom) p (id e.dom) = e)
     => (isotoid e, transport_iso e)
@@ -169,13 +169,13 @@
   \lemma transport_Hom_iso-right (e : Iso {\this}) {z : Ob} (g : Hom z e.dom) {f : Hom z e.cod} (h : g >> e.f = f) : transport (Hom z) (isotoid e) g = f
     => transport_Hom-right (isotoid e) (pmap (g >>) (transport_iso e) *> h)
 } \where {
-  \lemma univalenceFromEquiv {C : Precat} (e : \Pi {a b : C} -> Equiv {a = b} {Iso {C} {a} {b}}) (i : \Pi {a : C} -> Iso.f {e (idpe a)} = id a) {a b : C} : Equiv (C.idtoiso {a} {b})
-    => \let t : e.f = C.idtoiso {a} {b} => ext (\case \elim b, \elim __ \with {
+  \lemma univalenceFromQEquiv {C : Precat} (e : \Pi {a b : C} -> QEquiv {a = b} {Iso {C} {a} {b}}) (i : \Pi {a : C} -> (e (idpe a)).f = id a) {a b : C} : IsEquiv (C.idtoiso {a} {b})
+    => \have t : e.f = C.idtoiso {a} {b} => ext (\case \elim b, \elim __ \with {
       | b, idp => Iso.equals _ _ i
-    }) \in transport (Equiv __) t e
+    }) \in transport (IsEquiv __) t (inP e)
 
-  \lemma makeUnivalence {C : Precat} (c : \Pi (e : Iso {C}) -> \Sigma (p : e.dom = e.cod) (transport (Hom e.dom) p (id e.dom) = e)) {a b : C} : Equiv (C.idtoiso {a} {b})
-    => pathEquiv (\lam a b => Iso {C} {a} {b}) (\lam {a} {b} => \new Retraction {
+  \lemma makeUnivalence {C : Precat} (c : \Pi (e : Iso {C}) -> \Sigma (p : e.dom = e.cod) (transport (Hom e.dom) p (id e.dom) = e)) {a b : C} : IsEquiv (C.idtoiso {a} {b})
+    => inP $ pathEquiv (\lam a b => Iso {C} {a} {b}) (\lam {a} {b} => \new Retraction {
       | f => C.idtoiso
       | sec e => (c e).1
       | f_sec (e : Iso) => Iso.equals _ _ (Jl (\lam b p => Iso.f {C.idtoiso p} = transport (Hom e.dom) p (id e.dom)) idp (c e).1 *> (c e).2)

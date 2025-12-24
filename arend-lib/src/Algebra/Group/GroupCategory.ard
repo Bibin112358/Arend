@@ -61,7 +61,7 @@
         \lemma inv_this_ap (p : f.IsIsomorphism) (g : G) : g = inve p (f g)
           => inv (path \lam i => (Iso.hinv_f {this_iso p} i) g)
 
-        \func this_iso (p : f.IsIsomorphism) => Inj+Surj->SetIso f p.1 p.2
+        \func this_iso (p : f.IsIsomorphism) => IsEquiv->SetIso (IsEquiv.fromInjSurj p.1 p.2)
 
         \func inve (p : f.IsIsomorphism) => Iso.hinv {this_iso p}
 
@@ -74,22 +74,17 @@
         \lemma aux'' {A B : \Set} (f : Iso {SetCat} {A} {B}) {b : B} : b = f.f (f.hinv b)
           => inv (path (\lam i => (f.f_hinv i) b))
 
-        \lemma SetIso->Inj+Surj(f : Iso {SetCat}) : \Sigma (IsInj f.f) (IsSurj f.f)
-          => ((SetIso->Equiv f).isInj, (SetIso->Equiv f).isSurj )
+        \lemma SetIso->Inj+Surj (f : Iso {SetCat}) : \Sigma (IsInj f.f) (IsSurj f.f)
+          => ((SetIso->QEquiv f).isInj, (SetIso->QEquiv f).isSurj )
 
-        \lemma Inj+Surj->SetIso {X Y : \Set} (f : X -> Y) (p : IsInj f) (q : IsSurj f) : Iso {SetCat} f
-          => Equiv->SetIso (Equiv.fromInjSurj f p q)
+        \lemma IsEquiv->SetIso {X Y : \Set} {f : X -> Y} (eq : IsEquiv f) : Iso {SetCat} f \cowith
+          | hinv => IsEquiv.ret eq
+          | hinv_f => ext \lam _ => IsEquiv.ret_f eq
+          | f_hinv => ext \lam _ => IsEquiv.f_ret eq
 
-        \lemma Equiv->SetIso {X Y : \Set} {f : X -> Y} (eq : Equiv f) : Iso {SetCat} f \cowith
-          | hinv => Equiv.ret {eq}
-          | hinv_f => ext (Equiv.ret_f {eq})
-          | f_hinv => ext (Equiv.f_ret {eq})
-
-        \lemma SetIso->Equiv {X Y : \Set} {f : X -> Y} (p : Iso {SetCat} f) : Equiv f => \new QEquiv {
-          | ret => Iso.hinv {p}
-          | ret_f x => inv (aux' p {x})
-          | f_sec y => inv (aux'' p {y})
-        }
+        \lemma SetIso->QEquiv {X Y : \Set} {f : X -> Y} (p : Iso {SetCat} f) : QEquiv f p.hinv \cowith
+          | ret_f x => inv (aux' p)
+          | f_sec y => inv (aux'' p)
       }
 
     \lemma Iso<->TrivialKer+Surj {G H : Group} (f : GroupHom G H)

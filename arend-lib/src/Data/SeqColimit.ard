@@ -13,7 +13,7 @@
   \where {
     -- | The total space of a fibration over a sequential colimit is equivalent to a sequential colimit of fibers of this fibration.
     \func flattening {s : Seq} (P : SeqColimit s -> \hType) : total = (\Sigma (w : SeqColimit s) (P w))
-      => Equiv-to-= totalSeqColimitLeft *> path TotalSeqColimit *> Equiv-to-= totalSeqColimitRight
+      => QEquiv-to-= totalSeqColimitLeft *> path TotalSeqColimit *> QEquiv-to-= totalSeqColimitRight
       \where {
         \func total => SeqColimit seq
           \where

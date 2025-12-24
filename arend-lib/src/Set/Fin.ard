@@ -6,7 +6,6 @@
 \import Data.Fin (fpred, fsuc, fsuc/=, nat_fin_=)
 \import Data.Or
 \import Equiv
-\import Equiv.Univalence.Set
 \import Function
 \import Function.Meta ($)
 \import Logic.Unique
@@ -28,7 +27,7 @@
     | inP e => inP (e, e.isSurj)
   }
   | choice {B} => \case finEq \with {
-    | inP e => (rewrite (QEquiv-to-= e) in \lam (B : Fin finCard -> \Set) => finiteAC {finCard} {B}) B
+    | inP e => (rewrite (path (QEquiv_= e) : Fin finCard = {\Set} E) in \lam (B : Fin finCard -> \Set) => finiteAC {finCard} {B}) B
   }
 
   \default decideEq x y => \case finEq \with {
@@ -113,11 +112,8 @@
     \lemma suc-isInj {n : Nat} (x y : Fin n) (p : suc x = suc y) : x = y \elim n
       | suc n => pmap pred p
 
-    \lemma FinCardBij {n m : Nat} (p : QEquiv {Fin n} {Fin m}) : n = m =>
-      \have | e  : ESEquiv => p
-            | e' : ESEquiv => ESEquiv.fromEquiv (symQEquiv p)
-      \in <=-antisymmetric (FinCardInj e  (\lam {x} {y} => sec {e.isEmb  x y}))
-                           (FinCardInj e' (\lam {x} {y} => sec {e'.isEmb x y}))
+    \lemma FinCardBij {n m : Nat} (p : QEquiv {Fin n} {Fin m}) : n = m
+      => <=-antisymmetric (FinCardInj p p.isInj) (FinCardInj p.ret (symQEquiv p).isInj)
 
     \lemma FinCardInj {n m : Nat} (f : Fin n -> Fin m) (f-inj : IsInj f) : n <= m \elim n, m
       | 0, _ => zero<=_

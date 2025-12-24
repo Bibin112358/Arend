@@ -1,7 +1,7 @@
 \import Arith.Fin.Order
 \import Arith.Nat
 \import Category
-\import Equiv (Equiv, QEquiv)
+\import Equiv
 \import Function (IsInj)
 \import Logic.Unique
 \import Logic
@@ -91,7 +91,7 @@
 
 \instance SimplexCat : Cat
   | Precat => SimplexPrecat
-  | univalence {n} {_} => \new QEquiv {
+  | univalence {n} {_} => inP \new QEquiv {
     | ret iso => Simplex_iso iso
     | ret_f _ => set-pi
     | f_sec iso => transport (\lam k => isProp (Iso {SimplexPrecat} {n} {k})) (Simplex_iso iso) (iso_isProp {n}) _ _
