@@ -1,6 +1,5 @@
 \import Equiv
 \import Equiv.Sigma
-\import Equiv.Univalence
 \import Logic.Unique
 \import Homotopy.Fibration
 \import Homotopy.Join
@@ -91,8 +90,8 @@
                                       (Y-conn : isConnectedType {nullTypeUniverse N} Y)
                                       (X-local : isLocal {nullTypeUniverse (Join M N)} X)
       : isLocal {nullTypeUniverse (Join M Y)} X
-      => rewriteI (Equiv-to-= (Join-sym Y M))
-                  (connected_local_join-left Y X N M Y-conn (rewriteI (Equiv-to-= (Join-sym M N)) X-local))
+      => rewriteI (path (QEquiv_= (Join-sym Y M)))
+                  (connected_local_join-left Y X N M Y-conn (rewriteI (path (QEquiv_= (Join-sym M N))) X-local))
   }
 
 \func isConnectedMap {U : Universe} {A B : \hType} (f : A -> B) => \Pi (b : B) -> isConnectedType (Fib f b)

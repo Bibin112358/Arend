@@ -58,7 +58,7 @@
       | loop i => idp
   }
 
-\instance Sphere1_HSpace : HSpaceConn (Sphere 1) => rewriteI (QEquiv-to-= Sphere1-equiv) Circle_HSpace
+\instance Sphere1_HSpace : HSpaceConn (Sphere 1) => rewriteI (path (QEquiv_= Sphere1-equiv)) Circle_HSpace
 
 \func hopf {A : HSpaceConn} (x : Susp A) : \hType \elim x
   | north => A
@@ -66,7 +66,7 @@
   | pglue a => Equiv-to-= (HSpaceConn-left a)
   \where
     \func total-equiv {A : HSpaceConn} : (\Sigma (x : Susp A) (hopf x)) = Join A A
-      => inv (PushoutData.flattening hopf) *> QEquiv-to-= total_join-equiv
+      => inv (PushoutData.flattening hopf) *> QEquiv_= total_join-equiv
       \where {
         \open PushoutData(ppglue)
 

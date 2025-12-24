@@ -1,5 +1,4 @@
 \import Equiv
-\import Equiv.Univalence
 \import Logic.Unique
 \import Homotopy.Fibration
 \import Logic
@@ -13,7 +12,7 @@
   \where {
     -- | The total space of a fibration over a sequential colimit is equivalent to a sequential colimit of fibers of this fibration.
     \func flattening {s : Seq} (P : SeqColimit s -> \hType) : total = (\Sigma (w : SeqColimit s) (P w))
-      => QEquiv-to-= totalSeqColimitLeft *> path TotalSeqColimit *> QEquiv-to-= totalSeqColimitRight
+      => QEquiv_= totalSeqColimitLeft *> path TotalSeqColimit *> QEquiv_= totalSeqColimitRight
       \where {
         \func total => SeqColimit seq
           \where

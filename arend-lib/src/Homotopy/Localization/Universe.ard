@@ -223,7 +223,7 @@
   \let | T => \Sigma (A -> B) (\Sigma (B -> A) (B -> A))
        | F (t : T) => (t.2.1 `o` t.1, t.1 `o` t.2.2)
   \in \new Local { | local =>
-    transport isLocal (inv (QEquiv-to-= (\new QEquiv {Equiv {A} {B}} {\Sigma (t : T) (\Sigma) (F t = (id,id))} {
+    transport isLocal (inv (QEquiv_= \new QEquiv {Equiv {A} {B}} {\Sigma (t : T) (\Sigma) (F t = (id,id))} {
       | f (e : Equiv) => ((e,(e.ret,e.sec)), (), path (\lam i => (e.ret_f __ @ i, e.f_sec __ @ i)))
       | ret p => \new Equiv {
         | f => p.1.1
@@ -234,7 +234,7 @@
       }
       | ret_f => idpe
       | f_sec => idpe
-    }))) (local {pullbackLocal (sigmaPullback F (\lam (_ : \Sigma) => (id,id)))
+    })) (local {pullbackLocal (sigmaPullback F (\lam (_ : \Sigma) => (id,id)))
                                (productLocal (piLocal (\lam _ => B)) (productLocal (piLocal (\lam _ => A)) (piLocal (\lam _ => A))))
                                unitLocal
                                (productLocal (piLocal (\lam _ => A)) (piLocal (\lam _ => B)))}) }

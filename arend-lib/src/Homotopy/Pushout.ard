@@ -1,7 +1,6 @@
 \import Algebra.Meta
 \import Equiv
 \import Equiv.Sigma
-\import Equiv.Univalence
 \import Function
 \import Homotopy.Pointed
 \import Homotopy.Square
@@ -64,7 +63,7 @@
     -- | The total space of a fibration over a pushout is equivalent to a pushout of fibers of this fibration.
     \func flattening {A B C : \hType} {f : A -> B} {g : A -> C} (F : PushoutData f g -> \hType)
       : total = (\Sigma (w : PushoutData f g) (F w))
-      => QEquiv-to-= totalPushoutLeft *> path TotalPushout *> QEquiv-to-= totalPushoutRight
+      => QEquiv_= totalPushoutLeft *> path TotalPushout *> QEquiv_= totalPushoutRight
       \where {
         \func total
           => PushoutData {\Sigma (x : A) (F (pinl (f x)))}
@@ -167,7 +166,7 @@
   \func code (b0 : B) (w : PO) : \hType \elim w
     | pinl b => b0 = b
     | pinr c => \Sigma (a : A) (b0 = f a) (c = g a)
-    | pglue a => QEquiv-to-= (equiv b0 a)
+    | pglue a i => QEquiv_= (equiv b0 a) i
 
   \protected \lemma equiv (b0 : B) (a : A) : Equiv {b0 = f a} {\Sigma (a' : A) (b0 = f a') (g a = g a')} (a, __, idp) => equation
                                                               {symQEquiv (contr-left (lsigma a))}
