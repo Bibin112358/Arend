@@ -44,8 +44,8 @@
 \func isMinPoly (f : RingHom) (a : f.Cod) (p : Poly f.Dom) : \Prop
   => \Sigma (polyMapEval f p a = 0) (\Pi {q : Poly f.Dom} -> polyEval (polyMap f q) a = 0 -> TruncP (Monoid.LDiv p q))
 
-\lemma integral_factor-equiv {R E : CRing} (f : RingHom R E) (a : E) (p : Poly R) (pm : isMinPoly f a p) : Equiv (integral_factor f a p pm.1)
-  => Equiv.fromInjSurj _ (AddGroupHom.injective $ unfold \lam {q} => \case \elim q \with {
+\lemma integral_factor-equiv {R E : CRing} (f : RingHom R E) (a : E) (p : Poly R) (pm : isMinPoly f a p) : IsEquiv (integral_factor f a p pm.1)
+  => IsEquiv.fromInjSurj (AddGroupHom.injective $ unfold \lam {q} => \case \elim q \with {
     | in~ q => \lam u => FactorRing.fequiv $ Ideal.closure1_LDiv.2 $ simplify $ pm.2 (pmap __.1 u)
   }) \lam s => TruncP.map s.2 \lam t => (in~ t.1, ext t.2)
 

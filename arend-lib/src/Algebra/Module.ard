@@ -193,7 +193,7 @@
               | (inP h) => FinSet.finiteAC (\lam i => surj (s.1 i).2)
         \in inP (mkArray \lam i => ((s.1 i).1, (h i).1), s.2 *> pmap BigSum (exts \lam i => cong (inv (h i).2)))
 
-  \lemma IsBasisSet-equiv {J K : \Set} (e : Equiv {J} {K}) {g : K -> E} (gb : IsBasisSet g) : IsBasisSet (\lam j => g (e j))
+  \lemma IsBasisSet-equiv {J K : \Set} (e : QEquiv {J} {K}) {g : K -> E} (gb : IsBasisSet g) : IsBasisSet (\lam j => g (e j))
     => (IsIndependentSet-right-inj e.isInj gb.1, IsGeneratingSet-surj e.isSurj gb.2)
 
   \lemma IsGenerated<->IsGeneratingSet {l : Array E} : IsGenerated l <-> IsGeneratingSet l

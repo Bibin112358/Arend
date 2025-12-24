@@ -270,12 +270,12 @@
 
 \func decMdegree {J : DecSet} {R : CRing.Dec} (p : DecMonoidSet (PermSet J) R) : Nat \elim p
   | in~ s => Big (∨) 0 (map (\lam t => permSet-length t.2) s.1)
-  | ~-equiv x y r => AbMonoid.BigSum_EPerm {BottomJoinSemilattice.toMonoid NatBSemilattice} $ EPerm.EPerm_map (\lam t => permSet-length t.2) r
+  | ~-equiv x y r => (BottomJoinSemilattice.toMonoid NatBSemilattice).BigSum_EPerm $ EPerm.EPerm_map (\lam t => permSet-length t.2) r
 
 \func mdegree {J : DecSet} {R : CRing.Dec} (p : MPoly J R) : Nat
-  => decMdegree (monoidSetDec-equiv.ret p)
+  => decMdegree (IsEquiv.ret monoidSetDec-equiv p)
 
 \lemma mdegree_mdegree< {J : DecSet} {R : CRing.Dec} {p : MPoly J R} : mdegree< p (suc (mdegree p))
-  => transport (mdegree< __ _) (monoidSetDec-equiv.f_ret p) $ unfold mdegree $ cases (monoidSetDec-equiv.ret p) \with {
+  => transport (mdegree< __ _) (IsEquiv.f_ret monoidSetDec-equiv) $ unfold mdegree $ cases (IsEquiv.ret monoidSetDec-equiv p) \with {
     | in~ s => inP (_, idp, \lam j => NatBSemilattice.Big_<=_join1 {map (\lam t => permSet-length t.2) s.1} j <∘r id<suc)
   }

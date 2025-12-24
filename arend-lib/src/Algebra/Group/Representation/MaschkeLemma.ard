@@ -93,12 +93,12 @@ produces an interwining linear map $f'$ via the following formula
       : E.FinSum x = E.FinSum y => \case E.FinSum_char x \with {
       | inP a => rewrite (a.2, E.FinSum_char2 a.1, BigSumEquality) idp
     }\where {
-      \func BigSumEquality {a : Equiv {Fin A.finCard} {A}}
-        : AddMonoid.BigSum (\new Array E A.finCard (\lam j => x (a j))) =
-      AddMonoid.BigSum (\new Array E A.finCard (\lam j => y (a j))) =>
-        pmap AddMonoid.BigSum ArrayEquality
-      \func ArrayEquality  {a : Equiv {Fin A.finCard} {A}}: (\new Array E A.finCard (\lam j => x (a j))) =
-      (\new Array E A.finCard (\lam j => y (a j))) => arrayExt (\lam j => eq (a j))
+      \func BigSumEquality {a : QEquiv {Fin A.finCard} {A}}
+        : AddMonoid.BigSum (\new Array E A.finCard (\lam j => x (a j))) = AddMonoid.BigSum (\new Array E A.finCard (\lam j => y (a j)))
+        => pmap AddMonoid.BigSum ArrayEquality
+      \func ArrayEquality {a : QEquiv {Fin A.finCard} {A}}
+        : (\new Array E A.finCard (\lam j => x (a j))) = (\new Array E A.finCard (\lam j => y (a j)))
+        => arrayExt (\lam j => eq (a j))
     }
 
     \func FinSumRewrite (x : G -> Ab) (a : A)

@@ -74,15 +74,15 @@
   \lemma adjointMap' {z : C} {g : Hom cod z} {h : Hom dom z} (p : g ∘ f = h) : g = h ∘ hinv
     => inv id-right *> pmap (g ∘) (inv f_hinv) *> inv o-assoc *> pmap (`∘ hinv) p
 
-  \lemma -o_Equiv {z : C} : Equiv {Hom cod z} {Hom dom z} (__ ∘ f)
-    => \new QEquiv {
+  \lemma -o_Equiv {z : C} : IsEquiv {Hom cod z} {Hom dom z} (__ ∘ f)
+    => inP \new QEquiv {
          | ret h => h ∘ hinv
          | ret_f h => o-assoc *> pmap (h ∘) f_hinv *> id-right
          | f_sec h => o-assoc *> pmap (h ∘) hinv_f *> id-right
        }
 
-  \lemma o-_Equiv {z : C} : Equiv {Hom z dom} {Hom z cod} (f ∘ __)
-    => \new QEquiv {
+  \lemma o-_Equiv {z : C} : IsEquiv {Hom z dom} {Hom z cod} (f ∘ __)
+    => inP \new QEquiv {
          | ret h => hinv ∘ h
          | ret_f h => inv o-assoc *> pmap (`∘ _) hinv_f *> id-left
          | f_sec h => inv o-assoc *> pmap (`∘ _) f_hinv *> id-left

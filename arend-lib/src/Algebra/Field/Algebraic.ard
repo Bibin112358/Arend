@@ -23,6 +23,7 @@
 \import Category
 \import Data.Array
 \import Data.Array.EPerm
+\import Equiv (IsEquiv)
 \import Function \hiding (id, o)
 \import Function.Meta
 \import Logic
@@ -180,9 +181,9 @@
 
       \lemma MPoly_poly-field {K : DiscreteField} {E : CRing} (f : RingHom K E) {n : Nat} {p : MPoly (Fin n) K} (p/=0 : p /= 0) (a : Array E n)
         : ∃ (m : Nat) (degree<= (change-vars (mPoly-map f p) (suc (mdegree p)) a) m) (Inv (polyCoef (change-vars (mPoly-map f p) (suc (mdegree p)) a) m))
-        => unfold mdegree $ cases (monoidSetDec-equiv.ret p arg addPath) \with {
+        => unfold mdegree $ cases (IsEquiv.ret monoidSetDec-equiv p arg addPath) \with {
           | in~ s, sp =>
-            \have sp' => inv (monoidSetDec-equiv.f_ret p) *> pmap decToMonoidSet sp
+            \have sp' => inv (IsEquiv.f_ret monoidSetDec-equiv) *> pmap decToMonoidSet sp
             \in MPoly_poly (map __.2 s.1) s.2 (map (\lam t => f t.1) s.1) (\lam j => f.func-Inv $ K.nonZero-Inv $ s.3 j)
               (\lam j => NatSemiring.Big_<=_join1 {map (\lam t => permSet-length t.2) s.1} j <∘r id<suc) a
               (\lam q => p/=0 $ sp' *> rewrite (len=0 {_} {s.1} q) idp) $ pmap (mPoly-map f) sp' *>

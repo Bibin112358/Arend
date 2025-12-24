@@ -538,7 +538,7 @@
         => TruncP.rec-set A.finEq _ aux
         \where
           \lemma aux (e e' : QEquiv {Fin A.finCard} {A}) : BigSum (\lam j => x (e j)) = BigSum (\lam j => x (e' j))
-            => BigSum_Perm $ transport (Perm _) (arrayExt \lam j => pmap x $ e.f_ret _) $ Perm.equiv_perm $ transEquiv e' (symQEquiv e)
+            => BigSum_Perm $ transport (Perm _) (arrayExt \lam j => pmap x $ e.f_ret _) $ Perm.equiv_perm $ transQEquiv e' (symQEquiv e)
     }
 
   \lemma FinSum_char {A : FinSet} (x : A -> E) : ∃ (e : QEquiv {Fin A.finCard} {A}) (FinSum {_} {A} x = BigSum (\lam j => x (e j)))
@@ -609,7 +609,7 @@
 
   \lemma FinSum_Or {A B : FinSet} {x : Or A B -> E} : FinSum x = FinSum (\lam a => x (inl a)) + FinSum (\lam b => x (inr b))
     => \case FinSum_char _, FinSum_char _ \with {
-      | inP p, inP q => FinSum_char2 (transEquiv (OrFin.aux {A.finCard} {B.finCard}) (Or.Or_Equiv p.1 q.1)) *> BigSum_Or (\lam a => x (Or.map a p.1 q.1)) *> inv (pmap2 (+) p.2 q.2)
+      | inP p, inP q => FinSum_char2 (transEquiv (OrFin.aux {A.finCard} {B.finCard}) (Or.Or_QEquiv p.1 q.1)) *> BigSum_Or (\lam a => x (Or.map a p.1 q.1)) *> inv (pmap2 (+) p.2 q.2)
     }
 
   \lemma FinSum-unique {J : FinSet} {a : J -> E} (j : J) (p : \Pi (j' : J) -> j' /= j -> a j' = 0) : FinSum a = a j

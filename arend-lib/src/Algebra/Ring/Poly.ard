@@ -89,7 +89,7 @@
       => isSet.equiv toQPoly-equiv (\lam _ _ _ _ => set-pi)
 
     \func poly-countable {R : AddPointed} (c : Countable R) : Countable (Poly R)
-      => surj-countable (quotient-countable (array-countable c)) (Equiv.isSurj {symQEquiv toQPoly-equiv})
+      => surj-countable (quotient-countable (array-countable c)) (symQEquiv toQPoly-equiv).isSurj
 
     \lemma poly-trivial {R : AddPointed} (p : \Pi (x : R) -> x = zro) (p : Poly R) : p = pzero \elim p
       | pzero => idp

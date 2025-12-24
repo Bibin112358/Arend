@@ -127,7 +127,7 @@
   => \have | (inP (B, Bs, A~B)) => R.toSmith (toMatrix lu bv f)
            | (inP Bs2) => IsSmith.smith-diag-func Bs
            | (inP (lu',lv',bu',bv',p)) => M~_toLinearMap bu bv A~B
-           | q : f = toLinearMap bu' lv' B => inv (ret_f {matrix-equiv bu bv} f) *> p
+           | q : f = toLinearMap bu' lv' B => inv ((matrix-equiv bu bv).ret_f f) *> p
      \in inP (lu', bu', lv', bv', \lam j =>
           \case LinearOrder.dec<_<= j lv.len \with {
             | inl p => B j (toFin j p)
@@ -137,7 +137,7 @@
              | inr lv<=j => V.BigSum_zro (\lam k => pmap (`*c _) (later $ Bs.1 \lam j=k => linarith (fin_< k)) *> V.*c_zro-left) *> inv V.*c_zro-left
            }, \lam j => mcases \with {
              | inl j<lv => \have r => rank.rank_smith_<= Bs (fin_< j) j<lv
-                           \in rewrite (Equiv.adjointInv {matrix-equiv bu' bv'} q) (\lam c => r.2 $ pmap (B __ _) toFin=fin *> c, \lam c => pmap (B __ _) (inv toFin=fin) *> r.1 c)
+                           \in rewrite ((matrix-equiv bu' bv').adjointInv q) (\lam c => r.2 $ pmap (B __ _) toFin=fin *> c, \lam c => pmap (B __ _) (inv toFin=fin) *> r.1 c)
              | inr lv<=j => (\lam _ => rank<=columns <=∘ lv<=j, \lam _ => idp)
            })
   \where {

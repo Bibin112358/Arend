@@ -114,7 +114,7 @@
           | idp, idp => unfold toPath {?}
       }
     -}
-    \func equality1 (L L' : RingedLocale) : Equiv {L = L'} {\Sigma (p : L.L = L'.L) (transport (VSheaf CRingCat) p L.R = L'.R)}
+    \func equality1 (L L' : RingedLocale) : QEquiv {L = L'} {\Sigma (p : L.L = L'.L) (transport (VSheaf CRingCat) p L.R = L'.R)}
       => pathEquiv _ $ later \lam {L : RingedLocale} {L' : RingedLocale} => \new Retraction {
         | f => fromPath
         | sec s => toPath s.1 s.2
@@ -131,11 +131,11 @@
           | idp, idp => idp
       }
 
-    \func equality2 (L L' : RingedLocale) : Equiv {L = L'} {\Sigma (p : L.L = L'.L) (VSheaf.direct_image_locale (Iso.f {Precat.idtoiso p}) L.R = L'.R)}
-      => transEquiv (equality1 L L') $ sigma-right \lam p => pathConcatEquiv (VSheaf.transport_direct_image p L.R)
+    \func equality2 (L L' : RingedLocale) : QEquiv {L = L'} {\Sigma (p : L.L = L'.L) (VSheaf.direct_image_locale (Iso.f {Precat.idtoiso p}) L.R = L'.R)}
+      => transQEquiv (equality1 L L') $ sigma-right \lam p => pathConcatEquiv (VSheaf.transport_direct_image p L.R)
 
-    \func equality3 (L L' : RingedLocale) : Equiv {L = L'} {\Sigma (e : Iso {LocaleCat} {L.L} {L'.L}) (Iso {_} {VSheaf.direct_image_locale e.f L.R} {L'.R})}
-      => equality2 L L' `transEquiv` sigma-left univalence `transEquiv` sigma-right (later (\lam e => univalence))
+    \func equality3 (L L' : RingedLocale) : QEquiv {L = L'} {\Sigma (e : Iso {LocaleCat} {L.L} {L'.L}) (Iso {_} {VSheaf.direct_image_locale e.f L.R} {L'.R})}
+      => equality2 L L' `transQEquiv` sigma-left univalence `transQEquiv` sigma-right (later (\lam e => univalence))
   }
 
 \record RingedLocaleHom (Dom Cod : RingedLocale) (\coerce f : FrameHom Cod Dom) (f# : NatTrans (\suc \lp) Cod.R (VSheaf.direct_image_locale f Dom.R))

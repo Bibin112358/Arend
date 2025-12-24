@@ -104,7 +104,7 @@
       | ret_f a => inv (e.ret_f (e.sec (e a))) *> pmap e.ret (e.f_sec (e a)) *> e.ret_f a
       | f_sec => e.f_sec
 
-    \func fromInjSurj {A B : \Set} {f : A -> B} (inj : Function.IsInj f) (surj : Function.IsSurj f) : QEquiv f
+    \sfunc fromInjSurj {A B : \Set} {f : A -> B} (inj : Function.IsInj f) (surj : Function.IsSurj f) : QEquiv f
       => fromEquiv \new ESEquiv {
         | Embedding => Embedding.fromInjection inj
         | isSurjMap => surj
@@ -134,6 +134,13 @@
 
     \sfunc f_ret (e : IsEquiv f) {b : B} : f (ret e b) = b
       => pmap f (\peval ret e b) *> (toEquiv e).f_ret b
+
+    \lemma ret-equiv (e : IsEquiv f) : IsEquiv (ret e)
+      => inP \new QEquiv {
+        | ret => f
+        | ret_f b => f_ret e
+        | f_sec a => ret_f e
+      }
 
     \func isInj (e : IsEquiv f) {a a' : A} (p : f a = f a') : a = a'
       => inv (ret_f e) *> pmap (ret e) p *> ret_f e

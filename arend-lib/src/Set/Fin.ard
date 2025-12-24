@@ -325,7 +325,7 @@
 \instance OrFin (S T : FinSet) : FinSet (Or S T)
   | finCard => S.finCard + T.finCard
   | finEq => \case S.finEq, T.finEq \with {
-    | inP Se, inP Te => inP $ transEquiv (aux {S.finCard} {T.finCard}) (Or.Or_Equiv Se Te)
+    | inP Se, inP Te => inP $ transEquiv (aux {S.finCard} {T.finCard}) (Or.Or_QEquiv Se Te)
   }
   \where {
     \func aux {n m : Nat} : QEquiv {Fin (n + m)} {Or (Fin n) (Fin m)} \cowith

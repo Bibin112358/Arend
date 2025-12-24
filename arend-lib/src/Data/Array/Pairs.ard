@@ -71,9 +71,9 @@
         | inr r => TruncP.map (pairs-index-surj r.1) \lam t => ((suc t.1.1, t.1.2), pmap ++.index-right t.2 *> inv r.2)
       }
 
-    \lemma pairs-index-equiv {A B C : \Sort} {f : A -> B -> C} {l : Array A} {l' : Array B}
-      : Equiv {\Sigma (Fin l.len) (Fin l'.len)} {Fin (DArray.len {pairs f l l'})} (\lam s => (pairs-index s.1 s.2).1)
-      => Equiv.fromInjSurj _ (\lam p => ext (pairs-index-inj p)) pairs-index-surj
+    \sfunc pairs-index-equiv {A B C : \Sort} {f : A -> B -> C} {l : Array A} {l' : Array B}
+      : QEquiv {\Sigma (Fin l.len) (Fin l'.len)} {Fin (DArray.len {pairs f l l'})} (\lam s => (pairs-index s.1 s.2).1)
+      => QEquiv.fromInjSurj (\lam p => ext (pairs-index-inj p)) pairs-index-surj
 
     \lemma pairs-distr {A : \Sort} {R : Semiring} {f : A -> A -> A} (g : A -> R) {l l' : Array A} (p : \Pi {a b : A} -> g (f a b) = g a R.* g b)
       : R.BigSum (map g (pairs f l l')) = R.BigSum (map g l) R.* R.BigSum (map g l')

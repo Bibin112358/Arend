@@ -143,7 +143,7 @@
 \lemma iso<->inj+surj {R : Ring} {U V : LModule R} {f : LinearMap U V} : Iso f <-> (\Sigma (IsInj f) (IsSurj f))
   => (\lam e => (\lam {u} {u'} p => inv (path (\lam i => hinv_f {e} i u)) *> pmap (hinv {e}) p *> path (\lam i => hinv_f {e} i u'),
                  \lam v => inP (hinv {e} v, path (\lam i => f_hinv {e} i v))),
-      \lam s => \let e : Equiv f => Equiv.fromInjSurj f s.1 s.2
+      \lam s => \let e : QEquiv f => QEquiv.fromInjSurj s.1 s.2
                 \in \new Iso {
           | hinv => \new LinearMap {
             | func => e.ret
@@ -212,8 +212,8 @@
 
 \lemma change-basis_matrix-right {R : Ring} {U V : LModule R} (f : LinearMap U V) {lu : Array U} (bu : U.IsBasis lu) {n : Nat} {lv lv' : Array V n} (bv : V.IsBasis lv) (bv' : V.IsBasis lv')
   : toMatrix lu bv' f MatrixRing.product toMatrix lv bv (Iso.f {basis-iso bv bv'}) = toMatrix lu bv f
-  => inv $ Equiv.adjointInv {matrix-equiv bu bv} $ unfold $ inv $ toLinearMap_* (toMatrix lu bv' f) (toMatrix lv bv (extend bv lv')) bu bv' bv *>
-      pmap2 (∘) {_} {id} (exts \lam u => toLinearMap_toMatrix-left bv bv' *> pmap AddMonoid.BigSum (exts \lam j => pmap (`*c _) $ V.basis-split-unique bv _ idp j) *> inv (V.basis-split-char {lv'} {bv'})) (ret_f {matrix-equiv bu bv'} f)
+  => inv $ (matrix-equiv bu bv).adjointInv $ unfold $ inv $ toLinearMap_* (toMatrix lu bv' f) (toMatrix lv bv (extend bv lv')) bu bv' bv *>
+      pmap2 (∘) {_} {id} (exts \lam u => toLinearMap_toMatrix-left bv bv' *> pmap AddMonoid.BigSum (exts \lam j => pmap (`*c _) $ V.basis-split-unique bv _ idp j) *> inv (V.basis-split-char {lv'} {bv'})) ((matrix-equiv bu bv').ret_f f)
 
 \lemma change-basis_M~ {R : Ring} {U V : LModule R} (f : LinearMap U V) {n m : Nat} {lu lu' : Array U n} (bu : U.IsBasis lu) (bu' : U.IsBasis lu') {lv lv' : Array V m} (bv : V.IsBasis lv) (bv' : V.IsBasis lv') : toMatrix lu bv f M~ toMatrix lu' bv' f
   => inP (toMatrixInv bu' bu' (basis-iso bu bu'), toMatrixInv bv' bv' (basis-iso bv' bv), inv $ pmap (MatrixRing.`product toMatrix lv' bv' (extend bv' lv)) (change-basis_matrix-left f bu' bu bv) *> change-basis_matrix-right f bu' bv' bv)
