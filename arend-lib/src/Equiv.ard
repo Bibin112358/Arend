@@ -103,6 +103,15 @@
       | ret => e.sec
       | ret_f a => inv (e.ret_f (e.sec (e a))) *> pmap e.ret (e.f_sec (e a)) *> e.ret_f a
       | f_sec => e.f_sec
+
+    \func fromInjSurj {A B : \Set} {f : A -> B} (inj : Function.IsInj f) (surj : Function.IsSurj f) : QEquiv f
+      => fromEquiv \new ESEquiv {
+        | Embedding => Embedding.fromInjection inj
+        | isSurjMap => surj
+      }
+
+    \lemma equals {A B : \Set} {e e' : QEquiv {A} {B}} (p : \Pi (a : A) -> e a = e' a) : e = e'
+      => exts (p, \lam b => e.isInj $ e.f_ret b *> inv (p _ *> e'.f_ret b))
   }
 
 \func QEquiv_= {A B : \Sort} (e : QEquiv {A} {B}) (i : I) : \Sort
@@ -113,6 +122,9 @@
   \where {
     \lemma toEquiv (e : IsEquiv f) : Equiv f
       | inP e => e
+
+    \sfunc toQEquiv (e : IsEquiv f) : QEquiv f
+      => toEquiv e
 
     \sfunc ret (e : IsEquiv f) (b : B) : A
       => (toEquiv e).ret b
@@ -127,10 +139,7 @@
       => inv (ret_f e) *> pmap (ret e) p *> ret_f e
 
     \lemma fromInjSurj {A B : \Set} {f : A -> B} (inj : IsInj f) (surj : IsSurj f) : IsEquiv f
-      => inP $ QEquiv.fromEquiv \new ESEquiv {
-        | Embedding => Embedding.fromInjection inj
-        | isSurjMap => surj
-      }
+      => inP (QEquiv.fromInjSurj inj surj)
 
     \lemma trans {A B C : \Sort} {f : A -> B} {g : B -> C} (e : IsEquiv f) (e' : IsEquiv g) : IsEquiv \lam a => g (f a) \elim e, e'
       | inP e, inP e' => inP (transQEquiv e e')

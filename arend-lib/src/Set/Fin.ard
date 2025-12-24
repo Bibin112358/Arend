@@ -23,15 +23,16 @@
 \import Set.Fin.KFin
 
 \class FinSet \extends KFinSet, Choice, DecSet {
-  | finEq : TruncP (Equiv {Fin finCard} {E})
-  | finSurj => TruncP.map finEq \lam (e : Equiv {Fin finCard} {E}) => (e, isSurjMap {ESEquiv.fromEquiv e})
-
+  | finEq : TruncP (QEquiv {Fin finCard} {E})
+  | finSurj => \case finEq \with {
+    | inP e => inP (e, e.isSurj)
+  }
   | choice {B} => \case finEq \with {
-    | inP e => (rewrite (Equiv-to-= e) in \lam (B : Fin finCard -> \Set) => finiteAC {finCard} {B}) B
+    | inP e => (rewrite (QEquiv-to-= e) in \lam (B : Fin finCard -> \Set) => finiteAC {finCard} {B}) B
   }
 
   \default decideEq x y => \case finEq \with {
-    | inP (e : Equiv) => \case (FinOrder _).decideEq (e.ret x) (e.ret y) \with {
+    | inP e => \case (FinOrder _).decideEq (e.ret x) (e.ret y) \with {
       | yes q => yes ((symQEquiv e).isInj q)
       | no q => no \lam p => q (pmap e.ret p)
     }
@@ -52,7 +53,7 @@
 } \where {
     \use \level levelProp {A : \Set} (X Y : FinSet A) : X = Y
       => ext (\case X.finEq, Y.finEq \with {
-        | inP Xcard=A, inP Ycard=A => FinCardBij (Xcard=A `transEquiv` symQEquiv Ycard=A)
+        | inP Xcard=A, inP Ycard=A => FinCardBij (Xcard=A `transQEquiv` symQEquiv Ycard=A)
       })
 
   \lemma ||-finiteAC {n : Nat} {A : \Sort} {B : Fin n -> \Sort} (f : \Pi (i : Fin n) -> A || B i) : A || (\Pi (i : Fin n) -> B i) \elim n
@@ -89,7 +90,7 @@
         }
       }
 
-  \func searchFin-equiv {B : \Sort} {n : Nat} (e : Equiv {Fin n} {B}) (A : B -> \Prop) (d : \Pi (b : B) -> Dec (A b))
+  \func searchFin-equiv {B : \Sort} {n : Nat} (e : QEquiv {Fin n} {B}) (A : B -> \Prop) (d : \Pi (b : B) -> Dec (A b))
     : Or (\Sigma (b : B) (A b)) (\Pi (b : B) -> Not (A b))
     => \case searchFin (\lam j => A (e j)) (\lam j => d (e j)) \with {
          | inl p => inl (e p.1, p.2)
@@ -112,7 +113,7 @@
     \lemma suc-isInj {n : Nat} (x y : Fin n) (p : suc x = suc y) : x = y \elim n
       | suc n => pmap pred p
 
-    \lemma FinCardBij {n m : Nat} (p : Equiv {Fin n} {Fin m}) : n = m =>
+    \lemma FinCardBij {n m : Nat} (p : QEquiv {Fin n} {Fin m}) : n = m =>
       \have | e  : ESEquiv => p
             | e' : ESEquiv => ESEquiv.fromEquiv (symQEquiv p)
       \in <=-antisymmetric (FinCardInj e  (\lam {x} {y} => sec {e.isEmb  x y}))
@@ -178,17 +179,17 @@
       | suc n, suc x0, suc x, suc<suc p => pmap suc (skip-right p) *> suc_pred (/=-sym $ NatSemiring.<_/= $ zero<=_ <∘r p)
 
     \lemma fromArray {A : \Set} (l : Array A) (p : \Pi (a : A) -> ∃ (i : Fin l.len) (l i = a)) (q : \Pi {i j : Fin l.len} -> l i = l j -> i = j) : FinSet A l.len \cowith
-      | finEq => inP (Equiv.fromInjSurj l q p)
+      | finEq => inP (QEquiv.fromInjSurj q p)
   }
 
-\lemma finCard_Equiv {A B : FinSet} (e : Equiv {A} {B}) : A.finCard = B.finCard
+\lemma finCard_Equiv {A B : FinSet} (e : QEquiv {A} {B}) : A.finCard = B.finCard
   => \case A.finEq, B.finEq \with {
-    | inP e1, inP e2 => FinSet.FinCardBij $ e1 `transEquiv` e `transEquiv` symQEquiv e2
+    | inP e1, inP e2 => FinSet.FinCardBij $ e1 `transQEquiv` e `transQEquiv` symQEquiv e2
   }
 
 \lemma finCard_inj {A B : FinSet} (f : A -> B) (inj : IsInj f) : A.finCard <= B.finCard
   => \case A.finEq, B.finEq \with {
-    | inP (e1 : Equiv), inP (e2 : Equiv) => FinSet.FinCardInj (\lam x => e2.ret (f (e1 x))) \lam p => e1.isInj $ inj $ Equiv.isInj {symQEquiv e2} p
+    | inP e1, inP e2 => FinSet.FinCardInj (\lam x => e2.ret (f (e1 x))) \lam p => e1.isInj $ inj $ (symQEquiv e2).isInj p
   }
 
 \lemma transport_zero {n m : Nat} (p : n = m) : transport Fin (pmap suc p) 0 = 0 \elim p
@@ -303,7 +304,7 @@
 
 \func FinDec {A : FinSet} (B : A -> Decide) : Decide (\Pi (a : A) -> B a) \cowith
   | decide => \case A.finEq \with {
-    | inP (e : Equiv) => \case fin-dec (\lam j => B (e j)) \with {
+    | inP e => \case fin-dec (\lam j => B (e j)) \with {
       | yes p => yes \lam a => transport (B __) (e.f_ret a) $ p (e.ret a)
       | no q => no \lam f => q \lam j => f (e j)
     }

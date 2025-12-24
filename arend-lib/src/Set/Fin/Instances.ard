@@ -16,8 +16,8 @@
 \lemma SigmaFin (S : FinSet) (Q : S -> FinSet) : FinSet (\Sigma (i : S) (Q i)) (AbMonoid.FinSum (\lam i => (Q i).finCard))
   => \case AbMonoid.FinSum_char (\lam i => (Q i).finCard) \with {
     | inP p => rewrite p.2 \new FinSet {
-      | finEq => \case FinSet.finiteAC (\lam i => finEq {Q (p.1 i)}) \with {
-        | inP d => inP $ aux `transEquiv` sigma-right d `transEquiv` sigma-left p.1
+      | finEq => \case FinSet.finiteAC (\lam i => (Q (p.1 i)).finEq) \with {
+        | inP d => inP $ aux `transQEquiv` sigma-right d `transQEquiv` sigma-left p.1
       }
     }
   }

@@ -568,7 +568,7 @@
     : FinSum (\lam a => FinSum (\lam b => x (a,b))) = FinSum {_} {SigmaFin A B} x
     => \case FinSum_char _, choice (\lam a => FinSum_char (\lam b => x (a,b))) \with {
       | inP p, inP f => p.2 *> cong (ext \lam j => (f _).2) *> BigSum-double-dep (\lam j => finCard {B (p.1 j)}) (\lam s => x (p.1 s.1, (f _).1 s.2)) *>
-                          inv (FinSum_char2 (unfold $ =-to-QEquiv (pmap Fin $ FinSum_char2 {NatSemiring} p.1) `transEquiv` SigmaFin.aux `transEquiv` sigma-equiv p.1 (\lam j => (f _).1)) *> pmap BigSum (exts $ (FinSum_char2 {NatSemiring} p.1, \lam j => idp)))
+                          inv (FinSum_char2 (unfold $ =-to-QEquiv (pmap Fin $ FinSum_char2 {NatSemiring} p.1) `transQEquiv` SigmaFin.aux `transQEquiv` sigma-equiv p.1 (\lam j => (f _).1)) *> pmap BigSum (exts $ (FinSum_char2 {NatSemiring} p.1, \lam j => idp)))
     }
 
   \lemma FinSum-double {A B : FinSet} {x : A -> B -> E}
@@ -580,7 +580,7 @@
 
   \lemma FinSum_Equiv {A B : FinSet} (e : Equiv {A} {B}) {x : B -> E} : FinSum x = FinSum (\lam a => x (e a))
     => \case FinSum_char _ \with {
-      | inP p => \let A' => \new FinSet A B.finCard { | finEq => TruncP.map B.finEq \lam e' => transEquiv e' (symQEquiv e)}
+      | inP p => \let A' => \new FinSet A B.finCard { | finEq => TruncP.map B.finEq \lam e' => transQEquiv e' (symQEquiv e)}
                  \in FinSum_char2 (transEquiv p.1 e) *> inv p.2 *> pmap {FinSet A} (FinSum {_} {__} _) (FinSet.levelProp A' A)
     }
 

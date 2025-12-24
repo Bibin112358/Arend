@@ -157,7 +157,7 @@
   \lemma fin-closure-lem {D : FinSet} {R : CRing} {a : R} (f : D -> R)
     : closure f a <-> ∃ (c : D -> R) (a = FinSum (\lam i => c i * f i))
     => \case D.finEq \with {
-         | inP (eq : Equiv) =>
+         | inP eq =>
            \have (g,h) => closureN-lem {_} {_} {\lam i => f (eq i)}
            \in (
              \lam (inP (l, a=fl)) =>
