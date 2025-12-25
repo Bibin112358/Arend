@@ -2,7 +2,6 @@
 \import Equiv
 \import Equiv.Path
 \import Equiv.Sigma
-\import Equiv.Univalence
 \import Function
 \import Logic.Unique
 \import Homotopy.Square
@@ -75,12 +74,10 @@
 \lemma sectionIsEquiv {U : ReflUniverse} (X : \hType) (s : Section (inL {localization X})) : Equiv (inL {localization X})
   => lem (localization X) s
   \where
-    \lemma lem {U : Universe} (L : Localization) (s : Section {L.S} {L.S'} inL) : Equiv {L.S} {L.S'} inL
-      => \new QEquiv {
-        | ret => s.ret
-        | ret_f => s.ret_f
-        | f_sec => remove_inL (inL `o` s.ret) id (\lam x => pmap inL (s.ret_f x))
-      }
+    \func lem {U : Universe} (L : Localization) (s : Section {L.S} {L.S'} inL) : QEquiv {L.S} {L.S'} inL \cowith
+      | ret => s.ret
+      | ret_f => s.ret_f
+      | f_sec => remove_inL (inL `o` s.ret) id (\lam x => pmap inL (s.ret_f x))
 
 -- | If {X} is local, then ``inL : X -> X'`` is an equivalence.
 \lemma localizationOfLocalType {U : ReflUniverse} (X : Local) : Equiv (inL {localization X})
@@ -97,7 +94,7 @@
   => lem (localization X) s
   \where
     \lemma lem {U : Universe} (L : Localization) (s : Section {L.S} {L.S'} inL) : Local L.S \cowith
-      | local => transport isLocal (inv (Equiv-to-= (sectionIsEquiv.lem L s))) L.S'.local
+      | local => transport isLocal (inv (QEquiv_= (sectionIsEquiv.lem L s))) L.S'.local
 
 -- | If ``inL : X -> X'`` factors through a local type {Y}, then the map ``Y -> X'`` is a retraction.
 \func localizationFactor {U : ReflUniverse} {X : \hType} (Y : Local) (f : X -> Y) (g : Y -> LType X) (p : \Pi (x : X) -> g (f x) = inL {localization X} x) : Retraction g

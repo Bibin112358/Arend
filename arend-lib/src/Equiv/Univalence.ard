@@ -1,17 +1,32 @@
+\import Function.Meta
+\import Logic
+\import Meta
 \import Paths
 \import Paths.Meta
 \import Equiv
 \import Equiv.Path
 
-\func =-to-Equiv {A B : \hType} (p : A = B) : Equiv {A} {B} => rewriteI p idEquiv
-
 \func Equiv-to-= {A B : \hType} (e : Equiv {A} {B}) : A = B => QEquiv_= (QEquiv.fromEquiv e)
 
-\func univalence {X Y : \hType} : QEquiv {X = Y} {Equiv {X} {Y}}
-  => pathEquiv (Equiv {__} {__}) (\lam {A} {B} =>
+\func typeUnivalence {X Y : \hType} : QEquiv {X = Y} {Equiv {X} {Y}}
+  => pathEquiv (Equiv {__} {__}) \lam {A} {B} =>
       \new Retraction {
         | f => =-to-Equiv
         | sec => Equiv-to-=
         | f_sec e => Equiv.equals (Jl (\lam _ p => Equiv.f {=-to-Equiv p} = (\lam a => coe (p @) a right)) idp (Equiv-to-= e))
-      })
+      }
+  \where \func =-to-Equiv {A B : \hType} (p : A = B) : Equiv {A} {B} => rewriteI p idEquiv
 
+\func =_NewEquiv {A B : \hType} (p : A = B) : NewEquiv A B
+  => transport (NewEquiv A __) p $ mkEquiv (inP idEquiv)
+
+\func NewEquiv_= {A B : \hType} (e : NewEquiv A B) : A = B => QEquiv_= (NewEquiv.toQEquiv e)
+
+\sfunc newUnivalence {A B : \hType} : QEquiv {A = B} {NewEquiv A B} =_NewEquiv NewEquiv_=
+  => pathEquiv (NewEquiv __ __) \lam {A} {B} => \new Retraction {
+    | f => =_NewEquiv
+    | sec => NewEquiv_=
+    | f_sec e => \case \elim e \with {
+      | mkEquiv e => unfold NewEquiv_= $ unfold =_NewEquiv {?}
+    } -- Equiv.equals (Jl (\lam _ p => Equiv.f {=-to-NewEquiv p} = (\lam a => coe (p @) a right)) idp (NewEquiv-to-= e))
+  }

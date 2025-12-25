@@ -158,6 +158,16 @@
       | inP e, inP e' => inP (transQEquiv e e')
   }
 
+\data NewEquiv (A B : \Sort)
+  | mkEquiv {f : A -> B} (IsEquiv f)
+  \where {
+    \func toFunc (e : NewEquiv A B) (a : A) : B \elim e
+      | mkEquiv {f} _ => f a
+
+    \func toQEquiv (e : NewEquiv A B) : QEquiv {A} {B} (toFunc e) \elim e
+      | mkEquiv e => IsEquiv.toQEquiv e
+  }
+
 -- # Examples of equialences
 
 \func idEquiv {A : \Type} : QEquiv \cowith

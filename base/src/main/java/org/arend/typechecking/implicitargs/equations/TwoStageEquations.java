@@ -215,6 +215,15 @@ public class TwoStageEquations implements Equations {
           return addEquation(cod, newRef, UniverseExpression.OMEGA, cmp, sourceNode, cod.getStuckInferenceVariable(), infVar);
         }
       }
+
+      // ?x <> Type
+      if (cmp == CMP.LE && cType instanceof UniverseExpression universe && universe.getSortExpression() instanceof SortExpression.Const(Sort sort) && sort.getHLevel().isInfinity()) {
+        InferenceLevelVariable pl = new InferenceLevelVariable(LevelVariable.LvlType.PLVL, true, sourceNode);
+        addVariable(pl);
+        Sort genSort = new Sort(new Level(pl), sort.getHLevel());
+        solve(cInf, new UniverseExpression(genSort), false);
+        return Sort.compare(sort, genSort, cmp, this, sourceNode);
+      }
     }
 
     if (cmp == CMP.EQ && (inf1 != null && inf2 == null && expr2.getInferenceVariable(true) == null || inf2 != null && inf1 == null && expr1.getInferenceVariable(true) == null)) {

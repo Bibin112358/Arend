@@ -117,7 +117,7 @@
     | idp => inv (direct_image_id S)
 
   \func transport_direct_image-iso {L L' : Locale} (e : Iso {LocaleCat} {L} {L'}) (S : VSheaf { | C => L }) : transport (VSheaf S.D) (Cat.isotoid e) S = direct_image_locale e.f S
-    => transport_direct_image (Cat.isotoid e) S *> path (\lam i => direct_image_locale (Iso.f {univalence.f_ret e i}) S)
+    => transport_direct_image (Cat.isotoid e) S *> path \lam i => direct_image_locale (IsEquiv.f_ret univalence {e} i).f S
 }
 
 -- | Sheaves valued in sets

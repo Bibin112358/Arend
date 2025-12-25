@@ -973,7 +973,7 @@
   }
   | Func-id => idp
   | Func-o => idp
-  | isFullyFaithful => \new QEquiv {
+  | isFullyFaithful => inP \new QEquiv {
     | ret h => \new FrameHom {
       | func => h
       | func-top => func-unit
@@ -993,7 +993,7 @@
   | Func => Func
   | Func-id => idp
   | Func-o => idp
-  | isFullyFaithful {X} {Y} => \new QEquiv {
+  | isFullyFaithful {X} {Y} => inP \new QEquiv {
     | ret h => \new FrameHom {
       | func => h
       | func-top>= => locale_cover (func-image {h}) <=∘ Join-univ (\lam x => rewrite (inv (pmap (func {h}) (meet_<= top-univ)) *> func-conj) meet-right)

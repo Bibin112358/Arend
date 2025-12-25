@@ -135,7 +135,7 @@
       => transQEquiv (equality1 L L') $ sigma-right \lam p => pathConcatEquiv (VSheaf.transport_direct_image p L.R)
 
     \func equality3 (L L' : RingedLocale) : QEquiv {L = L'} {\Sigma (e : Iso {LocaleCat} {L.L} {L'.L}) (Iso {_} {VSheaf.direct_image_locale e.f L.R} {L'.R})}
-      => equality2 L L' `transQEquiv` sigma-left univalence `transQEquiv` sigma-right (later (\lam e => univalence))
+      => equality2 L L' `transQEquiv` sigma-left (IsEquiv.toQEquiv univalence) `transQEquiv` sigma-right (later (\lam e => IsEquiv.toQEquiv univalence))
   }
 
 \record RingedLocaleHom (Dom Cod : RingedLocale) (\coerce f : FrameHom Cod Dom) (f# : NatTrans (\suc \lp) Cod.R (VSheaf.direct_image_locale f Dom.R))
