@@ -4,7 +4,7 @@
 \import Category.Slice
 \import Category.Topos.Sheaf
 \import Category.Topos.Sheaf.Site
-\import Equiv (ESEquiv, Embedding, IsEquiv)
+\import Equiv
 \import Function.Meta
 \import Logic
 \import Logic.Meta

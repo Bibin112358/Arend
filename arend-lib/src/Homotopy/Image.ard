@@ -5,6 +5,7 @@
 \import Data.SeqColimit
 \import Equiv
 \import Equiv.Univalence
+\import Function
 \import Logic.Unique
 \import Homotopy.Fibration
 \import Homotopy.Pushout
@@ -29,23 +30,21 @@
 
       \func dom-map (a : A) : MImage => inSC {seq} {0} a
 
-      \lemma dom-map-surj (refl : \Pi {b : B} -> R b b) : Surjection dom-map =>
-        seqColimit-surj seq (\lam n => \new Surjection {
-          | isSurjMap y => \case \elim y \with {
-            | pinl a => inP (\case \elim n \with {
-              | 0 => (a, inv (path (pglue ((a,a,refl) : \Sigma (a : A) (a' : A) (R (f a) (f a'))))))
-              | suc n => (pinl a, inv (path (pglue ((a, pinl a, refl) : \Sigma (a : A) (x : (MImageAppr (suc n)).1) (R (f a) ((MImageAppr (suc n)).2 x))))))
-            })
-            | pinr x => inP (x,idp)
+      \lemma dom-map-surj (refl : \Pi {b : B} -> R b b) : IsSurj dom-map
+        => seqColimit-surj seq \lam n => \case \elim __ \with {
+          | pinl a => inP \case \elim n \with {
+            | 0 => (a, inv (path (pglue ((a,a,refl) : \Sigma (a : A) (a' : A) (R (f a) (f a'))))))
+            | suc n => (pinl a, inv (path (pglue ((a, pinl a, refl) : \Sigma (a : A) (x : (MImageAppr (suc n)).1) (R (f a) ((MImageAppr (suc n)).2 x))))))
           }
-        })
+          | pinr x => inP (x,idp)
+        }
 
       \func cod-map (x : MImage) : B \elim x
         | inSC {n} x => (MImageAppr n).2 x
         | quotSC {n} x => idp
 
       \lemma cod-map-emb (refl : \Pi {b : B} -> R b b) (refl-idp : \Pi {b : B} -> ret b b refl = idp) : Embedding cod-map =>
-        Embedding.fibers cod-map (\lam b => isContr'=>isProp (\lam (r : Fib cod-map b) => \case isSurjMap {dom-map-surj refl} r.1 \with {
+        Embedding.fibers cod-map (\lam b => isContr'=>isProp (\lam (r : Fib cod-map b) => \case dom-map-surj refl r.1 \with {
           | inP r' => rewriteI (pmap cod-map r'.2 *> r.2) (fibers-contr refl refl-idp r'.1)
         }))
         \where
@@ -70,7 +69,7 @@
     \func dom-map (a : A) : YImage S
       => MData.dom-map a
 
-    \lemma dom-map-surj : Surjection {A} {YImage S} dom-map
+    \lemma dom-map-surj : IsSurj dom-map
       => MData.dom-map-surj \lam {F} b => mkEquiv (inP idEquiv)
 
     \func cod-map (y : YImage S) (b : B) : \hType

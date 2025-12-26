@@ -30,7 +30,7 @@
         \case \elim __ \with {
           | inl j => local {Z} j
           | inr j => transport IsEquiv (inv (path (\lam i g d => rec.map g id id (\lam x => idpe (F j x)) d @ i)))
-                               (IsEquiv.trans (Embedding.diag-equiv (ESEquiv.fromIsEquiv (local {Z} j))) (pushout_pullback-equiv (F j)))
+                               (IsEquiv.trans (Embedding.diag-equiv (Embedding.fromIsEquiv (Z.local j))) (pushout_pullback-equiv (F j)))
         }}
   }
   \where {

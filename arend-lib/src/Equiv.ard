@@ -146,9 +146,9 @@
 
     \lemma fromEmbSurj {A B : \Sort} {f : A -> B} (emb : Embedding f) (surj : IsSurj f) : IsEquiv f
       => inP \new QEquiv {
-        | ret b => (ESEquiv.aux emb surj b).1
-        | ret_f a => (emb.isEmb _ _).sec (ESEquiv.aux emb surj (f a)).2
-        | f_sec b => (ESEquiv.aux emb surj b).2
+        | ret b => (emb.surj-split surj b).1
+        | ret_f a => (emb.isEmb _ _).sec (emb.surj-split surj (f a)).2
+        | f_sec b => (emb.surj-split surj b).2
       }
 
     \lemma fromInjSurj {A B : \Set} {f : A -> B} (inj : IsInj f) (surj : IsSurj f) : IsEquiv f
@@ -277,6 +277,9 @@
   | isEmb : \Pi (a a' : A) -> Retraction (pmap f {a} {a'})
 
   \func pmap-isEquiv {a a' : A} : QEquiv (pmap f {a} {a'}) => pathEquiv (f __ = f __) (\lam {a} {a'} => isEmb a a')
+
+  \lemma surj-split (s : IsSurj f) (y : B)
+    => TruncP.remove (Embedding.embeddingFiber-isProp \this y) (s y)
 } \where {
   \use \level levelProp {A B : \Sort} {f : A -> B} (e e' : Embedding f) : e = e'
     => path (\lam i => \new Embedding f (\lam a a' => Retraction.levelProp (pathEquiv (e __ = e __) (\lam {a} {a'} => e.isEmb a a')) (e.isEmb a a') (e'.isEmb a a') @ i))
@@ -286,6 +289,9 @@
       | sec => inj
       | f_sec p => prop-pi {f a = f a'}
     }
+
+  \sfunc fromIsEquiv {A B : \Sort} {f : A -> B} (e : IsEquiv f) : Embedding f \cowith
+    | isEmb a a' => IsEquiv.toQEquiv (pmapIsEquiv e)
 
   -- | The diagonal of an embedding is an equivalence
   \lemma diag-equiv (e : Embedding) : IsEquiv {e.A} {\Sigma (a1 a2 : e.A) (e a1 = e a2)} (\lam a => (a, a, idp)) =>
@@ -345,29 +351,3 @@
   }
 
 \func \infixr 1 >-> (A B : \Sort) => Embedding {A} {B}
-
-\record Surjection \extends TypeMap
-  | isSurjMap (y : B) : ∃ (x : A) (f x = y)
-
-\func \infixr 1 ->> (A B : \Sort) => Surjection {A} {B}
-
-\record ESEquiv \extends Embedding, Surjection, Section, Retraction
-  | ret y => (aux \this isSurjMap y).1
-  | sec y => (aux \this isSurjMap y).1
-  | ret_f x => (isEmb _ _).sec (aux \this isSurjMap (f x)).2
-  | f_sec y => (aux \this isSurjMap y).2
-  \where {
-    \use \level levelProp {A B : \Sort} {f : A -> B} (e e' : ESEquiv f) : e = e' =>
-      path (\lam i => \new ESEquiv { | Embedding  => Embedding.levelProp  e e' @ i
-                                     | Surjection => prop-isProp {Surjection f} e e' @ i })
-
-    \use \coerce fromQEquiv (e : QEquiv) : ESEquiv e.f \cowith
-      | isEmb a a' => IsEquiv.toQEquiv $ pmapIsEquiv (inP e)
-      | isSurjMap y => inP (e.sec y, e.f_sec y)
-
-    \sfunc fromIsEquiv {A B : \Sort} {f : A -> B} (e : IsEquiv f) : ESEquiv f
-      => fromQEquiv (IsEquiv.toQEquiv e)
-
-    \protected \lemma aux (e : Embedding) (s : IsSurj e) (y : e.B)
-      => TruncP.remove (Embedding.embeddingFiber-isProp e y) (s y)
-  }
