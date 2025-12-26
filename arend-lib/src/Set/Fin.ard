@@ -175,7 +175,7 @@
       | suc n, suc x0, suc x, suc<suc p => pmap suc (skip-right p) *> suc_pred (/=-sym $ NatSemiring.<_/= $ zero<=_ <∘r p)
 
     \lemma fromArray {A : \Set} (l : Array A) (p : \Pi (a : A) -> ∃ (i : Fin l.len) (l i = a)) (q : \Pi {i j : Fin l.len} -> l i = l j -> i = j) : FinSet A l.len \cowith
-      | finEq => inP (QEquiv.fromInjSurj q p)
+      | finEq => IsEquiv.fromInjSurj q p
   }
 
 \lemma finCard_Equiv {A B : FinSet} (e : QEquiv {A} {B}) : A.finCard = B.finCard
@@ -321,7 +321,7 @@
 \instance OrFin (S T : FinSet) : FinSet (Or S T)
   | finCard => S.finCard + T.finCard
   | finEq => \case S.finEq, T.finEq \with {
-    | inP Se, inP Te => inP $ transEquiv (aux {S.finCard} {T.finCard}) (Or.Or_QEquiv Se Te)
+    | inP Se, inP Te => inP $ transQEquiv (aux {S.finCard} {T.finCard}) (Or.Or_QEquiv Se Te)
   }
   \where {
     \func aux {n m : Nat} : QEquiv {Fin (n + m)} {Or (Fin n) (Fin m)} \cowith

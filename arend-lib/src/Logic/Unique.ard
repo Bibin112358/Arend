@@ -15,8 +15,8 @@
     \use \level levelProp (A : \Sort) (e e' : isProp A) : e = e'
       => path \lam i a a' => =>isSet e a a' (e a a') (e' a a') i
 
-    \lemma equiv (e : QEquiv) (As : isProp e.B) : isProp e.A
-      => \lam a a' => inv (e.ret_f a) *> pmap e.ret (As _ _) *> e.ret_f a'
+    \lemma equiv {A B : \Sort} {f : A -> B} (e : IsEquiv f) (As : isProp B) : isProp A
+      => \lam a a' => inv (IsEquiv.ret_f e) *> pmap (IsEquiv.ret e) (As _ _) *> IsEquiv.ret_f e
   }
 
 \func isSet (A : \Sort) => \Pi (a a' : A) (p q : a = a') -> p = q
@@ -24,8 +24,8 @@
     \use \level levelProp {A : \Sort} (e e' : isSet A) : e = e'
       => path \lam i a a' => isProp.levelProp (a = a') (e a a') (e' a a') i
 
-    \lemma equiv (e : QEquiv) (As : isSet e.B) : isSet e.A
-      => \lam a a' => isProp.equiv (pmapEquiv e) (As _ _)
+    \lemma equiv {A B : \Sort} {f : A -> B} (e : IsEquiv f) (As : isSet B) : isSet A
+      => \lam a a' => isProp.equiv (pmapIsEquiv e) (As _ _)
   }
 
 -- | hLevels are closed under pi-types
@@ -43,6 +43,10 @@
       | contraction a' => pathOver {\lam i => c1.contraction c2.center i = a'} {c1.contraction a'} {c2.contraction a'}
           (isProp.=>isSet (\lam x y => inv (c1.contraction x) *> c1.contraction y) c2.center a' _ _) i
     })
+
+    \lemma Contr_QEquiv {A B : \Sort} (e : QEquiv {A} {B}) (c : Contr A) : Contr B \cowith
+      | center => e c.center
+      | contraction b => e.adjointInv (c.contraction _)
   }
 
 \lemma contr-equiv (A B : Contr) {f : A -> B} : IsEquiv f

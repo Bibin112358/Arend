@@ -581,7 +581,7 @@
   \lemma FinSum_Equiv {A B : FinSet} (e : QEquiv {A} {B}) {x : B -> E} : FinSum x = FinSum (\lam a => x (e a))
     => \case FinSum_char _ \with {
       | inP p => \let A' => \new FinSet A B.finCard { | finEq => TruncP.map B.finEq \lam e' => transQEquiv e' (symQEquiv e)}
-                 \in FinSum_char2 (transEquiv p.1 e) *> inv p.2 *> pmap {FinSet A} (FinSum {_} {__} _) (FinSet.levelProp A' A)
+                 \in FinSum_char2 (transQEquiv p.1 e) *> inv p.2 *> pmap {FinSet A} (FinSum {_} {__} _) (FinSet.levelProp A' A)
     }
 
   \lemma FinSum_Equiv2 {A B : FinSet} (e : QEquiv {A} {B}) {x : A -> E} {y : B -> E} (p : \Pi (a : A) -> x a = y (e a)) : FinSum x = FinSum y
@@ -609,7 +609,7 @@
 
   \lemma FinSum_Or {A B : FinSet} {x : Or A B -> E} : FinSum x = FinSum (\lam a => x (inl a)) + FinSum (\lam b => x (inr b))
     => \case FinSum_char _, FinSum_char _ \with {
-      | inP p, inP q => FinSum_char2 (transEquiv (OrFin.aux {A.finCard} {B.finCard}) (Or.Or_QEquiv p.1 q.1)) *> BigSum_Or (\lam a => x (Or.map a p.1 q.1)) *> inv (pmap2 (+) p.2 q.2)
+      | inP p, inP q => FinSum_char2 (transQEquiv (OrFin.aux {A.finCard} {B.finCard}) (Or.Or_QEquiv p.1 q.1)) *> BigSum_Or (\lam a => x (Or.map a p.1 q.1)) *> inv (pmap2 (+) p.2 q.2)
     }
 
   \lemma FinSum-unique {J : FinSet} {a : J -> E} (j : J) (p : \Pi (j' : J) -> j' /= j -> a j' = 0) : FinSum a = a j

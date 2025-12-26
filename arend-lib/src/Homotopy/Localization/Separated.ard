@@ -5,6 +5,7 @@
 \import Equiv
 \import Equiv.Sigma
 \import Equiv.Univalence
+\import Function.Meta
 \import Logic.Unique
 \import Homotopy.Image
 \import Homotopy.Localization.Equiv
@@ -34,31 +35,30 @@
     \func F {U : ReflUniverse} {A : \hType} (a : A) : YImage S
       => YImage.dom-map a
 
-    \func pathEquiv {U : ReflUniverse} {A : \hType} (a a' : A) : (F a = F a') = LType (a = a') => NewEquiv_= (=_NewEquiv (
-      \let | E => \Pi (x : A) -> Equiv {S a' x} {S a x}
-           | emb => transEmbedding (\new Embedding {E} (\lam h x => (h x).f) (\lam e e' =>
-                                          \new Retraction { | sec p => path (\lam i x => Equiv.equals (path ((p @ __) x)) @ i) | f_sec => idpe }))
-                                   (ESEquiv.fromEquiv (localYoneda a' (\lam y => LType (a = y))))
+    \func pathEquiv {U : ReflUniverse} {A : \hType} (a a' : A) : (F a = F a') = LType (a = a') => Equiv_= $ =_Equiv
+      \let | E => \Pi (x : A) -> Equiv (S a' x) (S a x)
+           | emb => transEmbedding (piEmbedding \lam a'' => Equiv.toFunc-embedding {LType (a' = a'')} {LType (a = a'')})
+                                   (ESEquiv.fromIsEquiv (localYoneda a' (\lam y => LType (a = y))))
       \in (F a = F a')                    ==< QEquiv_= YImage.cod-map-emb.pmap-isEquiv >==
           (S a = S a')                    ==< path-sym (S a) (S a') >==
           (S a' = S a)                    ==< path (iso {S a' = S a} (\lam p x => path ((p @ __) x)) (\lam h => path (\lam i x => h x @ i)) idpe idpe) >==
-          (\Pi (x : A) -> S a' x = S a x) ==< path (\lam i => \Pi (x : A) -> QEquiv_= typeUnivalence @ {_} {_} {Equiv {S a' x} {S a x}} i) >==
-          E                               ==< Equiv-to-= (localizationFactorEmbedding
+          (\Pi (x : A) -> S a' x = S a x) ==< path (\lam i => \Pi (x : A) -> QEquiv_= typeUnivalence @ {_} {_} {Equiv (S a' x) (S a x)} i) >==
+          E                               ==< Equiv_= (mkEquiv $ localizationFactorEmbedding
                                                               (piLocal (\lam x => equivLocal (LType (a' = x)) (LType (a = x))))
-                                                              (\lam p x => transport (\lam y => Equiv {S y x} {S a x}) p idEquiv)
+                                                              (\lam p x => transport (\lam y => Equiv (S y x) (S a x)) p $ mkEquiv $ inP idEquiv)
                                                               emb
-                                                              (\lam p => Jl (\lam x p' => transport (\lam y => Equiv {S y x} {S a x}) p' idEquiv (lEta idp) = inL p') idp p)) >==
-          (LType (a = a') : \hType)       `qed))
+                                                              (\lam p => Jl (\lam x p' => transport (\lam y => Equiv (S y x) (S a x)) p' (mkEquiv (inP idEquiv)) (lEta idp) = inL p') idp p)) >==
+          (LType (a = a') : \hType)       `qed
 
-    \lemma separatedLocalization {U : Universe} (f : Surjection) (p : \Pi (a a' : f.A) -> \Sigma (P : Local (f a = f a')) (Localization (a = a') P))
-      : \Sigma (L : Local {Separated U} f.B) (Localization {Separated U} f.A L f)
-      => \have B-local (b b' : f.B) : isLocal (b = b') =>
+    \lemma separatedLocalization {U : Universe} {A B : \hType} (f : Surjection {A} {B}) (p : \Pi (a a' : A) -> \Sigma (P : Local (f a = f a')) (Localization (a = a') P))
+      : \Sigma (L : Local {Separated U} B) (Localization {Separated U} A L f)
+      => \have B-local (b b' : B) : isLocal (b = b') =>
                 \case f.isSurjMap b, f.isSurjMap b' \with {
                   | inP (a,q), inP (a',q') => transport2 _ q q' (local {(p a a').1})
                 }
          \in (\new Local { | local => B-local }, \new Localization { | local-univ C => Extension.contr-equiv f (\lam g b =>
             \case f.isSurjMap b \with {
-              | inP (a',q) => later rewriteI q (coe (\lam i => Contr (\Sigma (c : C) (\Pi (a : f.A) -> inv (Equiv-to-= (local-univ {(p a a').2} (\new Local (g a = c) (local {C} (g a) c)))) @ i)))
+              | inP (a',q) => later rewriteI q (coe (\lam i => Contr (\Sigma (c : C) (\Pi (a : A) -> inv (Equiv_= $ mkEquiv ((p a a').2.local-univ \new Local (g a = c) (C.local (g a) c))) @ i)))
                                                     (coe (\lam i => Contr (\Sigma (c : C) (inv (QEquiv_= (pi-contr-right a' (\lam x _ => g x = c))) @ i))) (lsigma (g a')) right) right)
             }) })
   }

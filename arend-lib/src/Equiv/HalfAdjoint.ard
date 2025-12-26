@@ -1,6 +1,7 @@
 \import Equiv
 \import Equiv.Fiber
 \import Function.Meta
+\import Logic
 \import Logic.Unique
 \import Homotopy.Fibration
 \import Paths
@@ -33,7 +34,7 @@
            | T1'=T1 (r : Retraction f) (x : A) : T1' r x = T1 r x =>
               QEquiv_= (Fib.equiv (f x) (r.sec (f x), r.f_sec (f x)) (x,idp))
            | T1'-isContr (r : Retraction f) (x : A) : Contr (T1' r x) =>
-              isProp=>PathContr (Fib f (f x)) (isContr=>isProp (Equiv=>contrFibers e (f x))) _ _
+              isProp=>PathContr (Fib f (f x)) (isContr=>isProp (IsEquiv=>contrFibers (inP e) (f x))) _ _
            | T1-isContr (r : Retraction f) (x : A) : Contr (T1 r x) =>
               rewriteI (T1'=T1 r x) (T1'-isContr r x)
            | T2 => \Sigma (r : Retraction f) (\Pi (x : A) -> T1 r x)

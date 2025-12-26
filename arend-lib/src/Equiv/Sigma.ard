@@ -68,9 +68,9 @@
 
 -- | The HoTT book, Theorem 4.7.7
 \lemma totalEquiv {J : \hType} {A B : J -> \hType} (f : \Pi (j : J) -> A j -> B j)
-  : (\Pi (j : J) -> Equiv (f j)) = Equiv total
-  => propExt (\lam e => contrFibers=>QEquiv (\lam p => rewrite (totalFiber p.1 p.2) (Equiv=>contrFibers (e p.1) p.2)))
-             (\lam e j => contrFibers=>QEquiv (\lam b => rewriteI (totalFiber j b) (Equiv=>contrFibers e ((j,b) : \Sigma (j : J) (B j)))))
+  : (\Pi (j : J) -> IsEquiv (f j)) = IsEquiv total
+  => propExt (\lam e => contrFibers=>IsEquiv (\lam p => rewrite (totalFiber p.1 p.2) (IsEquiv=>contrFibers (e p.1) p.2)))
+             (\lam e j => contrFibers=>IsEquiv (\lam b => rewriteI (totalFiber j b) (IsEquiv=>contrFibers e ((j,b) : \Sigma (j : J) (B j)))))
   \where {
     \func total (p : \Sigma (j : J) (A j)) : \Sigma (j : J) (B j)
       => (p.1, f p.1 p.2)

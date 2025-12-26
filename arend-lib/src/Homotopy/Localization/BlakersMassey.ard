@@ -4,9 +4,11 @@
  -   * Mathieu Anel, Georg Biedermann, Eric Finster, André Joyal, A Generalized Blakers-Massey Theorem (https://arxiv.org/abs/1703.09050)
  -  -}
 
+\import Algebra.Meta
 \import Equiv
 \import Equiv.Sigma
 \import Equiv.Univalence
+\import Function.Meta
 \import Logic.Unique
 \import Homotopy.Fibration
 \import Homotopy.Join
@@ -34,27 +36,30 @@
       | p : \Pi (a : A) (m : M a) -> (g (f (a,m))).1 = a
       | q : \Pi (b : B) (n : N b) -> (f (g (b,n))).1 = b
 
-      \func eval (a : A) (m : M a) : lift (\lam a => sec {Connected.equiv {M a} (LType B)} (\lam m => lEta (f (a,m)).1)) (lEta a) = lEta (f (a,m)).1 =>
-        lift-prop (\lam a => sec {Connected.equiv {M a} (LType B)} (\lam m => lEta (f (a,m)).1)) a *> path (\lam i => (f_sec {Connected.equiv {M a} (LType B)} (\lam m => lEta (f (a,m)).1) @ i) m)
+      \func eval (a : A) (m : M a) : lift (\lam a => IsEquiv.ret ((M a).equiv (LType B)) (\lam m => lEta (f (a,m)).1)) (lEta a) = lEta (f (a,m)).1 =>
+        lift-prop (\lam a => IsEquiv.ret ((M a).equiv (LType B)) \lam m => lEta (f (a,m)).1) a *> path \lam i => IsEquiv.f_ret ((M a).equiv (LType B)) i m
 
-      \lemma equiv-lemma : Equiv {LType A} {LType B} (lift (\lam a => sec {Connected.equiv {M a} (LType B)} (\lam m => lEta (f (a,m)).1)))
-        => \let | E1 a => Connected.equiv {M a} (LType B)
-                | E2 b => Connected.equiv {N b} (LType A)
+      \func ltype-map : LType A -> LType B
+        => lift \lam a => IsEquiv.ret ((M a).equiv (LType B)) (\lam m => lEta (f (a,m)).1)
+
+      \lemma equiv-lemma : IsEquiv {LType A} {LType B} ltype-map
+        => \let | E1 a => (M a).equiv (LType B)
+                | E2 b => (N b).equiv (LType A)
                 | f1 a m => lEta (f (a,m)).1
                 | g1 b n => lEta (g (b,n)).1
-                | F a => sec {E1 a} (f1 a)
-                | G b => sec {E2 b} (g1 b)
-           \in localization-equiv F G
-                  (\lam a => sec {Connected.equiv {M a} (pathLocal (lift G (F a)) (lEta a))}
-                                       (\lam m => lift G (F a)        ==< path (\lam i => lift G ((f_sec {E1 a} (f1 a) @ i) m)) >==
+                | F a => IsEquiv.ret (E1 a) (f1 a)
+                | G b => IsEquiv.ret (E2 b) (g1 b)
+           \in inP $ localization-equiv F G
+                  (\lam a => IsEquiv.ret ((M a).equiv (pathLocal (lift G (F a)) (lEta a)))
+                                       (\lam m => lift G (F a)        ==< path (\lam i => lift G ((IsEquiv.f_ret (E1 a) i) m)) >==
                                                   lift G (f1 a m)     ==< lift-prop G (f (a,m)).1 >==
-                                                  G (f (a,m)).1       ==< path (\lam i => (f_sec {E2 (f (a,m)).1} (g1 (f (a,m)).1) @ i) (f (a,m)).2) >==
+                                                  G (f (a,m)).1       ==< path (\lam i => (IsEquiv.f_ret (E2 (f (a,m)).1) i) (f (a,m)).2) >==
                                                   inL (g (f (a,m))).1 ==< pmap inL (p a m) >==
                                                   inL a               `qed))
-                  (\lam b => sec {Connected.equiv {N b} (pathLocal (lift F (G b)) (lEta b))}
-                                       (\lam n => lift F (G b)        ==< path (\lam i => lift F ((f_sec {E2 b} (g1 b) @ i) n)) >==
+                  (\lam b => IsEquiv.ret ((N b).equiv (pathLocal (lift F (G b)) (lEta b)))
+                                       (\lam n => lift F (G b)        ==< path (\lam i => lift F ((IsEquiv.f_ret (E2 b) i) n)) >==
                                                   lift F (g1 b n)     ==< lift-prop F (g (b,n)).1 >==
-                                                  F (g (b,n)).1       ==< path (\lam i => (f_sec {E1 (g (b,n)).1} (f1 (g (b,n)).1) @ i) (g (b,n)).2) >==
+                                                  F (g (b,n)).1       ==< path (\lam i => (IsEquiv.f_ret (E1 (g (b,n)).1) i) (g (b,n)).2) >==
                                                   inL (f (g (b,n))).1 ==< pmap inL (q b n) >==
                                                   inL b               `qed))
     }
@@ -81,14 +86,14 @@
                            | f => pinr
                            | g => Embedding.projection (\lam y => TruncP (\Sigma (x : X) (Q x y)))
                          }
-                | t => ret {EP.pullback-path-equiv (pinl x) y} (pmap
+                | t => (EP.pullback-path-equiv (pinl x) y).ret $ pmap
                         (\case __ \with {
                            | pinl x => pinl (pinl x)
                            | pinr y => pinr y
                            | pglue (x,y,q) i =>
                              (pmap pinl (PushoutData.ppglue {\Sigma (x : X) (y : Y) (Q x y)} (x,y,q)) *>
                               PushoutData.ppglue {EP.A} (y, inP (x,q))) @ i
-                        }) p)
+                        }) p
           \in rewrite t.3 t.1.2
     }
 
@@ -107,13 +112,13 @@
         => LType (\Sigma (q1 : Q x y0) (pbMap q0 *> inv (pbMap q1) *> p = p'))
 
       \func code-glue-gen {x : X} {w : PO} (code : pinl x0 = w -> \hType) (p : pinl x = w)
-                          (t : \Pi (p' : pinl x0 = w) -> Equiv {code-left p p'} {code p'})
+                          (t : \Pi (p' : pinl x0 = w) -> Equiv (code-left p p') (code p'))
         : transport (pinl x0 = __ -> \hType) p (code-left idp) = code \elim p
-        | idp => path (\lam i p' => Equiv-to-= (t p') @ i)
+        | idp => path (\lam i p' => Equiv_= (t p') @ i)
 
       \func code-glue {x : X} {y : Y} (q : Q x y)
         : transport (pinl x0 = __ -> \hType) (pbMap q) (code-left idp) = (\lam p => LType (Fib pbMap p))
-        => code-glue-gen (\lam p => LType (Fib pbMap p)) (pbMap q) (code.equiv q)
+        => code-glue-gen (\lam p => LType (Fib pbMap p)) (pbMap q) \lam p => mkEquiv (code.equiv q p)
 
       \func code {w : PO} (p : pinl x0 = w) : \hType \elim w
         | pinl x => code-left idp p
@@ -138,7 +143,9 @@
             | p => LRL q p
             | q => RLR q p
 
-          \lemma equiv {x : X} {y : Y} (q : Q x y) (p : pinl x0 = {PO} pinr y) => EquivData.equiv-lemma {equivData q p}
+          \lemma equiv {x : X} {y : Y} (q : Q x y) (p : pinl x0 = {PO} pinr y)
+            => (equivData q p).equiv-lemma
+            \where \protected \func func => (equivData q p).ltype-map
 
           \func pathLem1 {A : \hType} {a a' a'' : A} (p : a = a') (q : a'' = a') : p *> inv q *> q = p
             | idp, idp => idp
@@ -203,9 +210,9 @@
       \func code-left-diag {w : PO} (p : pinl x0 = w) (v : code-left idp idp) : code-left p p
         => lmap {_} {Left idp} {Left p} (\lam t => (t.1, code.pathLem2-gen t.2)) v
 
-      \func coerce-path-glue-gen {w : PO} (p : pinl x0 = w) (t : \Pi (p' : pinl x0 = w) -> Equiv {code-left p p'} {code p'}) (v : code-left idp idp)
-        : transport (\lam T => T) (coerce-path-gen p (code-glue-gen code p t)) v = t p (code-left-diag p v) \elim p
-        | idp => pmap (t idp) (inv (lmap.id-prop v))
+      \func coerce-path-glue-gen {w : PO} (p : pinl x0 = w) (t : \Pi (p' : pinl x0 = w) -> Equiv (code-left p p') (code p')) (v : code-left idp idp)
+        : transport (\lam T => T) (coerce-path-gen p (code-glue-gen code p t)) v = Equiv.toFunc (t p) (code-left-diag p v) \elim p
+        | idp => pmap (Equiv.toFunc (t idp)) (inv (lmap.id-prop v))
 
       \func code-center {w : PO} (p : pinl x0 = w) : code p
         => transport (\lam T => T) (coerce-path p) (lEta point)
@@ -216,10 +223,10 @@
             code-center (pbMap q)
               ==< pmap (\lam s => transport (\lam T => T) (coerce-path-gen (pbMap q) s) (lEta code-center.point)) (pmapd_pathOver (pinl x0 = __ -> \hType) (\lam _ => code) (pbMap q) (code-glue q) idp) >==
             transport (\lam T => T) (coerce-path-gen (pbMap q) (code-glue q)) (lEta code-center.point)
-              ==< coerce-path-glue-gen (pbMap q) (code.equiv q) (lEta code-center.point) >==
-            code.equiv q (pbMap q) (code-left-diag (pbMap q) (lEta code-center.point))
-              ==< pmap (code.equiv q (pbMap q)) (lift-prop (\lam (t : Left idp) => inL ((t.1, code.pathLem2-gen t.2) : Left (pbMap q))) code-center.point) >==
-            code.equiv q (pbMap q) (lEta ((q0, code.pathLem2 (pbMap q0) (pbMap q)) : Left (pbMap q)))
+              ==< coerce-path-glue-gen (pbMap q) (\lam p => mkEquiv $ code.equiv q p) (lEta code-center.point) >==
+            code.equiv.func (code-left-diag (pbMap q) (lEta code-center.point))
+              ==< pmap code.equiv.func (lift-prop (\lam (t : Left idp) => inL ((t.1, code.pathLem2-gen t.2) : Left (pbMap q))) code-center.point) >==
+            code.equiv.func (lEta ((q0, code.pathLem2 (pbMap q0) (pbMap q)) : Left (pbMap q)))
               ==< EquivData.eval {code.equivData q (pbMap q)} (q0, code.pathLem2 (pbMap q0) (pbMap q)) (pinr (idp,idp)) >==
             lEta ((q, inv (code.pathLem2 (pbMap q0) (pbMap q)) *> code.pathLem2 (pbMap q0) (pbMap q)) : Fib pbMap p)
               ==< pmap (\lam x => lEta ((q,x) : Fib pbMap p)) (inv_*> (code.pathLem2 (pbMap q0) (pbMap q))) >==

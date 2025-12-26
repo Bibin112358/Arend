@@ -1,8 +1,10 @@
 \import Data.Sigma
 \import Equiv
+\import Equiv.BiEquiv
 \import Equiv.Path
 \import Equiv.Sigma
 \import Function
+\import Function.Meta
 \import Logic.Unique
 \import Homotopy.Square
 \import Logic
@@ -19,22 +21,22 @@
 -- | The type of localizations of a type
 \class Localization {U : Universe} (S : \hType) (S' : Local) {
   | inL : S -> S'
-  | local-univ (Z : Local) : Equiv {S' -> Z} {S -> Z} (-o inL)
+  | local-univ (Z : Local) : IsEquiv {S' -> Z} {S -> Z} (-o inL)
 
-  \func lift {Z : Local {U}} (f : S -> Z) (x' : S') : Z => sec {local-univ Z} f x'
+  \func lift {Z : Local {U}} (f : S -> Z) (x' : S') : Z => IsEquiv.ret (local-univ Z) f x'
     \where
       -- | The lift of a constant map is constant
       \func const {Z : Local {U}} (z : Z) (x' : S') : lift (\lam _ => z) x' = z
         => remove_inL (lift (\lam _ => z)) (\lam _ => z) (lift-prop (\lam _ => z)) x'
 
-  \func lift-prop {Z : Local {U}} (f : S -> Z) (x : S) : lift f (inL x) = f x => path (\lam i => (f_sec {local-univ Z} f @ i) x)
+  \func lift-prop {Z : Local {U}} (f : S -> Z) (x : S) : lift f (inL x) = f x
+    => path \lam i => IsEquiv.f_ret (local-univ Z) i x
 
   \func remove_inL {Z : Local {U}} (f g : S' -> Z) (p : \Pi (x : S) -> f (inL x) = g (inL x)) (x : S') : f x = g x
-    => path (\lam i => (sec {pmapEquiv (local-univ Z) {f} {g}} (path (\lam i x => p x @ i)) @ i) x)
+    => path \lam i => IsEquiv.ret (pmapIsEquiv (local-univ Z)) (path \lam i x => p x i) i x
 
   \func remove_inL-coh {Z : Local {U}} (f g : S' -> Z) (p : \Pi (x : S) -> f (inL x) = g (inL x)) (x : S) : remove_inL f g p (inL x) = p x
-    => \have t => f_sec {pmapEquiv (local-univ Z) {f} {g}} (path (\lam i x => p x @ i))
-       \in pmap (\lam q => path ((q @ __) x)) t
+    => pmap (\lam q => path (q __ x)) $ IsEquiv.f_ret $ pmapIsEquiv (local-univ Z)
 } \where {
   \sfunc levelProp {U : Universe} (X : \hType) (l1 l2 : Localization X) : l1 = l2
     => \let p : l1.S' = {\hType} l2.S' => path (iso (l1.lift l2.inL)
@@ -71,8 +73,8 @@
   }
 
 -- | If ``inL : X -> X'`` is a section, then it is an equivalence.
-\lemma sectionIsEquiv {U : ReflUniverse} (X : \hType) (s : Section (inL {localization X})) : Equiv (inL {localization X})
-  => lem (localization X) s
+\lemma sectionIsEquiv {U : ReflUniverse} (X : \hType) (s : Section (inL {localization X})) : IsEquiv (inL {localization X})
+  => inP $ lem (localization X) s
   \where
     \func lem {U : Universe} (L : Localization) (s : Section {L.S} {L.S'} inL) : QEquiv {L.S} {L.S'} inL \cowith
       | ret => s.ret
@@ -80,10 +82,10 @@
       | f_sec => remove_inL (inL `o` s.ret) id (\lam x => pmap inL (s.ret_f x))
 
 -- | If {X} is local, then ``inL : X -> X'`` is an equivalence.
-\lemma localizationOfLocalType {U : ReflUniverse} (X : Local) : Equiv (inL {localization X})
-  => lem X (localization X)
+\lemma localizationOfLocalType {U : ReflUniverse} (X : Local) : IsEquiv (inL {localization X})
+  => inP $ lem X (localization X)
   \where
-    \lemma lem {U : Universe} (X : Local) (L : Localization X) : Equiv {X} {L.S'} inL
+    \func lem {U : Universe} (X : Local) (L : Localization X) : QEquiv {X} {L.S'} inL
       => sectionIsEquiv.lem L (\new Section {
            | ret => lift id
            | ret_f => lift-prop id
@@ -105,23 +107,23 @@
       | f_sec => remove_inL (g `o` lift f) id (\lam x => pmap g (lift-prop f x) *> p x)
 
 -- | If ``inL : X -> X'`` factors through a section ``g : Y -> X'`` with {Y} local, then {g} is an equivalence.
-\lemma localizationFactorSection {U : ReflUniverse} {X : \hType} (Y : Local) (f : X -> Y) (g : Section {Y} {LType X}) (p : \Pi (x : X) -> g (f x) = inL {localization X} x) : Equiv g
+\lemma localizationFactorSection {U : ReflUniverse} {X : \hType} (Y : Local) (f : X -> Y) (g : Section {Y} {LType X}) (p : \Pi (x : X) -> g (f x) = inL {localization X} x) : IsEquiv g
   => lem (localization X) Y f g p
   \where
-    \func lem {U : Universe} (L : Localization) (Y : Local) (f : L.S -> Y) (g : Section {Y} {L.S'}) (p : \Pi (x : L.S) -> g (f x) = inL x) : Equiv g \cowith
-      | Section => g
-      | Retraction => localizationFactor.lem L Y f g p
+    \func lem {U : Universe} (L : Localization) (Y : Local) (f : L.S -> Y) (g : Section {Y} {L.S'}) (p : \Pi (x : L.S) -> g (f x) = inL x) : IsEquiv g
+      => inP $ BiEquiv.toQEquiv \new BiEquiv {
+        | Section => g
+        | Retraction => localizationFactor.lem L Y f g p
+      }
 
 -- | If ``inL : X -> X'`` factors through an embedding ``g : Y -> X'`` with {Y} local, then {g} is an equivalence.
-\lemma localizationFactorEmbedding {U : ReflUniverse} {X : \hType} (Y : Local) (f : X -> Y) (g : Y >-> LType X) (p : \Pi (x : X) -> g (f x) = inL {localization X} x) : Equiv g
+\lemma localizationFactorEmbedding {U : ReflUniverse} {X : \hType} (Y : Local) (f : X -> Y) (g : Y >-> LType X) (p : \Pi (x : X) -> g (f x) = inL {localization X} x) : IsEquiv g
   => lem (localization X) Y f g p
   \where
-    \lemma lem {U : ReflUniverse} (L : Localization) (Y : Local) (f : L.S -> Y) (g : Y >-> L.S') (p : \Pi (x : L.S) -> g (f x) = inL x) : Equiv g
-      => \new ESEquiv {
-        | Embedding => g
-        | isSurjMap x =>\have r : Retraction g => localizationFactor.lem L Y f g p
-                      \in inP (r.sec x, r.f_sec x)
-      }
+    \lemma lem {U : ReflUniverse} (L : Localization) (Y : Local) (f : L.S -> Y) (g : Y >-> L.S') (p : \Pi (x : L.S) -> g (f x) = inL x) : IsEquiv g
+      => IsEquiv.fromEmbSurj g \lam x =>
+        \have r : Retraction g => localizationFactor.lem L Y f g p
+        \in inP (r.sec x, r.f_sec x)
 
 -- | Contractible types with a localization are local.
 \lemma contrLocal {U : ReflUniverse} {X : \hType} (C : Contr X) : Local X
@@ -174,20 +176,20 @@
                             | uv => luv
                             | sqcomm => remove_inL (P.square.vy `o` luv) (P.square.xy `o` lux) puy
                           }
-           | g => P.pullback-univ.sec LU-square
-      \in localizationWithRetraction.lem L (\new Section {
+           | g => IsEquiv.ret P.pullback-univ LU-square
+      \in localizationWithRetraction.lem L \new Section {
         | ret => g
-        | ret_f u => path (\lam i => (ret {pmapSection P.pullback-univ {g `o` inL} {id}} (
+        | ret_f u => path \lam i => ret {pmapSection (IsEquiv.toQEquiv P.pullback-univ) {g `o` inL} {id}} (
             pull P (g `o` inL)  ==< idp >==
-            pull (pull P g) inL ==< path (\lam i => pull (P.pullback-univ.f_sec LU-square @ i) inL) >==
+            pull (pull P g) inL ==< path (\lam i => pull (IsEquiv.f_ret P.pullback-univ i) inL) >==
             pull LU-square inL  ==< path (\lam i => \new P.square {
-                                                      | ux u => lift-prop P.square.ux u @ i
-                                                      | uv u => lift-prop P.square.uv u @ i
+                                                      | ux u => lift-prop P.square.ux u i
+                                                      | uv u => lift-prop P.square.uv u i
                                                       | sqcomm u => <*.concat (remove_inL-coh (P.square.vy `o` luv) (P.square.xy `o` lux) puy u)
-                                                                              (pathOver (coe_path.alt (puv u) (P.square.sqcomm u) (pux u))) @ i
+                                                                              (pathOver (coe_path.alt (puv u) (P.square.sqcomm u) (pux u))) i
                                                     }) >==
-            pull P id           `qed) @ i) u)
-      })
+            pull P id           `qed) i u
+      }
   }
 
 -- | Products of local types with a localization are local.
@@ -216,13 +218,13 @@
          })
 
 -- | The type of equivalences between local types is local
-\lemma equivLocal {U : ReflUniverse} (A B : Local) : Local (Equiv {A} {B}) =>
+\lemma equivLocal {U : ReflUniverse} (A B : Local) : Local (Equiv A B) =>
   \let | T => \Sigma (A -> B) (\Sigma (B -> A) (B -> A))
        | F (t : T) => (t.2.1 `o` t.1, t.1 `o` t.2.2)
   \in \new Local { | local =>
-    transport isLocal (inv (QEquiv_= \new QEquiv {Equiv {A} {B}} {\Sigma (t : T) (\Sigma) (F t = (id,id))} {
-      | f (e : Equiv) => ((e,(e.ret,e.sec)), (), path (\lam i => (e.ret_f __ @ i, e.f_sec __ @ i)))
-      | ret p => \new Equiv {
+    transportInv isLocal (inv (QEquiv_= BiEquiv~Equiv) *> QEquiv_= \new QEquiv {BiEquiv {A} {B}} {\Sigma (t : T) (\Sigma) (F t = (id,id))} {
+      | f e => ((e,(e.ret,e.sec)), (), path (\lam i => (e.ret_f __ @ i, e.f_sec __ @ i)))
+      | ret p => \new BiEquiv {
         | f => p.1.1
         | ret => p.1.2.1
         | ret_f a => path ((p.3 @ __).1 a)
@@ -231,10 +233,11 @@
       }
       | ret_f => idpe
       | f_sec => idpe
-    })) (local {pullbackLocal (sigmaPullback F (\lam (_ : \Sigma) => (id,id)))
-                               (productLocal (piLocal (\lam _ => B)) (productLocal (piLocal (\lam _ => A)) (piLocal (\lam _ => A))))
-                               unitLocal
-                               (productLocal (piLocal (\lam _ => A)) (piLocal (\lam _ => B)))}) }
+    }) (pullbackLocal (sigmaPullback F (\lam (_ : \Sigma) => (id,id)))
+                      (productLocal (piLocal (\lam _ => B)) (productLocal (piLocal (\lam _ => A)) (piLocal (\lam _ => A))))
+                      unitLocal
+                      (productLocal (piLocal (\lam _ => A)) (piLocal (\lam _ => B)))).local
+  }
 
 {- | An elimination principle for the localization in a reflective universe.
 
@@ -254,35 +257,34 @@
  - ```
 -}
 \lemma universe-elim {U : ReflUniverse} {A : \hType} (B : LType A -> \hType) (totalIsLocal : Local (\Sigma (x : LType A) (B x)))
-  : Equiv {\Pi (x : LType A) -> B x} {\Pi (a : A) -> B (lEta a)} (\lam f a => f (lEta a))
-  => piSigmaIdEquiv B `transEquiv` lem1 B `transEquiv` lem2 B totalIsLocal `transEquiv` symQEquiv (piSigmaEquiv lEta B)
+  : IsEquiv {\Pi (x : LType A) -> B x} {\Pi (a : A) -> B (lEta a)} (\lam f a => f (lEta a))
+  => inP (piSigmaIdEquiv B) IsEquiv.`trans` lem1 B IsEquiv.`trans` lem2 B totalIsLocal IsEquiv.`trans` inP (symQEquiv (piSigmaEquiv lEta B))
   \where {
     \lemma lem1 {U : ReflUniverse} {A : \hType} (B : LType A -> \hType)
-      : Equiv {\Sigma (g : LType A -> \Sigma (x : LType A) (B x)) ((\lam x => (g x).1) = id)}
-              {\Sigma (g : LType A -> \Sigma (x : LType A) (B x)) ((\lam a => (g (lEta a)).1) = lEta)}
-              (\lam p => (p.1, pmap (-o lEta) p.2))
-      => sigma-right {LType A -> \Sigma (x : LType A) (B x)}
-                     {\lam g => (\lam x => (g x).1) = id}
-                     (\lam g => pmapEquiv (local-univ {localization A} (LType A)))
+      : IsEquiv {\Sigma (g : LType A -> \Sigma (x : LType A) (B x)) ((\lam x => (g x).1) = id)}
+                {\Sigma (g : LType A -> \Sigma (x : LType A) (B x)) ((\lam a => (g (lEta a)).1) = lEta)}
+                (\lam p => (p.1, pmap (-o lEta) p.2))
+      => inP $ sigma-right {LType A -> \Sigma (x : LType A) (B x)}
+                           {\lam g => (\lam x => (g x).1) = id}
+                           \lam g => IsEquiv.toQEquiv $ pmapIsEquiv $ (localization A).local-univ (LType A)
 
     \lemma lem2 {U : ReflUniverse} {A : \hType} (B : LType A -> \hType) (totalIsLocal : Local (\Sigma (x : LType A) (B x)))
-      : Equiv {\Sigma (g : LType A -> \Sigma (x : LType A) (B x)) ((\lam a => (g (lEta a)).1) = lEta)}
-              {\Sigma (g : A -> \Sigma (x : LType A) (B x)) ((\lam a => (g a).1) = lEta)}
-              (\lam p => (\lam a => p.1 (lEta a), p.2))
-      => sigma-left (local-univ {localization A} totalIsLocal)
+      : IsEquiv {\Sigma (g : LType A -> \Sigma (x : LType A) (B x)) ((\lam a => (g (lEta a)).1) = lEta)}
+                {\Sigma (g : A -> \Sigma (x : LType A) (B x)) ((\lam a => (g a).1) = lEta)}
+                (\lam p => (\lam a => p.1 (lEta a), p.2))
+      => inP $ sigma-left $ IsEquiv.toQEquiv $ (localization A).local-univ totalIsLocal
   }
 
-\func localYoneda {U : ReflUniverse} {A : \hType} (a : A) (P : A -> Local)
-  : Equiv {\Pi (a' : A) -> LType (a = a') -> P a'} {P a}
-  => \let e a' => local-univ {localization (a = a')} (P a')
-     \in transEquiv (\new Equiv {
+\lemma localYoneda {U : ReflUniverse} {A : \hType} (a : A) (P : A -> Local)
+  : IsEquiv {\Pi (a' : A) -> LType (a = a') -> P a'} {P a} (\lam f => f a (inL idp))
+  => \let e a' => (localization (a = a')).local-univ (P a')
+     \in inP $ transQEquiv (\new QEquiv {
        | A => \Pi (a' : A) -> LType (a = a') -> P a'
        | B => \Pi (a' : A) -> a = a' -> P a'
-       | f h a' => e a' (h a')
-       | ret h a' => ret {e a'} (h a')
-       | ret_f h => path (\lam i a' => ret_f {e a'} (h a') @ i)
-       | sec h a' => sec {e a'} (h a')
-       | f_sec h => path (\lam i a' => f_sec {e a'} (h a') @ i)
+       | f h a' x => (h a') (inL x)
+       | ret h a' => IsEquiv.ret (e a') (h a')
+       | ret_f h => path \lam i a' => IsEquiv.ret_f (e a') {h a'} i
+       | f_sec h => path \lam i a' => IsEquiv.f_ret (e a') {h a'} i
      }) (pi-contr-left a (\lam a' _ => P a'))
 
 \func localization-equiv {U : ReflUniverse} {A B : \hType}

@@ -86,7 +86,7 @@
       }
 
     \use \level levelSet {R : AddPointed} : isSet (Poly R)
-      => isSet.equiv toQPoly-equiv (\lam _ _ _ _ => set-pi)
+      => isSet.equiv (inP toQPoly-equiv) (\lam _ _ _ _ => set-pi)
 
     \func poly-countable {R : AddPointed} (c : Countable R) : Countable (Poly R)
       => surj-countable (quotient-countable (array-countable c)) (symQEquiv toQPoly-equiv).isSurj

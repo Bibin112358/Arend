@@ -64,8 +64,8 @@
     \open MJoin
 
     \instance data : MData S \cowith
-      | R F G => \Pi (b : B) -> NewEquiv (F b) (G b)
-      | ret F G r => path (\lam i b => NewEquiv_= (r b) i)
+      | R F G => \Pi (b : B) -> Equiv (F b) (G b)
+      | ret F G r => path (\lam i b => Equiv_= (r b) i)
 
     \func dom-map (a : A) : YImage S
       => MData.dom-map a
@@ -78,6 +78,6 @@
 
     \lemma cod-map-emb : Embedding cod-map
       => MData.cod-map-emb (\lam {F} b => mkEquiv (inP idEquiv)) \lam {F} =>
-          \have p b : NewEquiv_= (mkEquiv (inP (idEquiv {F b}))) = idp => newUnivalence.ret_f idp
+          \have p b : Equiv_= (mkEquiv (inP (idEquiv {F b}))) = idp => typeUnivalence.ret_f idp
           \in path \lam i => path \lam j b => p b i j
   }

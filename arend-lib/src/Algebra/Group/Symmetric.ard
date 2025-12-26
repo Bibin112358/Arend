@@ -298,7 +298,7 @@
       | ret e => e
       | ret_f => idpe
       | f_sec => idpe
-    }) *> pmap2 (QEquiv {__} {__}) (QEquiv_= $ transport (\lam x => QEquiv {Fin x} {A}) e Ae) (QEquiv_= Be)) (SymFin B.finCard)
+    }) *> pmap2 {\Set} {\Set} (QEquiv {__} {__}) (QEquiv_= $ transport (\lam x => QEquiv {Fin x} {A}) e Ae) (QEquiv_= Be)) (SymFin B.finCard)
     | no q, _, _ => \new FinSet {
       | finCard => 0
       | finEq => inP $ emptyEquiv (later \case __) \lam e => q \case A.finEq, B.finEq \with {
