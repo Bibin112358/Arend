@@ -1,12 +1,12 @@
 package org.arend.typechecking;
 
-import org.arend.core.context.binding.LevelVariable;
 import org.arend.core.context.param.SingleDependentLink;
 import org.arend.core.context.param.UnusedIntervalDependentLink;
 import org.arend.core.definition.FunctionDefinition;
 import org.arend.core.expr.Expression;
 import org.arend.core.expr.PathExpression;
-import org.arend.core.sort.Level;
+import org.arend.core.expr.UniverseExpression;
+import org.arend.core.sort.Sort;
 import org.arend.core.subst.Levels;
 import org.arend.ext.core.ops.NormalizationMode;
 import org.arend.prelude.Prelude;
@@ -27,7 +27,7 @@ public class PathsTest extends TypeCheckingTestCase {
   @Test
   public void idpUntyped() {
     FunctionDefinition function = (FunctionDefinition) typeCheckDef("\\func test => \\lam {A : \\Type0} (a : A) => path (\\lam _ => a)");
-    SingleDependentLink A = singleParam(false, Collections.singletonList("A"), Universe(new Level(0), new Level(LevelVariable.HVAR)));
+    SingleDependentLink A = singleParam(false, Collections.singletonList("A"), new UniverseExpression(Sort.TypeOfLevel(0)));
     SingleDependentLink a = singleParam("a", Ref(A));
     Expression pathCall = new PathExpression(Lam(singleParam(null, Interval()), Ref(A)), Lam(UnusedIntervalDependentLink.INSTANCE, Ref(a)));
     assertEquals(Lam(A, Lam(a, pathCall)).normalize(NormalizationMode.NF), function.getBody());

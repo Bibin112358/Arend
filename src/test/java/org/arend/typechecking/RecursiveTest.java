@@ -22,7 +22,7 @@ public class RecursiveTest extends TypeCheckingTestCase {
 
   @Test
   public void dataRightError() {
-    Definition def = typeCheckDef("\\data List (B : \\oo-Type0 -> \\Type0) (A : \\Type0) | nil | cons (B (List B A))", 1);
+    Definition def = typeCheckDef("\\data List (B : \\Type0 -> \\Type0) (A : \\Type0) | nil | cons (B (List B A))", 1);
     assertEquals(Definition.TypeCheckingStatus.HAS_ERRORS, def.status());
   }
 
@@ -116,8 +116,8 @@ public class RecursiveTest extends TypeCheckingTestCase {
   @Test
   public void parametersTypeTest() {
     typeCheckModule(
-      "\\func f (x : \\let t => g 0 \\in Nat) : \\hType | 0 => Nat | suc x => g x\n" +
-      "\\func g (x : Nat) : \\hType | 0 => Nat | suc x => f x", 1);
+      "\\func f (x : \\let t => g 0 \\in Nat) : \\Type | 0 => Nat | suc x => g x\n" +
+      "\\func g (x : Nat) : \\Type | 0 => Nat | suc x => f x", 1);
   }
 
   @Test
@@ -138,8 +138,8 @@ public class RecursiveTest extends TypeCheckingTestCase {
   @Test
   public void bodyBodyElimTest() {
     typeCheckModule(
-      "\\func f (x : Nat) : \\hType | 0 => g 0 | suc _ => Nat\n" +
-      "\\func g (x : Nat) : \\hType | 0 => f 0 | suc _ => Nat", 4);
+      "\\func f (x : Nat) : \\Type | 0 => g 0 | suc _ => Nat\n" +
+      "\\func g (x : Nat) : \\Type | 0 => f 0 | suc _ => Nat", 4);
     assertThatErrorsAre(instanceOf(TerminationCheckError.class), instanceOf(TerminationCheckError.class), instanceOf(TerminationCheckError.class), instanceOf(TerminationCheckError.class));
   }
 

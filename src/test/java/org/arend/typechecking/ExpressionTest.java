@@ -159,7 +159,7 @@ public class ExpressionTest extends TypeCheckingTestCase {
   public void typedLambdaExpectedType() {
     // \(X : Type0) x. x : (X : Type0) (X) -> X
     SingleDependentLink link = singleParam("X", Universe(0));
-    typeCheckExpr("\\lam (X : \\oo-Type0) x => x", Pi(link, Pi(singleParam(null, Ref(link)), Ref(link))));
+    typeCheckExpr("\\lam (X : \\Type0) x => x", Pi(link, Pi(singleParam(null, Ref(link)), Ref(link))));
   }
 
   @Test

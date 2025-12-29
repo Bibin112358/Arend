@@ -314,7 +314,7 @@ public class CaseTest extends TypeCheckingTestCase {
   @Test
   public void elimWithTypeTest() {
     typeCheckModule("""
-      \\func Type-isSet4 {A : \\hType} {x : A} (p : x = x) : p = idp
+      \\func Type-isSet4 {A : \\Type} {x : A} (p : x = x) : p = idp
         => \\case x \\as x_, \\elim p : x_ = x \\with {
           | x, idp => idp
         }

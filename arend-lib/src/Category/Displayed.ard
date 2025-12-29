@@ -8,7 +8,7 @@
 \import Paths
 \import Paths.Meta
 
-\class DPrecat {C : Precat} (DOb : C -> \hType obj)
+\class DPrecat {C : Precat} (DOb : C -> \Type obj)
   | DHom {a b : C} : Hom a b -> DOb a -> DOb b -> \Set hom
   | id^ {a : C} (x : DOb a) : DHom (id a) x x
   | \fixl 8 o^ \alias \infixl 8 ∘^ {a b c : C} {g : Hom b c} {f : Hom a b} {x : DOb a} {y : DOb b} {z : DOb c} : DHom g y z -> DHom f x y -> DHom (g ∘ f) x z

@@ -124,7 +124,7 @@ public class LambdaTest extends TypeCheckingTestCase {
 
   @Test
   public void lambdaUniverse() {
-    TypecheckingResult result = typeCheckExpr("\\lam (x : \\oo-Type1 -> \\oo-Type2) (y : \\oo-Type0) => x y", null);
+    TypecheckingResult result = typeCheckExpr("\\lam (x : \\Type1 -> \\Type2) (y : \\Type0) => x y", null);
     assertEquals(result.type, Pi(singleParam(null, Pi(Universe(1), Universe(2))), Pi(singleParam(null, Universe(0)), Universe(2))));
   }
 

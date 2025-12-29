@@ -228,7 +228,7 @@ public class ImplementTest extends TypeCheckingTestCase {
       }
       \\func f => C { | A => Nat }
       """);
-    assertEquals(new Sort(new Level(LevelVariable.PVAR, 1), new Level(LevelVariable.HVAR, 1)), ((ClassDefinition) getDefinition("C")).getSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR, 1), Level.INFINITY), ((ClassDefinition) getDefinition("C")).getSort());
     assertEquals(new Sort(0, 0), ((FunctionDefinition) getDefinition("f")).getResultType().toSort());
   }
 
@@ -478,7 +478,7 @@ public class ImplementTest extends TypeCheckingTestCase {
   @Test
   public void recursiveFunction() {
     typeCheckModule("""
-      \\class A (X : \\hType) {
+      \\class A (X : \\Type) {
         | x : X
       }
       \\func f (a : A Nat) => a.x

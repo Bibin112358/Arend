@@ -55,7 +55,7 @@ INFIX               = `{ID}`
 
 SET                 = \\Set[0-9]*
 UNIVERSE            = \\Type[0-9]*
-TRUNCATED_UNIVERSE  = \\([0-9]+-|oo-|h)Type[0-9]*
+TRUNCATED_UNIVERSE  = \\[0-9]+-Type[0-9]*
 CAT_UNIVERSE        = \\Cat[0-9]*
 
 STRING              = \"{STRING_CONTENT}*\"

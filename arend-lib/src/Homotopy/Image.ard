@@ -13,10 +13,10 @@
 \import Paths
 \import Paths.Meta
 
-\func MJoin {A B : \hType} (R : A -> B -> \hType) => PushoutData {\Sigma (x : A) (y : B) (R x y)} __.1 __.2
+\func MJoin {A B : \Type} (R : A -> B -> \Type) => PushoutData {\Sigma (x : A) (y : B) (R x y)} __.1 __.2
   \where
-    \class MData \noclassifying {A : \hType} {B : \hType (\suc \lp)} (f : A -> B) (R : B -> B -> \hType) (ret : \Pi (b b' : B) -> R b b' -> b = b') {
-      \func MImageAppr (n : Nat) : \Sigma (X : \hType) (X -> B) \elim n
+    \class MData \noclassifying {A : \Type} {B : \Type (\suc \lp)} (f : A -> B) (R : B -> B -> \Type) (ret : \Pi (b b' : B) -> R b b' -> b = b') {
+      \func MImageAppr (n : Nat) : \Sigma (X : \Type) (X -> B) \elim n
         | 0 => (A,f)
         | suc n =>
           \let (X,g) => MImageAppr n
@@ -58,7 +58,7 @@
                                        transport_path-left (ret (f a) ((MImageAppr n).2 p.1) (sec (inv p.2))) idp *> pmap inv (sec-ret (inv p.2)) *> inv_inv p.2)))))
     }
 
-\func YImage {A B : \hType} (S : A -> B -> \hType) => data.MImage
+\func YImage {A B : \Type} (S : A -> B -> \Type) => data.MImage
   \where {
     \open MJoin
 
@@ -72,7 +72,7 @@
     \lemma dom-map-surj : IsSurj dom-map
       => MData.dom-map-surj \lam {F} b => mkEquiv (inP idEquiv)
 
-    \func cod-map (y : YImage S) (b : B) : \hType
+    \func cod-map (y : YImage S) (b : B) : \Type
       => MData.cod-map y b
 
     \lemma cod-map-emb : Embedding cod-map

@@ -345,7 +345,7 @@ COERCE : '\\coerce';
 NUMBER : [0-9]+;
 NEGATIVE_NUMBER : '-' [0-9]+;
 UNIVERSE : '\\Type' [0-9]*;
-TRUNCATED_UNIVERSE : '\\' (NUMBER '-' | 'oo-' | 'h') 'Type' [0-9]*; // TODO[sorts]: Delete \oo-Type and \hType
+TRUNCATED_UNIVERSE : '\\' NUMBER '-Type' [0-9]*;
 CAT_UNIVERSE : '\\Cat' [0-9]*;
 SET : '\\Set' [0-9]*;
 STRING : INCOMPLETE_STRING '"';

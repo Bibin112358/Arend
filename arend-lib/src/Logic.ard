@@ -115,9 +115,9 @@
 \lemma <->sym {P Q : \Prop} (f : P <-> Q) : Q <-> P
   => (f.2,f.1)
 
-\func OneOf (l : Array \hType) => ∃ (P : l) P
+\func OneOf (l : Array \Type) => ∃ (P : l) P
 
-\func ElemOf (l : Array \hType) => Given (P : l) P
+\func ElemOf (l : Array \Type) => Given (P : l) P
 
 \type arraySubset {X : \Sort} (l : Array X) (x : X) => ∃ (y : l) (y = x)
 

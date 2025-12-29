@@ -50,7 +50,7 @@
 \func univalenceTest (P Q : \Set) (e : QEquiv {P} {Q}) : P = Q
   => ext e
 
-\func univalenceTest2 (P Q : \hType) (e : QEquiv {P} {Q}) : P = Q
+\func univalenceTest2 (P Q : \Type) (e : QEquiv {P} {Q}) : P = Q
   => ext e
 
 \func sigmaPiExtTest {A : \Sort} (B : A -> \Sort) (p q : \Sigma (x : A) (A -> B x)) (t : p.1 = q.1) (s : transport (\lam x => A -> B x) t p.2 = q.2) : p = q

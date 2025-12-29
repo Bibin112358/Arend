@@ -47,7 +47,7 @@ public class UseTest extends TypeCheckingTestCase {
             | no na1, yes a2 => absurd (na1 a2)
             | no na1, no na2 => path (\\lam i => no (\\lam a => (absurd (na1 a) : na1 a = na2 a) @ i))
       """);
-    assertEquals(new Sort(new Level(LevelVariable.PVAR), new Level(LevelVariable.HVAR, 0, 0)), ((DataDefinition) getDefinition("Dec")).getSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR), Level.INFINITY), ((DataDefinition) getDefinition("Dec")).getSort());
   }
 
   @Test
@@ -125,7 +125,7 @@ public class UseTest extends TypeCheckingTestCase {
           \\use \\level isProp {A B : \\Type} (f : A -> B) (c1 c2 : C f) : c1 = c2 => absurd c1.d
       \\func f : \\Prop => C (\\lam (x : Nat) => x)
       """);
-    assertEquals(new Sort(new Level(LevelVariable.PVAR, 1), new Level(LevelVariable.HVAR, 1)), ((ClassDefinition) getDefinition("C")).getSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR, 1), Level.INFINITY), ((ClassDefinition) getDefinition("C")).getSort());
   }
 
   @Test
@@ -358,7 +358,7 @@ public class UseTest extends TypeCheckingTestCase {
   @Test
   public void severalUseLevelsTest1() {
     typeCheckModule("""
-      \\data D : \\oo-Type
+      \\data D : \\Type
       \\func f => D
         \\where {
           \\use \\level levelProp (x y : f) : x = y
@@ -451,7 +451,7 @@ public class UseTest extends TypeCheckingTestCase {
         \\where \\use \\level levelProp (A : \\Prop) (p : \\Pi (a a' : A) -> a = a') (r1 r2 : R A p) : r1 = r2
           => path (\\lam i => \\new R A p { | a => p r1.a r2.a @ i })
       """);
-    assertEquals(Sort.STD.succ(), ((ClassDefinition) getDefinition("R")).getSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR), Level.INFINITY).succ(), ((ClassDefinition) getDefinition("R")).getSort());
   }
 
   @Test

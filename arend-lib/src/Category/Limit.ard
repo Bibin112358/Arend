@@ -139,7 +139,7 @@
   | isLimitDiagram (Z : D) : IsEquiv (DiagramCone.pullback Z)
   | isLimit Z => IsEquiv.trans (isLimitDiagram Z) $ inP (DiagramCone.equiv Z)
 
-\class Product {J : \hType} {D : Precat} (G : J -> D) (\classifying apex : D) {
+\class Product {J : \Type} {D : Precat} (G : J -> D) (\classifying apex : D) {
   | proj (j : J) : Hom apex (G j)
   | tupleMap {Z : D} (f : \Pi (j : J) -> Hom Z (G j)) : Hom Z apex
   | tupleBeta {Z : D} {f : \Pi (j : J) -> Hom Z (G j)} {j : J} : proj j ∘ tupleMap f = f j
@@ -172,18 +172,18 @@
       | f_sec c => idp
     }
 } \where {
-  \func functor {J : \hType} {D : Precat} (G : J -> D) : Functor (DiscretePrecat J) D \cowith
+  \func functor {J : \Type} {D : Precat} (G : J -> D) : Functor (DiscretePrecat J) D \cowith
     | F => G
     | Func => DiscretePrecat.map G
     | Func-id => idp
     | Func-o {x} {y} {z} {in0 idp} {in0 idp} => inv id-left
 
-  \use \coerce fromLimit {J : \hType} {D : Precat} (L : Limit {DiscretePrecat J} {D}) : Product L.G L.apex L.coneMap \cowith
+  \use \coerce fromLimit {J : \Type} {D : Precat} (L : Limit {DiscretePrecat J} {D}) : Product L.G L.apex L.coneMap \cowith
     | tupleMap c => L.limMap (cone c)
     | tupleBeta => L.limBeta _ _
     | tupleEq {z} {h1} {h2} f => inv (IsEquiv.ret_f (L.isLimit z)) *> pmap (IsEquiv.ret (L.isLimit z)) (exts f) *> IsEquiv.ret_f (L.isLimit z)
     \where {
-      \func cone {J : \hType} {D : Precat} {Z : D} {G : Functor (DiscretePrecat J) D} (c : \Pi (j : J) -> Hom Z (G j)) : Cone G Z \cowith
+      \func cone {J : \Type} {D : Precat} {Z : D} {G : Functor (DiscretePrecat J) D} (c : \Pi (j : J) -> Hom Z (G j)) : Cone G Z \cowith
         | coneMap => c
         | coneCoh {_} {j'} (in0 p) => \case \elim j', \elim p \with {
           | _, idp => pmap (`∘ _) Func-id *> id-left
@@ -473,7 +473,7 @@
 }
 
 \func limits<=pr+eq {D : Precat}
-  (pr : \Pi (J : \hType) (G : J -> D) -> Product G)
+  (pr : \Pi (J : \Type) (G : J -> D) -> Product G)
   (eq : \Pi {X Y : D} (f g : Hom X Y) -> Equalizer f g)
   {J : SmallPrecat} (G : Functor J D) : Limit G
   => \have | X : Product => pr J G
@@ -695,7 +695,7 @@
   \default terminal => Product.fromLimit (limit (Product.functor absurd))
   \default Bprod x y => Product.fromLimit (limit (Product.functor (x :: y :: nil)))
 
-  \func product {J : \hType} (G : J -> Ob) : Product G => Product.fromLimit (limit (Product.functor G))
+  \func product {J : \Type} (G : J -> Ob) : Product G => Product.fromLimit (limit (Product.functor G))
 
   \func equalizer {x y : Ob} (f g : Hom x y) : Equalizer f g => Equalizer.fromLimit (limit (Equalizer.functor f g))
 

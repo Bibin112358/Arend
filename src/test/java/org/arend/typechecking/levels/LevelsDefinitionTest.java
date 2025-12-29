@@ -86,8 +86,8 @@ public class LevelsDefinitionTest extends TypeCheckingTestCase {
         """);
     FunctionDefinition def = (FunctionDefinition) getDefinition("test");
     List<? extends LevelVariable> levels = def.getLevelParameters();
-    assertEquals(3, levels.size());
-    assertEquals(List.of(new Level(levels.get(0)), new Level(levels.get(1)), new Level(levels.get(2))), ((ClassCallExpression) def.getParameters().getType()).getLevels().toList());
+    assertEquals(2, levels.size());
+    assertEquals(List.of(new Level(levels.get(0)), new Level(levels.get(1))), ((ClassCallExpression) def.getParameters().getType()).getLevels().toList());
   }
 
   @Test
@@ -100,8 +100,8 @@ public class LevelsDefinitionTest extends TypeCheckingTestCase {
         """);
     FunctionDefinition def = (FunctionDefinition) getDefinition("test");
     List<? extends LevelVariable> levels = def.getLevelParameters();
-    assertEquals(3, levels.size());
-    assertEquals(List.of(new Level(levels.get(0)), new Level(levels.get(1)), new Level(levels.get(2))), ((ClassCallExpression) def.getParameters().getType()).getLevels().toList());
+    assertEquals(2, levels.size());
+    assertEquals(List.of(new Level(levels.get(0)), new Level(levels.get(1))), ((ClassCallExpression) def.getParameters().getType()).getLevels().toList());
   }
 
   @Test
@@ -115,7 +115,7 @@ public class LevelsDefinitionTest extends TypeCheckingTestCase {
         """);
     FunctionDefinition def = (FunctionDefinition) getDefinition("test");
     List<? extends LevelVariable> levels = def.getLevelParameters();
-    assertEquals(3, levels.size());
-    assertEquals(List.of(new Level(levels.get(0)), new Level(levels.get(1)), new Level(levels.get(2))), ((ClassCallExpression) def.getParameters().getType()).getLevels().toList());
+    assertEquals(2, levels.size());
+    assertEquals(List.of(new Level(levels.get(0)), new Level(levels.get(1))), ((ClassCallExpression) def.getParameters().getType()).getLevels().toList());
   }
 }

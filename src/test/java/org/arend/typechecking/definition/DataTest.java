@@ -386,7 +386,7 @@ public class DataTest extends TypeCheckingTestCase {
   @Test
   public void truncatedLevelTest2() {
     typeCheckModule(
-      "\\truncated \\data D \\plevels p1 >= p2 (A : \\hType p1) : \\Set\n" +
+      "\\truncated \\data D \\plevels p1 >= p2 (A : \\Type p1) : \\Set\n" +
       "  | con A");
   }
 }

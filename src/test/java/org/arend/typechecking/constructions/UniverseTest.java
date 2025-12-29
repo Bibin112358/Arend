@@ -9,10 +9,10 @@ import static org.arend.ExpressionFactory.Universe;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class Universe extends TypeCheckingTestCase {
+public class UniverseTest extends TypeCheckingTestCase {
   @Test
   public void universe() {
-    TypecheckingResult result = typeCheckExpr("\\oo-Type5", null);
+    TypecheckingResult result = typeCheckExpr("\\Type5", null);
     assertNotNull(result);
     assertEquals(Universe(5), result.expression);
     assertEquals(Universe(6), result.type);
@@ -21,7 +21,7 @@ public class Universe extends TypeCheckingTestCase {
 
   @Test
   public void universeExpected() {
-    TypecheckingResult result = typeCheckExpr("\\oo-Type5", Universe(8));
+    TypecheckingResult result = typeCheckExpr("\\Type5", Universe(8));
     assertNotNull(result);
     assertEquals(Universe(5), result.expression);
     assertEquals(Universe(6), result.expression.getType());
@@ -29,12 +29,12 @@ public class Universe extends TypeCheckingTestCase {
 
   @Test
   public void universeError() {
-    typeCheckExpr("\\oo-Type5", Universe(5), 1);
+    typeCheckExpr("\\Type5", Universe(5), 1);
   }
 
   @Test
   public void universeError2() {
-    typeCheckExpr("\\oo-Type5", Universe(6, 100), 1);
+    typeCheckExpr("\\Type5", Universe(6, 100), 1);
   }
 
   @Test
@@ -125,9 +125,10 @@ public class Universe extends TypeCheckingTestCase {
 
   @Test
   public void dataUniverseIsNotSet() {
-    typeCheckModule(
-      "\\data C | c1 | c2 | c3 I\n" +
-      "  { | left => c1 | right => c2 }\n" +
-      "\\data D : \\Set0 | d1 | d2 C { c1 => d1 }", 1);
+    typeCheckModule("""
+      \\data C | c1 | c2 | c3 I
+        { | left => c1 | right => c2 }
+      \\data D : \\Set0 | d1 | d2 C { c1 => d1 }
+      """, 1);
   }
 }

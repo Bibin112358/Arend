@@ -5,8 +5,8 @@ import org.arend.core.context.binding.LevelVariable;
 import org.arend.core.definition.ClassDefinition;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
-import org.arend.core.subst.LevelPair;
 import org.arend.core.subst.Levels;
+import org.arend.core.subst.ListLevels;
 import org.arend.typechecking.TypeCheckingTestCase;
 import org.arend.typechecking.error.local.SuperLevelsMismatchError;
 import org.junit.Test;
@@ -25,7 +25,7 @@ public class ClassLevelsTest extends TypeCheckingTestCase {
         \\record S \\extends R (\\suc \\lp)
         \\func test (s : S \\lp) : \\Type (\\suc \\lp) => s.A
         """);
-    assertEquals(new Sort(new Level(LevelVariable.PVAR, 2), new Level(LevelVariable.HVAR, 1)), ((ClassDefinition) getDefinition("S")).getSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR, 2), Level.INFINITY), ((ClassDefinition) getDefinition("S")).getSort());
   }
 
   @Test
@@ -114,7 +114,7 @@ public class ClassLevelsTest extends TypeCheckingTestCase {
         \\record T \\extends R, S
         """);
     Levels levels = ((ClassDefinition) getDefinition("T")).getSuperLevels().get((ClassDefinition) getDefinition("Base"));
-    assertEquals(new LevelPair(new Level(LevelVariable.PVAR, 1), new Level(LevelVariable.HVAR)), levels);
+    assertEquals(new ListLevels(new Level(LevelVariable.PVAR, 1)), levels);
   }
 
   @Test
@@ -127,7 +127,7 @@ public class ClassLevelsTest extends TypeCheckingTestCase {
         \\record T \\extends R, S (\\suc \\lp)
         """);
     Levels levels = ((ClassDefinition) getDefinition("T")).getSuperLevels().get((ClassDefinition) getDefinition("Base"));
-    assertEquals(new LevelPair(new Level(LevelVariable.PVAR, 1), new Level(LevelVariable.HVAR)), levels);
+    assertEquals(new ListLevels(new Level(LevelVariable.PVAR, 1)), levels);
   }
 
   @Test
@@ -166,9 +166,9 @@ public class ClassLevelsTest extends TypeCheckingTestCase {
           | B : \\Type \\lp
         """);
     assertEquals(2, getDefinition("R").getLevelParameters().size());
-    assertEquals(3, getDefinition("S").getLevelParameters().size());
+    assertEquals(2, getDefinition("S").getLevelParameters().size());
     assertEquals(2, getDefinition("T").getLevelParameters().size());
-    assertEquals(3, getDefinition("X").getLevelParameters().size());
+    assertEquals(2, getDefinition("X").getLevelParameters().size());
   }
 
   @Test
@@ -210,7 +210,7 @@ public class ClassLevelsTest extends TypeCheckingTestCase {
         \\record X \\extends S (\\lp,\\lp), T (\\lp,\\lp,\\lp)
           | B : \\Type \\lp
         """);
-    assertNull(getDefinition("X").getLevelParameters());
+    assertEquals(Collections.singletonList(LevelVariable.PVAR), getDefinition("X").getLevelParameters());
   }
 
   @Test
@@ -247,8 +247,8 @@ public class ClassLevelsTest extends TypeCheckingTestCase {
         \\record T \\plevels p1 <= p2 \\extends S
         """);
     ClassDefinition tClass = ((ClassDefinition) getDefinition("T"));
-    assertEquals(LevelPair.STD, tClass.getSuperLevels().get((ClassDefinition) getDefinition("S")));
-    assertEquals(LevelPair.STD, tClass.getSuperLevels().get((ClassDefinition) getDefinition("R")));
+    assertEquals(new ListLevels(new Level(LevelVariable.PVAR)), tClass.getSuperLevels().get((ClassDefinition) getDefinition("S")));
+    assertEquals(new ListLevels(new Level(LevelVariable.PVAR)), tClass.getSuperLevels().get((ClassDefinition) getDefinition("R")));
   }
 
   @Test

@@ -639,7 +639,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
     } else if (expr.getKind() == ConcreteUniverseExpression.Kind.CAT) {
       myBuilder.append("\\Cat");
     } else if (expr.getHLevel() instanceof Concrete.InfLevelExpression) {
-      myBuilder.append("\\hType");
+      myBuilder.append("\\Type");
     } else if (expr.getHLevel() instanceof Concrete.NumberLevelExpression) {
       int hLevel = ((Concrete.NumberLevelExpression) expr.getHLevel()).getNumber();
       if (hLevel == 0) {

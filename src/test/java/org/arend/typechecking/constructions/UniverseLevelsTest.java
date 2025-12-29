@@ -8,13 +8,14 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class UniverseLevels extends TypeCheckingTestCase {
+public class UniverseLevelsTest extends TypeCheckingTestCase {
   @Test
   public void dataExpansion() {
-    typeCheckModule(
-      "\\data D (A : \\Type) (a : A) | d (B : A -> \\Type2)\n" +
-      "\\func f : \\Pi {A : \\Type} {a : A} -> (A -> \\Type1) -> D A a => \\lam B => d B\n" +
-      "\\func test => f {\\Set0} {\\Prop} (\\lam _ => \\Type0)");
+    typeCheckModule("""
+      \\data D (A : \\Type) (a : A) | d (B : A -> \\Type2)
+      \\func f : \\Pi {A : \\Type} {a : A} -> (A -> \\Type1) -> D A a => \\lam B => d B
+      \\func test => f {\\Set0} {\\Prop} (\\lam _ => \\Type0)
+      """);
   }
 
   @Test
@@ -75,13 +76,13 @@ public class UniverseLevels extends TypeCheckingTestCase {
   public void func() {
     typeCheckModule(
       "\\data Foo (A : \\Type) : \\Type | foo A\n" +
-      "\\func bar (A : \\Type \\lp (\\max \\lh 1)) : \\Type \\lp (\\max \\lh 1) => Foo A");
+      "\\func bar (A : \\Type \\lp) : \\Type \\lp => Foo A");
   }
 
   @Test
   public void dataMaxTest() {
     typeCheckModule(
       "\\data Foo (A : \\Type) : \\Type | foo A\n" +
-      "\\data Bar (A : \\Type \\lp (\\max \\lh 1)) : \\Type \\lp (\\max \\lh 1) | bar (Foo A)");
+      "\\data Bar (A : \\Type \\lp) : \\Type \\lp | bar (Foo A)");
   }
 }

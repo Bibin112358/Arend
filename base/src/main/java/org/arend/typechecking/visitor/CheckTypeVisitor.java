@@ -3408,11 +3408,6 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       return null;
     }
 
-    if (!isHBased() && expr.getHLevel() == null) {
-      errorReporter.report(new TypecheckingError(GeneralError.Level.WARNING, "Universe can be replaced with \\Prop", expr));
-      return new TypecheckingResult(new UniverseExpression(Sort.PROP), new UniverseExpression(Sort.SET0));
-    }
-
     Level pLevel = expr.getPLevel() != null ? expr.getPLevel().accept(this, LevelVariable.PVAR) : null;
     Level hLevel = expr.getHLevel() != null ? expr.getHLevel().accept(this, LevelVariable.HVAR) : null;
 
@@ -3430,9 +3425,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       sort = new Sort(pLevel, true);
     } else {
       if (hLevel == null) {
-        InferenceLevelVariable hl = new InferenceLevelVariable(LevelVariable.LvlType.HLVL, true, expr);
-        getEquations().addVariable(hl);
-        hLevel = new Level(hl);
+        hLevel = Level.INFINITY;
       }
       sort = new Sort(pLevel, hLevel);
     }

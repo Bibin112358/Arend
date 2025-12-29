@@ -8,7 +8,7 @@
 \import Paths
 
 \class Pushout (square : Square)
-  | pushout-univ {Z : \hType} : IsEquiv {square.Y -> Z} {Square { | Y => Z | U => square.U | V => square.V | X => square.X | uv => square.uv | ux => square.ux }} (Square.push square)
+  | pushout-univ {Z : \Type} : IsEquiv {square.Y -> Z} {Square { | Y => Z | U => square.U | V => square.V | X => square.X | uv => square.uv | ux => square.ux }} (Square.push square)
   \where {
     -- | Pushouts are functorial
     \func map (p : Pushout) (s : Square)
@@ -29,25 +29,25 @@
       => IsEquiv.ret_f p.pushout-univ
   }
 
-\data PushoutData {A B C : \hType} (f : A -> B) (g : A -> C)
+\data PushoutData {A B C : \Type} (f : A -> B) (g : A -> C)
   | pinl B
   | pinr C
   | pglue (a : A) : pinl (f a) = pinr (g a)
   \where {
-    \func ppglue {A B C : \hType} {f : A -> B} {g : A -> C} (a : A) : pinl (f a) = {PushoutData f g} pinr (g a) => path (pglue a)
+    \func ppglue {A B C : \Type} {f : A -> B} {g : A -> C} (a : A) : pinl (f a) = {PushoutData f g} pinr (g a) => path (pglue a)
 
-    \func rec {A B C : \hType} {f : A -> B} {g : A -> C} {Z : \Sort} (lm : B -> Z) (rm : C -> Z) (gm : \Pi (a : A) -> lm (f a) = rm (g a)) (x : PushoutData f g) : Z \elim x
+    \func rec {A B C : \Type} {f : A -> B} {g : A -> C} {Z : \Sort} (lm : B -> Z) (rm : C -> Z) (gm : \Pi (a : A) -> lm (f a) = rm (g a)) (x : PushoutData f g) : Z \elim x
       | pinl b => lm b
       | pinr c => rm c
       | pglue a => gm a
       \where {
-        \func map {A B C : \hType} {f : A -> B} {g : A -> C} {Y Z : \hType} (h : Y -> Z) (lm : B -> Y) (rm : C -> Y) (gm : \Pi (a : A) -> lm (f a) = rm (g a)) (x : PushoutData f g)
+        \func map {A B C : \Type} {f : A -> B} {g : A -> C} {Y Z : \Type} (h : Y -> Z) (lm : B -> Y) (rm : C -> Y) (gm : \Pi (a : A) -> lm (f a) = rm (g a)) (x : PushoutData f g)
           : h (rec lm rm gm x) = rec (h `o` lm) (h `o` rm) (\lam a => pmap h (gm a)) x \elim x
           | pinl b => idp
           | pinr c => idp
           | pglue a i => idp
 
-        \func equiv {A B C : \hType} {f : A -> B} {g : A -> C} (Z : \Sort)
+        \func equiv {A B C : \Type} {f : A -> B} {g : A -> C} (Z : \Sort)
           : QEquiv {PushoutData f g -> Z} {\Sigma (lm : B -> Z) (rm : C -> Z) (gm : \Pi (a : A) -> lm (f a) = rm (g a))} \cowith
             | f h => (\lam b => h (pinl b), \lam c => h (pinr c), \lam a => path (\lam i => h (pglue a i)))
             | ret p => rec p.1 p.2 p.3
@@ -60,7 +60,7 @@
       }
 
     -- | The total space of a fibration over a pushout is equivalent to a pushout of fibers of this fibration.
-    \func flattening {A B C : \hType} {f : A -> B} {g : A -> C} (F : PushoutData f g -> \hType)
+    \func flattening {A B C : \Type} {f : A -> B} {g : A -> C} (F : PushoutData f g -> \Type)
       : total = (\Sigma (w : PushoutData f g) (F w))
       => QEquiv_= totalPushoutLeft *> path TotalPushout *> QEquiv_= totalPushoutRight
       \where {
@@ -133,10 +133,10 @@
 
 \open PushoutData
 
-\instance PushoutPointed {A B C : \hType} {P : Pointed B} {f : A -> B} {g : A -> C} : Pointed (PushoutData f g)
+\instance PushoutPointed {A B C : \Type} {P : Pointed B} {f : A -> B} {g : A -> C} : Pointed (PushoutData f g)
   | base => pinl base
 
-\func pushoutData {A B C : \hType} (f : A -> B) (g : A -> C) : Pushout \cowith
+\func pushoutData {A B C : \Type} (f : A -> B) (g : A -> C) : Pushout \cowith
   | square {
     | U => A
     | V => B
@@ -159,10 +159,10 @@
   }
 
 -- | A pushout of an embedding is an embedding and such a pushout square is also a pullback square
-\class EmbeddingPushout \noclassifying (A B C : \hType) (f : A -> B) (g : Embedding {A} {C}) {
+\class EmbeddingPushout \noclassifying (A B C : \Type) (f : A -> B) (g : Embedding {A} {C}) {
   \func PO => PushoutData f g
 
-  \func code (b0 : B) (w : PO) : \hType \elim w
+  \func code (b0 : B) (w : PO) : \Type \elim w
     | pinl b => b0 = b
     | pinr c => \Sigma (a : A) (b0 = f a) (c = g a)
     | pglue a i => QEquiv_= (equiv b0 a) i

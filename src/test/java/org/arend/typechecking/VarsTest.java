@@ -310,7 +310,7 @@ public class VarsTest extends TypeCheckingTestCase {
         \\where
           \\func bar \\plevels p1 >= p2 (a : A) => a
       """);
-    assertEquals(new UniverseExpression(new Sort(new Level(LevelVariable.PVAR), new Level(LevelVariable.HVAR))), getDefinition("foo.bar").getParameters().getType());
+    assertEquals(new UniverseExpression(new Sort(new Level(LevelVariable.PVAR), Level.INFINITY)), getDefinition("foo.bar").getParameters().getType());
   }
 
   @Test
@@ -322,8 +322,8 @@ public class VarsTest extends TypeCheckingTestCase {
       """);
     Definition bar = getDefinition("foo.bar");
     assertNotNull(bar.getLevelParameters());
-    assertEquals(3, bar.getLevelParameters().size());
-    assertEquals(new UniverseExpression(new Sort(new Level(LevelVariable.PVAR), new Level(LevelVariable.HVAR))), getDefinition("foo.bar").getParameters().getType());
+    assertEquals(2, bar.getLevelParameters().size());
+    assertEquals(new UniverseExpression(new Sort(new Level(LevelVariable.PVAR), Level.INFINITY)), getDefinition("foo.bar").getParameters().getType());
   }
 
   @Test
@@ -335,8 +335,8 @@ public class VarsTest extends TypeCheckingTestCase {
       """);
     Definition bar = getDefinition("foo.bar");
     assertNotNull(bar.getLevelParameters());
-    assertEquals(3, bar.getLevelParameters().size());
-    assertEquals(new UniverseExpression(new Sort(new Level(bar.getLevelParameters().getFirst()), new Level(LevelVariable.HVAR))), bar.getParameters().getType());
+    assertEquals(2, bar.getLevelParameters().size());
+    assertEquals(new UniverseExpression(new Sort(new Level(bar.getLevelParameters().getFirst()), Level.INFINITY)), bar.getParameters().getType());
   }
 
   @Test
@@ -358,8 +358,8 @@ public class VarsTest extends TypeCheckingTestCase {
       """);
     Definition bar = getDefinition("foo.bar");
     assertNotNull(bar.getLevelParameters());
-    assertEquals(3, bar.getLevelParameters().size());
-    assertEquals(new UniverseExpression(new Sort(new Level(bar.getLevelParameters().getFirst()), new Level(LevelVariable.HVAR))), bar.getParameters().getType());
+    assertEquals(2, bar.getLevelParameters().size());
+    assertEquals(new UniverseExpression(new Sort(new Level(bar.getLevelParameters().getFirst()), Level.INFINITY)), bar.getParameters().getType());
   }
 
   @Test
@@ -441,8 +441,8 @@ public class VarsTest extends TypeCheckingTestCase {
       """);
     Definition baz = getDefinition("foo.bar.baz");
     assertNotNull(baz.getLevelParameters());
-    assertEquals(3, baz.getLevelParameters().size());
-    assertEquals(new UniverseExpression(new Sort(new Level(LevelVariable.PVAR), new Level(LevelVariable.HVAR))), getDefinition("foo.bar.baz").getParameters().getType());
+    assertEquals(2, baz.getLevelParameters().size());
+    assertEquals(new UniverseExpression(new Sort(new Level(LevelVariable.PVAR), Level.INFINITY)), getDefinition("foo.bar.baz").getParameters().getType());
   }
 
   @Test

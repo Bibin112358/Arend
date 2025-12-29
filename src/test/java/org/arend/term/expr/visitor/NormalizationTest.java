@@ -218,7 +218,7 @@ public class NormalizationTest extends TypeCheckingTestCase {
 
   @Test
   public void normalizeLetElimNoStuck() {
-    // normalize (\let | x (y : N) : \oo-Type2 => \Type0 \in x zero) = \Type0
+    // normalize (\let | x (y : N) : \Type2 => \Type0 \in x zero) = \Type0
     LocalReferable y = ref("y");
     LocalReferable x = ref("x");
     Concrete.LetClause xClause = clet(x, cargs(cTele(cvars(y), cNat())), cUniverseInf(2), cUniverseStd(0));

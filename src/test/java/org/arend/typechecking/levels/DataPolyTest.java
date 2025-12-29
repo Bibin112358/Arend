@@ -6,8 +6,8 @@ import org.arend.core.definition.DataDefinition;
 import org.arend.core.expr.DataCallExpression;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
-import org.arend.core.subst.LevelPair;
 import org.arend.core.subst.Levels;
+import org.arend.core.subst.ListLevels;
 import org.arend.typechecking.TypeCheckingTestCase;
 import org.junit.Test;
 
@@ -63,31 +63,31 @@ public class DataPolyTest extends TypeCheckingTestCase {
   @Test
   public void dataOmega() {
     DataDefinition dataDefinition = (DataDefinition) typeCheckDef("\\data D (A : \\Type) | con A");
-    assertEquals(Sort.STD, dataDefinition.getSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR), Level.INFINITY), dataDefinition.getSort());
   }
 
   @Test
   public void dataOmegaExplicit() {
     DataDefinition dataDefinition = (DataDefinition) typeCheckDef("\\data D (A : \\Type) : \\Type | con A");
-    assertEquals(Sort.STD, dataDefinition.getSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR), Level.INFINITY), dataDefinition.getSort());
   }
 
   @Test
   public void dataOmegaProp() {
     DataDefinition dataDefinition = (DataDefinition) typeCheckDef("\\data D (A : \\Type) (n : Nat) | con1 A | con2 (n = n)");
-    assertEquals(new Sort(new Level(LevelVariable.PVAR), new Level(LevelVariable.HVAR, 0, 0)), dataDefinition.getSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR), Level.INFINITY), dataDefinition.getSort());
   }
 
   @Test
   public void dataOmegaPropExplicit() {
-    DataDefinition dataDefinition = (DataDefinition) typeCheckDef("\\data D (A : \\Type) (n : Nat) : \\Type \\lp (\\max \\lh 0) | con1 (n = n) | con2 A");
-    assertEquals(new Sort(new Level(LevelVariable.PVAR), new Level(LevelVariable.HVAR, 0, 0)), dataDefinition.getSort());
+    DataDefinition dataDefinition = (DataDefinition) typeCheckDef("\\data D (A : \\Type) (n : Nat) : \\Type \\lp | con1 (n = n) | con2 A");
+    assertEquals(new Sort(new Level(LevelVariable.PVAR), Level.INFINITY), dataDefinition.getSort());
   }
 
   @Test
   public void dataOmegaSet() {
     DataDefinition dataDefinition = (DataDefinition) typeCheckDef("\\data D (A : \\Type) (n : Nat) | con1 (n = n) | con2 A | con3 Nat");
-    assertEquals(new Sort(new Level(LevelVariable.PVAR), new Level(LevelVariable.HVAR, 0, 0)), dataDefinition.getSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR), Level.INFINITY), dataDefinition.getSort());
   }
 
   @Test
@@ -97,13 +97,13 @@ public class DataPolyTest extends TypeCheckingTestCase {
 
   @Test
   public void dataOmegaSetExplicit() {
-    typeCheckDef("\\data D (A : \\Type) (n : Nat) : \\Type | con1 (n = n) | con2 A | con3", 1);
+    typeCheckDef("\\data D (A : \\Type) (n : Nat) : \\Type | con1 (n = n) | con2 A | con3");
   }
 
   @Test
   public void dataOmegaSetExplicitMax() {
-    DataDefinition dataDefinition = (DataDefinition) typeCheckDef("\\data D (A : \\Type) (n : Nat) : \\Type \\lp (\\max \\lh 0) | con1 (n = n) | con2 A | con3 Nat");
-    assertEquals(new Sort(new Level(LevelVariable.PVAR), new Level(LevelVariable.HVAR, 0, 0)), dataDefinition.getSort());
+    DataDefinition dataDefinition = (DataDefinition) typeCheckDef("\\data D (A : \\Type) (n : Nat) : \\Type \\lp | con1 (n = n) | con2 A | con3 Nat");
+    assertEquals(new Sort(new Level(LevelVariable.PVAR), Level.INFINITY), dataDefinition.getSort());
   }
 
   @Test
@@ -115,7 +115,7 @@ public class DataPolyTest extends TypeCheckingTestCase {
   @Test
   public void recursiveData2() {
     Constructor constructor = ((DataDefinition) typeCheckDef("\\data D (A : \\Type) | con (D A)")).getConstructors().getFirst();
-    assertEquals(LevelPair.STD, ((DataCallExpression) constructor.getParameters().getType()).getLevels());
+    assertEquals(new ListLevels(new Level(LevelVariable.PVAR)), ((DataCallExpression) constructor.getParameters().getType()).getLevels());
   }
 
   @Test
@@ -140,7 +140,7 @@ public class DataPolyTest extends TypeCheckingTestCase {
   @Test
   public void recursiveDataWithTuple() {
     typeCheckModule(
-      "\\record R (A : \\Sigma (\\hType 0) (\\hType 0))\n" +
+      "\\record R (A : \\Sigma (\\Type 0) (\\Type 0))\n" +
       "\\data D | con (R (\\Sigma,D)) | con2 (R (D,\\Sigma))", 2);
   }
 

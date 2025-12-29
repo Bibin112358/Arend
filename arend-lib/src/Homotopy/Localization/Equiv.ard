@@ -11,13 +11,13 @@
 \import Paths
 \import Paths.Meta
 
-\func IsLocalEquiv {U : Universe} {A B : \hType} (f : A -> B) => \Pi (Z : Local) -> IsEquiv {B -> Z} {A -> Z} (-o f)
+\func IsLocalEquiv {U : Universe} {A B : \Type} (f : A -> B) => \Pi (Z : Local) -> IsEquiv {B -> Z} {A -> Z} (-o f)
 
 \module Extension \where {
   -- | The type of extensions of {g} along {f}
-  \func ext {A B C : \hType} (f : A -> B) (g : A -> C) => Fib (-o f) g
+  \func ext {A B C : \Type} (f : A -> B) (g : A -> C) => Fib (-o f) g
 
-  \func ext-equiv {A B C : \hType} (f : A -> B) (g : A -> C) : QEquiv {ext f g} {\Pi (b : B) -> \Sigma (c : C) (\Pi (a : A) -> f a = b -> g a = c)} \cowith
+  \func ext-equiv {A B C : \Type} (f : A -> B) (g : A -> C) : QEquiv {ext f g} {\Pi (b : B) -> \Sigma (c : C) (\Pi (a : A) -> f a = b -> g a = c)} \cowith
     | f p b => (p.1 b, \lam a fa=b => inv (path ((p.2 @ __) a)) *> pmap p.1 fa=b)
     | ret K => ((K __).1, path (\lam i a => inv ((K (f a)).2 a idp) @ i))
     | ret_f b => path (\lam j => (b.1, path (\lam i a => inv_inv (path ((b.2 @ __) a)) @ j @ i)))
@@ -26,12 +26,12 @@
              Jl (\lam b' q' => inv (inv ((K (f a)).2 a idp)) *> pmap (K __).1 q' = (K b').2 a q') (inv_inv ((K (f a)).2 a idp)) q
       \in path (\lam i b => ((K b).1, p b __ __ @ i))
 
-  \lemma contr-equiv {A B C : \hType} (f : A -> B) (p : \Pi (g : A -> C) (b : B) -> Contr (\Sigma (c : C) (\Pi (a : A) -> f a = b -> g a = c)))
+  \lemma contr-equiv {A B C : \Type} (f : A -> B) (p : \Pi (g : A -> C) (b : B) -> Contr (\Sigma (c : C) (\Pi (a : A) -> f a = b -> g a = c)))
     : IsEquiv {B -> C} {A -> C} (-o f)
     => contrFibers=>IsEquiv (\lam g => rewrite (path (QEquiv_= (ext-equiv f g))) (HLevels_-2-pi (\lam b => \Sigma (c : C) (\Pi (a : A) -> f a = b -> g a = c)) {0} (p g)))
 }
 
-\lemma connected_isLocalEquiv {U : Universe} {A B : \hType} (f : A -> B) (conn : isConnectedMap f) : IsLocalEquiv f
+\lemma connected_isLocalEquiv {U : Universe} {A B : \Type} (f : A -> B) (conn : isConnectedMap f) : IsLocalEquiv f
   => \lam C => Extension.contr-equiv f (\lam g b =>
        \let | G (x : Fib f b) => g x.1
             | p c => \new QEquiv {(\lam _ => c) = G} {\Pi (a : A) -> f a = b -> g a = c} {
@@ -63,7 +63,7 @@
              }
   }
 
-\lemma localEquivMap {U : ReflUniverse} {A B : \hType} (f : A -> B) : IsLocalEquiv f = IsEquiv (lmap f)
+\lemma localEquivMap {U : ReflUniverse} {A B : \Type} (f : A -> B) : IsLocalEquiv f = IsEquiv (lmap f)
   => \have p (C : Local) : IsEquiv {LType B -> C} {LType A -> C} (-o (lmap f)) = IsEquiv {B -> C} {A -> C} (-o f)
             => IsEquiv.parallelEquiv ((localization B).local-univ C)
                                      ((localization A).local-univ C)

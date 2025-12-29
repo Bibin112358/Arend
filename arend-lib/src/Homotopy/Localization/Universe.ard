@@ -12,14 +12,14 @@
 \import Paths.Meta
 
 \class Universe
-  | isLocal : \hType -> \Prop
+  | isLocal : \Type -> \Prop
 
 -- | The type of local types
-\class Local {U : Universe} (S : \hType)
+\class Local {U : Universe} (S : \Type)
   | local : isLocal S
 
 -- | The type of localizations of a type
-\class Localization {U : Universe} (S : \hType) (S' : Local) {
+\class Localization {U : Universe} (S : \Type) (S' : Local) {
   | inL : S -> S'
   | local-univ (Z : Local) : IsEquiv {S' -> Z} {S -> Z} (-o inL)
 
@@ -38,17 +38,17 @@
   \func remove_inL-coh {Z : Local {U}} (f g : S' -> Z) (p : \Pi (x : S) -> f (inL x) = g (inL x)) (x : S) : remove_inL f g p (inL x) = p x
     => pmap (\lam q => path (q __ x)) $ IsEquiv.f_ret $ pmapIsEquiv (local-univ Z)
 } \where {
-  \sfunc levelProp {U : Universe} (X : \hType) (l1 l2 : Localization X) : l1 = l2
-    => \let p : l1.S' = {\hType} l2.S' => path (iso (l1.lift l2.inL)
-                                                    (l2.lift l1.inL)
-                                                    (remove_inL (l2.lift l1.inL `o` l1.lift l2.inL) id (\lam x =>
-                                                      l2.lift l1.inL (l1.lift l2.inL (l1.inL x)) ==< pmap (l2.lift l1.inL) (l1.lift-prop l2.inL x) >==
-                                                      l2.lift l1.inL (l2.inL x)                  ==< l2.lift-prop l1.inL x >==
-                                                      l1.inL x                                   `qed))
-                                                    (remove_inL (l1.lift l2.inL `o` l2.lift l1.inL) id (\lam x =>
-                                                      l1.lift l2.inL (l2.lift l1.inL (l2.inL x)) ==< pmap (l1.lift l2.inL) (l2.lift-prop l1.inL x) >==
-                                                      l1.lift l2.inL (l1.inL x)                  ==< l1.lift-prop l2.inL x >==
-                                                      l2.inL x                                   `qed)))
+  \sfunc levelProp {U : Universe} (X : \Type) (l1 l2 : Localization X) : l1 = l2
+    => \let p : l1.S' = {\Type} l2.S' => path (iso (l1.lift l2.inL)
+                                                   (l2.lift l1.inL)
+                                                   (remove_inL (l2.lift l1.inL `o` l1.lift l2.inL) id (\lam x =>
+                                                     l2.lift l1.inL (l1.lift l2.inL (l1.inL x)) ==< pmap (l2.lift l1.inL) (l1.lift-prop l2.inL x) >==
+                                                     l2.lift l1.inL (l2.inL x)                  ==< l2.lift-prop l1.inL x >==
+                                                     l1.inL x                                   `qed))
+                                                   (remove_inL (l1.lift l2.inL `o` l2.lift l1.inL) id (\lam x =>
+                                                     l1.lift l2.inL (l2.lift l1.inL (l2.inL x)) ==< pmap (l1.lift l2.inL) (l2.lift-prop l1.inL x) >==
+                                                     l1.lift l2.inL (l1.inL x)                  ==< l1.lift-prop l2.inL x >==
+                                                     l2.inL x                                   `qed)))
        \in exts Localization {
          | S' => p
          | inL => l1.lift-prop l2.inL
@@ -58,22 +58,22 @@
 \open Localization (lift,lift-prop,remove_inL,remove_inL-coh)
 
 \class ReflUniverse \extends Universe
-  | localization (A : \hType) : Localization A
+  | localization (A : \Type) : Localization A
 
 -- | The localization functor
-\func LType {U : ReflUniverse} (A : \hType) => Localization.S' {localization A}
+\func LType {U : ReflUniverse} (A : \Type) => Localization.S' {localization A}
 
-\func lEta {U : ReflUniverse} {A : \hType} (a : A) => Localization.inL {localization A} a
+\func lEta {U : ReflUniverse} {A : \Type} (a : A) => Localization.inL {localization A} a
 
-\func lmap {U : ReflUniverse} {A B : \hType} (f : A -> B) (la : LType A) : LType B
+\func lmap {U : ReflUniverse} {A B : \Type} (f : A -> B) (la : LType A) : LType B
   => lift (inL `o` f) la
   \where {
-    \func id-prop {U : ReflUniverse} {A : \hType} (la : LType A) : lmap id la = la
+    \func id-prop {U : ReflUniverse} {A : \Type} (la : LType A) : lmap id la = la
       => remove_inL (lmap id) id (lift-prop inL) la
   }
 
 -- | If ``inL : X -> X'`` is a section, then it is an equivalence.
-\lemma sectionIsEquiv {U : ReflUniverse} (X : \hType) (s : Section (inL {localization X})) : IsEquiv (inL {localization X})
+\lemma sectionIsEquiv {U : ReflUniverse} (X : \Type) (s : Section (inL {localization X})) : IsEquiv (inL {localization X})
   => inP $ lem (localization X) s
   \where
     \func lem {U : Universe} (L : Localization) (s : Section {L.S} {L.S'} inL) : QEquiv {L.S} {L.S'} inL \cowith
@@ -92,14 +92,14 @@
          })
 
 -- | If ``inL : X -> X'`` is a section, then {X} is local.
-\lemma localizationWithRetraction {U : ReflUniverse} (X : \hType) (s : Section (inL {localization X})) : Local X
+\lemma localizationWithRetraction {U : ReflUniverse} (X : \Type) (s : Section (inL {localization X})) : Local X
   => lem (localization X) s
   \where
     \lemma lem {U : Universe} (L : Localization) (s : Section {L.S} {L.S'} inL) : Local L.S \cowith
       | local => transport isLocal (inv (QEquiv_= (sectionIsEquiv.lem L s))) L.S'.local
 
 -- | If ``inL : X -> X'`` factors through a local type {Y}, then the map ``Y -> X'`` is a retraction.
-\func localizationFactor {U : ReflUniverse} {X : \hType} (Y : Local) (f : X -> Y) (g : Y -> LType X) (p : \Pi (x : X) -> g (f x) = inL {localization X} x) : Retraction g
+\func localizationFactor {U : ReflUniverse} {X : \Type} (Y : Local) (f : X -> Y) (g : Y -> LType X) (p : \Pi (x : X) -> g (f x) = inL {localization X} x) : Retraction g
   => lem (localization X) Y f g p
   \where
     \func lem {U : Universe} (L : Localization) (Y : Local) (f : L.S -> Y) (g : Y -> L.S') (p : \Pi (x : L.S) -> g (f x) = inL x) : Retraction g \cowith
@@ -107,7 +107,7 @@
       | f_sec => remove_inL (g `o` lift f) id (\lam x => pmap g (lift-prop f x) *> p x)
 
 -- | If ``inL : X -> X'`` factors through a section ``g : Y -> X'`` with {Y} local, then {g} is an equivalence.
-\lemma localizationFactorSection {U : ReflUniverse} {X : \hType} (Y : Local) (f : X -> Y) (g : Section {Y} {LType X}) (p : \Pi (x : X) -> g (f x) = inL {localization X} x) : IsEquiv g
+\lemma localizationFactorSection {U : ReflUniverse} {X : \Type} (Y : Local) (f : X -> Y) (g : Section {Y} {LType X}) (p : \Pi (x : X) -> g (f x) = inL {localization X} x) : IsEquiv g
   => lem (localization X) Y f g p
   \where
     \func lem {U : Universe} (L : Localization) (Y : Local) (f : L.S -> Y) (g : Section {Y} {L.S'}) (p : \Pi (x : L.S) -> g (f x) = inL x) : IsEquiv g
@@ -117,7 +117,7 @@
       }
 
 -- | If ``inL : X -> X'`` factors through an embedding ``g : Y -> X'`` with {Y} local, then {g} is an equivalence.
-\lemma localizationFactorEmbedding {U : ReflUniverse} {X : \hType} (Y : Local) (f : X -> Y) (g : Y >-> LType X) (p : \Pi (x : X) -> g (f x) = inL {localization X} x) : IsEquiv g
+\lemma localizationFactorEmbedding {U : ReflUniverse} {X : \Type} (Y : Local) (f : X -> Y) (g : Y >-> LType X) (p : \Pi (x : X) -> g (f x) = inL {localization X} x) : IsEquiv g
   => lem (localization X) Y f g p
   \where
     \lemma lem {U : ReflUniverse} (L : Localization) (Y : Local) (f : L.S -> Y) (g : Y >-> L.S') (p : \Pi (x : L.S) -> g (f x) = inL x) : IsEquiv g
@@ -126,10 +126,10 @@
         \in inP (r.sec x, r.f_sec x)
 
 -- | Contractible types with a localization are local.
-\lemma contrLocal {U : ReflUniverse} {X : \hType} (C : Contr X) : Local X
+\lemma contrLocal {U : ReflUniverse} {X : \Type} (C : Contr X) : Local X
   => lem C (localization X)
   \where
-    \lemma lem {U : Universe} {X : \hType} (C : Contr X) (L : Localization X) : Local X
+    \lemma lem {U : Universe} {X : \Type} (C : Contr X) (L : Localization X) : Local X
       => localizationWithRetraction.lem L (\new Section { | ret _ => C.center | ret_f => C.contraction })
 
 -- | The unit type is local if it has a localization.
@@ -207,10 +207,10 @@
  - Since ``B a`` is local, there is a map ``h a : L (\Pi (x : A) -> B x) -> B a`` such that ``h a `o` inL = ap a``, where ``ap a`` is ``__ a``.
  - Thus, we have a map ``r`` defined as ``\lam lx a => h a lx :  L (\Pi (x : A) -> B x) -> \Pi (x : A) -> B a`` such that ``r  `o` inL`` is the identity map.
  -}
-\lemma piLocal {U : ReflUniverse} {A : \hType} (B : A -> Local) : Local (\Pi (x : A) -> B x)
+\lemma piLocal {U : ReflUniverse} {A : \Type} (B : A -> Local) : Local (\Pi (x : A) -> B x)
   => lem B (localization (\Pi (x : A) -> B x))
   \where
-    \lemma lem {U : Universe} {A : \hType} (B : A -> Local) (L : Localization (\Pi (x : A) -> B x)) : Local (\Pi (x : A) -> B x)
+    \lemma lem {U : Universe} {A : \Type} (B : A -> Local) (L : Localization (\Pi (x : A) -> B x)) : Local (\Pi (x : A) -> B x)
       => \let ap (a : A) (g : \Pi (x : A) -> B x) => g a
          \in localizationWithRetraction.lem L (\new Section {
            | ret lx a => lift (ap a) lx
@@ -256,11 +256,11 @@
  -             id
  - ```
 -}
-\lemma universe-elim {U : ReflUniverse} {A : \hType} (B : LType A -> \hType) (totalIsLocal : Local (\Sigma (x : LType A) (B x)))
+\lemma universe-elim {U : ReflUniverse} {A : \Type} (B : LType A -> \Type) (totalIsLocal : Local (\Sigma (x : LType A) (B x)))
   : IsEquiv {\Pi (x : LType A) -> B x} {\Pi (a : A) -> B (lEta a)} (\lam f a => f (lEta a))
   => inP (piSigmaIdEquiv B) IsEquiv.`trans` lem1 B IsEquiv.`trans` lem2 B totalIsLocal IsEquiv.`trans` inP (symQEquiv (piSigmaEquiv lEta B))
   \where {
-    \lemma lem1 {U : ReflUniverse} {A : \hType} (B : LType A -> \hType)
+    \lemma lem1 {U : ReflUniverse} {A : \Type} (B : LType A -> \Type)
       : IsEquiv {\Sigma (g : LType A -> \Sigma (x : LType A) (B x)) ((\lam x => (g x).1) = id)}
                 {\Sigma (g : LType A -> \Sigma (x : LType A) (B x)) ((\lam a => (g (lEta a)).1) = lEta)}
                 (\lam p => (p.1, pmap (-o lEta) p.2))
@@ -268,14 +268,14 @@
                            {\lam g => (\lam x => (g x).1) = id}
                            \lam g => IsEquiv.toQEquiv $ pmapIsEquiv $ (localization A).local-univ (LType A)
 
-    \lemma lem2 {U : ReflUniverse} {A : \hType} (B : LType A -> \hType) (totalIsLocal : Local (\Sigma (x : LType A) (B x)))
+    \lemma lem2 {U : ReflUniverse} {A : \Type} (B : LType A -> \Type) (totalIsLocal : Local (\Sigma (x : LType A) (B x)))
       : IsEquiv {\Sigma (g : LType A -> \Sigma (x : LType A) (B x)) ((\lam a => (g (lEta a)).1) = lEta)}
                 {\Sigma (g : A -> \Sigma (x : LType A) (B x)) ((\lam a => (g a).1) = lEta)}
                 (\lam p => (\lam a => p.1 (lEta a), p.2))
       => inP $ sigma-left $ IsEquiv.toQEquiv $ (localization A).local-univ totalIsLocal
   }
 
-\lemma localYoneda {U : ReflUniverse} {A : \hType} (a : A) (P : A -> Local)
+\lemma localYoneda {U : ReflUniverse} {A : \Type} (a : A) (P : A -> Local)
   : IsEquiv {\Pi (a' : A) -> LType (a = a') -> P a'} {P a} (\lam f => f a (inL idp))
   => \let e a' => (localization (a = a')).local-univ (P a')
      \in inP $ transQEquiv (\new QEquiv {
@@ -287,7 +287,7 @@
        | f_sec h => path \lam i a' => IsEquiv.f_ret (e a') {h a'} i
      }) (pi-contr-left a (\lam a' _ => P a'))
 
-\func localization-equiv {U : ReflUniverse} {A B : \hType}
+\func localization-equiv {U : ReflUniverse} {A B : \Type}
                          (f : A -> LType B)
                          (g : B -> LType A)
                          (p : \Pi (a : A) -> lift g (f a) = lEta a)

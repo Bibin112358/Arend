@@ -60,7 +60,7 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   @Test
   public void noPLevelTest() {
     FunctionDefinition def = (FunctionDefinition) typeCheckDef("\\func test \\plevels => \\Type");
-    assertEquals(new UniverseExpression(new Sort(new Level(0), new Level(LevelVariable.HVAR))), def.getBody());
+    assertEquals(new UniverseExpression(Sort.TypeOfLevel(0)), def.getBody());
   }
 
   @Test
@@ -71,19 +71,6 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   @Test
   public void noPLevelsTest3() {
     typeCheckDef("\\func test \\plevels \\hlevels h1 >= h2 => Nat");
-  }
-
-  @Test
-  public void noHLevelTest() {
-    FunctionDefinition def = (FunctionDefinition) typeCheckDef("\\func test \\hlevels => \\Type", 1);
-    assertEquals(new UniverseExpression(Sort.PROP), def.getBody());
-    assertThatErrorsAre(Matchers.warning());
-  }
-
-  @Test
-  public void noHLevelsTest2() {
-    typeCheckDef("\\func test \\plevels p1 >= p2 \\hlevels (A : \\Type p2) : \\Type p1 => A", 2);
-    assertThatErrorsAre(Matchers.warning(), Matchers.warning());
   }
 
   @Test
@@ -130,7 +117,7 @@ public class LevelParametersTest extends TypeCheckingTestCase {
     typeCheckModule(
       "\\data D \\plevels p1 <= p2 (A : \\Type p2) | con Nat\n" +
       "  \\where \\use \\coerce test \\plevels p3 <= p4 (A : \\Type p4) (n : Nat) : D A => con n");
-    assertEquals(3, getDefinition("D.test").getLevelParameters().size());
+    assertEquals(2, getDefinition("D.test").getLevelParameters().size());
   }
 
   @Test
@@ -138,7 +125,7 @@ public class LevelParametersTest extends TypeCheckingTestCase {
     typeCheckModule(
       "\\data D \\plevels p1 <= p2 (A : \\Type p2) | con Nat\n" +
       "  \\where \\use \\coerce test (A : \\Type p2) (n : Nat) : D A => con n");
-    assertEquals(3, getDefinition("D.test").getLevelParameters().size());
+    assertEquals(2, getDefinition("D.test").getLevelParameters().size());
   }
 
   @Test
@@ -219,9 +206,9 @@ public class LevelParametersTest extends TypeCheckingTestCase {
     typeCheckModule(
       """
         \\record R \\plevels p1 <= p2
-          | f : \\hType (\\suc p2)
+          | f : \\Type (\\suc p2)
         \\record S \\extends R {
-          \\default f \\plevels p1 <= p2 : \\hType (\\suc p2) => \\hType p1
+          \\default f \\plevels p1 <= p2 : \\Type (\\suc p2) => \\Type p1
         }
         """);
     assertEquals(3, getDefinition("S.f").getLevelParameters().size());
@@ -252,9 +239,9 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   public void coclauseTest2() {
     typeCheckModule(
       """
-        \\record R \\plevels p1 <= p2 (x : \\hType (\\suc p2))
+        \\record R \\plevels p1 <= p2 (x : \\Type (\\suc p2))
         \\func g \\plevels p1 <= p2 : R \\levels (p1,p2) _ \\cowith
-          | x : \\hType (\\suc p2) => \\hType p1
+          | x : \\Type (\\suc p2) => \\Type p1
         """);
   }
 
@@ -264,8 +251,8 @@ public class LevelParametersTest extends TypeCheckingTestCase {
       "\\meta m \\plevels p1 <= p2 => \\Sigma (\\Type p1) (\\Type p2)\n" +
       "\\func f => m \\levels (1,2) _");
     DependentLink params = ((SigmaExpression) Objects.requireNonNull(((FunctionDefinition) getDefinition("f")).getBody())).getParameters();
-    assertEquals(new UniverseExpression(new Sort(new Level(1), new Level(LevelVariable.HVAR))), params.getType());
-    assertEquals(new UniverseExpression(new Sort(new Level(2), new Level(LevelVariable.HVAR))), params.getNext().getType());
+    assertEquals(new UniverseExpression(Sort.TypeOfLevel(1)), params.getType());
+    assertEquals(new UniverseExpression(Sort.TypeOfLevel(2)), params.getNext().getType());
   }
 
   @Test
@@ -299,7 +286,7 @@ public class LevelParametersTest extends TypeCheckingTestCase {
 
   @Test
   public void levelsNotErased() {
-    Definition def = typeCheckDef("\\record C \\hlevels lh (A : \\hType)");
+    Definition def = typeCheckDef("\\record C \\hlevels lh (A : \\Type)");
     assertEquals(2, def.getLevelParameters().size());
   }
 }

@@ -321,12 +321,12 @@ public class OverrideTest extends TypeCheckingTestCase {
   @Test
   public void levelError() {
     typeCheckModule("""
-      \\class C (X : \\hType (\\suc \\lp))
+      \\class C (X : \\Type (\\suc \\lp))
       \\class S \\extends C {
-        \\override X : \\hType \\lp
+        \\override X : \\Type \\lp
       }
-      \\func f (X : \\hType (\\suc \\lp)) : C X \\cowith
-      \\func g (X : \\hType (\\suc \\lp)) : S \\lp \\cowith
+      \\func f (X : \\Type (\\suc \\lp)) : C X \\cowith
+      \\func g (X : \\Type (\\suc \\lp)) : S \\lp \\cowith
         | C => f \\lp X
       """, 1);
     assertThatErrorsAre(Matchers.typeMismatchError());
@@ -335,12 +335,12 @@ public class OverrideTest extends TypeCheckingTestCase {
   @Test
   public void levelTest() {
     typeCheckModule("""
-      \\class C (X : \\hType (\\suc \\lp))
+      \\class C (X : \\Type (\\suc \\lp))
       \\class S \\extends C {
-        \\override X : \\hType \\lp
+        \\override X : \\Type \\lp
       }
-      \\func f (X : \\hType (\\suc \\lp)) : C X \\cowith
-      \\func g (X : \\hType) : S \\lp \\cowith
+      \\func f (X : \\Type (\\suc \\lp)) : C X \\cowith
+      \\func g (X : \\Type) : S \\lp \\cowith
         | C => f \\lp X
       """);
   }

@@ -59,7 +59,7 @@
 
 \instance Sphere1_HSpace : HSpaceConn (Sphere 1) => rewriteI (path (QEquiv_= Sphere1-equiv)) Circle_HSpace
 
-\func hopf {A : HSpaceConn} (x : Susp A) : \hType \elim x
+\func hopf {A : HSpaceConn} (x : Susp A) : \Type \elim x
   | north => A
   | south => A
   | pglue a => QEquiv_= (IsEquiv.toQEquiv (HSpaceConn-left a))

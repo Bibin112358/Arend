@@ -6,12 +6,12 @@
 \import Equiv
 \import Equiv.Path
 
-\func =_Equiv {A B : \hType} (p : A = B) : Equiv A B
+\func =_Equiv {A B : \Type} (p : A = B) : Equiv A B
   => transport (Equiv A __) p $ mkEquiv (inP idEquiv)
 
-\func Equiv_= {A B : \hType} (e : Equiv A B) : A = B => QEquiv_= (Equiv.toQEquiv e)
+\func Equiv_= {A B : \Type} (e : Equiv A B) : A = B => QEquiv_= (Equiv.toQEquiv e)
 
-\sfunc typeUnivalence {A B : \hType} : QEquiv {A = B} {Equiv A B} =_Equiv Equiv_=
+\sfunc typeUnivalence {A B : \Type} : QEquiv {A = B} {Equiv A B} =_Equiv Equiv_=
   => pathEquiv (Equiv __ __) \lam {A} {B} => \new Retraction {
     | f => =_Equiv
     | sec => Equiv_=

@@ -45,7 +45,7 @@ public class LocalThisTest extends TypeCheckingTestCase {
   @Test
   public void thisRecursive2() {
     typeCheckModule("""
-      \\record S (X : \\hType) (x : X -> X) {
+      \\record S (X : \\Type) (x : X -> X) {
         \\func f (n : Nat) : X -> X \\elim n
           | 0 => x
           | suc n => f n
@@ -100,7 +100,7 @@ public class LocalThisTest extends TypeCheckingTestCase {
   @Test
   public void thisRecursiveExt() {
     typeCheckModule("""
-      \\record S (X : \\hType) (x : X -> X)
+      \\record S (X : \\Type) (x : X -> X)
       \\record R \\extends S
         | y : X -> X
       \\record T \\extends R { | X => Nat | y => S.x }
@@ -121,7 +121,7 @@ public class LocalThisTest extends TypeCheckingTestCase {
   @Test
   public void thisRecursiveExtError() {
     typeCheckModule("""
-      \\record S (X : \\hType) (x : X -> X) {
+      \\record S (X : \\Type) (x : X -> X) {
         \\func f (n : Nat) : X -> X \\elim n
           | 0 => x
           | suc n => f n
@@ -179,7 +179,7 @@ public class LocalThisTest extends TypeCheckingTestCase {
   @Test
   public void explicitThisRecursive2() {
     typeCheckModule("""
-      \\record S (X : \\hType) (x : X -> X)
+      \\record S (X : \\Type) (x : X -> X)
       \\func f (s : S) (n : Nat) : s.X -> s.X \\elim n
         | 0 => s.x
         | suc n => f s n
@@ -206,7 +206,7 @@ public class LocalThisTest extends TypeCheckingTestCase {
   @Test
   public void explicitThisRecursiveExtError() {
     typeCheckModule("""
-      \\record S (X : \\hType) (x : X -> X)
+      \\record S (X : \\Type) (x : X -> X)
       \\func f (s : S) (n : Nat) : s.X -> s.X \\elim n
         | 0 => s.x
         | suc n => f s n

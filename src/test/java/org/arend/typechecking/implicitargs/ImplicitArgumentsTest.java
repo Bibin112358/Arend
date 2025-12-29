@@ -243,7 +243,7 @@ public class ImplicitArgumentsTest extends TypeCheckingTestCase {
 
     String term = """
       \\let
-        | x {A : \\oo-Type0} (y : A -> A) => f y
+        | x {A : \\Type0} (y : A -> A) => f y
         | z (x : Nat) => x
       \\in x z""";
     TypecheckingResult result = typeCheckExpr(context, term, null);

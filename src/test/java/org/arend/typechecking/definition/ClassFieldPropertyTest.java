@@ -90,7 +90,7 @@ public class ClassFieldPropertyTest extends TypeCheckingTestCase {
         \\property f (A : \\Type) (p : \\Pi (x y : A) -> x = y) : \\level A p
       }
       """);
-    assertEquals(new Sort(new Level(LevelVariable.PVAR, 1), new Level(LevelVariable.HVAR)), ((ClassDefinition) getDefinition("A")).getSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR, 1), Level.INFINITY), ((ClassDefinition) getDefinition("A")).getSort());
   }
 
   @Test

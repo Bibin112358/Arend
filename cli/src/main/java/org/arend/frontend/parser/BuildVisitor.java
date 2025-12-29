@@ -1373,10 +1373,6 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
 
   private Concrete.LevelExpression parseTruncatedUniverse(TerminalNode terminal) {
     String universe = terminal.getText();
-    if (universe.charAt(1) == 'o' || universe.charAt(1) == 'h') {
-      return new Concrete.InfLevelExpression(tokenPosition(terminal.getSymbol()));
-    }
-
     return new Concrete.NumberLevelExpression(tokenPosition(terminal.getSymbol()), Integer.parseInt(universe.substring(1, universe.indexOf('-'))));
   }
 
