@@ -391,7 +391,7 @@ public class CoerceTest extends TypeCheckingTestCase {
     typeCheckModule(
       """
         \\class R (X : \\Type)
-        \\class S {n : Nat} (Y : \\case n \\with { | 0 => R | suc _ => \\Sigma })
+        \\class S {n : Nat} (Y : \\case n \\return \\Type \\with { | 0 => R | suc _ => \\Sigma })
         \\func test (s : S {0}) (x : s) => x
         """);
   }

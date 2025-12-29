@@ -34,7 +34,6 @@ import org.arend.ext.core.context.CoreParameter;
 import org.arend.ext.core.context.CoreParameterBuilder;
 import org.arend.ext.core.definition.CoreFunctionDefinition;
 import org.arend.ext.core.expr.*;
-import org.arend.ext.core.level.CoreSort;
 import org.arend.ext.core.level.LevelSubstitution;
 import org.arend.ext.core.ops.CMP;
 import org.arend.ext.core.ops.NormalizationMode;
@@ -1164,22 +1163,16 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
 
     Expression type = result.type.normalize(NormalizationMode.WHNF);
-    SortExpression sortExpr = type instanceof UniverseExpression universe ? universe.getSortExpression().simplify() : null;
+    SortExpression sortExpr = type instanceof UniverseExpression universe ? universe.getSortExpression() : null;
     if (sortExpr == null) {
-      Expression stuck = type.getStuckExpression();
-      if (stuck == null || !stuck.isInstance(InferenceReferenceExpression.class) && !stuck.reportIfError(errorReporter, expr)) {
-        if (stuck == null || !stuck.isError()) {
-          errorReporter.report(new TypeMismatchError(DocFactory.text("\\Type"), type, expr));
-        }
-        return null;
+      InferenceVariable infVar;
+      if (type instanceof InferenceReferenceExpression infRefExpr) {
+        infVar = infRefExpr.getInferenceVariable();
+      } else {
+        infVar = myArgsInference.newInferenceVariable(UniverseExpression.OMEGA, expr);
+        infVar.setType(new UniverseExpression(new SortExpression.InfVar(infVar)));
       }
-
-      Sort sort = Sort.generateInferVars(myEquations, false, expr);
-      InferenceVariable infVar = stuck.getInferenceVariable();
-      if (infVar != null) {
-        myEquations.addEquation(type, new UniverseExpression(sort), UniverseExpression.OMEGA, CMP.LE, expr, infVar, null);
-      }
-      sortExpr = new SortExpression.Const(sort);
+      sortExpr = new SortExpression.InfVar(infVar, true);
     }
 
     return new TypeExpression(result.expression, sortExpr);
@@ -2122,8 +2115,10 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
 
     if (isOmega) {
-      Expression type = new UniverseExpression(Sort.generateInferVars(getEquations(), false, expr));
-      return new TypecheckingResult(InferenceReferenceExpression.make(myArgsInference.newInferenceVariable(type, expr), getEquations()), type);
+      InferenceVariable variable = myArgsInference.newInferenceVariable(UniverseExpression.OMEGA, expr);
+      Expression type = new UniverseExpression(new SortExpression.InfVar(variable));
+      variable.setType(type);
+      return new TypecheckingResult(InferenceReferenceExpression.make(variable, getEquations()), type);
     } else if (expectedType != null) {
       Expression norm = expectedType.normalize(NormalizationMode.WHNF);
       if (norm instanceof ClassCallExpression classCall) {
@@ -3728,14 +3723,6 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   }
 
   @Override
-  public @NotNull CoreSort generateSort(@NotNull ConcreteSourceNode marker) {
-    if (!(marker instanceof Concrete.SourceNode)) {
-      throw new IllegalArgumentException();
-    }
-    return Sort.generateInferVars(myEquations, true, (Concrete.SourceNode) marker);
-  }
-
-  @Override
   public @Nullable ConcreteExpression findInstance(@NotNull InstanceSearchParameters parameters, @Nullable UncheckedExpression classifyingExpression, @NotNull ConcreteSourceNode sourceNode) {
     if (!(sourceNode instanceof Concrete.SourceNode)) {
       throw new IllegalArgumentException();
@@ -4023,7 +4010,11 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       if (resultType == null && expectedType == null) {
         return null;
       }
-      resultExpr = resultType != null ? resultType.expression() : !expectedType.isOmega() ? checkedSubst(expectedType, elimSubst, allowedBindings, expr.getResultType() != null ? expr.getResultType() : expr) : new UniverseExpression(Sort.generateInferVars(myEquations, false, expr));
+      if (resultType == null && expectedType.isOmega()) {
+        errorReporter.report(new TypecheckingError("Large elimination is not allowed", expr.getResultType() != null ? expr.getResultType() : expr));
+        return null;
+      }
+      resultExpr = resultType != null ? resultType.expression() : checkedSubst(expectedType, elimSubst, allowedBindings, expr.getResultType() != null ? expr.getResultType() : expr);
 
       if (expr.getResultTypeLevel() != null) {
         TypecheckingResult levelResult = checkExpr(expr.getResultTypeLevel(), null);

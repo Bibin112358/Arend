@@ -179,10 +179,16 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
 
   final class InfVar implements SortExpression {
     private final InferenceVariable variable;
+    private final boolean isSelfVar;
     private SortExpression sort;
 
-    public InfVar(InferenceVariable variable) {
+    public InfVar(InferenceVariable variable, boolean isSelfVar) {
       this.variable = variable;
+      this.isSelfVar = isSelfVar;
+    }
+
+    public InfVar(InferenceVariable variable) {
+      this(variable, false);
     }
 
     public InferenceVariable getVariable() {
@@ -193,14 +199,21 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
       if (sort == null) {
         Expression expr = variable.getSolution();
         if (expr != null) {
-          Expression type = expr.getType();
-          if (type != null) {
-            type = type.normalize(NormalizationMode.WHNF);
-            while (type instanceof PiExpression pi) {
-              type = pi.getCodomain().normalize(NormalizationMode.WHNF);
-            }
-            if (type instanceof UniverseExpression universe) {
+          if (isSelfVar) {
+            expr = expr.normalize(NormalizationMode.WHNF);
+            if (expr instanceof UniverseExpression universe) {
               sort = universe.getSortExpression();
+            }
+          } else {
+            Expression type = expr.getType();
+            if (type != null) {
+              type = type.normalize(NormalizationMode.WHNF);
+              while (type instanceof PiExpression pi) {
+                type = pi.getCodomain().normalize(NormalizationMode.WHNF);
+              }
+              if (type instanceof UniverseExpression universe) {
+                sort = universe.getSortExpression();
+              }
             }
           }
           if (sort == null) {
