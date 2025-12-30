@@ -1481,23 +1481,8 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
   }
 
   @Override
-  public Concrete.HLevelExpression visitHLevel(HLevelContext ctx) {
-    return new Concrete.HLevelExpression(tokenPosition(ctx.start));
-  }
-
-  @Override
-  public Concrete.InfLevelExpression visitInfLevel(InfLevelContext ctx) {
-    return new Concrete.InfLevelExpression(tokenPosition(ctx.start));
-  }
-
-  @Override
   public Concrete.NumberLevelExpression visitNumLevel(NumLevelContext ctx) {
     return new Concrete.NumberLevelExpression(tokenPosition(ctx.start), Integer.parseInt(ctx.NUMBER().getText()));
-  }
-
-  @Override
-  public Concrete.NumberLevelExpression visitNegLevel(NegLevelContext ctx) {
-    return new Concrete.NumberLevelExpression(tokenPosition(ctx.start), Integer.parseInt(ctx.NEGATIVE_NUMBER().getText()));
   }
 
   @Override
@@ -1529,16 +1514,6 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
   @Override
   public Concrete.PLevelExpression visitPOnlyLevel(POnlyLevelContext ctx) {
     return new Concrete.PLevelExpression(tokenPosition(ctx.start));
-  }
-
-  @Override
-  public Concrete.HLevelExpression visitHOnlyLevel(HOnlyLevelContext ctx) {
-    return new Concrete.HLevelExpression(tokenPosition(ctx.start));
-  }
-
-  @Override
-  public Concrete.InfLevelExpression visitInfOnlyLevel(InfOnlyLevelContext ctx) {
-    return new Concrete.InfLevelExpression(tokenPosition(ctx.start));
   }
 
   @Override

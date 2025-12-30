@@ -221,10 +221,10 @@ public class NormalizationTest extends TypeCheckingTestCase {
     // normalize (\let | x (y : N) : \Type2 => \Type0 \in x zero) = \Type0
     LocalReferable y = ref("y");
     LocalReferable x = ref("x");
-    Concrete.LetClause xClause = clet(x, cargs(cTele(cvars(y), cNat())), cUniverseInf(2), cUniverseStd(0));
+    Concrete.LetClause xClause = clet(x, cargs(cTele(cvars(y), cNat())), cUniverseInf(2), cUniverse(0));
     incModification();
     TypecheckingResult result = typeCheckExpr(cLet(clets(xClause), cApps(cVar(x), cZero())), null);
-    assertEquals(Universe(new Level(0), new Level(LevelVariable.HVAR)), result.expression.normalize(NormalizationMode.NF));
+    assertEquals(Universe(new Level(0), Level.INFINITY), result.expression.normalize(NormalizationMode.NF));
   }
 
   @Test

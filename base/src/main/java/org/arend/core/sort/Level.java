@@ -184,7 +184,9 @@ public class Level implements CoreLevel {
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
-    ToAbstractVisitor.convert(this).accept(new PrettyPrintVisitor(builder, 0), new Precedence(Concrete.Expression.PREC));
+    Concrete.LevelExpression level = ToAbstractVisitor.convert(this);
+    if (level == null) return "infinity";
+    level.accept(new PrettyPrintVisitor(builder, 0), new Precedence(Concrete.Expression.PREC));
     return builder.toString();
   }
 

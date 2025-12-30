@@ -58,11 +58,6 @@ public class UniverseLevelsTest extends TypeCheckingTestCase {
   }
 
   @Test
-  public void levelP() {
-    typeCheckExpr("\\Type \\lh", null, 1);
-  }
-
-  @Test
   public void levelH() {
     parseExpr("\\Type1 \\lp", 1);
   }

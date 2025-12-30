@@ -1647,28 +1647,6 @@ public final class Concrete {
     }
   }
 
-  public static class HLevelExpression extends LevelExpression {
-    public HLevelExpression(Object data) {
-      super(data);
-    }
-
-    @Override
-    public <P, R> R accept(ConcreteLevelExpressionVisitor<? super P, ? extends R> visitor, P params) {
-      return visitor.visitLH(this, params);
-    }
-  }
-
-  public static class InfLevelExpression extends LevelExpression {
-    public InfLevelExpression(Object data) {
-      super(data);
-    }
-
-    @Override
-    public <P, R> R accept(ConcreteLevelExpressionVisitor<? super P, ? extends R> visitor, P params) {
-      return visitor.visitInf(this, params);
-    }
-  }
-
   public static class NumberLevelExpression extends LevelExpression {
     private final int myNumber;
 

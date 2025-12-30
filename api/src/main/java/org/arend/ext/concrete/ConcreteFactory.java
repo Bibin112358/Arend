@@ -122,9 +122,7 @@ public interface ConcreteFactory {
   @NotNull ConcretePattern conPattern(@NotNull ArendRef constructor, @NotNull ConcretePattern... subpatterns);
   @NotNull ConcretePattern conPattern(@NotNull ArendRef constructor, @NotNull Collection<? extends ConcretePattern> subpatterns);
 
-  @NotNull ConcreteLevel inf();
   @NotNull ConcreteLevel lp();
-  @NotNull ConcreteLevel lh();
   @NotNull ConcreteLevel numLevel(int level);
   @NotNull ConcreteLevel sucLevel(@NotNull ConcreteLevel level);
   @NotNull ConcreteLevel maxLevel(@NotNull ConcreteLevel level1, @NotNull ConcreteLevel level2);

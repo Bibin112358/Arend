@@ -867,7 +867,7 @@ private object ConcretePrecVisitor : ConcreteExpressionVisitor<Void?, Int> {
         if (expr.pLevels != null) APP_PREC else MAX_PREC
 
     override fun visitUniverse(expr: Concrete.UniverseExpression, params: Void?) =
-        if ((expr.pLevel == null || expr.pLevel is Concrete.NumberLevelExpression) && (expr.hLevel == null || expr.hLevel is Concrete.NumberLevelExpression || expr.hLevel is Concrete.InfLevelExpression)) MAX_PREC else APP_PREC
+        if ((expr.pLevel == null || expr.pLevel is Concrete.NumberLevelExpression) && (expr.hLevel == null || expr.hLevel is Concrete.NumberLevelExpression)) MAX_PREC else APP_PREC
 
     override fun visitApp(expr: Concrete.AppExpression, params: Void?) = APP_PREC
     override fun visitFieldCall(expr: Concrete.FieldCallExpression, params: Void?) = MAX_PREC

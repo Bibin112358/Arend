@@ -24,7 +24,7 @@ import java.math.BigInteger;
 import java.util.*;
 
 @SuppressWarnings("WeakerAccess")
-public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.ResolvableDefinition>, AbstractExpressionVisitor<Void, Concrete.Expression>, AbstractLevelExpressionVisitor<LevelVariable, Concrete.LevelExpression> {
+public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.ResolvableDefinition>, AbstractExpressionVisitor<Void, Concrete.Expression>, AbstractLevelExpressionVisitor<Void, Concrete.LevelExpression> {
   private final LocalErrorReporter myErrorReporter;
   private final LocatedReferable myParent;
   private final TCDefReferable myDefinition;
@@ -624,7 +624,7 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
     if (levels == null) return null;
     List<Concrete.LevelExpression> result = new ArrayList<>(levels.size());
     for (Abstract.LevelExpression level : levels) {
-      result.add(level.accept(this, LevelVariable.PVAR));
+      result.add(level.accept(this, null));
     }
     return result;
   }
@@ -690,8 +690,8 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
     }
 
     return new Concrete.UniverseExpression(data,
-            pLevelNum != null ? new Concrete.NumberLevelExpression(data, pLevelNum) : pLevel != null ? pLevel.accept(this, LevelVariable.PVAR) : null,
-            hLevelNum != null ? (hLevelNum == Abstract.INFINITY_LEVEL ? new Concrete.InfLevelExpression(data) : new Concrete.NumberLevelExpression(data, hLevelNum)) : null, ConcreteUniverseExpression.Kind.TYPE);
+            pLevelNum != null ? new Concrete.NumberLevelExpression(data, pLevelNum) : pLevel != null ? pLevel.accept(this, null) : null,
+            hLevelNum != null ? new Concrete.NumberLevelExpression(data, hLevelNum) : null, ConcreteUniverseExpression.Kind.TYPE);
   }
 
   @Override
@@ -699,7 +699,7 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
     if (pLevelNum != null && pLevel != null) {
       myErrorReporter.report(new AbstractExpressionError(GeneralError.Level.ERROR, "p-level is already specified", pLevel.getData()));
     }
-    return new Concrete.UniverseExpression(data, pLevelNum != null ? new Concrete.NumberLevelExpression(data, pLevelNum) : pLevel != null ? pLevel.accept(this, LevelVariable.PVAR) : null, null, ConcreteUniverseExpression.Kind.CAT);
+    return new Concrete.UniverseExpression(data, pLevelNum != null ? new Concrete.NumberLevelExpression(data, pLevelNum) : pLevel != null ? pLevel.accept(this, null) : null, null, ConcreteUniverseExpression.Kind.CAT);
   }
 
   @Override
@@ -914,56 +914,46 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
   // LevelExpression
 
   @Override
-  public Concrete.InfLevelExpression visitInf(@Nullable Object data, LevelVariable base) {
-    return new Concrete.InfLevelExpression(data);
-  }
-
-  @Override
-  public Concrete.PLevelExpression visitLP(@Nullable Object data, LevelVariable base) {
+  public Concrete.PLevelExpression visitLP(@Nullable Object data, Void param) {
     return new Concrete.PLevelExpression(data);
   }
 
   @Override
-  public Concrete.HLevelExpression visitLH(@Nullable Object data, LevelVariable base) {
-    return new Concrete.HLevelExpression(data);
-  }
-
-  @Override
-  public Concrete.NumberLevelExpression visitNumber(@Nullable Object data, int number, LevelVariable base) {
+  public Concrete.NumberLevelExpression visitNumber(@Nullable Object data, int number, Void param) {
     return new Concrete.NumberLevelExpression(data, number);
   }
 
   @Override
-  public Concrete.LevelExpression visitId(@Nullable Object data, Referable ref, LevelVariable base) {
-    return new Concrete.VarLevelExpression(data, ref, base.getType());
+  public Concrete.LevelExpression visitId(@Nullable Object data, Referable ref, Void param) {
+    return new Concrete.VarLevelExpression(data, ref, LevelVariable.LvlType.PLVL);
   }
 
   @Override
-  public Concrete.LevelExpression visitSuc(@Nullable Object data, @Nullable Abstract.LevelExpression expr, LevelVariable base) {
+  public Concrete.LevelExpression visitSuc(@Nullable Object data, @Nullable Abstract.LevelExpression expr, Void param) {
     if (expr == null) {
       myErrorLevel = GeneralError.Level.ERROR;
-      return base == LevelVariable.PVAR ? new Concrete.PLevelExpression(data) : new Concrete.HLevelExpression(data);
+      return new Concrete.NumberLevelExpression(data, 0);
     }
-    return new Concrete.SucLevelExpression(data, expr.accept(this, base));
+    return new Concrete.SucLevelExpression(data, expr.accept(this, param));
   }
 
   @Override
-  public Concrete.LevelExpression visitMax(@Nullable Object data, @Nullable Abstract.LevelExpression left, @Nullable Abstract.LevelExpression right, LevelVariable base) {
+  public Concrete.LevelExpression visitMax(@Nullable Object data, @Nullable Abstract.LevelExpression left, @Nullable Abstract.LevelExpression right, Void param) {
     if (left == null || right == null) {
       myErrorLevel = GeneralError.Level.ERROR;
     }
     return left == null && right == null
-            ? (base == LevelVariable.PVAR ? new Concrete.PLevelExpression(data) : new Concrete.HLevelExpression(data))
-            : left == null
-            ? right.accept(this, base)
-            : right == null
-            ? left.accept(this, base)
-            : new Concrete.MaxLevelExpression(data, left.accept(this, base), right.accept(this, base));
+      ? (new Concrete.NumberLevelExpression(data, 0))
+      : left == null
+        ? right.accept(this, param)
+        : right == null
+          ? left.accept(this, param)
+          : new Concrete.MaxLevelExpression(data, left.accept(this, param), right.accept(this, param));
   }
 
   @Override
-  public Concrete.LevelExpression visitError(@Nullable Object data, LevelVariable base) {
+  public Concrete.LevelExpression visitError(@Nullable Object data, Void param) {
     myErrorLevel = GeneralError.Level.ERROR;
-    return base == LevelVariable.PVAR ? new Concrete.PLevelExpression(data) : new Concrete.HLevelExpression(data);
+    return new Concrete.NumberLevelExpression(data, 0);
   }
 }

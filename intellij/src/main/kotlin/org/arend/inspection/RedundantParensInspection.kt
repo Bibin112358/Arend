@@ -93,7 +93,7 @@ private fun isAtomic(argumentAppExpr: ArendArgumentAppExpr): Boolean =
 
 fun hasNoLevelArguments(argumentAppExpr: ArendArgumentAppExpr): Boolean {
     val longNameExpr = argumentAppExpr.longNameExpr
-    // Excludes cases like `f (Path \levels 0 0) 1`, `f (Path \lp \lh) 1`
+    // Excludes cases like `f (Path \levels 0 0) 1`, `f (Path \lp) 1`
     return longNameExpr == null || longNameExpr.levelsExpr == null && longNameExpr.pLevelExpr == null
 }
 

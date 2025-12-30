@@ -264,18 +264,8 @@ public class ReplaceDataVisitor implements ConcreteExpressionVisitor<Void,Concre
   }
 
   @Override
-  public Concrete.LevelExpression visitInf(Concrete.InfLevelExpression expr, Void param) {
-    return new Concrete.InfLevelExpression(getData(expr));
-  }
-
-  @Override
   public Concrete.LevelExpression visitLP(Concrete.PLevelExpression expr, Void param) {
     return new Concrete.PLevelExpression(getData(expr));
-  }
-
-  @Override
-  public Concrete.LevelExpression visitLH(Concrete.HLevelExpression expr, Void param) {
-    return new Concrete.HLevelExpression(getData(expr));
   }
 
   @Override

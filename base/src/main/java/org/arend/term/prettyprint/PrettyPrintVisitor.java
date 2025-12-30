@@ -556,20 +556,8 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
   }
 
   @Override
-  public Void visitInf(Concrete.InfLevelExpression expr, Precedence param) {
-    myBuilder.append("\\oo");
-    return null;
-  }
-
-  @Override
   public Void visitLP(Concrete.PLevelExpression expr, Precedence param) {
     myBuilder.append("\\lp");
-    return null;
-  }
-
-  @Override
-  public Void visitLH(Concrete.HLevelExpression expr, Precedence param) {
-    myBuilder.append("\\lh");
     return null;
   }
 
@@ -628,8 +616,6 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
       myBuilder.append("\\Sort");
     } else if (expr.getKind() == ConcreteUniverseExpression.Kind.CAT) {
       myBuilder.append("\\Cat");
-    } else if (expr.getHLevel() instanceof Concrete.InfLevelExpression) {
-      myBuilder.append("\\Type");
     } else if (expr.getHLevel() instanceof Concrete.NumberLevelExpression) {
       int hLevel = ((Concrete.NumberLevelExpression) expr.getHLevel()).getNumber();
       if (hLevel == 0) {

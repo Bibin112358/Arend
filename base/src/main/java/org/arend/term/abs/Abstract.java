@@ -169,8 +169,6 @@ public final class Abstract {
 
   public enum EvalKind { EVAL, PEVAL, BOX }
 
-  public static final int INFINITY_LEVEL = -33;
-
   public interface Expression extends SourceNode {
     @Nullable Object getData();
     <P, R> R accept(@NotNull AbstractExpressionVisitor<? super P, ? extends R> visitor, @Nullable P params);

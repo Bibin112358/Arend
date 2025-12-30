@@ -193,18 +193,12 @@ public class ConcreteCompareVisitor implements ConcreteExpressionVisitor<Concret
   }
 
   private boolean compareLevel(Concrete.LevelExpression level1, Concrete.LevelExpression level2) {
-    if (level1 == level2 || level1 == null && level2 instanceof Concrete.InfLevelExpression || level2 == null && level1 instanceof Concrete.InfLevelExpression) return true;
+    if (level1 == level2) return true;
     if (level1 == null || level2 == null) return false;
     updateData(level1, level2);
     switch (level1) {
       case Concrete.PLevelExpression ignored -> {
         return level2 instanceof Concrete.PLevelExpression;
-      }
-      case Concrete.HLevelExpression ignored -> {
-        return level2 instanceof Concrete.HLevelExpression;
-      }
-      case Concrete.InfLevelExpression ignored -> {
-        return level2 instanceof Concrete.InfLevelExpression;
       }
       case Concrete.NumberLevelExpression numberLevelExpression -> {
         return level2 instanceof Concrete.NumberLevelExpression && numberLevelExpression.getNumber() == ((Concrete.NumberLevelExpression) level2).getNumber();

@@ -331,18 +331,8 @@ public class SubstConcreteVisitor extends BaseConcreteExpressionVisitor<Void> im
   }
 
   @Override
-  public Concrete.LevelExpression visitInf(Concrete.InfLevelExpression expr, Void param) {
-    return myData == null ? expr : new Concrete.InfLevelExpression(myData);
-  }
-
-  @Override
   public Concrete.LevelExpression visitLP(Concrete.PLevelExpression expr, Void param) {
     return myData == null ? expr : new Concrete.PLevelExpression(myData);
-  }
-
-  @Override
-  public Concrete.LevelExpression visitLH(Concrete.HLevelExpression expr, Void param) {
-    return myData == null ? expr : new Concrete.HLevelExpression(myData);
   }
 
   @Override

@@ -48,6 +48,8 @@ import org.arend.term.concrete.Concrete;
 import org.arend.typechecking.visitor.VoidConcreteVisitor;
 import org.arend.util.SingletonList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.*;
 
 import static org.arend.term.concrete.ConcreteExpressionFactory.*;
@@ -121,7 +123,7 @@ public class ToAbstractVisitor extends BaseExpressionVisitor<Void, Concrete.Expr
     return result;
   }
 
-  public static Concrete.LevelExpression convert(Level level) {
+  public static @Nullable Concrete.LevelExpression convert(Level level) {
     return new ToAbstractVisitor(null, new PrettyPrinterConfig() {
         @NotNull
         @Override
@@ -744,7 +746,9 @@ public class ToAbstractVisitor extends BaseExpressionVisitor<Void, Concrete.Expr
 
     List<Concrete.LevelExpression> result = new ArrayList<>(levels.size());
     for (Level level : levels) {
-      result.add(visitLevel(level));
+      Concrete.LevelExpression levelExpr = visitLevel(level);
+      if (levelExpr == null) return null;
+      result.add(levelExpr);
     }
     return result;
   }
@@ -755,7 +759,7 @@ public class ToAbstractVisitor extends BaseExpressionVisitor<Void, Concrete.Expr
 
   private Concrete.LevelExpression visitLevel(Level level) {
     if (level.isInfinity()) {
-      return new Concrete.InfLevelExpression(null);
+      return null;
     }
     if (level.isClosed()) {
       return new Concrete.NumberLevelExpression(null, level.getConstant());
@@ -766,8 +770,6 @@ public class ToAbstractVisitor extends BaseExpressionVisitor<Void, Concrete.Expr
       Concrete.LevelExpression levelExpr;
       if (entry.getKey() == LevelVariable.PVAR) {
         levelExpr = new Concrete.PLevelExpression(null);
-      } else if (entry.getKey() == LevelVariable.HVAR) {
-        levelExpr = new Concrete.HLevelExpression(null);
       } else {
         if (!hasFlag(PrettyPrinterFlag.SHOW_LEVELS)) {
           return null;

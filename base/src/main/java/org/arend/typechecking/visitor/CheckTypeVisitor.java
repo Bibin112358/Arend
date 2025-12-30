@@ -2125,25 +2125,8 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   // Level expressions
 
   @Override
-  public Level visitInf(Concrete.InfLevelExpression expr, LevelVariable base) {
-    if (base == LevelVariable.PVAR) {
-      errorReporter.report(new TypecheckingError("\\inf is not a correct p-level", expr));
-      return new Level(base);
-    }
-    return Level.INFINITY;
-  }
-
-  @Override
   public Level visitLP(Concrete.PLevelExpression expr, LevelVariable base) {
     if (base != LevelVariable.PVAR) {
-      errorReporter.report(new TypecheckingError("Expected " + base, expr));
-    }
-    return new Level(base);
-  }
-
-  @Override
-  public Level visitLH(Concrete.HLevelExpression expr, LevelVariable base) {
-    if (base != LevelVariable.HVAR) {
       errorReporter.report(new TypecheckingError("Expected " + base, expr));
     }
     return new Level(base);

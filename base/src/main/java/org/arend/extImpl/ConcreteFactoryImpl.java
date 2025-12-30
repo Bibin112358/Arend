@@ -876,20 +876,8 @@ public class ConcreteFactoryImpl implements ConcreteFactory {
 
   @NotNull
   @Override
-  public ConcreteLevel inf() {
-    return new Concrete.InfLevelExpression(myData);
-  }
-
-  @NotNull
-  @Override
   public ConcreteLevel lp() {
     return new Concrete.PLevelExpression(myData);
-  }
-
-  @NotNull
-  @Override
-  public ConcreteLevel lh() {
-    return new Concrete.HLevelExpression(myData);
   }
 
   @NotNull

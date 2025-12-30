@@ -35,7 +35,7 @@ class RedundantParensInspectionTest : QuickFixTestBase() {
        \func test8 => f2 (\Set 0) 1
 
        \func test9 => f2 (Path \levels 0 0) 1
-       \func test10 {A : \Type \lp \lh} => f2 (Path \lp \lh) 1
+       \func test10 {A : \Type \lp} => f2 (Path \lp) 1
 
        \func test11 => f2 (\Sigma) 1
        \func test12 => f2 (\Pi (n : Nat) -> Nat) 1
@@ -186,8 +186,8 @@ class RedundantParensInspectionTest : QuickFixTestBase() {
        \func test13 => 0 + suc (suc 1) + 2
        \func test14 => 0 + 1 + suc (suc 2)
 
-       \func test15 {A : \Type} (l : Array A) (a : A) => a :: (:: \levels \lp \lh a l)
-       \func test16 {A : \Type} (l : Array A) (a : A) => a :: (:: \lp \lh a l)
+       \func test15 {A : \Type} (l : Array A) (a : A) => a :: (:: \levels \lp a l)
+       \func test16 {A : \Type} (l : Array A) (a : A) => a :: (:: \lp a l)
 
        \func test17 => + (suc 0) (suc 1)
        \func test18 => +(suc 0) (suc 1)

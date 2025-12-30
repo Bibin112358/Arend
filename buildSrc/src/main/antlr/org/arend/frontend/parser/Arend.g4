@@ -226,10 +226,7 @@ letClause : (ID tele* | atomPattern) typeAnnotation? '=>' expr;
 typeAnnotation : ':' expr;
 
 levelAtom : '\\lp'              # pLevel
-          | '\\lh'              # hLevel
-          | '\\oo'              # infLevel
           | NUMBER              # numLevel
-          | NEGATIVE_NUMBER     # negLevel
           | ID                  # idLevel
           | '(' levelExpr ')'   # parenLevel
           ;
@@ -240,8 +237,6 @@ levelExpr : levelAtom                     # atomLevel
           ;
 
 onlyLevelAtom : '\\lp'                                                # pOnlyLevel
-              | '\\lh'                                                # hOnlyLevel
-              | '\\oo'                                                # infOnlyLevel
               | '\\levels' maybeLevelAtoms                            # levelsOnlyLevel
               | '(' onlyLevelExpr ')'                                 # parenOnlyLevel
               ;

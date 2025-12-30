@@ -424,9 +424,7 @@ class ArendKeywordCompletionTest : ArendCompletionTestBase() {
                     "\\func lol (a : Nat) => (\\Prop {-caret-})",
                     "\\func lol (a : Nat) => (\\Set \\lp {-caret-})",
                     "\\func lol (a : Nat) => (\\Set (\\suc \\lp {-caret-}))",
-                    "\\func lol (a : Nat) => (\\Set (\\max 1 \\lp {-caret-}))",
-                    "\\func lol (a : Nat) => (\\Type \\lp (\\max 1 \\lh {-caret-}))",
-                    "\\func lol (a : Nat) => (\\Type \\lp \\lh {-caret-})")
+                    "\\func lol (a : Nat) => (\\Set (\\max 1 \\lp {-caret-}))")
 
     fun `test levels completion after universe literal 3`() =
             checkKeywordCompletionVariants(LPH_LEVEL_KWS, CompletionCondition.SAME_KEYWORDS,
@@ -541,10 +539,10 @@ class ArendKeywordCompletionTest : ArendCompletionTestBase() {
     fun `test elim completion 1`() = checkKeywordCompletionVariants(ELIM_WITH_KW_LIST, CompletionCondition.CONTAINS,
             "\\func lol (a : Nat) {-caret-}",
             "\\func lol (a : Nat) : Nat {-caret-}",
-            "\\func lol (a : Nat) : \\Type \\lp \\lh {-caret-}",
+            "\\func lol (a : Nat) : \\Type \\lp {-caret-}",
             "\\func f (n : Nat) : Nat {-caret-}\n -- comment\n",
             "\\data lol (a : Nat) {-caret-}",
-            "\\data lol (a : Nat) : \\Type \\lp \\lh {-caret-}",
+            "\\data lol (a : Nat) : \\Type \\lp {-caret-}",
             "\\data lol | south (a : Nat) {-caret-}",
             "\\data lol | south I {-caret-}")
 
@@ -554,7 +552,7 @@ class ArendKeywordCompletionTest : ArendCompletionTestBase() {
 
     fun `test cowith completion`() = checkKeywordCompletionVariants(COWITH_KW_LIST, CompletionCondition.CONTAINS,
             "\\func lol (a : Nat) : Nat {-caret-}",
-            "\\func lol (a : Nat) : \\Type \\lp \\lh {-caret-}",
+            "\\func lol (a : Nat) : \\Type \\lp {-caret-}",
             "\\func f (n : Nat) : Nat {-caret-}\n -- comment\n",
             "\\func lol : Nat {-caret-}",
             "\\func t : Nat {-caret-} \\where {}",
@@ -612,8 +610,8 @@ class ArendKeywordCompletionTest : ArendCompletionTestBase() {
             "\\func lol => lol \\lp ({-caret-})")
 
     fun `test no leveled application`() = checkKeywordCompletionVariants(LPH_KW_LIST + LEVELS_KW_LIST, CompletionCondition.DOES_NOT_CONTAIN,
-            "\\func lol => lol \\levels \\lp \\lh {-caret-}",
-            "\\func lol => lol \\lp \\lh {-caret-}",
+            "\\func lol => lol \\levels \\lp {-caret-}",
+            "\\func lol => lol \\lp {-caret-}",
             "\\func lol (a : Nat) => lol a {-caret-}",
             "\\func lol => 1 {-caret-}",
             "\\func lol => 1 ({-caret-})")
@@ -668,7 +666,7 @@ class ArendKeywordCompletionTest : ArendCompletionTestBase() {
     fun test_meta_with() = checkKeywordCompletionVariants(WITH_KW_FULL, CompletionCondition.CONTAINS,
             "\\func f (a b c : Nat) => 101\n\\func bar (a b c : Nat) => f a b c {-caret-}",
             "\\func f (a b c : Nat) => 101\n\\func bar (a b c : Nat) => f {-caret-}",
-            "\\func f (a b c : Nat) => 101\n\\func bar (a b c : Nat) => f \\levels \\lp \\lh {-caret-}",
+            "\\func f (a b c : Nat) => 101\n\\func bar (a b c : Nat) => f \\levels \\lp {-caret-}",
             "\\func f (a b c : Nat) => 101\n\\func bar (a b c : Nat) => \\new f a b c {-caret-}",
             "\\func f (a b c : Nat) => 101\n\\func bar (a b c : Nat) => \\eval f a b c {-caret-}",
             "\\func f (a b c : Nat) => 101\n\\func bar (a b c : Nat) => \\eval f a b c {} {-caret-}")

@@ -1008,17 +1008,7 @@ public class ExpressionResolveNameVisitor extends BaseConcreteExpressionVisitor<
   }
 
   @Override
-  public Concrete.LevelExpression visitInf(Concrete.InfLevelExpression expr, LevelVariable param) {
-    return expr;
-  }
-
-  @Override
   public Concrete.LevelExpression visitLP(Concrete.PLevelExpression expr, LevelVariable param) {
-    return expr;
-  }
-
-  @Override
-  public Concrete.LevelExpression visitLH(Concrete.HLevelExpression expr, LevelVariable param) {
     return expr;
   }
 

@@ -93,7 +93,7 @@ public class PrettyPrintingTest extends TypeCheckingTestCase {
     List<Concrete.Parameter> arguments = new ArrayList<>(2);
     LocalReferable X = ref("X");
     LocalReferable x = ref("X");
-    arguments.add(cTele(cvars(X), cUniverseStd(0)));
+    arguments.add(cTele(cvars(X), cUniverse(0)));
     arguments.add(cTele(cvars(x), cVar(X)));
     LocatedReferableImpl reference = new LocatedReferableImpl(null, AccessModifier.PUBLIC, Precedence.DEFAULT, "f", Precedence.DEFAULT, null, MODULE_REF, GlobalReferable.Kind.FUNCTION);
     Concrete.FunctionDefinition def = new Concrete.FunctionDefinition(FunctionKind.FUNC, reference, arguments, cVar(X), null, body(cVar(x)));

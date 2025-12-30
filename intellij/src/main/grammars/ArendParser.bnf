@@ -87,8 +87,6 @@
         PRIVATE_KW          = '\private'
         PROTECTED_KW        = '\protected'
         LP_KW               = '\lp'
-        LH_KW               = '\lh'
-        OO_KW               = '\oo'
         SUC_KW              = '\suc'
         LEVEL_KW            = '\level'
         LEVELS_KW           = '\levels'
@@ -665,10 +663,7 @@ levelExpr ::= atomLevelExpr
 private levelExpr_recover ::= !(RPAREN | COMMA) & statement_recover
 
 atomLevelExpr ::= LP_KW
-    | LH_KW
-    | OO_KW
     | NUMBER
-    | NEGATIVE_NUMBER
     | refIdentifier
     | LPAREN levelExpr RPAREN {
     pin(".*") = 1
@@ -708,8 +703,6 @@ maybeAtomLevelExprs ::= LPAREN <<comma_separated_sequence levelExpr>>? RPAREN | 
 private levelsLevels ::= LEVELS_KW maybeAtomLevelExprs { pin = 1 }
 
 atomOnlyLevelExpr ::= LP_KW
-    | LH_KW
-    | OO_KW
     | LPAREN onlyLevelExpr RPAREN
 
 argumentAppExpr ::= (longNameExpr | atomFieldsAcc) (argument | argumentRecovery)* {

@@ -367,17 +367,7 @@ public class VoidConcreteVisitor<P> implements ConcreteExpressionVisitor<P,Void>
   }
 
   @Override
-  public Void visitInf(Concrete.InfLevelExpression expr, P param) {
-    return null;
-  }
-
-  @Override
   public Void visitLP(Concrete.PLevelExpression expr, P param) {
-    return null;
-  }
-
-  @Override
-  public Void visitLH(Concrete.HLevelExpression expr, P param) {
     return null;
   }
 
