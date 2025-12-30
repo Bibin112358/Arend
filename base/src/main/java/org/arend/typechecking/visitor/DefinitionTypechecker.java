@@ -1704,7 +1704,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     } else if (kind == FunctionKind.TYPE) {
       if (!(typedDef.getResultType() instanceof UniverseExpression)) {
         if (!typedDef.getResultType().reportIfError(errorReporter, def.getResultType())) {
-          errorReporter.report(new TypeMismatchError(new UniverseExpression(Sort.STD), typedDef.getResultType(), def.getResultType()));
+          errorReporter.report(new TypeMismatchError(UniverseExpression.OMEGA, typedDef.getResultType(), def.getResultType()));
         }
         typedDef.setKind(CoreFunctionDefinition.Kind.SFUNC);
       }

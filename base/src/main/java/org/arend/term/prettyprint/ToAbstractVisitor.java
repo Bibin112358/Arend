@@ -735,7 +735,7 @@ public class ToAbstractVisitor extends BaseExpressionVisitor<Void, Concrete.Expr
     if (level == null) return null;
     if (showStdVar || level.isClosed()) return visitLevel(level);
     LevelVariable var = level.getSingleVar();
-    return var != LevelVariable.PVAR && var != LevelVariable.HVAR && hasFlag(PrettyPrinterFlag.SHOW_LEVELS) ? visitLevel(level) : null;
+    return var != LevelVariable.PVAR && hasFlag(PrettyPrinterFlag.SHOW_LEVELS) ? visitLevel(level) : null;
   }
 
   private List<Concrete.LevelExpression> visitLevelsNull(List<Level> levels, boolean showStdVar) {
@@ -1083,7 +1083,7 @@ public class ToAbstractVisitor extends BaseExpressionVisitor<Void, Concrete.Expr
   }
 
   public static Concrete.LevelParameters visitLevelParameters(List<? extends LevelVariable> parameters) {
-    if (parameters == null || parameters.size() == 1 && parameters.getFirst().equals(parameters.getFirst().getStd())) {
+    if (parameters == null || parameters.size() == 1 && parameters.getFirst().equals(LevelVariable.PVAR)) {
       return null;
     }
     List<LevelReferable> refs = new ArrayList<>(parameters.size());

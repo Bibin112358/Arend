@@ -200,7 +200,7 @@ public class LevelEquationsSolver {
       @Override
       protected LevelVariable forDependencies(InferenceLevelVariable unit) {
         Set<LevelVariable> bounds = myLowerBounds.get(unit);
-        LevelVariable result = unit.getStd();
+        LevelVariable result = LevelVariable.PVAR;
         if (bounds != null) {
           for (LevelVariable bound : bounds) {
             result = result.max(bound instanceof InferenceLevelVariable ? visit((InferenceLevelVariable) bound) : bound);
@@ -211,7 +211,7 @@ public class LevelEquationsSolver {
 
       @Override
       protected LevelVariable getVisitedValue(InferenceLevelVariable unit, boolean cycle) {
-        return unit.getStd();
+        return LevelVariable.PVAR;
       }
     }.visit(var);
   }
@@ -281,7 +281,7 @@ public class LevelEquationsSolver {
     loop:
     for (Set<LevelVariable> vars : myLowerBounds.values()) {
       for (LevelVariable var : vars) {
-        if (!(var instanceof InferenceLevelVariable) && var != LevelVariable.PVAR && var != LevelVariable.HVAR) {
+        if (!(var instanceof InferenceLevelVariable) && var != LevelVariable.PVAR) {
           useStd = false;
           break loop;
         }
@@ -292,7 +292,7 @@ public class LevelEquationsSolver {
       assert entry.getValue() != LevelEquations.INFINITY || entry.getKey().getType() == LevelVariable.LvlType.HLVL;
       if (!unBased.contains(entry.getKey())) {
         int sol = solution.get(entry.getKey());
-        result.add(entry.getKey(), sol == LevelEquations.INFINITY || entry.getValue() == LevelEquations.INFINITY ? Level.INFINITY : new Level(useStd ? entry.getKey().getStd() : getLowerBound(entry.getKey()), -entry.getValue(), -sol));
+        result.add(entry.getKey(), sol == LevelEquations.INFINITY || entry.getValue() == LevelEquations.INFINITY ? Level.INFINITY : new Level(useStd ? LevelVariable.PVAR : getLowerBound(entry.getKey()), -entry.getValue(), -sol));
       }
     }
 
@@ -392,7 +392,7 @@ public class LevelEquationsSolver {
       if (equation.isInfinity() || equation.getVariable1() != null) {
         basedCycle.add(new LevelEquation<>(equation));
       } else {
-        basedCycle.add(new LevelEquation<>(equation.getVariable2() == null || unBased.contains(equation.getVariable2()) ? null : equation.getVariable2().getStd(), equation.getVariable2(), equation.getConstant()));
+        basedCycle.add(new LevelEquation<>(equation.getVariable2() == null || unBased.contains(equation.getVariable2()) ? null : LevelVariable.PVAR, equation.getVariable2(), equation.getConstant()));
       }
     }
     LevelEquation<InferenceLevelVariable> lastEquation = cycle.getLast();

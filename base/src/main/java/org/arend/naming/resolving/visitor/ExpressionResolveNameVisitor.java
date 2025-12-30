@@ -39,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class ExpressionResolveNameVisitor extends BaseConcreteExpressionVisitor<Void> implements ExpressionResolver, ConcreteLevelExpressionVisitor<LevelVariable, Concrete.LevelExpression> {
+public class ExpressionResolveNameVisitor extends BaseConcreteExpressionVisitor<Void> implements ExpressionResolver, ConcreteLevelExpressionVisitor<Void, Concrete.LevelExpression> {
   private final Scope myParentScope;
   private final Scope myScope;
   private final List<TypedReferable> myContext;
@@ -241,7 +241,7 @@ public class ExpressionResolveNameVisitor extends BaseConcreteExpressionVisitor<
 
   private void resolveLevels(Concrete.ReferenceExpression expr) {
     if (expr.getPLevels() != null) {
-      expr.getPLevels().replaceAll(levelExpression -> levelExpression.accept(this, LevelVariable.PVAR));
+      expr.getPLevels().replaceAll(levelExpression -> levelExpression.accept(this, null));
     }
   }
 
@@ -998,32 +998,32 @@ public class ExpressionResolveNameVisitor extends BaseConcreteExpressionVisitor<
   public Concrete.Expression visitUniverse(Concrete.UniverseExpression expr, Void params) {
     Concrete.LevelExpression pLevel = expr.getPLevel();
     if (pLevel != null) {
-      pLevel = pLevel.accept(this, LevelVariable.PVAR);
+      pLevel = pLevel.accept(this, null);
     }
     Concrete.LevelExpression hLevel = expr.getHLevel();
     if (hLevel != null) {
-      hLevel = hLevel.accept(this, LevelVariable.HVAR);
+      hLevel = hLevel.accept(this, null);
     }
     return new Concrete.UniverseExpression(expr.getData(), pLevel, hLevel, expr.getKind());
   }
 
   @Override
-  public Concrete.LevelExpression visitLP(Concrete.PLevelExpression expr, LevelVariable param) {
+  public Concrete.LevelExpression visitLP(Concrete.PLevelExpression expr, Void param) {
     return expr;
   }
 
   @Override
-  public Concrete.LevelExpression visitNumber(Concrete.NumberLevelExpression expr, LevelVariable param) {
+  public Concrete.LevelExpression visitNumber(Concrete.NumberLevelExpression expr, Void param) {
     return expr;
   }
 
   @Override
-  public Concrete.LevelExpression visitVar(Concrete.VarLevelExpression expr, LevelVariable type) {
+  public Concrete.LevelExpression visitVar(Concrete.VarLevelExpression expr, Void param) {
     Referable ref = resolve(expr.getReferent(), myScope, Scope.ScopeContext.LEVEL, myResolverListener);
     if (ref instanceof ErrorReference) {
       myErrorReporter.report(((ErrorReference) ref).getError());
     }
-    Concrete.VarLevelExpression result = new Concrete.VarLevelExpression(expr.getData(), ref, type.getType());
+    Concrete.VarLevelExpression result = new Concrete.VarLevelExpression(expr.getData(), ref, LevelVariable.LvlType.PLVL);
     if (myResolverListener != null) {
       myResolverListener.levelResolved(expr.getReferent(), result, ref, new ArrayList<>(myScope.getElements(Scope.ScopeContext.LEVEL)));
     }
@@ -1032,12 +1032,12 @@ public class ExpressionResolveNameVisitor extends BaseConcreteExpressionVisitor<
   }
 
   @Override
-  public Concrete.LevelExpression visitSuc(Concrete.SucLevelExpression expr, LevelVariable type) {
-    return new Concrete.SucLevelExpression(expr.getData(), expr.getExpression().accept(this, type));
+  public Concrete.LevelExpression visitSuc(Concrete.SucLevelExpression expr, Void param) {
+    return new Concrete.SucLevelExpression(expr.getData(), expr.getExpression().accept(this, param));
   }
 
   @Override
-  public Concrete.LevelExpression visitMax(Concrete.MaxLevelExpression expr, LevelVariable type) {
-    return new Concrete.MaxLevelExpression(expr.getData(), expr.getLeft().accept(this, type), expr.getRight().accept(this, type));
+  public Concrete.LevelExpression visitMax(Concrete.MaxLevelExpression expr, Void param) {
+    return new Concrete.MaxLevelExpression(expr.getData(), expr.getLeft().accept(this, param), expr.getRight().accept(this, param));
   }
 }

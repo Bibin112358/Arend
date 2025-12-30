@@ -60,14 +60,14 @@ class ExpressionDeserialization {
 
   // Sorts and levels
 
-  private Level readLevel(LevelProtos.Level proto, LevelVariable base) {
-    return readLevel(proto, base, myDefinition);
+  private Level readLevel(LevelProtos.Level proto) {
+    return readLevel(proto, myDefinition);
   }
 
-  private Level readLevel(LevelProtos.Level proto, LevelVariable base, Definition definition) {
+  private Level readLevel(LevelProtos.Level proto, Definition definition) {
     LevelVariable var;
     int index = proto.getVariable();
-    var = index == -2 ? null : index == -1 ? base : definition.getLevelParameters().get(index);
+    var = index == -2 ? null : index == -1 ? LevelVariable.PVAR : definition.getLevelParameters().get(index);
 
     int constant = proto.getConstant();
     if (var == null && constant == Level.INFINITY.getConstant()) {
@@ -78,16 +78,16 @@ class ExpressionDeserialization {
   }
 
   Sort readSort(LevelProtos.Sort proto) {
-    return new Sort(readLevel(proto.getPLevel(), LevelVariable.PVAR), readLevel(proto.getHLevel(), LevelVariable.HVAR));
+    return new Sort(readLevel(proto.getPLevel()), readLevel(proto.getHLevel()));
   }
 
   Levels readLevels(LevelProtos.Levels proto) {
     if (proto.getIsStd()) {
-      return new SingleLevel(readLevel(proto.getPLevel(0), LevelVariable.PVAR));
+      return new SingleLevel(readLevel(proto.getPLevel(0)));
     } else {
       List<Level> levels = new ArrayList<>();
       for (LevelProtos.Level level : proto.getPLevelList()) {
-        levels.add(readLevel(level, LevelVariable.PVAR));
+        levels.add(readLevel(level));
       }
       return new ListLevels(levels);
     }

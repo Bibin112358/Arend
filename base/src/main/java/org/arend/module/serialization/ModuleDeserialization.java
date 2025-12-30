@@ -261,7 +261,7 @@ public class ModuleDeserialization {
     for (DefinitionProtos.Definition.LevelParameter parameter : parameters) {
       int size = parameter.getSize();
       if (size == -1) {
-        result.add(parameter.getIsPlevel() ? LevelVariable.PVAR : LevelVariable.HVAR);
+        result.add(LevelVariable.PVAR);
       } else {
         result.add(new ParamLevelVariable(parameter.getName(), parameter.getIndex(), size));
       }

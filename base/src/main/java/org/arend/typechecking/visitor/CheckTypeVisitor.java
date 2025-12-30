@@ -95,7 +95,7 @@ import java.util.function.Function;
 import static org.arend.core.expr.ExpressionFactory.*;
 import static org.arend.ext.error.ArgInferenceError.expression;
 
-public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpressionVisitor<Expression, TypecheckingResult>, ConcreteLevelExpressionVisitor<LevelVariable, Level>, ExpressionTypechecker {
+public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpressionVisitor<Expression, TypecheckingResult>, ConcreteLevelExpressionVisitor<Void, Level>, ExpressionTypechecker {
   private final Equations myEquations;
   private GlobalInstancePool myInstancePool;
   private final ImplicitArgsInference myArgsInference;
@@ -1916,7 +1916,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
         if (level == null) {
           generateLevel(params.get(i), defaultLevels, useMinAsDefault, isUniverseLike, sourceNode, result);
         } else {
-          result.add(level.accept(this, params.get(i).getStd()));
+          result.add(level.accept(this, null));
         }
       }
     }
@@ -2125,46 +2125,43 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   // Level expressions
 
   @Override
-  public Level visitLP(Concrete.PLevelExpression expr, LevelVariable base) {
-    if (base != LevelVariable.PVAR) {
-      errorReporter.report(new TypecheckingError("Expected " + base, expr));
-    }
-    return new Level(base);
+  public Level visitLP(Concrete.PLevelExpression expr, Void param) {
+    return new Level(LevelVariable.PVAR);
   }
 
   @Override
-  public Level visitNumber(Concrete.NumberLevelExpression expr, LevelVariable base) {
+  public Level visitNumber(Concrete.NumberLevelExpression expr, Void param) {
     int level = expr.getNumber();
-    if (level < base.getMinValue()) {
-      errorReporter.report(new TypecheckingError("Expected a " + (base == LevelVariable.HVAR ? "number >= -1" : "positive number"), expr));
-      level = base.getMinValue();
+    if (level < 0) {
+      errorReporter.report(new TypecheckingError("Expected a positive number", expr));
+      level = 0;
     }
     return new Level(level);
   }
 
   @Override
-  public Level visitVar(Concrete.VarLevelExpression expr, LevelVariable base) {
+  public Level visitVar(Concrete.VarLevelExpression expr, Void param) {
     if (expr.getReferent() instanceof ErrorReference) {
-      return new Level(base);
+      return new Level(LevelVariable.PVAR);
     }
     ParamLevelVariable var = myLevelContext != null && expr.getReferent() instanceof LevelReferable ? myLevelContext.getVariable((LevelReferable) expr.getReferent()) : null;
     if (var == null) {
       if (checkUnresolved(expr.getReferent(), expr)) {
         errorReporter.report(new IncorrectReferenceError(expr.getReferent(), expr));
       }
-      return new Level(base);
+      return new Level(LevelVariable.PVAR);
     }
     return new Level(var);
   }
 
   @Override
-  public Level visitSuc(Concrete.SucLevelExpression expr, LevelVariable base) {
-    return expr.getExpression().accept(this, base).add(1);
+  public Level visitSuc(Concrete.SucLevelExpression expr, Void param) {
+    return expr.getExpression().accept(this, param).add(1);
   }
 
   @Override
-  public Level visitMax(Concrete.MaxLevelExpression expr, LevelVariable base) {
-    return expr.getLeft().accept(this, base).max(expr.getRight().accept(this, base));
+  public Level visitMax(Concrete.MaxLevelExpression expr, Void param) {
+    return expr.getLeft().accept(this, param).max(expr.getRight().accept(this, param));
   }
 
   // Parameters
@@ -3375,8 +3372,18 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       return null;
     }
 
-    Level pLevel = expr.getPLevel() != null ? expr.getPLevel().accept(this, LevelVariable.PVAR) : null;
-    Level hLevel = expr.getHLevel() != null ? expr.getHLevel().accept(this, LevelVariable.HVAR) : null;
+    Level pLevel = expr.getPLevel() != null ? expr.getPLevel().accept(this, null) : null;
+    Level hLevel;
+    if (expr.getHLevel() instanceof Concrete.NumberLevelExpression numberLevelExpr) {
+      int number = numberLevelExpr.getNumber();
+      if (number < -1) {
+        errorReporter.report(new TypecheckingError("Expected a number >= -1", expr));
+        number = -1;
+      }
+      hLevel = new Level(number);
+    } else {
+      hLevel = expr.getHLevel() != null ? expr.getHLevel().accept(this, null) : null;
+    }
 
     if (pLevel == null) {
       InferenceLevelVariable pl = new InferenceLevelVariable(LevelVariable.LvlType.PLVL, true, expr);

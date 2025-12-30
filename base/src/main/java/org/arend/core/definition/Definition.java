@@ -105,11 +105,6 @@ public abstract class Definition extends UserDataHolderImpl implements CoreDefin
     return params != null && (params.isEmpty() || params.getFirst() != LevelVariable.PVAR);
   }
 
-  public boolean hasNonTrivialHLevelParameters() {
-    List<? extends LevelVariable> params = getLevelParameters();
-    return params != null && (params.isEmpty() || params.getLast() != LevelVariable.HVAR);
-  }
-
   public boolean isIdLevels(Levels levels) {
     List<? extends LevelVariable> vars = getLevelParameters();
     if (vars == null) {

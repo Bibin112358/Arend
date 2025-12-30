@@ -35,7 +35,7 @@ public class ParamLevelVariable implements LevelVariable {
 
   @Override
   public boolean compare(LevelVariable other, CMP cmp) {
-    return other == getStd() && (mySize == 0 || cmp == CMP.GE) || other instanceof ParamLevelVariable && compare(mySize, ((ParamLevelVariable) other).mySize, cmp);
+    return other == PVAR && (mySize == 0 || cmp == CMP.GE) || other instanceof ParamLevelVariable && compare(mySize, ((ParamLevelVariable) other).mySize, cmp);
   }
 
   public int getIndex() {
@@ -53,11 +53,11 @@ public class ParamLevelVariable implements LevelVariable {
 
   @Override
   public boolean equals(Object o) {
-    return this == o || o instanceof LevelVariable && mySize == 0 && o == getStd();
+    return this == o || mySize == 0 && o == PVAR;
   }
 
   @Override
   public int hashCode() {
-    return mySize == 0 ? getStd().hashCode() : super.hashCode();
+    return mySize == 0 ? PVAR.hashCode() : super.hashCode();
   }
 }

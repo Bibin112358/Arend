@@ -10,7 +10,6 @@ import org.arend.core.pattern.BindingPattern;
 import org.arend.core.pattern.ConstructorExpressionPattern;
 import org.arend.core.pattern.EmptyPattern;
 import org.arend.core.pattern.ExpressionPattern;
-import org.arend.core.sort.Sort;
 import org.arend.core.subst.SingleLevel;
 import org.arend.ext.error.GeneralError;
 import org.arend.ext.error.ListErrorReporter;
@@ -165,7 +164,6 @@ public class PatternTest extends TypeCheckingTestCase {
     assertNotNull(funDef);
     DataDefinition data = new DataDefinition(dataDef);
     data.setParameters(EmptyDependentLink.getInstance());
-    data.setSort(Sort.STD);
     data.setStatus(Definition.TypeCheckingStatus.NO_ERRORS);
 
     List<Concrete.Pattern> patternsArgs = funDef.getBody().getClauses().getFirst().getPatterns();
@@ -231,7 +229,6 @@ public class PatternTest extends TypeCheckingTestCase {
     assertNotNull(funDef);
     DataDefinition data = new DataDefinition(dataDef);
     data.setParameters(EmptyDependentLink.getInstance());
-    data.setSort(Sort.STD);
     data.setStatus(Definition.TypeCheckingStatus.NO_ERRORS);
 
     List<Concrete.Pattern> patternsArgs = funDef.getBody().getClauses().getFirst().getPatterns();
@@ -257,7 +254,6 @@ public class PatternTest extends TypeCheckingTestCase {
     assertNotNull(funDef);
     DataDefinition data = new DataDefinition(dataDef);
     data.setParameters(EmptyDependentLink.getInstance());
-    data.setSort(Sort.STD);
     data.setStatus(Definition.TypeCheckingStatus.NO_ERRORS);
 
     List<Concrete.Pattern> patternsArgs = funDef.getBody().getClauses().getFirst().getPatterns();

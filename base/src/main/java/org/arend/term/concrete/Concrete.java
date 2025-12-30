@@ -1936,7 +1936,7 @@ public final class Concrete {
       for (LevelVariable variable : variables) {
         refs.add(new DataLevelReferable(null, variable.getName()));
       }
-      return new Concrete.LevelParameters(null, refs, variables.size() <= 1 || variables.get(0).getStd() == variables.get(0) || variables.get(0) instanceof ParamLevelVariable && variables.get(1) instanceof ParamLevelVariable && ((ParamLevelVariable) variables.get(0)).getSize() <= ((ParamLevelVariable) variables.get(1)).getSize());
+      return new Concrete.LevelParameters(null, refs, variables.size() <= 1 || LevelVariable.PVAR == variables.get(0) || variables.get(0) instanceof ParamLevelVariable && variables.get(1) instanceof ParamLevelVariable && ((ParamLevelVariable) variables.get(0)).getSize() <= ((ParamLevelVariable) variables.get(1)).getSize());
     }
 
     @Override

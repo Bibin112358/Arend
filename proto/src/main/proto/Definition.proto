@@ -33,7 +33,6 @@ message Definition {
         repeated int32 ref = 1;
     }
     message LevelParameter {
-        bool is_plevel = 1;
         string name = 2;
         int32 size = 3;
         int32 index = 4;

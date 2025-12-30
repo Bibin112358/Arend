@@ -102,7 +102,6 @@ public class DefinitionSerialization implements ArendSerializer {
 
   private DefinitionProtos.Definition.LevelParameter writeLevelParameter(LevelVariable parameter) {
     DefinitionProtos.Definition.LevelParameter.Builder builder = DefinitionProtos.Definition.LevelParameter.newBuilder();
-    builder.setIsPlevel(parameter.getType() == LevelVariable.LvlType.PLVL);
     if (parameter instanceof ParamLevelVariable) {
       builder.setName(parameter.getName());
       builder.setIndex(((ParamLevelVariable) parameter).getIndex());

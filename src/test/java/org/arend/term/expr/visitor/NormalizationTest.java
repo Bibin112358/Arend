@@ -281,8 +281,8 @@ public class NormalizationTest extends TypeCheckingTestCase {
 
   @Test
   public void testIsoRight() {
-    DependentLink A = param("A", Universe(new Level(LevelVariable.PVAR), new Level(LevelVariable.HVAR)));
-    DependentLink B = param("B", Universe(new Level(LevelVariable.PVAR), new Level(LevelVariable.HVAR)));
+    DependentLink A = param("A", Universe(new Level(LevelVariable.PVAR), Level.INFINITY));
+    DependentLink B = param("B", Universe(new Level(LevelVariable.PVAR), Level.INFINITY));
     DependentLink f = param("f", Pi(Ref(A), Ref(B)));
     DependentLink g = param("g", Pi(Ref(B), Ref(A)));
     SingleDependentLink a = singleParam("a", Ref(A));

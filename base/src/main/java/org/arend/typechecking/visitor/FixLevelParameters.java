@@ -30,7 +30,7 @@ public class FixLevelParameters extends VoidExpressionVisitor<Void> {
 
   public static void fix(Set<? extends TopLevelDefinition> definitions, Set<Definition> newDefs) {
     for (Definition definition : definitions) {
-      if (definition.hasNonTrivialPLevelParameters() && definition.hasNonTrivialHLevelParameters()) return;
+      if (definition.hasNonTrivialPLevelParameters()) return;
     }
 
     Set<Definition> extendedDefs = new HashSet<>();
