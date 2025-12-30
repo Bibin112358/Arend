@@ -16,7 +16,6 @@ import java.util.Set;
 public class FindLevelParameters extends SearchVisitor<Void> {
   private final Set<? extends Definition> myAllowedDefinition;
   public boolean hasPLevels;
-  public boolean hasHLevels;
 
   public FindLevelParameters(Set<? extends Definition> allowedDefinition) {
     myAllowedDefinition = allowedDefinition;
@@ -27,15 +26,12 @@ public class FindLevelParameters extends SearchVisitor<Void> {
     if (type == LevelVariable.LvlType.PLVL) {
       hasPLevels = true;
     }
-    if (type == LevelVariable.LvlType.HLVL) {
-      hasHLevels = true;
-    }
   }
 
   private boolean checkLevels(Levels levels) {
     for (Level level : levels.toList()) {
       checkLevel(level);
-      if (hasPLevels && hasHLevels) {
+      if (hasPLevels) {
         return true;
       }
     }
@@ -46,7 +42,7 @@ public class FindLevelParameters extends SearchVisitor<Void> {
     if (!(sortExpr instanceof SortExpression.Const(Sort sort))) return false;
     checkLevel(sort.getPLevel());
     checkLevel(sort.getHLevel());
-    return hasPLevels && hasHLevels;
+    return hasPLevels;
   }
 
   @Override
@@ -149,7 +145,7 @@ public class FindLevelParameters extends SearchVisitor<Void> {
         if (superClass.getLevelParameters() != null && superClass.getLevelParameters().isEmpty()) {
           continue;
         } else {
-          hasPLevels = hasHLevels = true;
+          hasPLevels = true;
           return true;
         }
       }

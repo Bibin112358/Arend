@@ -11,8 +11,6 @@ import org.arend.typechecking.TypeCheckingTestCase;
 import org.arend.typechecking.error.local.SuperLevelsMismatchError;
 import org.junit.Test;
 
-import java.util.Collections;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -210,7 +208,7 @@ public class ClassLevelsTest extends TypeCheckingTestCase {
         \\record X \\extends S (\\lp,\\lp), T (\\lp,\\lp,\\lp)
           | B : \\Type \\lp
         """);
-    assertEquals(Collections.singletonList(LevelVariable.PVAR), getDefinition("X").getLevelParameters());
+    assertNull(getDefinition("X").getLevelParameters());
   }
 
   @Test
@@ -218,7 +216,7 @@ public class ClassLevelsTest extends TypeCheckingTestCase {
     typeCheckModule(
       "\\record R \\plevels p1 <= p2\n" +
       "\\record S \\extends R (\\lp,\\lp)");
-    assertEquals(Collections.singletonList(LevelVariable.PVAR), getDefinition("S").getLevelParameters());
+    assertNull(getDefinition("S").getLevelParameters());
   }
 
   @Test

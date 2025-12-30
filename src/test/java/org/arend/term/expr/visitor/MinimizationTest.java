@@ -3,7 +3,7 @@ package org.arend.term.expr.visitor;
 import org.arend.core.definition.FunctionDefinition;
 import org.arend.core.expr.Expression;
 import org.arend.core.expr.LetExpression;
-import org.arend.core.subst.LevelPair;
+import org.arend.core.subst.SingleLevel;
 import org.arend.term.prettyprint.MinimizedRepresentation;
 import org.arend.typechecking.TypeCheckingTestCase;
 import org.arend.typechecking.instance.ArendInstances;
@@ -28,7 +28,7 @@ public class MinimizationTest extends TypeCheckingTestCase {
     }
 
     private void checkType(String module, String expected) {
-        selectiveCheck(module, expected, true, definition -> definition.getTypeWithParams(new ArrayList<>(), LevelPair.STD));
+        selectiveCheck(module, expected, true, definition -> definition.getTypeWithParams(new ArrayList<>(), SingleLevel.STD));
     }
 
     private void checkLet(String module, String expected) {

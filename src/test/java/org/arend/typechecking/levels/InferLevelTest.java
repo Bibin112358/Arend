@@ -335,15 +335,6 @@ public class InferLevelTest extends TypeCheckingTestCase {
   }
 
   @Test
-  public void setTest() {
-    typeCheckModule("""
-      \\func func (f : \\Type -> \\Type) => 0
-      \\data Maybe (A : \\Type) | nothing | just A
-      \\func test => func \\lp \\lh (\\lam X => Maybe X)
-      """, 1);
-  }
-
-  @Test
   public void funcTest() {
     typeCheckModule("""
       \\data Bool | true | false

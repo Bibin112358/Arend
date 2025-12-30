@@ -21,7 +21,7 @@ import org.arend.core.pattern.*;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
-import org.arend.core.subst.LevelPair;
+import org.arend.core.subst.SingleLevel;
 import org.arend.core.subst.Levels;
 import org.arend.prelude.Prelude;
 
@@ -78,9 +78,8 @@ class ExpressionSerialization implements ExpressionVisitor<Void, ExpressionProto
 
   LevelProtos.Levels writeLevels(Levels levels, Definition def) {
     LevelProtos.Levels.Builder builder = LevelProtos.Levels.newBuilder();
-    if (levels instanceof LevelPair) {
-      builder.addPLevel(writeLevel(((LevelPair) levels).get(LevelVariable.PVAR)));
-      builder.addHLevel(writeLevel(((LevelPair) levels).get(LevelVariable.HVAR)));
+    if (levels instanceof SingleLevel) {
+      builder.addPLevel(writeLevel(((SingleLevel) levels).get(LevelVariable.PVAR)));
       builder.setIsStd(true);
     } else {
       List<? extends Level> list = levels.toList();
@@ -89,8 +88,6 @@ class ExpressionSerialization implements ExpressionVisitor<Void, ExpressionProto
         Level level = list.get(i);
         if (i < pNum) {
           builder.addPLevel(writeLevel(level));
-        } else {
-          builder.addHLevel(writeLevel(level));
         }
       }
       builder.setIsStd(false);

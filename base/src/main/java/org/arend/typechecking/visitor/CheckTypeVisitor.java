@@ -1928,30 +1928,18 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
   public Levels typecheckLevels(Definition def, Concrete.ReferenceExpression expr, Levels defaultLevels, boolean useMinAsDefault) {
     List<Concrete.LevelExpression> pLevels = expr.getPLevels();
-    List<Concrete.LevelExpression> hLevels = expr.getHLevels();
     boolean isUniverseLike = def == myDefinition || def.getUniverseKind() != UniverseKind.NO_UNIVERSES;
-    if (pLevels == null && hLevels == null) {
+    if (pLevels == null) {
       return defaultLevels != null ? defaultLevels : useMinAsDefault ? def.makeMinLevels() : def.generateInferVars(myEquations, isUniverseLike, expr);
     }
 
     List<? extends LevelVariable> params = def.getLevelParameters();
-    List<? extends LevelVariable> pParams;
-    List<? extends LevelVariable> hParams;
-
-    if (params == null) {
-      pParams = Collections.singletonList(LevelVariable.PVAR);
-      hParams = Collections.singletonList(LevelVariable.HVAR);
-    } else {
-      int pNum = def.getNumberOfPLevelParameters();
-      pParams = params.subList(0, pNum);
-      hParams = params.subList(pNum, params.size());
-    }
+    List<? extends LevelVariable> pParams = params == null ? Collections.singletonList(LevelVariable.PVAR) : params.subList(0, def.getNumberOfPLevelParameters());
 
     List<Level> result = new ArrayList<>();
     LevelSubstitution defaultSubst = defaultLevels == null ? null : defaultLevels.makeSubstitution(def);
     typecheckLevels(pLevels, pParams, defaultSubst, useMinAsDefault, isUniverseLike, expr, result);
-    typecheckLevels(hLevels, hParams, defaultSubst, useMinAsDefault, isUniverseLike, expr, result);
-    return params == null ? new LevelPair(result.get(0), result.get(1)) : new ListLevels(result);
+    return params == null ? new SingleLevel(result.getFirst()) : new ListLevels(result);
   }
 
   private TResult typeCheckDefCall(TCDefReferable resolvedDefinition, Concrete.ReferenceExpression expr, boolean withoutUniverses) {

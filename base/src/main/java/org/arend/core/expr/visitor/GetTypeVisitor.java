@@ -13,7 +13,7 @@ import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.ExprSubstitution;
-import org.arend.core.subst.LevelPair;
+import org.arend.core.subst.SingleLevel;
 import org.arend.core.subst.Levels;
 import org.arend.core.subst.ListLevels;
 import org.arend.ext.core.level.LevelSubstitution;
@@ -78,7 +78,7 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
       }
       SortExpression paramSortExpr = ((UniverseExpression) paramType).getSortExpression();
       SortExpression argSortExpr = ((UniverseExpression) argType).getSortExpression();
-      return paramSortExpr instanceof SortExpression.Const(Sort paramSort) && argSortExpr instanceof SortExpression.Const(Sort argSort) && matchLevels(new LevelPair(paramSort.getPLevel(), paramSort.getHLevel()), new LevelPair(argSort.getPLevel(), argSort.getHLevel()), levelMap);
+      return paramSortExpr instanceof SortExpression.Const(Sort paramSort) && argSortExpr instanceof SortExpression.Const(Sort argSort) && matchLevels(new ListLevels(Arrays.asList(paramSort.getPLevel(), paramSort.getHLevel())), new ListLevels(Arrays.asList(argSort.getPLevel(), argSort.getHLevel())), levelMap);
     } else if (paramType instanceof SigmaExpression) {
       argType = argType.dropPiParameter(skip);
       argType = argType == null ? null : argType.normalize(NormalizationMode.WHNF);
@@ -168,8 +168,7 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
     if (ok) {
       if (defCall.getDefinition().getLevelParameters() == null) {
         Level pLevel = levelMap.get(LevelVariable.PVAR);
-        Level hLevel = levelMap.get(LevelVariable.HVAR);
-        levels = new LevelPair(pLevel == null ? new Level(0) : pLevel, hLevel == null ? new Level(-1) : hLevel);
+        levels = new SingleLevel(pLevel == null ? new Level(0) : pLevel);
       } else {
         List<Level> list = new ArrayList<>();
         List<? extends LevelVariable> vars = defCall.getDefinition().getLevelParameters();

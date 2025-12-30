@@ -7,7 +7,7 @@ import org.arend.core.context.param.EmptyDependentLink;
 import org.arend.core.expr.ClassCallExpression;
 import org.arend.core.expr.Expression;
 import org.arend.core.sort.Level;
-import org.arend.core.subst.LevelPair;
+import org.arend.core.subst.SingleLevel;
 import org.arend.core.subst.Levels;
 import org.arend.core.subst.ListLevels;
 import org.arend.ext.core.definition.CoreDefinition;
@@ -113,12 +113,7 @@ public abstract class Definition extends UserDataHolderImpl implements CoreDefin
   public boolean isIdLevels(Levels levels) {
     List<? extends LevelVariable> vars = getLevelParameters();
     if (vars == null) {
-      if (!(levels instanceof LevelPair)) {
-        return false;
-      }
-      Level pLevel = ((LevelPair) levels).getPLevel();
-      Level hLevel = ((LevelPair) levels).getHLevel();
-      return pLevel != null && LevelVariable.PVAR.equals(pLevel.getSingleVar()) && hLevel != null && LevelVariable.HVAR.equals(hLevel.getSingleVar());
+      return levels instanceof SingleLevel && ((SingleLevel) levels).isEmpty();
     } else {
       List<? extends Level> list = levels.toList();
       if (list.size() != vars.size()) {
@@ -136,7 +131,7 @@ public abstract class Definition extends UserDataHolderImpl implements CoreDefin
 
   public Levels makeIdLevels() {
     List<? extends LevelVariable> vars = getLevelParameters();
-    if (vars == null) return LevelPair.STD;
+    if (vars == null) return SingleLevel.STD;
     List<Level> result = new ArrayList<>(vars.size());
     for (LevelVariable var : vars) {
       result.add(new Level(var));
@@ -146,7 +141,7 @@ public abstract class Definition extends UserDataHolderImpl implements CoreDefin
 
   public Levels makeMinLevels() {
     List<? extends LevelVariable> vars = getLevelParameters();
-    if (vars == null) return LevelPair.PROP;
+    if (vars == null) return SingleLevel.ZERO;
     List<Level> result = new ArrayList<>(vars.size());
     for (LevelVariable var : vars) {
       result.add(new Level(var.getMinValue()));
@@ -156,7 +151,7 @@ public abstract class Definition extends UserDataHolderImpl implements CoreDefin
 
   public Levels generateInferVars(Equations equations, boolean isUniverseLike, Concrete.SourceNode sourceNode) {
     List<? extends LevelVariable> vars = getLevelParameters();
-    if (vars == null) return LevelPair.generateInferVars(equations, isUniverseLike, sourceNode);
+    if (vars == null) return SingleLevel.generateInferVars(equations, isUniverseLike, sourceNode);
     List<Level> result = new ArrayList<>(vars.size());
     for (LevelVariable var : vars) {
       InferenceLevelVariable infVar = new InferenceLevelVariable(var.getType(), isUniverseLike, sourceNode);

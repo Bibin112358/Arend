@@ -7,7 +7,7 @@ import org.arend.core.expr.visitor.VoidExpressionVisitor;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
-import org.arend.core.subst.LevelPair;
+import org.arend.core.subst.SingleLevel;
 import org.arend.core.subst.Levels;
 import org.arend.core.subst.ListLevels;
 import org.arend.ext.core.ops.CMP;
@@ -57,34 +57,20 @@ public class FixLevelParameters extends VoidExpressionVisitor<Void> {
       if (definition.hasNonTrivialPLevelParameters()) {
         visitor.hasPLevels = true;
       }
-      if (definition.hasNonTrivialHLevelParameters()) {
-        visitor.hasHLevels = true;
-      }
     }
-    if (visitor.hasPLevels && visitor.hasHLevels) return;
+    if (visitor.hasPLevels) return;
     for (Definition definition : definitions) {
       if (definition.accept(visitor, null)) break;
     }
-    if (visitor.hasPLevels && visitor.hasHLevels) return;
+    if (visitor.hasPLevels) return;
 
     for (TopLevelDefinition definition : definitions) {
-      if (!newDefs.contains(definition)) continue;
-      if (!visitor.hasPLevels && !visitor.hasHLevels) {
+      if (newDefs.contains(definition)) {
         definition.setLevelParameters(Collections.emptyList());
-      } else if (definition.getLevelParameters() == null) {
-        definition.setLevelParameters(Collections.singletonList(visitor.hasPLevels ? LevelVariable.PVAR : LevelVariable.HVAR));
-      } else {
-        List<LevelVariable> params = new ArrayList<>(definition.getLevelParameters());
-        if (!visitor.hasPLevels) {
-          params.subList(0, definition.getNumberOfPLevelParameters()).clear();
-        } else {
-          params.subList(definition.getNumberOfPLevelParameters(), definition.getLevelParameters().size()).clear();
-        }
-        definition.setLevelParameters(params);
       }
     }
 
-    FixLevelParameters fixer = new FixLevelParameters(extendedDefs, !visitor.hasPLevels, !visitor.hasHLevels);
+    FixLevelParameters fixer = new FixLevelParameters(extendedDefs, !visitor.hasPLevels, true);
     for (Definition definition : definitions) {
       if (newDefs.contains(definition)) definition.accept(fixer, null);
     }
@@ -115,7 +101,7 @@ public class FixLevelParameters extends VoidExpressionVisitor<Void> {
     if (!(defCall instanceof LeveledDefCallExpression leveled)) return;
     if (myDefinitions == null) {
       List<? extends LevelVariable> params = leveled.getDefinition().getLevelParameters();
-      if (params != null && (leveled.getLevels() instanceof LevelPair || leveled.getLevels().toList().size() != params.size())) {
+      if (params != null && (leveled.getLevels() instanceof SingleLevel || leveled.getLevels().toList().size() != params.size())) {
         removeLevels(leveled, params.isEmpty() || params.getFirst().getType() == LevelVariable.LvlType.HLVL, params.isEmpty() || params.getFirst().getType() == LevelVariable.LvlType.PLVL);
       }
     } else if (myDefinitions.contains(leveled.getDefinition())) {
@@ -166,14 +152,14 @@ public class FixLevelParameters extends VoidExpressionVisitor<Void> {
     };
   }
 
-  private LevelPair removeVars(LevelPair levels) {
-    return new LevelPair(myRemovePLevels ? removeVars(levels.getPLevel()) : levels.getPLevel(), myRemoveHLevels ? removeVars(levels.getHLevel()) : levels.getHLevel());
+  private SingleLevel removeVars(SingleLevel levels) {
+    return new SingleLevel(myRemovePLevels ? removeVars(levels.getLevel()) : levels.getLevel());
   }
 
   @Override
   public Void visitTypeConstructor(TypeConstructorExpression expr, Void params) {
-    if (expr.getLevels() instanceof LevelPair) {
-      expr.setLevels(removeVars((LevelPair) expr.getLevels()));
+    if (expr.getLevels() instanceof SingleLevel) {
+      expr.setLevels(removeVars((SingleLevel) expr.getLevels()));
     } else {
       List<Level> list = new ArrayList<>();
       List<? extends LevelVariable> levelParameters = expr.getDefinition().getLevelParameters();

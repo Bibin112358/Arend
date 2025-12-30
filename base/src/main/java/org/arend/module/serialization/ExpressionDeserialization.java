@@ -17,7 +17,7 @@ import org.arend.core.expr.let.*;
 import org.arend.core.pattern.*;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
-import org.arend.core.subst.LevelPair;
+import org.arend.core.subst.SingleLevel;
 import org.arend.core.subst.Levels;
 import org.arend.core.subst.ListLevels;
 import org.arend.ext.serialization.DeserializationException;
@@ -83,14 +83,11 @@ class ExpressionDeserialization {
 
   Levels readLevels(LevelProtos.Levels proto) {
     if (proto.getIsStd()) {
-      return new LevelPair(readLevel(proto.getPLevel(0), LevelVariable.PVAR), readLevel(proto.getHLevel(0), LevelVariable.HVAR));
+      return new SingleLevel(readLevel(proto.getPLevel(0), LevelVariable.PVAR));
     } else {
       List<Level> levels = new ArrayList<>();
       for (LevelProtos.Level level : proto.getPLevelList()) {
         levels.add(readLevel(level, LevelVariable.PVAR));
-      }
-      for (LevelProtos.Level level : proto.getHLevelList()) {
-        levels.add(readLevel(level, LevelVariable.HVAR));
       }
       return new ListLevels(levels);
     }

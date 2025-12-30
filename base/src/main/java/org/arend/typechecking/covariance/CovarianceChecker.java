@@ -5,10 +5,11 @@ import org.arend.core.definition.ClassField;
 import org.arend.core.expr.*;
 import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
-import org.arend.core.subst.LevelPair;
+import org.arend.core.subst.ListLevels;
 import org.arend.core.subst.Levels;
 import org.arend.prelude.Prelude;
 
+import java.util.Arrays;
 import java.util.Map;
 
 public abstract class CovarianceChecker {
@@ -75,7 +76,7 @@ public abstract class CovarianceChecker {
     expr = expr.getUnderlyingExpression();
 
     if (expr instanceof UniverseExpression universe) {
-      return universe.getSortExpression() instanceof SortExpression.Const(Sort sort) && checkLevels(new LevelPair(sort.getPLevel(), sort.getHLevel()), null);
+      return universe.getSortExpression() instanceof SortExpression.Const(Sort sort) && checkLevels(new ListLevels(Arrays.asList(sort.getPLevel(), sort.getHLevel())), null);
     }
 
     if (expr instanceof PiExpression) {

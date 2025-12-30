@@ -601,7 +601,7 @@ public final class Concrete {
     public static final byte PREC = 12;
     private Referable myReferent;
     private List<LevelExpression> myPLevels;
-    private List<LevelExpression> myHLevels;
+    private List<LevelExpression> myHLevels; // TODO[sorts]: Delete this
 
     public ReferenceExpression(Object data, @NotNull Referable referable, List<LevelExpression> pLevels, List<LevelExpression> hLevels) {
       super(data);
