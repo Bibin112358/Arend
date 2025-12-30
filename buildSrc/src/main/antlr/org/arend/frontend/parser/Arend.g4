@@ -51,7 +51,7 @@ definition  : funcKw topDefId tele* (':' returnExpr2)? functionBody where?      
             | instanceKw topDefId tele* (':' returnExpr2)? instanceBody where?                                          # defInstance
             ;
 
-superClass : longName (maybeLevelAtoms maybeLevelAtoms?)?;
+superClass : longName maybeLevelAtoms?;
 
 returnExpr  : expr ('\\level' expr)?                # returnExprExpr
             | '\\level' atomFieldsAcc atomFieldsAcc # returnExprLevel
@@ -187,7 +187,7 @@ appExpr : argumentAppExpr                             # appArgument
         | CAT_UNIVERSE maybeLevelAtom?                # catUniverse
         ;
 
-argumentAppExpr : atomFieldsAcc onlyLevelAtom* argument*;
+argumentAppExpr : atomFieldsAcc onlyLevelAtom? argument*;
 
 argument : atomFieldsAcc                            # argumentExplicit
          | appPrefix appExpr implementStatements?   # argumentNew
@@ -242,7 +242,7 @@ levelExpr : levelAtom                     # atomLevel
 onlyLevelAtom : '\\lp'                                                # pOnlyLevel
               | '\\lh'                                                # hOnlyLevel
               | '\\oo'                                                # infOnlyLevel
-              | '\\levels' maybeLevelAtoms maybeLevelAtoms            # levelsOnlyLevel
+              | '\\levels' maybeLevelAtoms                            # levelsOnlyLevel
               | '(' onlyLevelExpr ')'                                 # parenOnlyLevel
               ;
 

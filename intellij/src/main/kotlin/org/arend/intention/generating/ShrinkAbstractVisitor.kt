@@ -19,10 +19,8 @@ class ShrinkAbstractVisitor(val textRange: TextRange) : AbstractExpressionVisito
         private const val DOTS = "…"
     }
 
-    override fun visitReference(data: Any?, referent: Referable, fixity: Fixity?, pLevels: MutableCollection<out Abstract.LevelExpression>?, hLevels: MutableCollection<out Abstract.LevelExpression>?, params: Unit?): String =
+    override fun visitReference(data: Any?, referent: Referable, fixity: Fixity?, pLevels: MutableCollection<out Abstract.LevelExpression>?, params: Unit?): String =
             referent.refName
-
-    override fun visitReference(data: Any?, referent: Referable, lp: Int, lh: Int, params: Unit?): String = referent.refName
 
     override fun visitThis(data: Any?, params: Unit?): String = "\\this"
 

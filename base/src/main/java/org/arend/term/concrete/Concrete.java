@@ -601,17 +601,15 @@ public final class Concrete {
     public static final byte PREC = 12;
     private Referable myReferent;
     private List<LevelExpression> myPLevels;
-    private List<LevelExpression> myHLevels; // TODO[sorts]: Delete this
 
-    public ReferenceExpression(Object data, @NotNull Referable referable, List<LevelExpression> pLevels, List<LevelExpression> hLevels) {
+    public ReferenceExpression(Object data, @NotNull Referable referable, List<LevelExpression> pLevels) {
       super(data);
       myReferent = referable;
       myPLevels = pLevels;
-      myHLevels = hLevels;
     }
 
     public ReferenceExpression(Object data, @NotNull Referable referable) {
-      this(data, referable, null, null);
+      this(data, referable, null);
     }
 
     @NotNull
@@ -631,15 +629,6 @@ public final class Concrete {
 
     public void setPLevels(List<LevelExpression> levels) {
       myPLevels = levels;
-    }
-
-    @Override
-    public List<LevelExpression> getHLevels() {
-      return myHLevels;
-    }
-
-    public void setHLevels(List<LevelExpression> levels) {
-      myHLevels = levels;
     }
 
     @Override
@@ -683,8 +672,8 @@ public final class Concrete {
     private final LongName myLongName;
     private final @Nullable Concrete.ReferenceExpression myQualifier;
 
-    public LongReferenceExpression(Object data, @Nullable Concrete.ReferenceExpression qualifier, LongName longName, Referable referable, List<LevelExpression> pLevels, List<LevelExpression> hLevels) {
-      super(data, referable, pLevels, hLevels);
+    public LongReferenceExpression(Object data, @Nullable Concrete.ReferenceExpression qualifier, LongName longName, Referable referable, List<LevelExpression> pLevels) {
+      super(data, referable, pLevels);
       myLongName = longName;
       myQualifier = qualifier;
     }
@@ -712,8 +701,8 @@ public final class Concrete {
       this.fixity = fixity;
     }
 
-    public static ReferenceExpression make(Object data, Referable referable, Fixity fixity, List<LevelExpression> pLevels, List<LevelExpression> hLevels) {
-      return fixity == null ? new ReferenceExpression(data, referable, pLevels, hLevels) : new FixityReferenceExpression(data, referable, fixity);
+    public static ReferenceExpression make(Object data, Referable referable, Fixity fixity, List<LevelExpression> pLevels) {
+      return fixity == null ? new ReferenceExpression(data, referable, pLevels) : new FixityReferenceExpression(data, referable, fixity);
     }
   }
 

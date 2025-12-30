@@ -355,19 +355,15 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
   }
 
   private void visitReference(Concrete.ReferenceExpression expr, Precedence prec, boolean printLevelsKeyword) {
-    boolean parens = expr.getReferent() instanceof GlobalReferable && ((GlobalReferable) expr.getReferent()).getRepresentablePrecedence().isInfix || ((expr.getPLevels() != null || expr.getHLevels() != null) && prec.priority > Concrete.AppExpression.PREC);
+    boolean parens = expr.getReferent() instanceof GlobalReferable && ((GlobalReferable) expr.getReferent()).getRepresentablePrecedence().isInfix || expr.getPLevels() != null && prec.priority > Concrete.AppExpression.PREC;
     if (parens) {
       myBuilder.append('(');
     }
     printReferenceName(expr, prec);
 
-    if (expr.getPLevels() != null || expr.getHLevels() != null) {
+    if (expr.getPLevels() != null) {
       myBuilder.append(printLevelsKeyword ? " \\levels " : " ");
       printLevels(expr.getPLevels());
-      if (printLevelsKeyword || expr.getHLevels() != null) {
-        myBuilder.append(' ');
-        printLevels(expr.getHLevels());
-      }
     }
     if (parens) {
       myBuilder.append(')');

@@ -166,7 +166,7 @@ internal class ArendExpressionMatcher(private val query: ProofSearchQuery) {
                 val referable = Scope.resolveName(scope, tree.referenceName)
                     ?: references.value[tree.referenceName.last()]?.let { disambiguate(it, tree.referenceName) }
                 if (referable != null) {
-                    val refExpr = Concrete.FixityReferenceExpression.make(null, referable, Fixity.UNKNOWN, null, null)
+                    val refExpr = Concrete.FixityReferenceExpression.make(null, referable, Fixity.UNKNOWN, null)
                     refExpr ?: Concrete.HoleExpression(tree.referenceName)
                 } else if (tree.referenceName.getOrNull(0)?.toIntOrNull() != null) {
                     val number = tree.referenceName[0].toInt()

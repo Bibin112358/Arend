@@ -243,9 +243,6 @@ public class ExpressionResolveNameVisitor extends BaseConcreteExpressionVisitor<
     if (expr.getPLevels() != null) {
       expr.getPLevels().replaceAll(levelExpression -> levelExpression.accept(this, LevelVariable.PVAR));
     }
-    if (expr.getHLevels() != null) {
-      expr.getHLevels().replaceAll(levelExpression -> levelExpression.accept(this, LevelVariable.HVAR));
-    }
   }
 
   void resolveLocal(Concrete.ReferenceExpression expr) {
@@ -477,19 +474,19 @@ public class ExpressionResolveNameVisitor extends BaseConcreteExpressionVisitor<
       elem.setComponent(elem.getComponent().accept(this, null));
       return;
     }
-    if (resolvedReference.originalReference == null) {
+    if (resolvedReference.originalReference() == null) {
       return;
     }
 
-    if (resolvedReference.refExpr.getReferent() instanceof UnresolvedReference) {
-      resolve(resolvedReference.refExpr, myScope, false, null, myResolverListener);
-      if (resolvedReference.refExpr.getReferent() instanceof ErrorReference) {
-        myErrorReporter.report(((ErrorReference) resolvedReference.refExpr.getReferent()).getError());
+    if (resolvedReference.refExpr().getReferent() instanceof UnresolvedReference) {
+      resolve(resolvedReference.refExpr(), myScope, false, null, myResolverListener);
+      if (resolvedReference.refExpr().getReferent() instanceof ErrorReference) {
+        myErrorReporter.report(((ErrorReference) resolvedReference.refExpr().getReferent()).getError());
       }
     }
 
-    if (resolvedReference.resolvedList != null && myResolverListener != null) {
-      myResolverListener.referenceResolved(elem.getComponent(), resolvedReference.originalReference, resolvedReference.refExpr, resolvedReference.resolvedList);
+    if (resolvedReference.resolvedList() != null && myResolverListener != null) {
+      myResolverListener.referenceResolved(elem.getComponent(), resolvedReference.originalReference(), resolvedReference.refExpr(), resolvedReference.resolvedList());
     }
   }
 

@@ -16,19 +16,15 @@ class ArendLongNameExpr(node: ASTNode) : ArendExpr(node) {
     val pLevelExpr: ArendAtomOnlyLevelExpr?
         get() = childOfType()
 
-    val hLevelExpr: ArendAtomOnlyLevelExpr?
-        get() = childOfType(1)
-
-    override fun <P : Any?, R : Any?> accept(visitor: AbstractExpressionVisitor<in P, out R>, params: P?): R {
+    override fun <P, R> accept(visitor: AbstractExpressionVisitor<in P, out R>, params: P?): R {
         val name = longName
         val levels = generateSequence(levelsExpr) { it.levelsExpr }.lastOrNull()
         if (levels != null) {
             val pLevelExprs = levels.pLevelExprs
-            val hLevelExprs = levels.hLevelExprs
-            if (pLevelExprs != null && hLevelExprs != null) {
-                return visitor.visitReference(name, name.referent, null, pLevelExprs.levelExprList, hLevelExprs.levelExprList, params)
+            if (pLevelExprs != null) {
+                return visitor.visitReference(name, name.referent, null, pLevelExprs.levelExprList, params)
             }
         }
-        return visitor.visitReference(name, name.referent, null, pLevelExpr?.let { listOf(it) }, hLevelExpr?.let { listOf(it) }, params)
+        return visitor.visitReference(name, name.referent, null, pLevelExpr?.let { listOf(it) }, params)
     }
 }

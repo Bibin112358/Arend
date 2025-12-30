@@ -314,30 +314,23 @@ public class ToAbstractVisitor extends BaseExpressionVisitor<Void, Concrete.Expr
     }
 
     List<Level> pLevels;
-    List<Level> hLevels;
     if (defCall instanceof LeveledDefCallExpression) {
       List<? extends LevelVariable> params = def.getLevelParameters();
       LevelSubstitution subst = defCall.getLevelSubstitution();
       if (params == null) {
         pLevels = Collections.singletonList((Level) subst.get(LevelVariable.PVAR));
-        hLevels = Collections.singletonList((Level) subst.get(LevelVariable.HVAR));
       } else {
         int pNum = def.getNumberOfPLevelParameters();
         pLevels = new ArrayList<>(pNum);
-        hLevels = new ArrayList<>(params.size() - pNum);
         for (int i = 0; i < pNum; i++) {
           pLevels.add((Level) subst.get(params.get(i)));
-        }
-        for (int i = pNum; i < params.size(); i++) {
-          hLevels.add((Level) subst.get(params.get(i)));
         }
       }
     } else {
       pLevels = Collections.singletonList(null);
-      hLevels = Collections.singletonList(null);
     }
 
-    return cDefCall(defCall, myDefinitionRenamer.renameDefinition(ref), ref, visitLevelsNull(pLevels, showStdVar), visitLevelsNull(hLevels, showStdVar));
+    return cDefCall(defCall, myDefinitionRenamer.renameDefinition(ref), ref, visitLevelsNull(pLevels, showStdVar));
   }
 
   @Override

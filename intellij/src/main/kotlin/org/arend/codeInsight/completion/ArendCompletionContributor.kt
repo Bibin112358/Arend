@@ -370,12 +370,10 @@ class ArendCompletionContributor : CompletionContributor() {
                     val longNameExpr = argumentAppExpr.longNameExpr
                     var counter = 0
                     if (longNameExpr?.pLevelExpr != null) counter++
-                    if (longNameExpr?.hLevelExpr != null) counter++
                     var forbidden = false
                     val levelsExpr = argumentAppExpr.longNameExpr?.levelsExpr
                     if (levelsExpr != null) {
                         if (levelsExpr.pLevelExprs != null) counter++
-                        if (levelsExpr.hLevelExprs != null) counter++
                         if (forbidLevelExprs) forbidden = true
                     }
                     for (ch in argumentAppExpr.children) {

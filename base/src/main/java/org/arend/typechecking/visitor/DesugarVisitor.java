@@ -520,9 +520,8 @@ public class DesugarVisitor extends BaseConcreteExpressionVisitor<Void> {
   @Override
   public Concrete.Expression visitReference(Concrete.ReferenceExpression expr, Void params) {
     visitLevelExpressions(expr.getPLevels());
-    visitLevelExpressions(expr.getHLevels());
     if (Prelude.ARRAY != null && expr.getReferent() == Prelude.ARRAY.getRef()) {
-      return new Concrete.ReferenceExpression(expr.getData(), Prelude.DEP_ARRAY.getRef(), expr.getPLevels(), expr.getHLevels());
+      return new Concrete.ReferenceExpression(expr.getData(), Prelude.DEP_ARRAY.getRef(), expr.getPLevels());
     }
     return expr;
   }

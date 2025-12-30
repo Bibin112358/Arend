@@ -12,9 +12,6 @@ class ArendLevelsExpr(node: ASTNode) : ArendCompositeElementImpl(node) {
     val pLevelExprs: ArendMaybeAtomLevelExprs?
         get() = childOfType()
 
-    val hLevelExprs: ArendMaybeAtomLevelExprs?
-        get() = childOfType(1)
-
     val levelsKw: PsiElement?
         get() = findChildByType(ArendElementTypes.LEVELS_KW)
 }

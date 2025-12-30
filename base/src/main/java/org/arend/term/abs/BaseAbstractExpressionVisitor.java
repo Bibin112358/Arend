@@ -17,12 +17,7 @@ public class BaseAbstractExpressionVisitor<P, R> implements AbstractExpressionVi
   }
 
   @Override
-  public R visitReference(@Nullable Object data, @NotNull Referable referent, @Nullable Fixity fixity, @Nullable Collection<? extends Abstract.LevelExpression> pLevels, @Nullable Collection<? extends Abstract.LevelExpression> hLevels, P params) {
-    return defaultValue;
-  }
-
-  @Override
-  public R visitReference(@Nullable Object data, @NotNull Referable referent, int lp, int lh, P params) {
+  public R visitReference(@Nullable Object data, @NotNull Referable referent, @Nullable Fixity fixity, @Nullable Collection<? extends Abstract.LevelExpression> pLevels, P params) {
     return defaultValue;
   }
 

@@ -26,7 +26,7 @@ import java.util.List;
  */
 public interface ConcreteFactory {
   @NotNull ConcreteReferenceExpression ref(@NotNull ArendRef ref);
-  @NotNull ConcreteReferenceExpression ref(@NotNull ArendRef ref, @Nullable List<? extends ConcreteLevel> pLevels, @Nullable List<? extends ConcreteLevel> hLevels);
+  @NotNull ConcreteReferenceExpression ref(@NotNull ArendRef ref, @Nullable List<? extends ConcreteLevel> pLevels);
   @NotNull ConcreteReferenceExpression ref(@NotNull CoreBinding ref);
   @NotNull ConcreteExpression core(@NotNull TypedExpression expr);
   @NotNull ConcreteExpression core(@Nullable String name, @NotNull TypedExpression expr);

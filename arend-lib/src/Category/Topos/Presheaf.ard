@@ -18,7 +18,7 @@
   | Cat => VPresheafCat D C
   | limit => limit'
   \where {
-    \func limit' {J : Precat \levels (\lp, \lp) _} (G : Functor J (VPresheafCat D C))
+    \func limit' {J : Precat \levels (\lp,\lp)} (G : Functor J (VPresheafCat D C))
       : Limit G => \new Limit {
       | apex => apex
       | coneMap => cone-nat-map

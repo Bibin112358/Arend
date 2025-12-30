@@ -22,15 +22,15 @@ class ArendLiteral(node: ASTNode) : ArendExpr(node) {
     val dot: PsiElement?
         get() = findChildByType(DOT)
 
-    override fun <P : Any?, R : Any?> accept(visitor: AbstractExpressionVisitor<in P, out R>, params: P?): R {
+    override fun <P, R> accept(visitor: AbstractExpressionVisitor<in P, out R>, params: P?): R {
         ipName?.let {
-            return visitor.visitReference(it, it.referent, it.fixity, null, null, params)
+            return visitor.visitReference(it, it.referent, it.fixity, null, params)
         }
         return when (val child = firstRelevantChild) {
-            is ArendRefIdentifier -> visitor.visitReference(child, child.referent, null, null, null, params)
+            is ArendRefIdentifier -> visitor.visitReference(child, child.referent, null, null, params)
             is ArendGoal -> visitor.visitGoal(child, child.defIdentifier?.refName, child.expr, params)
             else -> when (child.elementType) {
-                PROP_KW -> visitor.visitUniverse(this, 0, -1, null, null, params)
+                PROP_KW -> visitor.visitUniverse(this, 0, -1, null, params)
                 SORT_KW -> visitor.visitSortUniverse(this, params)
                 UNDERSCORE -> visitor.visitInferHole(this, params)
                 APPLY_HOLE -> visitor.visitApplyHole(this, params)

@@ -173,7 +173,7 @@ public class GroupData {
     if (newRef != null) coclauseRef.functionReference = newRef;
     if (coclauseRef.implementation instanceof Concrete.ReferenceExpression refExpr && refExpr.getReferent() instanceof TCDefReferable defRef) {
       TCDefReferable newDefRef = coclauseMap.get(defRef);
-      if (newRef != null) coclauseRef.implementation = new Concrete.ReferenceExpression(refExpr.getData(), newDefRef, refExpr.getPLevels(), refExpr.getHLevels());
+      if (newRef != null) coclauseRef.implementation = new Concrete.ReferenceExpression(refExpr.getData(), newDefRef, refExpr.getPLevels());
     }
   }
 

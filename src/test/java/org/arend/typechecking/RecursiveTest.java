@@ -227,14 +227,14 @@ public class RecursiveTest extends TypeCheckingTestCase {
 
   @Test
   public void recursiveLevels() {
-    typeCheckDef("\\func test \\plevels lvl (n : Nat) : Nat | 0 => 0 | suc n => test \\levels (\\suc lvl) _ n", 1);
+    typeCheckDef("\\func test \\plevels lvl (n : Nat) : Nat | 0 => 0 | suc n => test \\levels (\\suc lvl) n", 1);
   }
 
   @Test
   public void recursiveLevels2() {
     typeCheckModule(
-      "\\func f \\plevels lvl (n : Nat) : Nat | 0 => 0 | suc n => g \\levels lvl _ n\n" +
-      "\\func g \\plevels lvl (n : Nat) : Nat | 0 => 0 | suc n => f \\levels (\\suc lvl) _ n", 1);
+      "\\func f \\plevels lvl (n : Nat) : Nat | 0 => 0 | suc n => g \\levels lvl n\n" +
+      "\\func g \\plevels lvl (n : Nat) : Nat | 0 => 0 | suc n => f \\levels (\\suc lvl) n", 1);
   }
 
   @Test

@@ -66,11 +66,11 @@ public class ConcreteFactoryImpl implements ConcreteFactory {
 
   @NotNull
   @Override
-  public ConcreteReferenceExpression ref(@NotNull ArendRef ref, @Nullable List<? extends ConcreteLevel> pLevels, @Nullable List<? extends ConcreteLevel> hLevels) {
+  public ConcreteReferenceExpression ref(@NotNull ArendRef ref, @Nullable List<? extends ConcreteLevel> pLevels) {
     if (!(ref instanceof Referable)) {
       throw new IllegalArgumentException();
     }
-    return new Concrete.ReferenceExpression(myData, (Referable) ref, makeLevels(pLevels), makeLevels(hLevels));
+    return new Concrete.ReferenceExpression(myData, (Referable) ref, makeLevels(pLevels));
   }
 
   @Override

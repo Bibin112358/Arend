@@ -17,7 +17,6 @@ import org.arend.term.group.ConcreteStatement;
 import org.arend.term.Fixity;
 import org.arend.term.concrete.Concrete;
 import org.arend.typechecking.error.local.LocalErrorReporter;
-import org.arend.util.SingletonList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -412,7 +411,7 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
   public List<Concrete.ReferenceExpression> buildReferenceExpressions(Collection<? extends Abstract.ReferenceExpression> absElimExpressions) {
     List<Concrete.ReferenceExpression> elimExpressions = new ArrayList<>(absElimExpressions.size());
     for (Abstract.ReferenceExpression expr : absElimExpressions) {
-      elimExpressions.add(new Concrete.ReferenceExpression(expr.getData(), expr.getReferent(), visitLevels(expr.getPLevels(), LevelVariable.PVAR), visitLevels(expr.getHLevels(), LevelVariable.HVAR)));
+      elimExpressions.add(new Concrete.ReferenceExpression(expr.getData(), expr.getReferent(), visitLevels(expr.getPLevels())));
     }
     return elimExpressions;
   }
@@ -621,23 +620,18 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
 
   // Expression
 
-  private List<Concrete.LevelExpression> visitLevels(Collection<? extends Abstract.LevelExpression> levels, LevelVariable base) {
+  private List<Concrete.LevelExpression> visitLevels(Collection<? extends Abstract.LevelExpression> levels) {
     if (levels == null) return null;
     List<Concrete.LevelExpression> result = new ArrayList<>(levels.size());
     for (Abstract.LevelExpression level : levels) {
-      result.add(level.accept(this, base));
+      result.add(level.accept(this, LevelVariable.PVAR));
     }
     return result;
   }
 
   @Override
-  public Concrete.ReferenceExpression visitReference(@Nullable Object data, @NotNull Referable referent, @Nullable Fixity fixity, @Nullable Collection<? extends Abstract.LevelExpression> pLevels, @Nullable Collection<? extends Abstract.LevelExpression> hLevels, Void params) {
-    return Concrete.FixityReferenceExpression.make(data, referent, fixity, visitLevels(pLevels, LevelVariable.PVAR), visitLevels(hLevels, LevelVariable.HVAR));
-  }
-
-  @Override
-  public Concrete.ReferenceExpression visitReference(@Nullable Object data, @NotNull Referable referent, int lp, int lh, Void params) {
-    return new Concrete.ReferenceExpression(data, referent, new SingletonList<>(new Concrete.NumberLevelExpression(data, lp)), new SingletonList<>(new Concrete.NumberLevelExpression(data, lh)));
+  public Concrete.ReferenceExpression visitReference(@Nullable Object data, @NotNull Referable referent, @Nullable Fixity fixity, @Nullable Collection<? extends Abstract.LevelExpression> pLevels, Void params) {
+    return Concrete.FixityReferenceExpression.make(data, referent, fixity, visitLevels(pLevels));
   }
 
   @Override

@@ -64,7 +64,7 @@
       | natural g => id-right *> inv id-left
   }
 
-\record NatTrans \plevels obj >= hom >= iobj >= ihom {C : Precat \levels (iobj,ihom) _} {D : Precat \levels (obj,hom) _} (F G : Functor C D) {
+\record NatTrans \plevels obj >= hom >= iobj >= ihom {C : Precat \levels (iobj,ihom)} {D : Precat \levels (obj,hom)} (F G : Functor C D) {
   | \coerce trans (X : C) : Hom (F X) (G X)
   | natural {X Y : C} (f : Hom X Y) : trans Y ∘ F.Func f = G.Func f ∘ trans X
 

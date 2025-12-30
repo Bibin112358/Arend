@@ -186,7 +186,6 @@ public final class Abstract {
     @Nullable Object getData();
     @NotNull UnresolvedReference getReferent();
     @Nullable Collection<? extends LevelExpression> getPLevels();
-    @Nullable Collection<? extends LevelExpression> getHLevels();
   }
 
   public interface CaseArgument extends SourceNode {

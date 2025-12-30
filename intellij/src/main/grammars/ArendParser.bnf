@@ -323,7 +323,7 @@ private defClassRecord ::= RECORD_KW defClassHeader classStats { pin = 1 }
 
 private defClassHeader ::= prec? defIdentifier pLevelParams? alias? NO_CLASSIFYING_KW? fieldTele* [EXTENDS_KW <<comma_separated_sequence superClass>>]
 
-superClass ::= longName [maybeAtomLevelExprs maybeAtomLevelExprs?] {
+superClass ::= longName maybeAtomLevelExprs? {
     pin = 1
 }
 
@@ -705,7 +705,7 @@ maybeAtomLevelExpr ::= atomLevelExpr | UNDERSCORE
 
 maybeAtomLevelExprs ::= LPAREN <<comma_separated_sequence levelExpr>>? RPAREN | maybeAtomLevelExpr
 
-private levelsLevels ::= LEVELS_KW maybeAtomLevelExprs maybeAtomLevelExprs { pin = 1 }
+private levelsLevels ::= LEVELS_KW maybeAtomLevelExprs { pin = 1 }
 
 atomOnlyLevelExpr ::= LP_KW
     | LH_KW
@@ -716,7 +716,7 @@ argumentAppExpr ::= (longNameExpr | atomFieldsAcc) (argument | argumentRecovery)
     name = "defCall"
 }
 
-longNameExpr ::= longName (levelsExpr | atomOnlyLevelExpr atomOnlyLevelExpr?) {
+longNameExpr ::= longName (levelsExpr | atomOnlyLevelExpr) {
     pin = 2
 }
 

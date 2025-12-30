@@ -92,12 +92,12 @@ public class SubstConcreteVisitor extends BaseConcreteExpressionVisitor<Void> im
     var data = myData != null ? myData : expr.getData();
     if (Concrete.LongReferenceExpression.class.equals(expr.getClass())) {
       var longRef = (Concrete.LongReferenceExpression) expr;
-      return new Concrete.LongReferenceExpression(data, longRef.getQualifier(), longRef.getLongName(), newRef, visitLevels(longRef.getPLevels()), visitLevels(longRef.getHLevels()));
+      return new Concrete.LongReferenceExpression(data, longRef.getQualifier(), longRef.getLongName(), newRef, visitLevels(longRef.getPLevels()));
     } else if (Concrete.FixityReferenceExpression.class.equals(expr.getClass())) {
       var fixityRef = (Concrete.FixityReferenceExpression) expr;
       return new Concrete.FixityReferenceExpression(data, newRef, fixityRef.fixity);
     } else if (Concrete.ReferenceExpression.class.equals(expr.getClass())) {
-      return new Concrete.ReferenceExpression(data, newRef, visitLevels(expr.getPLevels()), visitLevels(expr.getHLevels()));
+      return new Concrete.ReferenceExpression(data, newRef, visitLevels(expr.getPLevels()));
     } else {
       throw new IllegalArgumentException("Unhandled reference expr: " + expr.getClass());
     }

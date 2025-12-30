@@ -381,7 +381,7 @@ fun addIdToUsing(groupMember: PsiElement?,
                  renamings: List<Pair<String, String?>>,
                  factory: ArendPsiFactory,
                  relativePosition: RelativePosition): Pair<List<ArendNsId>, Boolean> {
-    (groupMember?.ancestor<ArendGroup>())?.statements?.map { stat ->
+    (groupMember?.ancestor<ArendGroup>())?.statements?.forEach { stat ->
         val statCmd = stat.namespaceCommand
         if (statCmd != null) {
             val ref = statCmd.longName?.refIdentifierList?.lastOrNull()
@@ -834,8 +834,8 @@ private const val APP_PREC = 10
 private const val MIN_PREC = 0
 
 private object PrecVisitor : AbstractExpressionVisitor<Void?, Int> {
-    override fun visitReference(data: Any?, referent: Referable, fixity: Fixity?, pLevels: Collection<Abstract.LevelExpression>?, hLevels: Collection<Abstract.LevelExpression>?, params: Void?) =
-        if (pLevels != null || hLevels != null) APP_PREC else MAX_PREC
+    override fun visitReference(data: Any?, referent: Referable, fixity: Fixity?, pLevels: Collection<Abstract.LevelExpression>?, params: Void?) =
+        if (pLevels != null) APP_PREC else MAX_PREC
 
     override fun visitUniverse(data: Any?, pLevelNum: Int?, hLevelNum: Int?, pLevel: Abstract.LevelExpression?, params: Void?) =
         if (pLevel != null) APP_PREC else MAX_PREC
@@ -844,7 +844,6 @@ private object PrecVisitor : AbstractExpressionVisitor<Void?, Int> {
         if (pLevel != null) APP_PREC else MAX_PREC
 
     override fun visitSortUniverse(data: Any?, params: Void?) = MAX_PREC
-    override fun visitReference(data: Any?, referent: Referable, lp: Int, lh: Int, params: Void?) = APP_PREC
     override fun visitThis(data: Any?, params: Void?) = MAX_PREC
     override fun visitLam(data: Any?, parameters: Collection<Abstract.LamParameter>, body: Abstract.Expression?, params: Void?) = MIN_PREC
     override fun visitPi(data: Any?, parameters: Collection<Abstract.Parameter>, codomain: Abstract.Expression?, params: Void?) = MIN_PREC
@@ -865,7 +864,7 @@ private object PrecVisitor : AbstractExpressionVisitor<Void?, Int> {
 
 private object ConcretePrecVisitor : ConcreteExpressionVisitor<Void?, Int> {
     override fun visitReference(expr: Concrete.ReferenceExpression, params: Void?) =
-        if (expr.pLevels != null || expr.hLevels != null) APP_PREC else MAX_PREC
+        if (expr.pLevels != null) APP_PREC else MAX_PREC
 
     override fun visitUniverse(expr: Concrete.UniverseExpression, params: Void?) =
         if ((expr.pLevel == null || expr.pLevel is Concrete.NumberLevelExpression) && (expr.hLevel == null || expr.hLevel is Concrete.NumberLevelExpression || expr.hLevel is Concrete.InfLevelExpression)) MAX_PREC else APP_PREC

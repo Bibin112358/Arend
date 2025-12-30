@@ -67,28 +67,28 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   public void applyLevels() {
     typeCheckModule(
       "\\func f \\plevels p1 <= p2 (A : \\Type) => A\n" +
-      "\\func test \\plevels p1 >= p2 => f \\levels (p2,p1) () Nat");
+      "\\func test \\plevels p1 >= p2 => f \\levels (p2,p1) Nat");
   }
 
   @Test
   public void applyLevels2() {
     typeCheckModule(
       "\\func f \\plevels p1 <= p2 (A : \\Type) => A\n" +
-      "\\func test => f \\levels (3,7) () Nat");
+      "\\func test => f \\levels (3,7) Nat");
   }
 
   @Test
   public void applyLevelsError() {
     typeCheckModule(
       "\\func f \\plevels p1 <= p2 (A : \\Type) => A\n" +
-      "\\func test \\plevels p1 >= p2 => f \\levels (p1,p2) () Nat", 1);
+      "\\func test \\plevels p1 >= p2 => f \\levels (p1,p2) Nat", 1);
   }
 
   @Test
   public void applyLevelsError2() {
     typeCheckModule(
       "\\func f \\plevels p1 >= p2 (A : \\Type) => A\n" +
-      "\\func test => f \\levels (3,7) () Nat", 1);
+      "\\func test => f \\levels (3,7) Nat", 1);
   }
 
   @Test
@@ -219,7 +219,7 @@ public class LevelParametersTest extends TypeCheckingTestCase {
     typeCheckModule(
       """
         \\record R \\plevels p1 <= p2 (x : \\Type (\\suc p2))
-        \\func g \\plevels p1 <= p2 : R \\levels (p1,p2) _ \\cowith
+        \\func g \\plevels p1 <= p2 : R \\levels (p1,p2) \\cowith
           | x : \\Type (\\suc p2) => \\Type p1
         """);
   }
@@ -228,7 +228,7 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   public void metaTest() {
     typeCheckModule(
       "\\meta m \\plevels p1 <= p2 => \\Sigma (\\Type p1) (\\Type p2)\n" +
-      "\\func f => m \\levels (1,2) _");
+      "\\func f => m \\levels (1,2)");
     DependentLink params = ((SigmaExpression) Objects.requireNonNull(((FunctionDefinition) getDefinition("f")).getBody())).getParameters();
     assertEquals(new UniverseExpression(Sort.TypeOfLevel(1)), params.getType());
     assertEquals(new UniverseExpression(Sort.TypeOfLevel(2)), params.getNext().getType());

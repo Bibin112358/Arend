@@ -1704,7 +1704,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
         if (baseExpr instanceof Concrete.ReferenceExpression baseRefExpr) {
           ClassDefinition actualClass = (ClassDefinition) actualDef;
           boolean ok = actualClass.isSubClassOf(expectedClassCall.getDefinition());
-          if (ok && (actualDef != expectedClassCall.getDefinition() || baseRefExpr.getPLevels() != null || baseRefExpr.getHLevels() != null)) {
+          if (ok && (actualDef != expectedClassCall.getDefinition() || baseRefExpr.getPLevels() != null)) {
             boolean fieldsOK = true;
             for (ClassField implField : expectedClassCall.getImplementedHere().keySet()) {
               if (actualClass.isImplemented(implField)) {
@@ -1950,13 +1950,13 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
     Levels levels;
     boolean isMin = definition instanceof DataDefinition && !definition.getParameters().hasNext() && definition.getUniverseKind() == UniverseKind.NO_UNIVERSES;
-    if (definition == myDefinition || myRecursiveDefinitions.contains(definition.getRef()) && expr.getPLevels() == null && expr.getHLevels() == null) {
+    if (definition == myDefinition || myRecursiveDefinitions.contains(definition.getRef()) && expr.getPLevels() == null) {
       levels = definition.makeIdLevels();
       Levels levels1 = typecheckLevels(definition, expr, null, false);
       if (!levels.compare(levels1, CMP.EQ, myEquations, expr)) {
         errorReporter.report(new TypecheckingError("Recursive call must have the same levels as the definition", expr));
       }
-    } else if (expr.getPLevels() == null && expr.getHLevels() == null) {
+    } else if (expr.getPLevels() == null) {
       levels = isMin ? definition.makeMinLevels() : definition.generateInferVars(getEquations(), !withoutUniverses && (definition == myDefinition || definition.getUniverseKind() != UniverseKind.NO_UNIVERSES), expr);
     } else {
       levels = typecheckLevels(definition, expr, null, isMin);
@@ -2007,7 +2007,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       return core == null ? null : new TypecheckingResult(core, core.getType());
     }
 
-    if (!(ref instanceof GlobalReferable) && (expr.getPLevels() != null || expr.getHLevels() != null)) {
+    if (!(ref instanceof GlobalReferable) && expr.getPLevels() != null) {
       errorReporter.report(new IgnoredLevelsError(expr));
     }
     return ref instanceof TCDefReferable ? typeCheckDefCall((TCDefReferable) ref, expr, withoutUniverses) : getLocalVar(expr.getReferent(), expr);

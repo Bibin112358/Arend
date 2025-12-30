@@ -119,7 +119,7 @@
 
 \open Precategory-of-elements
 
-\func embedding-universal {C : SmallPrecat} {E : CocompleteCat \levels (\suc \lp) _} (A : Functor C E)
+\func embedding-universal {C : SmallPrecat} {E : CocompleteCat \levels (\suc \lp)} (A : Functor C E)
   : \Sigma (L : Functor (PresheafCat C) E) (A = Comp L YonedaEmbedding)
   => (L-Functor, IsEquiv.ret (FunctorCat.univalence {A} {Comp L-Functor YonedaEmbedding}) functors-iso)
   \where {

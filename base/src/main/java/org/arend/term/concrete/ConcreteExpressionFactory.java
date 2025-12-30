@@ -47,10 +47,10 @@ public class ConcreteExpressionFactory {
             : new Concrete.LongReferenceExpression(data, qualifierExpression, longName, referable);
   }
 
-  public static Concrete.ReferenceExpression cDefCall(Object data, LongName longName, Referable referable, List<Concrete.LevelExpression> pLevels, List<Concrete.LevelExpression> hLevels) {
+  public static Concrete.ReferenceExpression cDefCall(Object data, LongName longName, Referable referable, List<Concrete.LevelExpression> pLevels) {
     return longName == null
-      ? new Concrete.ReferenceExpression(data, referable, pLevels, hLevels)
-      : new Concrete.LongReferenceExpression(data, null, longName, referable, pLevels, hLevels);
+      ? new Concrete.ReferenceExpression(data, referable, pLevels)
+      : new Concrete.LongReferenceExpression(data, null, longName, referable, pLevels);
   }
 
   public static Concrete.ClassExtExpression cClassExt(Concrete.Expression expr, List<Concrete.ClassFieldImpl> definitions) {

@@ -60,7 +60,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
     }
 
     ArgumentAppExprContext argCtx = ((AppArgumentContext) appExpr.appExpr()).argumentAppExpr();
-    if (!argCtx.onlyLevelAtom().isEmpty()) {
+    if (argCtx.onlyLevelAtom() != null) {
       return false;
     }
     String var = getVar(argCtx.atomFieldsAcc());
@@ -903,12 +903,9 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
   @Override
   public Concrete.ReferenceExpression visitSuperClass(SuperClassContext ctx) {
     Concrete.ReferenceExpression result = visitLongNameRef(ctx.longName(), null, null);
-    List<MaybeLevelAtomsContext> levelCtxs = ctx.maybeLevelAtoms();
-    if (!levelCtxs.isEmpty()) {
-      result.setPLevels(visitLevels(levelCtxs.getFirst()));
-    }
-    if (levelCtxs.size() >= 2) {
-      result.setHLevels(visitLevels(levelCtxs.get(1)));
+    MaybeLevelAtomsContext levelCtx = ctx.maybeLevelAtoms();
+    if (levelCtx != null) {
+      result.setPLevels(visitLevels(levelCtx));
     }
     return result;
   }
@@ -1167,28 +1164,13 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
   @Override
   public Concrete.Expression visitArgumentAppExpr(ArgumentAppExprContext ctx) {
     Concrete.Expression expr = visitAtomFieldsAcc(ctx.atomFieldsAcc());
-    List<OnlyLevelAtomContext> onlyLevelAtoms = ctx.onlyLevelAtom();
-    if (!onlyLevelAtoms.isEmpty()) {
+    OnlyLevelAtomContext onlyLevelAtom = ctx.onlyLevelAtom();
+    if (onlyLevelAtom != null) {
       if (expr instanceof Concrete.ReferenceExpression) {
-        Object obj1 = visit(onlyLevelAtoms.get(0));
-        Object obj2 = onlyLevelAtoms.size() < 2 ? null : visit(onlyLevelAtoms.get(1));
-        if (onlyLevelAtoms.size() > 2 || obj1 instanceof Pair && obj2 != null || obj2 instanceof Pair) {
-          myErrorReporter.report(new ParserError(tokenPosition(onlyLevelAtoms.getFirst().start), "too many level specifications"));
-        }
-
-        List<Concrete.LevelExpression> levels1;
-        List<Concrete.LevelExpression> levels2;
-        if (obj1 instanceof Pair) {
-          levels1 = (List<Concrete.LevelExpression>) ((Pair) obj1).proj1;
-          levels2 = (List<Concrete.LevelExpression>) ((Pair) obj1).proj2;
-        } else {
-          levels1 = new SingletonList<>((Concrete.LevelExpression) obj1);
-          levels2 = obj2 instanceof Concrete.LevelExpression ? new SingletonList<>((Concrete.LevelExpression) obj2) : null;
-        }
-
-        expr = new Concrete.ReferenceExpression(expr.getData(), ((Concrete.ReferenceExpression) expr).getReferent(), levels1, levels2);
+        Object obj = visit(onlyLevelAtom);
+        expr = new Concrete.ReferenceExpression(expr.getData(), ((Concrete.ReferenceExpression) expr).getReferent(), obj instanceof Concrete.LevelExpression ? new SingletonList<>((Concrete.LevelExpression) obj) : (List<Concrete.LevelExpression>) obj);
       } else {
-        myErrorReporter.report(new ParserError(tokenPosition(onlyLevelAtoms.getFirst().start), "Level annotations are allowed only after a reference"));
+        myErrorReporter.report(new ParserError(tokenPosition(onlyLevelAtom.start), "Level annotations are allowed only after a reference"));
       }
     }
 
@@ -1570,9 +1552,8 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
   }
 
   @Override
-  public Pair<List<Concrete.LevelExpression>, List<Concrete.LevelExpression>> visitLevelsOnlyLevel(LevelsOnlyLevelContext ctx) {
-    List<MaybeLevelAtomsContext> maybeLevelAtomsCtxs = ctx.maybeLevelAtoms();
-    return new Pair<>(visitLevels(maybeLevelAtomsCtxs.get(0)), visitLevels(maybeLevelAtomsCtxs.get(1)));
+  public List<Concrete.LevelExpression> visitLevelsOnlyLevel(LevelsOnlyLevelContext ctx) {
+    return visitLevels(ctx.maybeLevelAtoms());
   }
 
   @Override
@@ -1838,7 +1819,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
         } else if (postfixCtx != null) {
           names.add(getPostfixText(postfixCtx));
         }
-        return Concrete.FixityReferenceExpression.make(position, LongUnresolvedReference.make(position, names), infixCtx != null ? Fixity.INFIX : postfixCtx != null ? Fixity.POSTFIX : null, null, null);
+        return Concrete.FixityReferenceExpression.make(position, LongUnresolvedReference.make(position, names), infixCtx != null ? Fixity.INFIX : postfixCtx != null ? Fixity.POSTFIX : null, null);
       }
       expression = new Concrete.ReferenceExpression(position, Objects.requireNonNull(LongUnresolvedReference.make(position, names)));
     } else {
