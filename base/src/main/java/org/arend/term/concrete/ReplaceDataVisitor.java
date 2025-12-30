@@ -364,7 +364,7 @@ public class ReplaceDataVisitor implements ConcreteExpressionVisitor<Void,Concre
       clauses.add(new Concrete.ConstructorClause(getData(clause), visitPatterns(clause.getPatterns()), constructors));
     }
 
-    Concrete.DataDefinition result = new Concrete.DataDefinition(def.getData(), def.getPLevelParameters(), def.getHLevelParameters(), (List<Concrete.TypeParameter>) (List<?>) visitParameters(def.getParameters()), visitReferenceExpressions(def.getEliminatedReferences()), def.isTruncated(), def.getUniverse() == null ? null : visitUniverse(def.getUniverse(), null), clauses);
+    Concrete.DataDefinition result = new Concrete.DataDefinition(def.getData(), def.getPLevelParameters(), (List<Concrete.TypeParameter>) (List<?>) visitParameters(def.getParameters()), visitReferenceExpressions(def.getEliminatedReferences()), def.isTruncated(), def.getUniverse() == null ? null : visitUniverse(def.getUniverse(), null), clauses);
     def.copyData(result);
     return result;
   }
@@ -373,7 +373,7 @@ public class ReplaceDataVisitor implements ConcreteExpressionVisitor<Void,Concre
   @Override
   public Concrete.ClassDefinition visitClass(Concrete.ClassDefinition def, Void params) {
     List<Concrete.ClassElement> elements = new ArrayList<>(def.getElements().size());
-    Concrete.ClassDefinition result = new Concrete.ClassDefinition(def.getData(), def.getPLevelParameters(), def.getHLevelParameters(), def.isRecord(), def.withoutClassifying(), visitReferenceExpressions(def.getSuperClasses()), elements);
+    Concrete.ClassDefinition result = new Concrete.ClassDefinition(def.getData(), def.getPLevelParameters(), def.isRecord(), def.withoutClassifying(), visitReferenceExpressions(def.getSuperClasses()), elements);
     Concrete.Expression previousType = null;
     Concrete.Expression previousTypeCopied = null;
     for (Concrete.ClassElement element : def.getElements()) {
@@ -397,7 +397,7 @@ public class ReplaceDataVisitor implements ConcreteExpressionVisitor<Void,Concre
 
   @Override
   public Concrete.MetaDefinition visitMeta(Concrete.MetaDefinition def, Void params) {
-    Concrete.MetaDefinition result = new Concrete.MetaDefinition(def.getData(), def.pLevelParameters, def.hLevelParameters, visitParameters(def.getParameters()), def.body == null ? null : def.body.accept(this, null));
+    Concrete.MetaDefinition result = new Concrete.MetaDefinition(def.getData(), def.pLevelParameters, visitParameters(def.getParameters()), def.body == null ? null : def.body.accept(this, null));
     result.setStatus(def.getStatus());
     return result;
   }

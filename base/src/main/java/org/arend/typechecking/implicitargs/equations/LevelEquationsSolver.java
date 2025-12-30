@@ -27,7 +27,7 @@ public class LevelEquationsSolver {
   private final Map<LevelVariable, Set<InferenceLevelVariable>> myUpperBounds = new HashMap<>();
   private final ErrorReporter myErrorReporter;
   private final boolean myPBased;
-  private final boolean myHBased;
+  private final boolean myHBased; // TODO[sorts]: Delete this
 
   public LevelEquationsSolver(List<LevelEquation<LevelVariable>> levelEquations, List<? extends AbstractEquation<Level>> deferredMaxEquations, List<InferenceLevelVariable> variables, List<Pair<InferenceLevelVariable, InferenceLevelVariable>> boundVariables, ErrorReporter errorReporter, boolean pBased, boolean hBased) {
     myDeferredMaxEquations = new ArrayList<>(deferredMaxEquations);

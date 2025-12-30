@@ -48,8 +48,7 @@ class ArendStatCmd(node: ASTNode) : ArendSourceNodeImpl(node), Abstract.Namespac
     companion object {
         fun getScopeContext(element: PsiElement?): Scope.ScopeContext = when (element?.elementType) {
             DOT -> Scope.ScopeContext.DYNAMIC
-            PLEVEL_KW -> Scope.ScopeContext.PLEVEL
-            HLEVEL_KW -> Scope.ScopeContext.HLEVEL
+            PLEVEL_KW -> Scope.ScopeContext.LEVEL
             else -> Scope.ScopeContext.STATIC
         }
     }

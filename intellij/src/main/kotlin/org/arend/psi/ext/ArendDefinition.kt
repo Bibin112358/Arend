@@ -35,9 +35,6 @@ where StubT : ArendNamedStub, StubT : StubElement<*> {
     override fun getPLevelParameters(): ArendLevelParamsSeq? =
         getChild { it.elementType == P_LEVEL_PARAMS_SEQ }
 
-    override fun getHLevelParameters(): ArendLevelParamsSeq? =
-        getChild { it.elementType == H_LEVEL_PARAMS_SEQ }
-
     override fun getGroupDefinition() = this
 
     override val where: ArendWhere?

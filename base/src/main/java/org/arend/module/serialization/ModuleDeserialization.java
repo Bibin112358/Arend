@@ -249,7 +249,7 @@ public class ModuleDeserialization {
     List<ConcreteStatement> statements = new ArrayList<>(groupProto.getSubgroupCount());
     ConcreteGroup group = new ConcreteGroup(DocFactory.nullDoc(), referable, null, statements, Collections.emptyList(), Collections.emptyList());
     for (ModuleProtos.Group subgroup : groupProto.getSubgroupList()) {
-      statements.add(new ConcreteStatement(readGroup(subgroup, group, modulePath), null, null, null));
+      statements.add(new ConcreteStatement(readGroup(subgroup, group, modulePath), null, null));
     }
 
     return group;
@@ -259,12 +259,11 @@ public class ModuleDeserialization {
     if (isStd) return null;
     List<LevelVariable> result = new ArrayList<>(parameters.size());
     for (DefinitionProtos.Definition.LevelParameter parameter : parameters) {
-      LevelVariable base = parameter.getIsPlevel() ? LevelVariable.PVAR : LevelVariable.HVAR;
       int size = parameter.getSize();
       if (size == -1) {
-        result.add(base);
+        result.add(parameter.getIsPlevel() ? LevelVariable.PVAR : LevelVariable.HVAR);
       } else {
-        result.add(new ParamLevelVariable(base.getType(), parameter.getName(), parameter.getIndex(), size));
+        result.add(new ParamLevelVariable(parameter.getName(), parameter.getIndex(), size));
       }
     }
     return result;

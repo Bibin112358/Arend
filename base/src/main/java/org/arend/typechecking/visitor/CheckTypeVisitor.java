@@ -220,10 +220,6 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     return myLevelContext == null || myLevelContext.isPBased;
   }
 
-  public boolean isHBased() {
-    return myLevelContext == null || myLevelContext.isHBased;
-  }
-
   public void setLevelContext(LevelContext levelContext) {
     myLevelContext = levelContext;
   }

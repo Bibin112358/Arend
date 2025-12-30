@@ -58,12 +58,12 @@ public class ExpressionResolveNameVisitor extends BaseConcreteExpressionVisitor<
     myResolverListener = resolverListener;
   }
 
-  public ExpressionResolveNameVisitor(Scope parentScope, List<TypedReferable> context, TypingInfo typingInfo, ErrorReporter errorReporter, LiteralTypechecker literalTypechecker, ResolverListener resolverListener, List<? extends Referable> pLevels, List<? extends Referable> hLevels) {
-    this(parentScope, context == null && pLevels.isEmpty() && hLevels.isEmpty() ? parentScope : new ContextScope(parentScope, context == null ? Collections.emptyList() : context, pLevels, hLevels), context, typingInfo, errorReporter, literalTypechecker, resolverListener);
+  public ExpressionResolveNameVisitor(Scope parentScope, List<TypedReferable> context, TypingInfo typingInfo, ErrorReporter errorReporter, LiteralTypechecker literalTypechecker, ResolverListener resolverListener, List<? extends Referable> pLevels) {
+    this(parentScope, context == null && pLevels.isEmpty() ? parentScope : new ContextScope(parentScope, context == null ? Collections.emptyList() : context, pLevels), context, typingInfo, errorReporter, literalTypechecker, resolverListener);
   }
 
   public ExpressionResolveNameVisitor(Scope parentScope, List<TypedReferable> context, TypingInfo typingInfo, ErrorReporter errorReporter, LiteralTypechecker literalTypechecker, ResolverListener resolverListener) {
-    this(parentScope, context, typingInfo, errorReporter, literalTypechecker, resolverListener, Collections.emptyList(), Collections.emptyList());
+    this(parentScope, context, typingInfo, errorReporter, literalTypechecker, resolverListener, Collections.emptyList());
   }
 
   @Override
@@ -1032,14 +1032,13 @@ public class ExpressionResolveNameVisitor extends BaseConcreteExpressionVisitor<
 
   @Override
   public Concrete.LevelExpression visitVar(Concrete.VarLevelExpression expr, LevelVariable type) {
-    Scope.ScopeContext scopeContext = type == LevelVariable.HVAR ? Scope.ScopeContext.HLEVEL : Scope.ScopeContext.PLEVEL;
-    Referable ref = resolve(expr.getReferent(), myScope, scopeContext, myResolverListener);
+    Referable ref = resolve(expr.getReferent(), myScope, Scope.ScopeContext.LEVEL, myResolverListener);
     if (ref instanceof ErrorReference) {
       myErrorReporter.report(((ErrorReference) ref).getError());
     }
     Concrete.VarLevelExpression result = new Concrete.VarLevelExpression(expr.getData(), ref, type.getType());
     if (myResolverListener != null) {
-      myResolverListener.levelResolved(expr.getReferent(), result, ref, new ArrayList<>(myScope.getElements(scopeContext)));
+      myResolverListener.levelResolved(expr.getReferent(), result, ref, new ArrayList<>(myScope.getElements(Scope.ScopeContext.LEVEL)));
     }
     expr.setReferent(ref);
     return result;

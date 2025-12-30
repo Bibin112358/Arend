@@ -88,14 +88,8 @@ public class LexicalScope implements Scope {
         }
       }
       Concrete.LevelsDefinition pDef = statement.pLevelsDefinition();
-      if (pDef != null && (context == null || context == ScopeContext.PLEVEL)) {
+      if (pDef != null && (context == null || context == ScopeContext.LEVEL)) {
         for (Referable referable : pDef.getReferables()) {
-          if (pred.test(referable)) return referable;
-        }
-      }
-      Concrete.LevelsDefinition hDef = statement.hLevelsDefinition();
-      if (hDef != null && (context == null || context == ScopeContext.HLEVEL)) {
-        for (Referable referable : hDef.getReferables()) {
           if (pred.test(referable)) return referable;
         }
       }
@@ -220,18 +214,8 @@ public class LexicalScope implements Scope {
           }
         }
       }
-      if (context == null || context == ScopeContext.PLEVEL) {
+      if (context == null || context == ScopeContext.LEVEL) {
         Concrete.LevelsDefinition levelParams = statement.pLevelsDefinition();
-        if (levelParams != null) {
-          for (Referable ref : levelParams.getReferables()) {
-            if (name.equals(ref.getRefName())) {
-              return ref;
-            }
-          }
-        }
-      }
-      if (context == null || context == ScopeContext.HLEVEL) {
-        Concrete.LevelsDefinition levelParams = statement.hLevelsDefinition();
         if (levelParams != null) {
           for (Referable ref : levelParams.getReferables()) {
             if (name.equals(ref.getRefName())) {

@@ -60,7 +60,7 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
     checkNameAndPrecedence(def, def.getData());
 
     List<TypedReferable> context = new ArrayList<>();
-    var exprVisitor = new ExpressionResolveNameVisitor(scope, context, myTypingInfo, myLocalErrorReporter, myLiteralTypechecker, myResolverListener, visitLevelParameters(def.getPLevelParameters()), visitLevelParameters(def.getHLevelParameters()));
+    var exprVisitor = new ExpressionResolveNameVisitor(scope, context, myTypingInfo, myLocalErrorReporter, myLiteralTypechecker, myResolverListener, visitLevelParameters(def.getPLevelParameters()));
     for (Concrete.Parameter parameter : def.getParameters()) {
       if (parameter.getType() == null && !parameter.isExplicit()) {
         myErrorReporter.report(new NameResolverError("Untyped parameters must be explicit", parameter));
@@ -200,13 +200,8 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
         funDef.setKind(FunctionKind.FUNC);
       } else {
         Concrete.GeneralDefinition enclosingDef = myConcreteProvider.getConcrete(def.getUseParent());
-        if (enclosingDef instanceof Concrete.Definition) {
-          if (def.getPLevelParameters() == null && ((Concrete.Definition) enclosingDef).getPLevelParameters() != null) {
-            def.setPLevelParameters(((Concrete.Definition) enclosingDef).getPLevelParameters());
-          }
-          if (def.getHLevelParameters() == null && ((Concrete.Definition) enclosingDef).getHLevelParameters() != null) {
-            def.setHLevelParameters(((Concrete.Definition) enclosingDef).getHLevelParameters());
-          }
+        if (enclosingDef instanceof Concrete.Definition && def.getPLevelParameters() == null && ((Concrete.Definition) enclosingDef).getPLevelParameters() != null) {
+          def.setPLevelParameters(((Concrete.Definition) enclosingDef).getPLevelParameters());
         }
 
         if (def instanceof Concrete.CoClauseFunctionDefinition function) {
@@ -223,7 +218,7 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
       }
     }
 
-    ExpressionResolveNameVisitor exprVisitor = new ExpressionResolveNameVisitor(scope, new ArrayList<>(), myTypingInfo, myLocalErrorReporter, myLiteralTypechecker, myResolverListener, visitLevelParameters(def.getPLevelParameters()), visitLevelParameters(def.getHLevelParameters()));
+    ExpressionResolveNameVisitor exprVisitor = new ExpressionResolveNameVisitor(scope, new ArrayList<>(), myTypingInfo, myLocalErrorReporter, myLiteralTypechecker, myResolverListener, visitLevelParameters(def.getPLevelParameters()));
     exprVisitor.visitParameters(def.getParameters(), null);
     return exprVisitor;
   }
@@ -391,7 +386,7 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
   private ExpressionResolveNameVisitor resolveDataHeader(Concrete.DataDefinition def, Scope scope) {
     myLocalErrorReporter = new ConcreteProxyErrorReporter(def);
 
-    ExpressionResolveNameVisitor exprVisitor = new ExpressionResolveNameVisitor(scope, new ArrayList<>(), myTypingInfo, myLocalErrorReporter, myLiteralTypechecker, myResolverListener, visitLevelParameters(def.getPLevelParameters()), visitLevelParameters(def.getHLevelParameters()));
+    ExpressionResolveNameVisitor exprVisitor = new ExpressionResolveNameVisitor(scope, new ArrayList<>(), myTypingInfo, myLocalErrorReporter, myLiteralTypechecker, myResolverListener, visitLevelParameters(def.getPLevelParameters()));
     exprVisitor.visitParameters(def.getParameters(), null);
     return exprVisitor;
   }
@@ -401,7 +396,6 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
     scope = new PrivateFilteredScope(scope);
     ExpressionResolveNameVisitor exprVisitor = resolveDataHeader(def, scope);
     List<? extends Referable> pLevels = visitLevelParameters(def.getPLevelParameters());
-    List<? extends Referable> hLevels = visitLevelParameters(def.getHLevelParameters());
     List<TypedReferable> context = exprVisitor.getContext();
     checkNameAndPrecedence(def, def.getData());
 
@@ -424,7 +418,7 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
     } else {
       for (Concrete.ConstructorClause clause : def.getConstructorClauses()) {
         for (Concrete.Constructor constructor : clause.getConstructors()) {
-          visitConstructor(constructor, scope, context, pLevels, hLevels);
+          visitConstructor(constructor, scope, context, pLevels);
         }
       }
     }
@@ -436,7 +430,7 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
         try (Utils.ContextSaver ignore = new Utils.ContextSaver(context)) {
           visitConstructorClause(clause, exprVisitor);
           for (Concrete.Constructor constructor : clause.getConstructors()) {
-            visitConstructor(constructor, scope, context, pLevels, hLevels);
+            visitConstructor(constructor, scope, context, pLevels);
           }
         }
       }
@@ -450,10 +444,10 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
     return null;
   }
 
-  private void visitConstructor(Concrete.Constructor def, Scope parentScope, List<TypedReferable> context, List<? extends Referable> pLevels, List<? extends Referable> hLevels) {
+  private void visitConstructor(Concrete.Constructor def, Scope parentScope, List<TypedReferable> context, List<? extends Referable> pLevels) {
     checkNameAndPrecedence(def, def.getData());
 
-    ExpressionResolveNameVisitor exprVisitor = new ExpressionResolveNameVisitor(parentScope, context, myTypingInfo, myLocalErrorReporter, myLiteralTypechecker, myResolverListener, pLevels, hLevels);
+    ExpressionResolveNameVisitor exprVisitor = new ExpressionResolveNameVisitor(parentScope, context, myTypingInfo, myLocalErrorReporter, myLiteralTypechecker, myResolverListener, pLevels);
     try (Utils.ContextSaver ignored = new Utils.ContextSaver(context)) {
       exprVisitor.visitParameters(def.getParameters(), null);
       if (def.getResultType() != null) {
@@ -480,7 +474,7 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
       return;
     }
 
-    ExpressionResolveNameVisitor exprVisitor = new ExpressionResolveNameVisitor(scope, new ArrayList<>(), myTypingInfo, myErrorReporter, myLiteralTypechecker, myResolverListener, visitLevelParameters(def.getPLevelParameters()), visitLevelParameters(def.getHLevelParameters()));
+    ExpressionResolveNameVisitor exprVisitor = new ExpressionResolveNameVisitor(scope, new ArrayList<>(), myTypingInfo, myErrorReporter, myLiteralTypechecker, myResolverListener, visitLevelParameters(def.getPLevelParameters()));
     for (int i = 0; i < def.getSuperClasses().size(); i++) {
       Concrete.ReferenceExpression superClass = def.getSuperClasses().get(i);
       Concrete.Expression resolved = exprVisitor.visitReference(superClass, true, resolveLevels);
@@ -526,7 +520,7 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
     resolveSuperClasses(def, scope, true);
 
     List<TypedReferable> context = new ArrayList<>();
-    ExpressionResolveNameVisitor exprVisitor = new ExpressionResolveNameVisitor(scope, context, myTypingInfo, myLocalErrorReporter, myLiteralTypechecker, myResolverListener, visitLevelParameters(def.getPLevelParameters()), visitLevelParameters(def.getHLevelParameters()));
+    ExpressionResolveNameVisitor exprVisitor = new ExpressionResolveNameVisitor(scope, context, myTypingInfo, myLocalErrorReporter, myLiteralTypechecker, myResolverListener, visitLevelParameters(def.getPLevelParameters()));
     Concrete.Expression previousType = null;
     for (int i = 0; i < classFields.size(); i++) {
       Concrete.ClassField field = classFields.get(i);
@@ -600,7 +594,7 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
         newParams.add(defParam);
       }
     }
-    myExternalParameters.put(def.getData(), new Concrete.ExternalParameters(newParams, def instanceof Concrete.Definition ? ((Concrete.Definition) def).getPLevelParameters() : null, def instanceof Concrete.Definition ? ((Concrete.Definition) def).getHLevelParameters() : null));
+    myExternalParameters.put(def.getData(), new Concrete.ExternalParameters(newParams, def instanceof Concrete.Definition ? ((Concrete.Definition) def).getPLevelParameters() : null));
     return true;
   }
 
@@ -828,17 +822,7 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
       }
     }
 
-    class NamespaceStruct {
-      final Scope.ScopeContext context;
-      final ConcreteNamespaceCommand command;
-      final Map<String, Referable> refMap;
-
-      NamespaceStruct(Scope.ScopeContext context, ConcreteNamespaceCommand command, Map<String, Referable> refMap) {
-        this.context = context;
-        this.command = command;
-        this.refMap = refMap;
-      }
-    }
+    record NamespaceStruct(Scope.ScopeContext context, ConcreteNamespaceCommand command, Map<String, Referable> refMap) {}
 
     List<NamespaceStruct> namespaces = new ArrayList<>();
     for (ConcreteStatement statement : statements) {

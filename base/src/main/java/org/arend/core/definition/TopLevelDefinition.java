@@ -13,9 +13,9 @@ public abstract class TopLevelDefinition extends CallableDefinition {
   private UniverseKind myUniverseKind = UniverseKind.NO_UNIVERSES;
   private List<? extends LevelVariable> myLevelParameters;
   private LocatedReferable myPLevelsParent;
-  private LocatedReferable myHLevelsParent;
+  private LocatedReferable myHLevelsParent; // TODO[sorts]: Delete this
   private boolean myPLevelsDerived;
-  private boolean myHLevelsDerived;
+  private boolean myHLevelsDerived; // TODO[sorts]: Delete this
   private List<Pair<TCDefReferable,Integer>> myParametersOriginalDefinitions = Collections.emptyList();
   private Set<? extends FunctionDefinition> myAxioms = Collections.emptySet();
   private Set<? extends Definition> myGoals = Collections.emptySet();

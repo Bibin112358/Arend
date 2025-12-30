@@ -1,6 +1,5 @@
 package org.arend.typechecking.levels;
 
-import org.arend.Matchers;
 import org.arend.core.context.binding.LevelVariable;
 import org.arend.core.definition.FunctionDefinition;
 import org.arend.core.expr.ClassCallExpression;
@@ -21,14 +20,6 @@ public class LevelsDefinitionTest extends TypeCheckingTestCase {
   }
 
   @Test
-  public void notInScopeError() {
-    resolveNamesModule(
-      "\\hlevels p1 <= p2\n" +
-      "\\func test (A : \\Type p1) : \\Type p2 => A", 2);
-    assertThatErrorsAre(Matchers.notInScope("p1"), Matchers.notInScope("p2"));
-  }
-
-  @Test
   public void differentVarsError() {
     typeCheckModule(
       """
@@ -42,7 +33,7 @@ public class LevelsDefinitionTest extends TypeCheckingTestCase {
   public void alreadyWithVarsTest() {
     typeCheckModule(
       "\\plevels p1 <= p2\n" +
-      "\\func test \\hlevels h (A : \\Type p1 h) : \\Type p2 => A");
+      "\\func test (A : \\Type p1) : \\Type p2 => A");
   }
 
   @Test

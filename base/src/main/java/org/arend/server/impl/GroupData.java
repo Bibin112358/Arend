@@ -152,7 +152,7 @@ public class GroupData {
 
     List<ConcreteStatement> statements = new ArrayList<>(group.statements().size());
     for (ConcreteStatement statement : group.statements()) {
-      statements.add(new ConcreteStatement(updateGroup(statement.group(), newDef instanceof Concrete.Definition ? newDef.getData() : null, replaced), statement.command(), statement.pLevelsDefinition(), statement.hLevelsDefinition()));
+      statements.add(new ConcreteStatement(updateGroup(statement.group(), newDef instanceof Concrete.Definition ? newDef.getData() : null, replaced), statement.command(), statement.pLevelsDefinition()));
     }
 
     List<ConcreteGroup> dynamicGroups = new ArrayList<>(group.dynamicGroups().size());

@@ -140,7 +140,6 @@ public final class Abstract {
     @Nullable Group getGroup();
     @Nullable NamespaceCommand getNamespaceCommand();
     @Nullable LevelParameters getPLevelsDefinition();
-    @Nullable LevelParameters getHLevelsDefinition();
   }
 
   public interface AbstractReferable {
@@ -265,7 +264,6 @@ public final class Abstract {
     @Override @NotNull Abstract.AbstractLocatedReferable getReferable();
     <R> R accept(AbstractDefinitionVisitor<? extends R> visitor);
     @Nullable LevelParameters getPLevelParameters();
-    @Nullable LevelParameters getHLevelParameters();
     boolean withUse();
   }
 

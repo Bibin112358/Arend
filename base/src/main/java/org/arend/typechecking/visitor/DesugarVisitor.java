@@ -36,19 +36,16 @@ public class DesugarVisitor extends BaseConcreteExpressionVisitor<Void> {
 
     if (!visitor.myLevelRefs.isEmpty() && definition instanceof Concrete.Definition) {
       Set<LevelDefinition> pDefs = new LinkedHashSet<>();
-      Set<LevelDefinition> hDefs = new LinkedHashSet<>();
       for (TCLevelReferable ref : visitor.myLevelRefs) {
-        LevelDefinition def = ref.getDefParent();
-        (def.isPLevels() ? pDefs : hDefs).add(def);
+        pDefs.add(ref.getDefParent());
       }
-      processLevelDefinitions((Concrete.Definition) definition, pDefs, errorReporter, "p");
-      processLevelDefinitions((Concrete.Definition) definition, hDefs, errorReporter, "h");
+      processLevelDefinitions((Concrete.Definition) definition, pDefs, errorReporter);
     }
   }
 
-  private static void processLevelDefinitions(Concrete.Definition def, Set<LevelDefinition> defs, ErrorReporter errorReporter, String kind) {
+  private static void processLevelDefinitions(Concrete.Definition def, Set<LevelDefinition> defs, ErrorReporter errorReporter) {
     if (defs.size() > 1) {
-      errorReporter.report(new TypecheckingError("Definition refers to different " + kind + "-levels", def));
+      errorReporter.report(new TypecheckingError("Definition refers to different levels", def));
     }
     if (defs.isEmpty()) {
       return;
@@ -108,6 +105,12 @@ public class DesugarVisitor extends BaseConcreteExpressionVisitor<Void> {
   public Void visitFunction(Concrete.BaseFunctionDefinition def, Void params) {
     // Process expressions
     super.visitFunction(def, null);
+
+    if (def instanceof Concrete.CoClauseFunctionDefinition function) {
+      if (myConcreteProvider.getConcrete(function.getUseParent()) instanceof Concrete.ResolvableDefinition parent) {
+        def.setPLevelParameters(parent.getPLevelParameters());
+      }
+    }
 
     // Add this parameter
     Referable thisParameter = checkDefinition(def);

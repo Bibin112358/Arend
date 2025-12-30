@@ -6,7 +6,6 @@ statement : accessMod? USE? definition                                      # st
           | accessMod '{' statement* '}'                                    # statAccessMod
           | nsCmd longName nsUsing? ('\\hiding' '(' scId (',' scId)* ')')?  # statCmd
           | '\\plevels' ID*                                                 # statPLevels
-          | '\\hlevels' ID*                                                 # statHLevels
           ;
 
 nsCmd : '\\open'                        # openCmd
@@ -21,7 +20,6 @@ nsUsing : USING? '(' nsId? (',' nsId)* ')';
 
 scopeContext : DOT          # dynamicContext
              | '\\plevel'   # plevelContext
-             | '\\hlevel'   # hlevelContext
              ;
 
 scId : scopeContext? ID;
@@ -49,7 +47,7 @@ definition  : funcKw topDefId tele* (':' returnExpr2)? functionBody where?      
             | TRUNCATED? '\\data' topDefId tele* (':' expr2)? dataBody where?                                           # defData
             | classKw topDefId NO_CLASSIFYING? fieldTele* ('\\extends' superClass (',' superClass)*)? classBody where?  # defClass
             | '\\module' ID where?                                                                                      # defModule
-            | '\\meta' defId plevelParams? hlevelParams? COMMA? (tele* '=>' expr)? where?                               # defMeta
+            | '\\meta' defId plevelParams? COMMA? (tele* '=>' expr)? where?                                             # defMeta
             | instanceKw topDefId tele* (':' returnExpr2)? instanceBody where?                                          # defInstance
             ;
 
@@ -122,11 +120,9 @@ atomPattern : (longName DOT)? (INFIX | POSTFIX | ID) # patternID
 
 constructor : accessMod? COERCE? defId tele* (':' expr2)? (elim? '{' clause? ('|' clause)* '}')?;
 
-topDefId : defId plevelParams? hlevelParams? COMMA?;
+topDefId : defId plevelParams? COMMA?;
 
 plevelParams : '\\plevels' ID*;
-
-hlevelParams : '\\hlevels' ID*;
 
 defId : precedence ID alias?;
 

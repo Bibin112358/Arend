@@ -129,7 +129,7 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
     List<ConcreteStatement> statements = new ArrayList<>();
     for (Abstract.Statement statement : group.getStatements()) {
       Abstract.Group subgroup = statement.getGroup();
-      statements.add(new ConcreteStatement(subgroup == null ? null : buildGroup(subgroup, module, referable, concrete instanceof Concrete.Definition def ? def : null, enclosingClass, errorReporter, resolved), buildNamespaceCommand(statement.getNamespaceCommand()), buildLevelsDefinition(statement.getPLevelsDefinition(), true, referable), buildLevelsDefinition(statement.getHLevelsDefinition(), false, referable)));
+      statements.add(new ConcreteStatement(subgroup == null ? null : buildGroup(subgroup, module, referable, concrete instanceof Concrete.Definition def ? def : null, enclosingClass, errorReporter, resolved), buildNamespaceCommand(statement.getNamespaceCommand()), buildLevelsDefinition(statement.getPLevelsDefinition(), referable)));
     }
 
     if (concrete instanceof Concrete.Definition cDef && parentDef instanceof Concrete.ClassDefinition && cDef.getUseParent() == parentDef.getData()) {
@@ -172,15 +172,15 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
     return new ConcreteNamespaceCommand(command, command.isImport(), reference instanceof LongUnresolvedReference ? (LongUnresolvedReference) reference : new LongUnresolvedReference(reference.getData(), Collections.singletonList(reference.getData() instanceof AbstractReference ref ? ref : null), Collections.singletonList(reference.getRefName())), command.isUsing(), renamings, hidings);
   }
 
-  private static Concrete.LevelsDefinition buildLevelsDefinition(Abstract.LevelParameters parameters, boolean isPLevels, LocatedReferable parent) {
+  private static Concrete.LevelsDefinition buildLevelsDefinition(Abstract.LevelParameters parameters, LocatedReferable parent) {
     if (parameters == null) return null;
     boolean isIncreasing = parameters.isIncreasing();
     List<TCLevelReferable> referables = new ArrayList<>();
-    LevelDefinition levelDefinition = new LevelDefinition(isPLevels, isIncreasing, referables, parent);
+    LevelDefinition levelDefinition = new LevelDefinition(isIncreasing, referables, parent);
     for (Abstract.AbstractReferable referable : parameters.getReferables()) {
       referables.add(new TCLevelReferable(referable, referable.getRefName(), levelDefinition));
     }
-    return new Concrete.LevelsDefinition(parameters.getData(), referables, isIncreasing, isPLevels);
+    return new Concrete.LevelsDefinition(parameters.getData(), referables, isIncreasing);
   }
 
   private static List<ParameterReferable> buildExternalParameters(Concrete.Definition definition) {
@@ -212,16 +212,16 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
 
   // Definition
 
-  private static List<LevelReferable> getLevelParametersRefs(Abstract.LevelParameters params, boolean isPLevels) {
+  private static List<LevelReferable> getLevelParametersRefs(Abstract.LevelParameters params) {
     if (params == null) return null;
     List<LevelReferable> result = new ArrayList<>();
     for (Abstract.AbstractReferable ref : params.getReferables()) {
-      result.add(new DataLevelReferable(ref, ref.getRefName(), isPLevels));
+      result.add(new DataLevelReferable(ref, ref.getRefName()));
     }
     return result;
   }
 
-  private Concrete.LevelParameters visitLevelParameters(Abstract.LevelParameters params, boolean isPLevels) {
+  private Concrete.LevelParameters visitLevelParameters(Abstract.LevelParameters params) {
     if (params == null) return null;
     Boolean increasing = null;
     for (Abstract.Comparison comparison : params.getComparisonList()) {
@@ -232,13 +232,13 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
         myErrorReporter.report(new AbstractExpressionError(GeneralError.Level.ERROR, "Level parameters must be linearly ordered", comparison));
       }
     }
-    return new Concrete.LevelParameters(params.getData(), getLevelParametersRefs(params, isPLevels), increasing == null || increasing);
+    return new Concrete.LevelParameters(params.getData(), getLevelParametersRefs(params), increasing == null || increasing);
   }
 
   @Override
   public Concrete.MetaDefinition visitMeta(Abstract.MetaDefinition def) {
     Abstract.Expression term = def.getTerm();
-    return new Concrete.MetaDefinition((MetaReferable) myDefinition, visitLevelParameters(def.getPLevelParameters(), true), visitLevelParameters(def.getHLevelParameters(), false), buildParameters(def.getParameters(), false, true), term != null ? term.accept(this, null) : null);
+    return new Concrete.MetaDefinition((MetaReferable) myDefinition, visitLevelParameters(def.getPLevelParameters()), buildParameters(def.getParameters(), false, true), term != null ? term.accept(this, null) : null);
   }
 
   @Override
@@ -280,7 +280,7 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
       Abstract.Reference implementedField = def.getImplementedField();
       result = new Concrete.CoClauseFunctionDefinition(kind, myDefinition, (TCDefReferable) myParent, implementedField == null ? null : implementedField.getReferent(), parameters, type, typeLevel, body);
     } else {
-      result = new Concrete.FunctionDefinition(def.getFunctionKind(), myDefinition, visitLevelParameters(def.getPLevelParameters(), true), visitLevelParameters(def.getHLevelParameters(), false), parameters, type, typeLevel, body);
+      result = new Concrete.FunctionDefinition(def.getFunctionKind(), myDefinition, visitLevelParameters(def.getPLevelParameters()), parameters, type, typeLevel, body);
     }
     return result;
   }
@@ -319,7 +319,7 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
       clauses.add(new Concrete.ConstructorClause(clause.getData(), patterns.isEmpty() ? null : buildPatterns(patterns), constructors));
     }
 
-    return new Concrete.DataDefinition(myDefinition, visitLevelParameters(def.getPLevelParameters(), true), visitLevelParameters(def.getHLevelParameters(), false), typeParameters, elimExpressions == null ? null : buildReferences(elimExpressions), def.isTruncated(), universe instanceof Concrete.UniverseExpression ? (Concrete.UniverseExpression) universe : null, clauses);
+    return new Concrete.DataDefinition(myDefinition, visitLevelParameters(def.getPLevelParameters()), typeParameters, elimExpressions == null ? null : buildReferences(elimExpressions), def.isTruncated(), universe instanceof Concrete.UniverseExpression ? (Concrete.UniverseExpression) universe : null, clauses);
   }
 
   public void buildClassParameters(Collection<? extends Abstract.FieldParameter> absParameters, Concrete.ClassDefinition classDef, List<Concrete.ClassElement> elements) {
@@ -355,7 +355,7 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
   @Override
   public Concrete.Definition visitClass(Abstract.ClassDefinition def) {
     List<Concrete.ClassElement> elements = new ArrayList<>();
-    Concrete.ClassDefinition classDef = new Concrete.ClassDefinition(myDefinition, visitLevelParameters(def.getPLevelParameters(), true), visitLevelParameters(def.getHLevelParameters(), false), def.isRecord(), def.withoutClassifying(), buildReferenceExpressions(def.getSuperClasses()), elements);
+    Concrete.ClassDefinition classDef = new Concrete.ClassDefinition(myDefinition, visitLevelParameters(def.getPLevelParameters()), def.isRecord(), def.withoutClassifying(), buildReferenceExpressions(def.getSuperClasses()), elements);
     buildClassParameters(def.getParameters(), classDef, elements);
 
     for (Abstract.ClassElement element : def.getClassElements()) {

@@ -51,7 +51,7 @@ public abstract class ParserTestCase extends ArendTestCase {
     ConcreteGroup fileGroup = new ConcreteGroup(DocFactory.nullDoc(), new FullModuleReferable(MODULE), null, statements, Collections.emptyList(), Collections.emptyList());
     ConcreteGroup definition = errorReporter.getErrorList().isEmpty() ? new BuildVisitor(MODULE, errorReporter).visitDefinition(AccessModifier.PUBLIC, ctx, fileGroup, null) : null;
     if (definition != null) {
-      statements.add(new ConcreteStatement(definition, null, null, null));
+      statements.add(new ConcreteStatement(definition, null, null));
     }
     assertThat(errorReporter.getErrorList(), containsErrors(errors));
     return definition;

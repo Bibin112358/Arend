@@ -17,8 +17,6 @@ class ArendStat(node: ASTNode) : ArendSourceNodeImpl(node), ArendStatement {
 
     override fun getPLevelsDefinition(): ArendLevelParamsSeq? = getChild { it.elementType == ArendElementTypes.P_LEVEL_PARAMS_SEQ }
 
-    override fun getHLevelsDefinition(): ArendLevelParamsSeq? = getChild { it.elementType == ArendElementTypes.H_LEVEL_PARAMS_SEQ }
-
     companion object {
         fun flatStatements(l: List<ArendStat>?): List<ArendStat> = l?.flatMap {
             val accessMod = it.statAccessMod

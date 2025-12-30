@@ -86,6 +86,7 @@ public abstract class Definition extends UserDataHolderImpl implements CoreDefin
     return Collections.emptyList();
   }
 
+  // TODO[sorts]: Delete this
   public int getNumberOfPLevelParameters() {
     List<? extends LevelVariable> vars = getLevelParameters();
     if (vars == null) return 1;

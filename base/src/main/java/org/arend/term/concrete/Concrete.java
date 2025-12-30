@@ -1841,7 +1841,6 @@ public final class Concrete {
   public static abstract class ResolvableDefinition implements GeneralDefinition {
     private Status myStatus = Status.NO_ERRORS;
     protected LevelParameters pLevelParameters;
-    protected LevelParameters hLevelParameters;
 
     public LevelParameters getPLevelParameters() {
       return pLevelParameters;
@@ -1852,17 +1851,6 @@ public final class Concrete {
         throw new IllegalArgumentException();
       }
       pLevelParameters = (LevelParameters) parameters;
-    }
-
-    public LevelParameters getHLevelParameters() {
-      return hLevelParameters;
-    }
-
-    public void setHLevelParameters(ConcreteLevelParameters parameters) {
-      if (!(parameters instanceof LevelParameters || parameters == null)) {
-        throw new IllegalArgumentException();
-      }
-      hLevelParameters = (LevelParameters) parameters;
     }
 
     @Override
@@ -1907,10 +1895,9 @@ public final class Concrete {
     private MetaReferable myReferable;
     public Concrete.Expression body;
 
-    public MetaDefinition(MetaReferable referable, Concrete.LevelParameters pLevelParameters, Concrete.LevelParameters hLevelParameters, List<Concrete.Parameter> parameters, Concrete.@Nullable Expression body) {
+    public MetaDefinition(MetaReferable referable, Concrete.LevelParameters pLevelParameters, List<Concrete.Parameter> parameters, Concrete.@Nullable Expression body) {
       myReferable = referable;
       this.pLevelParameters = pLevelParameters;
-      this.hLevelParameters = hLevelParameters;
       myParameters = parameters;
       this.body = body;
     }
@@ -1977,10 +1964,10 @@ public final class Concrete {
       return isIncreasing;
     }
 
-    public static Concrete.LevelParameters makeLevelParameters(List<? extends LevelVariable> variables, boolean isPLevels) {
+    public static Concrete.LevelParameters makeLevelParameters(List<? extends LevelVariable> variables) {
       List<LevelReferable> refs = new ArrayList<>(variables.size());
       for (LevelVariable variable : variables) {
-        refs.add(new DataLevelReferable(null, variable.getName(), isPLevels));
+        refs.add(new DataLevelReferable(null, variable.getName()));
       }
       return new Concrete.LevelParameters(null, refs, variables.size() <= 1 || variables.get(0).getStd() == variables.get(0) || variables.get(0) instanceof ParamLevelVariable && variables.get(1) instanceof ParamLevelVariable && ((ParamLevelVariable) variables.get(0)).getSize() <= ((ParamLevelVariable) variables.get(1)).getSize());
     }
@@ -1994,13 +1981,11 @@ public final class Concrete {
   public static class LevelsDefinition extends SourceNodeImpl {
     private final List<TCLevelReferable> myReferables;
     private final boolean myIncreasing;
-    private final boolean myPLevels;
 
-    public LevelsDefinition(Object data, List<TCLevelReferable> referables, boolean isIncreasing, boolean isPLevels) {
+    public LevelsDefinition(Object data, List<TCLevelReferable> referables, boolean isIncreasing) {
       super(data);
       myReferables = referables;
       myIncreasing = isIncreasing;
-      myPLevels = isPLevels;
     }
 
     public @NotNull List<? extends TCLevelReferable> getReferables() {
@@ -2011,17 +1996,13 @@ public final class Concrete {
       return myIncreasing;
     }
 
-    public boolean isPLevels() {
-      return myPLevels;
-    }
-
     @Override
     public void prettyPrint(PrettyPrintVisitor visitor, Precedence prec) {
       visitor.prettyPrintLevelsDefinition(this);
     }
   }
 
-  public record ExternalParameters(List<? extends Parameter> parameters, LevelParameters pLevelParameters, LevelParameters hLevelParameters) {}
+  public record ExternalParameters(List<? extends Parameter> parameters, LevelParameters pLevelParameters) {}
 
   public static abstract class Definition extends ResolvableDefinition implements ConcreteDefinition {
     private TCDefReferable myReferable;
@@ -2032,22 +2013,19 @@ public final class Concrete {
     private List<TCDefReferable> myUsedDefinitions = Collections.emptyList();
     private List<Pair<TCDefReferable,Integer>> myParametersOriginalDefinitions = Collections.emptyList();
 
-    public Definition(TCDefReferable referable, LevelParameters pParams, LevelParameters hParams) {
+    public Definition(TCDefReferable referable, LevelParameters pParams) {
       myReferable = referable;
       pLevelParameters = pParams;
-      hLevelParameters = hParams;
     }
 
     public Definition(TCDefReferable referable) {
       myReferable = referable;
       pLevelParameters = null;
-      hLevelParameters = null;
     }
 
     public void copyData(Concrete.Definition newDef) {
       newDef.setStatus(getStatus());
       newDef.pLevelParameters = pLevelParameters;
-      newDef.hLevelParameters = hLevelParameters;
       newDef.myUseParent = myUseParent;
       newDef.enclosingClass = enclosingClass;
       newDef.myRecursiveDefinitions = myRecursiveDefinitions;
@@ -2165,8 +2143,8 @@ public final class Concrete {
     private FieldReferable myClassifyingField;
     private boolean myForcedClassifyingField;
 
-    public ClassDefinition(TCDefReferable referable, LevelParameters pParams, LevelParameters hParams, boolean isRecord, boolean withoutClassifying, List<ReferenceExpression> superClasses, List<ClassElement> elements) {
-      super(referable, pParams, hParams);
+    public ClassDefinition(TCDefReferable referable, LevelParameters pParams, boolean isRecord, boolean withoutClassifying, List<ReferenceExpression> superClasses, List<ClassElement> elements) {
+      super(referable, pParams);
       myRecord = isRecord;
       myWithoutClassifying = withoutClassifying;
       mySuperClasses = superClasses;
@@ -2244,7 +2222,7 @@ public final class Concrete {
     private int myNumberOfExternalParameters;
 
     public CoClauseFunctionDefinition(FunctionKind kind, TCDefReferable referable, TCDefReferable enclosingDefinition, Referable implementedField, List<Parameter> parameters, Expression resultType, Expression resultTypeLevel, FunctionBody body) {
-      super(kind, referable, null, null, parameters, resultType, resultTypeLevel, body);
+      super(kind, referable, null, parameters, resultType, resultTypeLevel, body);
       myImplementedField = implementedField;
       setUseParent(enclosingDefinition);
     }
@@ -2551,8 +2529,8 @@ public final class Concrete {
     private Expression myResultTypeLevel;
     private final FunctionBody myBody;
 
-    public BaseFunctionDefinition(TCDefReferable referable, LevelParameters pParams, LevelParameters hParams, List<Parameter> parameters, Expression resultType, Expression resultTypeLevel, FunctionBody body) {
-      super(referable, pParams, hParams);
+    public BaseFunctionDefinition(TCDefReferable referable, LevelParameters pParams, List<Parameter> parameters, Expression resultType, Expression resultTypeLevel, FunctionBody body) {
+      super(referable, pParams);
       myParameters = parameters;
       myResultType = resultType;
       myResultTypeLevel = resultTypeLevel;
@@ -2609,12 +2587,12 @@ public final class Concrete {
     private FunctionKind myKind;
 
     public FunctionDefinition(FunctionKind kind, TCDefReferable referable, List<Parameter> parameters, Expression resultType, Expression resultTypeLevel, FunctionBody body) {
-      super(referable, null, null, parameters, resultType, resultTypeLevel, body);
+      super(referable, null, parameters, resultType, resultTypeLevel, body);
       myKind = kind;
     }
 
-    public FunctionDefinition(FunctionKind kind, TCDefReferable referable, LevelParameters pParams, LevelParameters hParams, List<Parameter> parameters, Expression resultType, Expression resultTypeLevel, FunctionBody body) {
-      super(referable, pParams, hParams, parameters, resultType, resultTypeLevel, body);
+    public FunctionDefinition(FunctionKind kind, TCDefReferable referable, LevelParameters pParams, List<Parameter> parameters, Expression resultType, Expression resultTypeLevel, FunctionBody body) {
+      super(referable, pParams, parameters, resultType, resultTypeLevel, body);
       myKind = kind;
     }
 
@@ -2630,7 +2608,7 @@ public final class Concrete {
 
     @Override
     public FunctionDefinition copy(List<Parameter> parameters, FunctionBody body) {
-      FunctionDefinition result = new FunctionDefinition(myKind, getData(), pLevelParameters, hLevelParameters, parameters, getResultType(), getResultTypeLevel(), body);
+      FunctionDefinition result = new FunctionDefinition(myKind, getData(), pLevelParameters, parameters, getResultType(), getResultTypeLevel(), body);
       result.enclosingClass = enclosingClass;
       result.setUseParent(getUseParent());
       result.setUsedDefinitions(getUsedDefinitions());
@@ -2645,8 +2623,8 @@ public final class Concrete {
     private final boolean myIsTruncated;
     private final UniverseExpression myUniverse;
 
-    public DataDefinition(TCDefReferable referable, LevelParameters pParams, LevelParameters hParams, List<TypeParameter> parameters, List<ReferenceExpression> eliminatedReferences, boolean isTruncated, UniverseExpression universe, List<ConstructorClause> constructorClauses) {
-      super(referable, pParams, hParams);
+    public DataDefinition(TCDefReferable referable, LevelParameters pParams, List<TypeParameter> parameters, List<ReferenceExpression> eliminatedReferences, boolean isTruncated, UniverseExpression universe, List<ConstructorClause> constructorClauses) {
+      super(referable, pParams);
       myParameters = parameters;
       myEliminatedReferences = eliminatedReferences;
       myConstructorClauses = constructorClauses;

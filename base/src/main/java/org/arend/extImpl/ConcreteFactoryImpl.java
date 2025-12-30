@@ -564,7 +564,7 @@ public class ConcreteFactoryImpl implements ConcreteFactory {
     }
 
     cRef.setKind(GlobalReferable.Kind.DATA);
-    return new Concrete.DataDefinition(cRef, null, null, typeParameters(parameters), null, isTruncated, pLevel == null && hLevel == null ? null : universe(pLevel, hLevel, ConcreteUniverseExpression.Kind.TYPE), constructorClauses);
+    return new Concrete.DataDefinition(cRef, null, typeParameters(parameters), null, isTruncated, pLevel == null && hLevel == null ? null : universe(pLevel, hLevel, ConcreteUniverseExpression.Kind.TYPE), constructorClauses);
   }
 
   @Override
@@ -596,7 +596,7 @@ public class ConcreteFactoryImpl implements ConcreteFactory {
     }
 
     List<Concrete.ClassElement> cElements = new ArrayList<>(elements.size());
-    Concrete.ClassDefinition result = new Concrete.ClassDefinition(cRef, null, null, isRecord, withoutClassifying, refExprs(superClasses), cElements);
+    Concrete.ClassDefinition result = new Concrete.ClassDefinition(cRef, null, isRecord, withoutClassifying, refExprs(superClasses), cElements);
 
     for (ConcreteClassElement element : elements) {
       if (!(element instanceof Concrete.ClassElement)) {
@@ -626,10 +626,10 @@ public class ConcreteFactoryImpl implements ConcreteFactory {
   }
 
   @Override
-  public @NotNull ConcreteLevelParameters levelParameters(boolean isPLevels, @NotNull List<String> names, boolean isIncreasing) {
+  public @NotNull ConcreteLevelParameters levelParameters(@NotNull List<String> names, boolean isIncreasing) {
     List<LevelReferable> refs = new ArrayList<>(names.size());
     for (String name : names) {
-      refs.add(new DataLevelReferable(myData, name, isPLevels));
+      refs.add(new DataLevelReferable(myData, name));
     }
     return new Concrete.LevelParameters(myData, refs, isIncreasing);
   }
@@ -639,7 +639,7 @@ public class ConcreteFactoryImpl implements ConcreteFactory {
     if (!(ref instanceof MetaReferable && (body == null || body instanceof Concrete.Expression))) {
       throw new IllegalArgumentException();
     }
-    return new Concrete.MetaDefinition((MetaReferable) ref, null, null, parameters(parameters), (Concrete.Expression) body);
+    return new Concrete.MetaDefinition((MetaReferable) ref, null, parameters(parameters), (Concrete.Expression) body);
   }
 
   @Override

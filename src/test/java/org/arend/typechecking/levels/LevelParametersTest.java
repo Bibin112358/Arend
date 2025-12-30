@@ -25,11 +25,6 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   }
 
   @Test
-  public void levelsTest2() {
-    typeCheckDef("\\func test \\hlevels h1 <= h2 (A : \\Type \\lp h1) : \\Type \\lp h2 => A");
-  }
-
-  @Test
   public void levelsError() {
     typeCheckDef("\\func test \\plevels p1 <= p2 (A : \\Type p2) : \\Type p1 => A", 1);
     assertThatErrorsAre(Matchers.typeMismatchError());
@@ -52,12 +47,6 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   }
 
   @Test
-  public void levelTypeError() {
-    resolveNamesDef("\\func test \\hlevels h1 <= h2 (A : \\Type h2) => 0", 1);
-    assertThatErrorsAre(Matchers.notInScope("h2"));
-  }
-
-  @Test
   public void noPLevelTest() {
     FunctionDefinition def = (FunctionDefinition) typeCheckDef("\\func test \\plevels => \\Type");
     assertEquals(new UniverseExpression(Sort.TypeOfLevel(0)), def.getBody());
@@ -69,47 +58,37 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   }
 
   @Test
-  public void noPLevelsTest3() {
-    typeCheckDef("\\func test \\plevels \\hlevels h1 >= h2 => Nat");
-  }
-
-  @Test
-  public void noHLevelsTest3() {
-    typeCheckDef("\\func test \\plevels p1 >= p2 \\hlevels => Nat");
-  }
-
-  @Test
   public void maxLevelTest() {
-    FunctionDefinition def = (FunctionDefinition) typeCheckDef("\\func test \\plevels p1 >= p2 \\hlevels h1 <= h2 (A : \\Type p1 h1) (B : \\Type p2 h2) => A -> B");
-    assertEquals(new Sort(new Level(def.getLevelParameters().get(0)), new Level(def.getLevelParameters().get(3))), def.getResultType().toSort());
+    FunctionDefinition def = (FunctionDefinition) typeCheckDef("\\func test \\plevels p1 >= p2 (A : \\Type p1) (B : \\Type p2) => A -> B");
+    assertEquals(new Sort(new Level(def.getLevelParameters().getFirst()), Level.INFINITY), def.getResultType().toSort());
   }
 
   @Test
   public void applyLevels() {
     typeCheckModule(
-      "\\func f \\plevels p1 <= p2 \\hlevels h1 >= h2 (A : \\Type) => A\n" +
-      "\\func test \\plevels p1 >= p2 => f \\levels (p2,p1) (\\suc (\\suc \\lh), \\suc \\lh) Nat");
+      "\\func f \\plevels p1 <= p2 (A : \\Type) => A\n" +
+      "\\func test \\plevels p1 >= p2 => f \\levels (p2,p1) () Nat");
   }
 
   @Test
   public void applyLevels2() {
     typeCheckModule(
-      "\\func f \\plevels p1 <= p2 \\hlevels h1 >= h2 (A : \\Type) => A\n" +
-      "\\func test => f \\levels (3,7) (5,4) Nat");
+      "\\func f \\plevels p1 <= p2 (A : \\Type) => A\n" +
+      "\\func test => f \\levels (3,7) () Nat");
   }
 
   @Test
   public void applyLevelsError() {
     typeCheckModule(
-      "\\func f \\plevels p1 <= p2 \\hlevels h1 >= h2 (A : \\Type) => A\n" +
-      "\\func test \\plevels p1 >= p2 => f \\levels (p1,p2) (\\suc \\lh, \\suc (\\suc \\lh)) Nat", 2);
+      "\\func f \\plevels p1 <= p2 (A : \\Type) => A\n" +
+      "\\func test \\plevels p1 >= p2 => f \\levels (p1,p2) () Nat", 1);
   }
 
   @Test
   public void applyLevelsError2() {
     typeCheckModule(
-      "\\func f \\plevels p1 <= p2 \\hlevels h1 >= h2 (A : \\Type) => A\n" +
-      "\\func test => f \\levels (3,7) (4,5) Nat", 1);
+      "\\func f \\plevels p1 >= p2 (A : \\Type) => A\n" +
+      "\\func test => f \\levels (3,7) () Nat", 1);
   }
 
   @Test
@@ -227,12 +206,12 @@ public class LevelParametersTest extends TypeCheckingTestCase {
         \\func g \\plevels p1 <= p2 : R \\cowith
           | A : \\Type => \\Sigma
         """);
-    assertEquals(3, getDefinition("g.A").getLevelParameters().size());
+    assertEquals(2, getDefinition("g.A").getLevelParameters().size());
     Expression impl = ((ClassCallExpression) ((FunctionDefinition) getDefinition("g")).getResultType()).getAbsImplementationHere((ClassField) getDefinition("R.A"));
     assertNotNull(impl);
     List<? extends Level> levels = ((FunCallExpression) impl).getLevels().toList();
     List<? extends LevelVariable> params = getDefinition("g").getLevelParameters();
-    assertEquals(Arrays.asList(new Level(params.get(0)), new Level(params.get(1)), new Level(params.get(2))), levels);
+    assertEquals(Arrays.asList(new Level(params.get(0)), new Level(params.get(1))), levels);
   }
 
   @Test
@@ -286,7 +265,7 @@ public class LevelParametersTest extends TypeCheckingTestCase {
 
   @Test
   public void levelsNotErased() {
-    Definition def = typeCheckDef("\\record C \\hlevels lh (A : \\Type)");
-    assertEquals(2, def.getLevelParameters().size());
+    Definition def = typeCheckDef("\\record C \\plevels lp (A : \\Type)");
+    assertEquals(1, def.getLevelParameters().size());
   }
 }

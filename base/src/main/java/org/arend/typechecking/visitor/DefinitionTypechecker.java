@@ -702,14 +702,14 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     }
   }
 
-  private boolean typecheckLevelParameters(Concrete.LevelParameters params, LevelVariable base, List<LevelVariable> parameters, Map<LevelReferable, ParamLevelVariable> variables) {
+  private boolean typecheckLevelParameters(Concrete.LevelParameters params, List<LevelVariable> parameters, Map<LevelReferable, ParamLevelVariable> variables) {
     if (params == null) {
-      parameters.add(base);
+      parameters.add(LevelVariable.PVAR);
       return true;
     }
     for (int i = 0; i < params.referables.size(); i++) {
       LevelReferable ref = params.referables.get(i);
-      ParamLevelVariable var = new ParamLevelVariable(base.getType(), ref.getRefName(), i, params.isIncreasing ? i : params.referables.size() - 1 - i);
+      ParamLevelVariable var = new ParamLevelVariable(ref.getRefName(), i, params.isIncreasing ? i : params.referables.size() - 1 - i);
       parameters.add(var);
       variables.put(ref, var);
     }
@@ -717,12 +717,11 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
   }
 
   private List<LevelVariable> typecheckLevelParameters(Concrete.ResolvableDefinition def) {
-    if (def.getPLevelParameters() == null && def.getHLevelParameters() == null) return null;
+    if (def.getPLevelParameters() == null) return null;
     List<LevelVariable> parameters = new ArrayList<>();
     Map<LevelReferable, ParamLevelVariable> variables = new HashMap<>();
-    boolean isPBased = typecheckLevelParameters(def.getPLevelParameters(), LevelVariable.PVAR, parameters, variables);
-    boolean isHBased = typecheckLevelParameters(def.getHLevelParameters(), LevelVariable.HVAR, parameters, variables);
-    typechecker.setLevelContext(new LevelContext(variables, isPBased, isHBased));
+    boolean isPBased = typecheckLevelParameters(def.getPLevelParameters(), parameters, variables);
+    typechecker.setLevelContext(new LevelContext(variables, isPBased));
     return parameters;
   }
 
@@ -803,13 +802,10 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     }
   }
 
-  private Concrete.LevelParameters levelVariablesToParameters(Object data, List<? extends LevelVariable> levelVars, boolean isPLevels) {
-    if (levelVars.size() == 1 && (levelVars.getFirst() == LevelVariable.PVAR || levelVars.getFirst() == LevelVariable.HVAR)) {
-      return null;
-    }
+  private Concrete.LevelParameters levelVariablesToParameters(Object data, List<? extends LevelVariable> levelVars) {
     List<LevelReferable> levelRefs = new ArrayList<>(levelVars.size());
     for (LevelVariable levelVar : levelVars) {
-      levelRefs.add(new DataLevelReferable(data, levelVar.getName(), isPLevels));
+      levelRefs.add(new DataLevelReferable(data, levelVar.getName()));
     }
     return new Concrete.LevelParameters(data, levelRefs, levelVars.size() < 2 || levelVars.get(0) instanceof ParamLevelVariable && levelVars.get(1) instanceof ParamLevelVariable && ((ParamLevelVariable) levelVars.get(0)).getSize() < ((ParamLevelVariable) levelVars.get(1)).getSize());
   }
@@ -817,12 +813,6 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
   private void findLevelsParentsInClass(ClassDefinition typedDef, Concrete.ClassDefinition cdef) {
     if (cdef.getPLevelParameters() != null) {
       typedDef.setPLevelsParent(typedDef.getRef());
-    }
-    if (cdef.getHLevelParameters() != null) {
-      typedDef.setHLevelsParent(typedDef.getRef());
-    }
-    if (cdef.getPLevelParameters() != null && cdef.getHLevelParameters() != null) {
-      return;
     }
 
     List<Concrete.ReferenceExpression> refs = new ArrayList<>(cdef.getSuperClasses());
@@ -837,9 +827,6 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
   private void findLevelsParentsInParameters(TopLevelDefinition typedDef, Concrete.Definition cdef, List<? extends Concrete.Parameter> parameters) {
     if (cdef.getPLevelParameters() != null) {
       typedDef.setPLevelsParent(typedDef.getRef());
-    }
-    if (cdef.getHLevelParameters() != null) {
-      typedDef.setHLevelsParent(typedDef.getRef());
     }
 
     List<Concrete.ReferenceExpression> refs = new ArrayList<>();
@@ -858,33 +845,22 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       if (levelParams != null) {
         int n = def.getNumberOfPLevelParameters();
         if (cdef.getPLevelParameters() == null) {
-          cdef.setPLevelParameters(levelVariablesToParameters(cdef.getData(), levelParams.subList(0, n), true));
-        }
-        if (cdef.getHLevelParameters() == null) {
-          cdef.setHLevelParameters(levelVariablesToParameters(cdef.getData(), levelParams.subList(n, levelParams.size()), false));
+          cdef.setPLevelParameters(levelVariablesToParameters(cdef.getData(), levelParams.subList(0, n)));
         }
       }
     }
 
     var levelParams = cdef.enclosingClass == null ? null : cdef.enclosingClass.getTypechecked().getLevelParameters();
-    if (levelParams != null && !levelParams.isEmpty() && (cdef.getPLevelParameters() == null || cdef.getHLevelParameters() == null) && !parameters.isEmpty()) {
+    if (levelParams != null && !levelParams.isEmpty() && cdef.getPLevelParameters() == null && !parameters.isEmpty()) {
       refs.clear();
       getCovariantDefinitions(parameters.getFirst().getType(), refs);
       Definition enclosingClass = cdef.enclosingClass.getTypechecked();
       int n = enclosingClass.getNumberOfPLevelParameters();
       if (cdef.getPLevelParameters() == null && n > 0) {
-        cdef.setPLevelParameters(levelVariablesToParameters(cdef.getData(), enclosingClass.getLevelParameters().subList(0, n), true));
+        cdef.setPLevelParameters(levelVariablesToParameters(cdef.getData(), enclosingClass.getLevelParameters().subList(0, n)));
         if (cdef.getPLevelParameters() != null) {
           for (Concrete.ReferenceExpression ref : refs) {
-            ref.setPLevels(levelParametersToExpressions(ref.getData(), cdef.getPLevelParameters(), LevelVariable.LvlType.PLVL));
-          }
-        }
-      }
-      if (cdef.getHLevelParameters() == null && n < enclosingClass.getLevelParameters().size()) {
-        cdef.setHLevelParameters(levelVariablesToParameters(cdef.getData(), enclosingClass.getLevelParameters().subList(n, enclosingClass.getLevelParameters().size()), false));
-        if (cdef.getHLevelParameters() != null) {
-          for (Concrete.ReferenceExpression ref : refs) {
-            ref.setHLevels(levelParametersToExpressions(ref.getData(), cdef.getHLevelParameters(), LevelVariable.LvlType.HLVL));
+            ref.setPLevels(levelParametersToExpressions(ref.getData(), cdef.getPLevelParameters()));
           }
         }
       }
@@ -893,17 +869,12 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
 
   private void findLevelsParents(TopLevelDefinition typedDef, Concrete.Definition cdef, List<? extends Concrete.ReferenceExpression> refs, int setLevelsParentsUpTo) {
     boolean hadPLevels = cdef.getPLevelParameters() != null;
-    boolean hadHLevels = cdef.getHLevelParameters() != null;
     boolean searchPLevels = !hadPLevels;
-    boolean searchHLevels = !hadHLevels;
     LocatedReferable pLevelsParent = getFirstLevelParameter(cdef.getPLevelParameters());
-    LocatedReferable hLevelsParent = getFirstLevelParameter(cdef.getHLevelParameters());
     boolean pLevelsNotDerived = false;
-    boolean hLevelsNotDerived = false;
     boolean allPLevelsDerived = true;
-    boolean allHLevelsDerived = true;
 
-    if (searchPLevels || searchHLevels) {
+    if (searchPLevels) {
       for (int i = 0; i < refs.size(); i++) {
         Concrete.ReferenceExpression ref = refs.get(i);
         Definition def = ((TCDefReferable) ref.getReferent()).getTypechecked();
@@ -921,56 +892,26 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
             searchPLevels = false;
           }
         }
-        if (searchHLevels && def.getHLevelsParent() != null && (i < setLevelsParentsUpTo || !def.areHLevelsDerived()) && ref.getHLevels() == null) {
-          if (hLevelsParent == null) {
-            hLevelsParent = def.getHLevelsParent();
-            if (i < setLevelsParentsUpTo) {
-              hLevelsNotDerived = true;
-            }
-            if (!def.areHLevelsDerived()) {
-              allHLevelsDerived = false;
-            }
-          } else if (hLevelsParent != def.getHLevelsParent()) {
-            hLevelsParent = null;
-            searchHLevels = false;
-          }
-        }
       }
     }
 
-    if (pLevelsParent == null && hLevelsParent == null) {
+    if (pLevelsParent == null) {
       return;
     }
     List<Concrete.LevelExpression> pLevelExprs = null;
-    if (pLevelsParent != null) {
-      if (cdef.getPLevelParameters() == null) {
-        cdef.setPLevelParameters(referableToLevelParameters(pLevelsParent, cdef.getData(), true));
-      }
-      if (cdef.getPLevelParameters() != null) {
-        typedDef.setPLevelsParent(pLevelsParent);
-        typedDef.setPLevelsDerived(!hadPLevels && (!pLevelsNotDerived || allPLevelsDerived));
-        pLevelExprs = levelParametersToExpressions(null, cdef.getPLevelParameters(), LevelVariable.LvlType.PLVL);
-      }
+    if (cdef.getPLevelParameters() == null) {
+      cdef.setPLevelParameters(referableToLevelParameters(pLevelsParent, cdef.getData()));
     }
-    List<Concrete.LevelExpression> hLevelExprs = null;
-    if (hLevelsParent != null) {
-      if (cdef.getHLevelParameters() == null) {
-        cdef.setHLevelParameters(referableToLevelParameters(hLevelsParent, cdef.getData(), false));
-      }
-      if (cdef.getHLevelParameters() != null) {
-        typedDef.setHLevelsParent(hLevelsParent);
-        typedDef.setHLevelsDerived(!hadHLevels && (!hLevelsNotDerived || allHLevelsDerived));
-        hLevelExprs = levelParametersToExpressions(null, cdef.getHLevelParameters(), LevelVariable.LvlType.HLVL);
-      }
+    if (cdef.getPLevelParameters() != null) {
+      typedDef.setPLevelsParent(pLevelsParent);
+      typedDef.setPLevelsDerived(!hadPLevels && (!pLevelsNotDerived || allPLevelsDerived));
+      pLevelExprs = levelParametersToExpressions(null, cdef.getPLevelParameters());
     }
 
     for (Concrete.ReferenceExpression ref : refs) {
       Definition def = ((TCDefReferable) ref.getReferent()).getTypechecked();
-      if (pLevelsParent != null && def.getPLevelsParent() == pLevelsParent && ref.getPLevels() == null) {
+      if (def.getPLevelsParent() == pLevelsParent && ref.getPLevels() == null) {
         ref.setPLevels(pLevelExprs);
-      }
-      if (hLevelsParent != null && def.getHLevelsParent() == hLevelsParent && ref.getHLevels() == null) {
-        ref.setHLevels(hLevelExprs);
       }
     }
   }
@@ -981,10 +922,10 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     return ref instanceof TCLevelReferable ? (TCLevelReferable) ref : null;
   }
 
-  private Concrete.LevelParameters referableToLevelParameters(LocatedReferable referable, Object data, boolean isPLevels) {
+  private Concrete.LevelParameters referableToLevelParameters(LocatedReferable referable, Object data) {
     if (referable instanceof TCDefReferable) {
       Definition def = ((TCDefReferable) referable).getTypechecked();
-      return levelVariablesToParameters(data, isPLevels ? def.getLevelParameters().subList(0, def.getNumberOfPLevelParameters()) : def.getLevelParameters().subList(def.getNumberOfPLevelParameters(), def.getLevelParameters().size()), isPLevels);
+      return levelVariablesToParameters(data, def.getLevelParameters().subList(0, def.getNumberOfPLevelParameters()));
     } else if (referable instanceof TCLevelReferable) {
       LevelDefinition def = ((TCLevelReferable) referable).getDefParent();
       return new Concrete.LevelParameters(data, def.getReferables(), def.isIncreasing());
@@ -993,10 +934,10 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     }
   }
 
-  private List<Concrete.LevelExpression> levelParametersToExpressions(Object data, Concrete.LevelParameters parameters, LevelVariable.LvlType type) {
+  private List<Concrete.LevelExpression> levelParametersToExpressions(Object data, Concrete.LevelParameters parameters) {
     List<Concrete.LevelExpression> result = new ArrayList<>();
     for (LevelReferable referable : parameters.referables) {
-      result.add(new Concrete.VarLevelExpression(data, referable, type));
+      result.add(new Concrete.VarLevelExpression(data, referable));
     }
     return result;
   }
@@ -1020,10 +961,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     if (def.getKind() == FunctionKind.LEVEL) {
       Definition useParent = def.getUseParent().getTypechecked();
       if (def.getPLevelParameters() == null && useParent.hasNonTrivialPLevelParameters()) {
-        def.setPLevelParameters(Concrete.LevelParameters.makeLevelParameters(useParent.getLevelParameters().subList(0, useParent.getNumberOfPLevelParameters()), true));
-      }
-      if (def.getHLevelParameters() == null && useParent.hasNonTrivialHLevelParameters()) {
-        def.setHLevelParameters(Concrete.LevelParameters.makeLevelParameters(useParent.getLevelParameters().subList(useParent.getNumberOfPLevelParameters(), useParent.getLevelParameters().size()), false));
+        def.setPLevelParameters(Concrete.LevelParameters.makeLevelParameters(useParent.getLevelParameters().subList(0, useParent.getNumberOfPLevelParameters())));
       }
     }
 
@@ -1033,22 +971,15 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       if (params != null) {
         if (typedDef.getLevelParameters() == null) {
           int n = enclosingClass.getNumberOfPLevelParameters();
-          Concrete.LevelParameters pLevelParams = levelVariablesToParameters(def.getData(), enclosingClass.getLevelParameters().subList(0, n), true);
-          Concrete.LevelParameters hLevelParams = levelVariablesToParameters(def.getData(), enclosingClass.getLevelParameters().subList(n, enclosingClass.getLevelParameters().size()), false);
+          Concrete.LevelParameters pLevelParams = levelVariablesToParameters(def.getData(), enclosingClass.getLevelParameters().subList(0, n));
           def.setPLevelParameters(pLevelParams);
-          def.setHLevelParameters(hLevelParams);
           if (!def.getParameters().isEmpty()) {
             Concrete.Expression type = def.getParameters().getFirst().getType();
             if (type instanceof Concrete.ClassExtExpression) {
               type = ((Concrete.ClassExtExpression) type).getBaseClassExpression();
             }
             if (type instanceof Concrete.ReferenceExpression refExpr) {
-              if (pLevelParams != null) {
-                refExpr.setPLevels(levelParametersToExpressions(refExpr.getData(), pLevelParams, LevelVariable.LvlType.PLVL));
-              }
-              if (hLevelParams != null) {
-                refExpr.setHLevels(levelParametersToExpressions(refExpr.getData(), hLevelParams, LevelVariable.LvlType.HLVL));
-              }
+              refExpr.setPLevels(levelParametersToExpressions(refExpr.getData(), pLevelParams));
             }
           }
           typedDef.setLevelParameters(typecheckLevelParameters(def));
@@ -1056,14 +987,9 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
           typedDef.setHLevelsParent(enclosingClass.getHLevelsParent());
         } else {
           boolean setPLevel = def.getPLevelParameters() == null && enclosingClass.hasNonTrivialPLevelParameters();
-          boolean setHLevel = def.getHLevelParameters() == null && enclosingClass.hasNonTrivialHLevelParameters();
-          if (setPLevel || setHLevel) {
-            List<LevelVariable> newParams = new ArrayList<>();
-            newParams.addAll(setPLevel ? enclosingClass.getLevelParameters().subList(0, enclosingClass.getNumberOfPLevelParameters()) : typedDef.getLevelParameters().subList(0, typedDef.getNumberOfPLevelParameters()));
-            newParams.addAll(setHLevel ? enclosingClass.getLevelParameters().subList(enclosingClass.getNumberOfPLevelParameters(), enclosingClass.getLevelParameters().size()) : typedDef.getLevelParameters().subList(typedDef.getNumberOfPLevelParameters(), typedDef.getLevelParameters().size()));
-            typedDef.setLevelParameters(newParams);
-            if (setPLevel) typedDef.setPLevelsParent(enclosingClass.getPLevelsParent());
-            if (setHLevel) typedDef.setHLevelsParent(enclosingClass.getHLevelsParent());
+          if (setPLevel) {
+            typedDef.setLevelParameters(new ArrayList<>(enclosingClass.getLevelParameters().subList(0, enclosingClass.getNumberOfPLevelParameters())));
+            typedDef.setPLevelsParent(enclosingClass.getPLevelsParent());
           }
         }
       }
@@ -1072,10 +998,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
         Definition useParent = def.getUseParent().getTypechecked();
         int n = useParent.getNumberOfPLevelParameters();
         if (def.getPLevelParameters() != null) {
-          compareUseLevelParameters(def.getPLevelParameters(), levelVariablesToParameters(def.getPLevelParameters().getData(), useParent.getLevelParameters().subList(0, n), true));
-        }
-        if (def.getHLevelParameters() != null) {
-          compareUseLevelParameters(def.getHLevelParameters(), levelVariablesToParameters(def.getHLevelParameters().getData(), useParent.getLevelParameters().subList(n, useParent.getLevelParameters().size()), false));
+          compareUseLevelParameters(def.getPLevelParameters(), levelVariablesToParameters(def.getPLevelParameters().getData(), useParent.getLevelParameters().subList(0, n)));
         }
       }
       findLevelsParentsInParameters(typedDef, def, def.getParameters());
@@ -1393,11 +1316,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
         int n2 = typedDef.getNumberOfPLevelParameters();
         List<? extends LevelVariable> pVars = typedDef.getLevelParameters().subList(0, n2);
         if ((cEnclosingDef.getPLevelParameters() != null || pVars.size() == 1 && pVars.getFirst() == LevelVariable.PVAR) && LevelVariable.compare(enclosingDef.getLevelParameters().subList(0, n1), pVars, CMP.EQ)) {
-          refExpr.setPLevels(cEnclosingDef.getPLevelParameters() != null ? levelParametersToExpressions(refExpr.getData(), cEnclosingDef.getPLevelParameters(), LevelVariable.LvlType.PLVL) : Collections.singletonList(new Concrete.PLevelExpression(refExpr.getData())));
-        }
-        List<? extends LevelVariable> hVars = typedDef.getLevelParameters().subList(n2, typedDef.getLevelParameters().size());
-        if ((cEnclosingDef.getHLevelParameters() != null || hVars.size() == 1 && hVars.getFirst() == LevelVariable.HVAR) && LevelVariable.compare(enclosingDef.getLevelParameters().subList(n1, enclosingDef.getLevelParameters().size()), hVars, CMP.EQ)) {
-          refExpr.setHLevels(cEnclosingDef.getHLevelParameters() != null ? levelParametersToExpressions(refExpr.getData(), cEnclosingDef.getHLevelParameters(), LevelVariable.LvlType.HLVL) : Collections.singletonList(new Concrete.HLevelExpression(refExpr.getData())));
+          refExpr.setPLevels(cEnclosingDef.getPLevelParameters() != null ? levelParametersToExpressions(refExpr.getData(), cEnclosingDef.getPLevelParameters()) : Collections.singletonList(new Concrete.PLevelExpression(refExpr.getData())));
         }
       }
     }

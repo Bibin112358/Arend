@@ -4,13 +4,11 @@ import org.arend.core.context.binding.inference.InferenceLevelVariable;
 import org.arend.ext.core.ops.CMP;
 
 public class ParamLevelVariable implements LevelVariable {
-  private final LvlType myLevelType;
   private final String myName;
   private final int myIndex;
   private final int mySize;
 
-  public ParamLevelVariable(LvlType levelType, String name, int index, int size) {
-    myLevelType = levelType;
+  public ParamLevelVariable(String name, int index, int size) {
     myName = name;
     myIndex = index;
     mySize = size;
@@ -18,7 +16,7 @@ public class ParamLevelVariable implements LevelVariable {
 
   @Override
   public LvlType getType() {
-    return myLevelType;
+    return LvlType.PLVL;
   }
 
   @Override

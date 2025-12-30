@@ -93,9 +93,7 @@
         LEVEL_KW            = '\level'
         LEVELS_KW           = '\levels'
         PLEVEL_KW           = '\plevel'
-        HLEVEL_KW           = '\hlevel'
         PLEVELS_KW          = '\plevels'
-        HLEVELS_KW          = '\hlevels'
         LESS_OR_EQUALS      = '<='
         GREATER_OR_EQUALS   = '>='
         MAX_KW              = '\max'
@@ -122,13 +120,13 @@ private topStatement_recovery ::= topStatement_recover {
     recoverWhile = topStatement_recover
 }
 
-private topStatement_recover ::= !(OPEN_KW | IMPORT_KW | MODULE_KW | FUNC_KW | SFUNC_KW | LEMMA_KW | TYPE_KW | AXIOM_KW | META_KW | USE_KW | LEVEL_KW | COERCE_KW | FIELD_KW | OVERRIDE_KW | DEFAULT_KW | PROPERTY_KW | TRUNCATED_KW | DATA_KW | CONS_KW | RECORD_KW | CLASS_KW | INSTANCE_KW | PLEVELS_KW | HLEVELS_KW | PRIVATE_KW | PROTECTED_KW | <<eof>>)
+private topStatement_recover ::= !(OPEN_KW | IMPORT_KW | MODULE_KW | FUNC_KW | SFUNC_KW | LEMMA_KW | TYPE_KW | AXIOM_KW | META_KW | USE_KW | LEVEL_KW | COERCE_KW | FIELD_KW | OVERRIDE_KW | DEFAULT_KW | PROPERTY_KW | TRUNCATED_KW | DATA_KW | CONS_KW | RECORD_KW | CLASS_KW | INSTANCE_KW | PLEVELS_KW | PRIVATE_KW | PROTECTED_KW | <<eof>>)
 
 private statement_recover ::= !(WHERE_KW | RBRACE) & topStatement_recover
 
 accessMod ::= PRIVATE_KW | PROTECTED_KW
 
-stat ::= statCmd | accessMod? USE_KW? definition | defModule | statAccessMod | pLevelParams | hLevelParams | stat_recovery
+stat ::= statCmd | accessMod? USE_KW? definition | defModule | statAccessMod | pLevelParams | stat_recovery
 
 statAccessMod ::= accessMod statAccessModInternal { pin = 1 }
 
@@ -170,7 +168,7 @@ nsId ::= ns_refIdentifier [AS_KW prec? defIdentifier] {
 
 scId ::= scopeContext? refIdentifier
 
-private scopeContext ::= DOT | PLEVEL_KW | HLEVEL_KW
+private scopeContext ::= DOT | PLEVEL_KW
 
 private nsId_recover ::= !(COMMA | RPAREN) & nsUsing_recover
 
@@ -241,14 +239,12 @@ defModule ::= MODULE_KW defIdentifier_module where? {
     elementTypeFactory = "org.arend.psi.stubs.StubImplementationsKt.factory"
 }
 
-defMeta ::= META_KW prec? defIdentifier_func pLevelParams? hLevelParams? alias? [nameTeleUntyped* functionTermBody] where? {
+defMeta ::= META_KW prec? defIdentifier_func pLevelParams? alias? [nameTeleUntyped* functionTermBody] where? {
     pin = 1
     elementTypeFactory = "org.arend.psi.stubs.StubImplementationsKt.factory"
 }
 
 pLevelIdentifier ::= ID
-
-hLevelIdentifier ::= ID
 
 private defIdentifier_module ::= defIdentifier {
     recoverWhile = defIdentifier_module_recover
@@ -256,18 +252,14 @@ private defIdentifier_module ::= defIdentifier {
 
 private defIdentifier_module_recover ::= !ALIAS_KW & statement_recover
 
-defFunction ::= functionKw prec? defIdentifier_func pLevelParams? hLevelParams? alias? nameTele* functionType? functionBody? where? {
+defFunction ::= functionKw prec? defIdentifier_func pLevelParams? alias? nameTele* functionType? functionBody? where? {
     pin = 1
     elementTypeFactory = "org.arend.psi.stubs.StubImplementationsKt.factory"
 }
 
 private pLevelParams ::= PLEVELS_KW pLevelParamsSeq { pin = 1 }
 
-private hLevelParams ::= HLEVELS_KW hLevelParamsSeq { pin = 1 }
-
 pLevelParamsSeq ::= [pLevelIdentifier (levelCmp pLevelIdentifier)*]
-
-hLevelParamsSeq ::= [hLevelIdentifier (levelCmp hLevelIdentifier)*]
 
 functionKw ::= FUNC_KW | SFUNC_KW | LEMMA_KW | TYPE_KW | AXIOM_KW | COERCE_KW | LEVEL_KW
 
@@ -286,16 +278,16 @@ private defIdentifier_func ::= defIdentifier {
     recoverWhile = defIdentifier_func_recover
 }
 
-private defIdentifier_func_recover ::= !(COLON | FAT_ARROW | COWITH_KW | WITH_KW | ELIM_KW | PIPE | ALIAS_KW | PLEVELS_KW | HLEVELS_KW) & nameTele_first & statement_recover
+private defIdentifier_func_recover ::= !(COLON | FAT_ARROW | COWITH_KW | WITH_KW | ELIM_KW | PIPE | ALIAS_KW | PLEVELS_KW) & nameTele_first & statement_recover
 
-defInstance ::= instanceOrCons prec? defIdentifier_func pLevelParams? hLevelParams? alias? nameTele* functionType? instanceBody? where? {
+defInstance ::= instanceOrCons prec? defIdentifier_func pLevelParams? alias? nameTele* functionType? instanceBody? where? {
     pin = 1
     elementTypeFactory = "org.arend.psi.stubs.StubImplementationsKt.factory"
 }
 
 private instanceOrCons ::= INSTANCE_KW | CONS_KW
 
-defData ::= dataKw prec? defIdentifier_top pLevelParams? hLevelParams? alias? typeTele* dataUniverse? dataBody? where? {
+defData ::= dataKw prec? defIdentifier_top pLevelParams? alias? typeTele* dataUniverse? dataBody? where? {
     pin = 1
     elementTypeFactory = "org.arend.psi.stubs.StubImplementationsKt.factory"
 }
@@ -304,7 +296,7 @@ private defIdentifier_top ::= defIdentifier {
     recoverWhile = defIdentifier_top_recover
 }
 
-private defIdentifier_top_recover ::= !(PLEVELS_KW | HLEVELS_KW) & typeTele_recover
+private defIdentifier_top_recover ::= !PLEVELS_KW & typeTele_recover
 
 private dataUniverse ::= COLON universeExpr {
     pin = 1
@@ -329,7 +321,7 @@ private defClassClass ::= CLASS_KW defClassHeader classStats { pin = 1 }
 
 private defClassRecord ::= RECORD_KW defClassHeader classStats { pin = 1 }
 
-private defClassHeader ::= prec? defIdentifier pLevelParams? hLevelParams? alias? NO_CLASSIFYING_KW? fieldTele* [EXTENDS_KW <<comma_separated_sequence superClass>>]
+private defClassHeader ::= prec? defIdentifier pLevelParams? alias? NO_CLASSIFYING_KW? fieldTele* [EXTENDS_KW <<comma_separated_sequence superClass>>]
 
 superClass ::= longName [maybeAtomLevelExprs maybeAtomLevelExprs?] {
     pin = 1

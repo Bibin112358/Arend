@@ -561,7 +561,7 @@ public class ConcreteCompareVisitor implements ConcreteExpressionVisitor<Concret
   }
 
   private boolean compareLevelParameters(Concrete.ResolvableDefinition def1, Concrete.ResolvableDefinition def2) {
-    return compareLevelParameters(def1.pLevelParameters, def2.pLevelParameters) && compareLevelParameters(def1.hLevelParameters, def2.hLevelParameters);
+    return compareLevelParameters(def1.pLevelParameters, def2.pLevelParameters);
   }
 
   private boolean compareTCReferable(TCDefReferable referable1, TCDefReferable referable2) {

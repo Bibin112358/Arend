@@ -146,7 +146,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
   private List<ConcreteStatement> visitStatement(AccessModifier accessModifier, StatementContext ctx, ConcreteGroup parent, TCDefReferable enclosingClass) {
     switch (ctx) {
       case StatCmdContext statCmdContext -> {
-        return Collections.singletonList(new ConcreteStatement(null, visitStatCmd(statCmdContext), null, null));
+        return Collections.singletonList(new ConcreteStatement(null, visitStatCmd(statCmdContext), null));
       }
       case StatDefContext statDef -> {
         ConcreteGroup group = visitDefinition(visitAccessModifier(statDef.accessMod(), accessModifier), statDef.definition(), parent, enclosingClass);
@@ -158,7 +158,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
             myErrorReporter.report(new ParserError(tokenPosition(statDef.USE().getSymbol()), "\\use must belong to a \\where-block of a definition"));
           }
         }
-        return Collections.singletonList(new ConcreteStatement(group, null, null, null));
+        return Collections.singletonList(new ConcreteStatement(group, null, null));
       }
       case StatAccessModContext stat -> {
         List<ConcreteStatement> statements = new ArrayList<>();
@@ -166,10 +166,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
         return statements;
       }
       case StatPLevelsContext statPLevelsContext -> {
-        return Collections.singletonList(new ConcreteStatement(null, null, visitStatPLevels(statPLevelsContext, parent.referable()), null));
-      }
-      case StatHLevelsContext statHLevelsContext -> {
-        return Collections.singletonList(new ConcreteStatement(null, null, null, visitStatHLevels(statHLevelsContext, parent.referable())));
+        return Collections.singletonList(new ConcreteStatement(null, null, visitStatPLevels(statPLevelsContext, parent.referable())));
       }
       case null, default -> {
         if (ctx != null) {
@@ -224,12 +221,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
 
   @Override
   public Scope.ScopeContext visitPlevelContext(PlevelContextContext ctx) {
-    return Scope.ScopeContext.PLEVEL;
-  }
-
-  @Override
-  public Scope.ScopeContext visitHlevelContext(HlevelContextContext ctx) {
-    return Scope.ScopeContext.HLEVEL;
+    return Scope.ScopeContext.LEVEL;
   }
 
   private Scope.ScopeContext visitScopeContext(ScopeContextContext ctx) {
@@ -452,8 +444,8 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
     return new LocatedReferableImpl(position, accessModifier, precedence, name, aliasPrecedence == null ? Precedence.DEFAULT : aliasPrecedence, aliasName, parent, kind);
   }
 
-  private Object parseLevelParameters(Token token, List<TerminalNode> ids, LocatedReferable parent, boolean isPLevels) {
-    if (ids.isEmpty()) return parent == null ? new Concrete.LevelParameters(tokenPosition(token), Collections.emptyList(), true) : new Concrete.LevelsDefinition(tokenPosition(token), Collections.emptyList(), true, isPLevels);
+  private Object parseLevelParameters(Token token, List<TerminalNode> ids, LocatedReferable parent) {
+    if (ids.isEmpty()) return parent == null ? new Concrete.LevelParameters(tokenPosition(token), Collections.emptyList(), true) : new Concrete.LevelsDefinition(tokenPosition(token), Collections.emptyList(), true);
     if (ids.size() % 2 == 0) {
       myErrorReporter.report(new ParserError(tokenPosition(ids.getFirst().getSymbol()), "Cannot parse level parameters"));
       return null;
@@ -461,7 +453,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
     boolean linear = true;
     List<LevelReferable> refs = new ArrayList<>();
     //noinspection unchecked
-    LevelDefinition defParent = parent == null ? null : new LevelDefinition(isPLevels, true, (List<TCLevelReferable>) (List<? extends LevelReferable>) refs, parent);
+    LevelDefinition defParent = parent == null ? null : new LevelDefinition(true, (List<TCLevelReferable>) (List<? extends LevelReferable>) refs, parent);
     Boolean increasing = null;
     for (int i = -1; i < ids.size(); i += 2) {
       if (i >= 0) {
@@ -481,23 +473,18 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
 
       Position position = tokenPosition(ids.get(i + 1).getSymbol());
       String name = ids.get(i + 1).getText();
-      refs.add(defParent == null ? new DataLevelReferable(position, name, isPLevels) : new TCLevelReferable(position, name, defParent));
+      refs.add(defParent == null ? new DataLevelReferable(position, name) : new TCLevelReferable(position, name, defParent));
     }
     if (defParent != null) {
       defParent.setIsIncreasing(increasing == null || increasing);
     }
     //noinspection unchecked
-    return parent == null ? new Concrete.LevelParameters(tokenPosition(token), refs, increasing == null || increasing) : new Concrete.LevelsDefinition(tokenPosition(token), (List<TCLevelReferable>) (List<? extends LevelReferable>) refs, defParent.isIncreasing(), isPLevels);
+    return parent == null ? new Concrete.LevelParameters(tokenPosition(token), refs, increasing == null || increasing) : new Concrete.LevelsDefinition(tokenPosition(token), (List<TCLevelReferable>) (List<? extends LevelReferable>) refs, defParent.isIncreasing());
   }
 
   @Override
   public Concrete.LevelParameters visitPlevelParams(PlevelParamsContext ctx) {
-    return ctx == null ? null : (Concrete.LevelParameters) parseLevelParameters(ctx.start, ctx.ID(), null, true);
-  }
-
-  @Override
-  public Concrete.LevelParameters visitHlevelParams(HlevelParamsContext ctx) {
-    return ctx == null ? null : (Concrete.LevelParameters) parseLevelParameters(ctx.start, ctx.ID(), null, false);
+    return ctx == null ? null : (Concrete.LevelParameters) parseLevelParameters(ctx.start, ctx.ID(), null);
   }
 
   private List<ParameterReferable> makeParameterReferableList(Concrete.ResolvableDefinition parentDef) {
@@ -555,14 +542,14 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
       case null, default -> throw new IllegalStateException();
     }
 
-    Concrete.FunctionDefinition funcDef = new Concrete.FunctionDefinition(isInstance ? FunctionKind.INSTANCE : FunctionKind.CONS, reference, visitPlevelParams(topDefId.plevelParams()), visitHlevelParams(topDefId.hlevelParams()), parameters, returnPair.proj1, returnPair.proj2, body);
+    Concrete.FunctionDefinition funcDef = new Concrete.FunctionDefinition(isInstance ? FunctionKind.INSTANCE : FunctionKind.CONS, reference, visitPlevelParams(topDefId.plevelParams()), parameters, returnPair.proj1, returnPair.proj2, body);
     List<ConcreteStatement> statements = new ArrayList<>();
     ConcreteGroup resultGroup = new ConcreteGroup(nullDoc(), reference, funcDef, statements, Collections.emptyList(), makeParameterReferableList(parent.definition()));
     if (coClauses != null) {
       List<ConcreteGroup> dynamicGroups = new ArrayList<>();
       visitCoClauses(coClauses, dynamicGroups, resultGroup, reference, enclosingClass, body.getCoClauseElements());
       for (ConcreteGroup dynamicGroup : dynamicGroups) {
-        statements.add(new ConcreteStatement(dynamicGroup, null, null, null));
+        statements.add(new ConcreteStatement(dynamicGroup, null, null));
       }
     }
 
@@ -658,7 +645,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
     Concrete.MetaDefinition definition;
     if (body != null) {
       var params = visitLamTeles(ctx.tele(), false);
-      definition = new Concrete.MetaDefinition(reference, visitPlevelParams(ctx.plevelParams()), visitHlevelParams(ctx.hlevelParams()), params, visitExpr(body));
+      definition = new Concrete.MetaDefinition(reference, visitPlevelParams(ctx.plevelParams()), params, visitExpr(body));
     } else {
       definition = null;
     }
@@ -669,11 +656,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
   }
 
   private Concrete.LevelsDefinition visitStatPLevels(StatPLevelsContext ctx, LocatedReferable parent) {
-    return (Concrete.LevelsDefinition) parseLevelParameters(ctx.start, ctx.ID(), parent, true);
-  }
-
-  private Concrete.LevelsDefinition visitStatHLevels(StatHLevelsContext ctx, LocatedReferable parent) {
-    return (Concrete.LevelsDefinition) parseLevelParameters(ctx.start, ctx.ID(), parent, false);
+    return (Concrete.LevelsDefinition) parseLevelParameters(ctx.start, ctx.ID(), parent);
   }
 
   private ConcreteGroup visitDefFunction(AccessModifier accessModifier, DefFunctionContext ctx, ConcreteGroup parent, TCDefReferable enclosingClass) {
@@ -710,13 +693,13 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
         funcKw instanceof FuncKwSFuncContext ? FunctionKind.SFUNC :
         funcKw instanceof FuncKwAxiomContext ? FunctionKind.AXIOM :
         FunctionKind.FUNC;
-      Concrete.FunctionDefinition funDef = new Concrete.FunctionDefinition(kind, referable, visitPlevelParams(topDefId.plevelParams()), visitHlevelParams(topDefId.hlevelParams()), visitLamTeles(ctx.tele(), true), returnPair.proj1, returnPair.proj2, body);
+      Concrete.FunctionDefinition funDef = new Concrete.FunctionDefinition(kind, referable, visitPlevelParams(topDefId.plevelParams()), visitLamTeles(ctx.tele(), true), returnPair.proj1, returnPair.proj2, body);
       resultGroup = new ConcreteGroup(nullDoc(), referable, funDef, statements, Collections.emptyList(), makeParameterReferableList(parent.definition()));
       if (coClauses != null) {
         List<ConcreteGroup> dynamicGroups = new ArrayList<>();
         visitCoClauses(coClauses, dynamicGroups, resultGroup, referable, enclosingClass, body.getCoClauseElements());
         for (ConcreteGroup dynamicGroup : dynamicGroups) {
-          statements.add(new ConcreteStatement(dynamicGroup, null, null, null));
+          statements.add(new ConcreteStatement(dynamicGroup, null, null));
         }
       }
 
@@ -751,7 +734,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
     DefIdContext defId = topDefId.defId();
     Pair<String, Precedence> alias = visitAlias(defId.alias());
     LocatedReferableImpl referable = makeReferable(tokenPosition(defId.ID().getSymbol()), accessModifier, defId.ID().getText(), visitPrecedence(defId.precedence()), alias.proj1, alias.proj2, parent.referable(), LocatedReferableImpl.Kind.DATA);
-    Concrete.DataDefinition dataDefinition = new Concrete.DataDefinition(referable, visitPlevelParams(topDefId.plevelParams()), visitHlevelParams(topDefId.hlevelParams()), visitTeles(ctx.tele(), true), eliminatedReferences, ctx.TRUNCATED() != null, universe, new ArrayList<>());
+    Concrete.DataDefinition dataDefinition = new Concrete.DataDefinition(referable, visitPlevelParams(topDefId.plevelParams()), visitTeles(ctx.tele(), true), eliminatedReferences, ctx.TRUNCATED() != null, universe, new ArrayList<>());
     dataDefinition.enclosingClass = enclosingClass;
     visitDataBody(dataBodyCtx, dataDefinition, constructors, accessModifier);
 
@@ -954,7 +937,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
     List<ClassFieldOrImplContext> classFieldOrImplCtxs = classBodyCtx instanceof ClassBodyFieldOrImplContext ? ((ClassBodyFieldOrImplContext) classBodyCtx).classFieldOrImpl() : Collections.emptyList();
 
     List<Concrete.ClassElement> elements = new ArrayList<>();
-    Concrete.ClassDefinition classDefinition = new Concrete.ClassDefinition(reference, visitPlevelParams(topDefId.plevelParams()), visitHlevelParams(topDefId.hlevelParams()), isRecord, ctx.NO_CLASSIFYING() != null, superClasses, elements);
+    Concrete.ClassDefinition classDefinition = new Concrete.ClassDefinition(reference, visitPlevelParams(topDefId.plevelParams()), isRecord, ctx.NO_CLASSIFYING() != null, superClasses, elements);
     ConcreteGroup resultGroup = new ConcreteGroup(nullDoc(), reference, classDefinition, statements, dynamicSubgroups, makeParameterReferableList(parent.definition()));
     visitFieldTeles(ctx.fieldTele(), classDefinition, elements);
 

@@ -240,8 +240,8 @@ public class RecursiveTest extends TypeCheckingTestCase {
   @Test
   public void recursiveLevels3() {
     typeCheckModule(
-      "\\data D \\hlevels lvl : \\Set | con (d : D) (E \\levels _ lvl d)\n" +
-      "\\func E \\hlevels lvl (d : D \\levels _ (\\suc lvl)) : \\Set | con _ _ => Nat", 2);
+      "\\data D \\plevels lvl : \\Set | con (d : D) (E \\levels lvl () d)\n" +
+      "\\func E \\plevels lvl (d : D \\levels (\\suc lvl) ()) : \\Set | con _ _ => Nat", 2);
   }
 
   @Test

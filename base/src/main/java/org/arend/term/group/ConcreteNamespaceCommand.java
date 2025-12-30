@@ -43,7 +43,7 @@ public record ConcreteNamespaceCommand(@Nullable Object data, boolean isImport, 
   }
 
   private static String scopeContextToString(Scope.ScopeContext context) {
-    return context == Scope.ScopeContext.DYNAMIC ? "." : context == Scope.ScopeContext.PLEVEL ? "\\plevel " : context == Scope.ScopeContext.HLEVEL ? "\\hlevel " : "";
+    return context == Scope.ScopeContext.DYNAMIC ? "." : context == Scope.ScopeContext.LEVEL ? "\\plevel " : "";
   }
 
   @Override

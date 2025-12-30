@@ -316,7 +316,7 @@ public class SingleFileReferenceResolver {
                         new NamedUnresolvedReference(null, name), null, null));
             ConcreteNamespaceCommand command =
                     new ConcreteNamespaceCommand(null, cnc.isImport(), cnc.module(), false, renamings, emptyList());
-            result.add(new ConcreteStatement(null, command, null, null));
+            result.add(new ConcreteStatement(null, command, null));
         }
 
         for (ModuleLocation moduleLocation : importsToAdd.keySet()) {
@@ -334,7 +334,7 @@ public class SingleFileReferenceResolver {
                     new ConcreteNamespaceCommand(null, true,
                             new LongUnresolvedReference(null, null, moduleLocation.getModulePath().toList()),
                             isUsing, renamings, emptyList());
-            result.add(new ConcreteStatement(null, command, null, null));
+            result.add(new ConcreteStatement(null, command, null));
         }
 
         ConcreteGroup fakeGroup = new ConcreteGroup(DocFactory.nullDoc(),

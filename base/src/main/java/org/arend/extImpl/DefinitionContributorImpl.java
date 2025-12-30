@@ -34,7 +34,7 @@ public class DefinitionContributorImpl extends Disableable implements Definition
 
     ConcreteGroup makeGroup(List<ConcreteStatement> statements) {
       for (Tree tree : children.values()) {
-        statements.add(new ConcreteStatement(tree.makeGroup(new ArrayList<>()), null, null, null));
+        statements.add(new ConcreteStatement(tree.makeGroup(new ArrayList<>()), null, null));
       }
       return new ConcreteGroup(description, referable, definition, statements, Collections.emptyList(), Collections.emptyList());
     }
@@ -123,6 +123,6 @@ public class DefinitionContributorImpl extends Disableable implements Definition
   @Override
   public void declare(@NotNull ModulePath module, @NotNull ModulePath importedModule, @NotNull String... names) {
     myImports.computeIfAbsent(new ModuleLocation(myLibraryName, ModuleLocation.LocationKind.GENERATED, module), k -> new ArrayList<>())
-        .add(new ConcreteStatement(null, new ConcreteNamespaceCommand(null, true, new LongUnresolvedReference(null, null, importedModule.toList()), names.length == 0, Arrays.stream(names).map(name -> new ConcreteNamespaceCommand.NameRenaming(null, Scope.ScopeContext.STATIC, new NamedUnresolvedReference(null, name), null, null)).toList(), Collections.emptyList()), null, null));
+        .add(new ConcreteStatement(null, new ConcreteNamespaceCommand(null, true, new LongUnresolvedReference(null, null, importedModule.toList()), names.length == 0, Arrays.stream(names).map(name -> new ConcreteNamespaceCommand.NameRenaming(null, Scope.ScopeContext.STATIC, new NamedUnresolvedReference(null, name), null, null)).toList(), Collections.emptyList()), null));
   }
 }
