@@ -1363,32 +1363,20 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
   public Concrete.UniverseExpression visitUniverse(UniverseContext ctx) {
     Position position = tokenPosition(ctx.start);
     Concrete.LevelExpression lp;
-    Concrete.LevelExpression lh;
 
     String text = ctx.UNIVERSE().getText().substring("\\Type".length());
     lp = text.isEmpty() ? null : new Concrete.NumberLevelExpression(position, Integer.parseInt(text));
 
-    List<MaybeLevelAtomContext> maybeLevelAtomCtxs = ctx.maybeLevelAtom();
-    if (!maybeLevelAtomCtxs.isEmpty()) {
+    MaybeLevelAtomContext maybeLevelAtomCtx = ctx.maybeLevelAtom();
+    if (maybeLevelAtomCtx != null) {
       if (lp == null) {
-        lp = visitLevel(maybeLevelAtomCtxs.getFirst());
-        lh = null;
+        lp = visitLevel(maybeLevelAtomCtx);
       } else {
-        lh = visitLevel(maybeLevelAtomCtxs.getFirst());
+        myErrorReporter.report(new ParserError(tokenPosition(maybeLevelAtomCtx.start), "The level is already specified"));
       }
-
-      if (maybeLevelAtomCtxs.size() >= 2) {
-        if (lh == null) {
-          lh = visitLevel(maybeLevelAtomCtxs.get(1));
-        } else {
-          myErrorReporter.report(new ParserError(tokenPosition(maybeLevelAtomCtxs.get(1).start), "h-level is already specified"));
-        }
-      }
-    } else {
-      lh = null;
     }
 
-    return new Concrete.UniverseExpression(position, lp, lh, ConcreteUniverseExpression.Kind.TYPE);
+    return new Concrete.UniverseExpression(position, lp, null, ConcreteUniverseExpression.Kind.TYPE);
   }
 
   @Override

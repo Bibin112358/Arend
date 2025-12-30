@@ -32,7 +32,7 @@ public abstract class ParserTestCase extends ArendTestCase {
   }
 
 
-  Concrete.Expression parseExpr(String text, int errors) {
+  public Concrete.Expression parseExpr(String text, int errors) {
     ListErrorReporter errorReporter = new ListErrorReporter();
     ArendParser.ExprContext ctx = _parse(text, errorReporter).expr();
     Concrete.Expression expr = errorReporter.getErrorList().isEmpty() ? new BuildVisitor(MODULE, errorReporter).visitExpr(ctx) : null;

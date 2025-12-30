@@ -105,15 +105,6 @@ public class InferLevelTest extends TypeCheckingTestCase {
   }
 
   @Test
-  public void btwOneAndParamWithHError() {
-    // 1 <= ?l, 1 <= c
-    // error: cannot solve 1 <= c
-    typeCheckModule(
-        "\\func f (A : \\Type) => A\n" +
-        "\\func g : \\Type \\lp \\lh => f \\Type0", 2);
-  }
-
-  @Test
   public void btwZeroAndTen() {
     // 0 <= ?l <= 10
     // ok: ?l = 0

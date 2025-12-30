@@ -182,7 +182,7 @@ caseArgExprAs : '\\elim' (ID | APPLY_HOLE)  # caseArgElim
 
 appExpr : argumentAppExpr                             # appArgument
         | TRUNCATED_UNIVERSE maybeLevelAtom?          # truncatedUniverse
-        | UNIVERSE (maybeLevelAtom maybeLevelAtom?)?  # universe
+        | UNIVERSE maybeLevelAtom?                    # universe
         | SET maybeLevelAtom?                         # setUniverse
         | CAT_UNIVERSE maybeLevelAtom?                # catUniverse
         ;

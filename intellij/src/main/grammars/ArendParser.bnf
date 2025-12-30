@@ -675,7 +675,7 @@ atomLevelExpr ::= LP_KW
     extends = levelExpr
 }
 
-universeAppExpr ::= UNIVERSE [maybeAtomLevelExpr maybeAtomLevelExpr?] {
+universeAppExpr ::= UNIVERSE maybeAtomLevelExpr? {
     pin = 1
 }
 

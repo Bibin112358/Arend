@@ -625,8 +625,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
       return null;
     }
 
-    boolean hParens = expr.getKind() == ConcreteUniverseExpression.Kind.TYPE && !(expr.getHLevel() instanceof Concrete.InfLevelExpression || expr.getHLevel() instanceof Concrete.NumberLevelExpression || expr.getHLevel() == null);
-    boolean parens = prec.priority > Concrete.AppExpression.PREC && (hParens || !(expr.getPLevel() instanceof Concrete.NumberLevelExpression || expr.getPLevel() == null));
+    boolean parens = prec.priority > Concrete.AppExpression.PREC && !(expr.getPLevel() instanceof Concrete.NumberLevelExpression) && expr.getPLevel() != null;
     if (parens) myBuilder.append('(');
 
     if (expr.getKind() == ConcreteUniverseExpression.Kind.SORT) {
@@ -651,11 +650,6 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
     } else if (expr.getPLevel() != null) {
       myBuilder.append(" ");
       expr.getPLevel().accept(this, new Precedence((byte) (Concrete.AppExpression.PREC + 1)));
-    }
-
-    if (hParens) {
-      myBuilder.append(" ");
-      expr.getHLevel().accept(this, new Precedence((byte) (Concrete.AppExpression.PREC + 1)));
     }
 
     if (parens) myBuilder.append(')');
