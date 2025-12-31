@@ -65,11 +65,6 @@ public class LevelEquationsWrapper implements Equations {
   }
 
   @Override
-  public void bindVariables(InferenceLevelVariable pVar, InferenceLevelVariable hVar) {
-    myEquations.bindVariables(pVar, hVar);
-  }
-
-  @Override
   public boolean remove(Equation equation) {
     return false;
   }

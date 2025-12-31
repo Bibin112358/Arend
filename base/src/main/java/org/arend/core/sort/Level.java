@@ -34,13 +34,13 @@ public class Level implements CoreLevel {
 
   // max(var + constant, maxConstant)
   public Level(LevelVariable var, int constant, int maxConstant) {
-    assert constant >= (var == null ? -1 : var.getMinValue());
+    assert constant >= 0;
     if (var == null) {
       myVars = Collections.emptyMap();
       myConstant = Math.max(constant, maxConstant);
     } else {
       myVars = Collections.singletonMap(var, constant);
-      myConstant = maxConstant > constant + var.getMinValue() ? maxConstant : var.getMinValue();
+      myConstant = maxConstant > constant ? maxConstant : 0;
     }
   }
 
@@ -56,8 +56,8 @@ public class Level implements CoreLevel {
     this(Collections.emptyMap(), constant);
   }
 
-  public LevelVariable.LvlType getType() {
-    return myVars == null || myVars.isEmpty() ? null : myVars.keySet().iterator().next().getType();
+  public boolean hasVars() {
+    return myVars != null && !myVars.isEmpty();
   }
 
   public Set<? extends LevelVariable> getVars() {
@@ -88,7 +88,7 @@ public class Level implements CoreLevel {
   }
 
   public boolean withMaxConstant() {
-    return myVars != null && !myVars.isEmpty() && myConstant > myVars.keySet().iterator().next().getMinValue();
+    return myVars != null && !myVars.isEmpty() && myConstant > 0;
   }
 
   public boolean hasInferenceVariables() {
@@ -102,7 +102,7 @@ public class Level implements CoreLevel {
   public @Nullable LevelVariable getSingleVar() {
     if (myVars == null || myVars.size() != 1) return null;
     var entry = myVars.entrySet().iterator().next();
-    return entry.getValue() == 0 && myConstant == entry.getKey().getMinValue() ? entry.getKey() : null;
+    return entry.getValue() == 0 && myConstant == 0 ? entry.getKey() : null;
   }
 
   public Level add(int constant) {
@@ -111,7 +111,7 @@ public class Level implements CoreLevel {
     Map<LevelVariable,Integer> vars = new HashMap<>(myVars.size());
     boolean keepConstant = false;
     for (Map.Entry<LevelVariable, Integer> entry : myVars.entrySet()) {
-      if (myConstant <= entry.getValue() + entry.getKey().getMinValue()) keepConstant = true;
+      if (myConstant <= entry.getValue()) keepConstant = true;
       vars.put(entry.getKey(), entry.getValue() + constant);
     }
     return new Level(vars, keepConstant ? myConstant : myConstant + constant);
@@ -145,10 +145,6 @@ public class Level implements CoreLevel {
 
     if (level.myVars.isEmpty()) {
       return new Level(myVars, Math.max(myConstant, level.myConstant));
-    }
-
-    if (getType() != level.getType()) {
-      return null;
     }
 
     Map<LevelVariable,Integer> vars = new HashMap<>(myVars);
@@ -213,7 +209,7 @@ public class Level implements CoreLevel {
       boolean ok = false;
       boolean add = false;
       for (Map.Entry<LevelVariable, Integer> entry : level2.myVars.entrySet()) {
-        if (level1.myConstant <= entry.getValue() + entry.getKey().getMinValue()) {
+        if (level1.myConstant <= entry.getValue()) {
           ok = true;
           break;
         }
@@ -232,7 +228,7 @@ public class Level implements CoreLevel {
 
     for (Map.Entry<LevelVariable, Integer> entry1 : level1.myVars.entrySet()) {
       boolean ok = false;
-      boolean add = entry1.getKey() instanceof InferenceLevelVariable && entry1.getValue() + entry1.getKey().getMinValue() <= level2.myConstant;
+      boolean add = entry1.getKey() instanceof InferenceLevelVariable && entry1.getValue() <= level2.myConstant;
       for (Map.Entry<LevelVariable, Integer> entry2 : level2.myVars.entrySet()) {
         if (entry1.getKey().compare(entry2.getKey(), CMP.LE) && entry1.getValue() <= entry2.getValue()) {
           ok = true;

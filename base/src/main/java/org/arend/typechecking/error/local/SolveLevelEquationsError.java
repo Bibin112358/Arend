@@ -34,7 +34,7 @@ public class SolveLevelEquationsError extends TypecheckingError {
   }
 
   public String getInferLevelVarText(PrettyPrintVisitor ppv, InferenceLevelVariable variable, Map<InferenceLevelVariable, Referable> refMap) {
-    return ppv.getLevelVariableText(refMap.computeIfAbsent(variable, v -> new LocalReferable("?" + v.getName())), variable.getType());
+    return ppv.getLevelVariableText(refMap.computeIfAbsent(variable, v -> new LocalReferable("?" + v.getName())));
   }
 
   @Override
@@ -111,7 +111,7 @@ public class SolveLevelEquationsError extends TypecheckingError {
 
   private void printEqExpr(StringBuilder builder, PrettyPrintVisitor ppv, LevelVariable var, Integer constant, Integer maxConstant, Map<InferenceLevelVariable, Referable> refMap) {
     if (var != null) {
-      boolean withMax = maxConstant != null && !(maxConstant < 0 || maxConstant == 0 && var.getType() == LevelVariable.LvlType.PLVL);
+      boolean withMax = maxConstant != null && maxConstant > 0;
       if (withMax) {
         builder.append("max ");
         if (constant != null && constant > 0) {

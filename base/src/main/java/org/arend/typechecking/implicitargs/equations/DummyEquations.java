@@ -57,11 +57,6 @@ public class DummyEquations implements Equations {
   }
 
   @Override
-  public void bindVariables(InferenceLevelVariable pVar, InferenceLevelVariable hVar) {
-
-  }
-
-  @Override
   public boolean remove(Equation equation) {
     return false;
   }

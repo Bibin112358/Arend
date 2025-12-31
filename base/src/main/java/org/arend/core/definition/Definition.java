@@ -89,15 +89,7 @@ public abstract class Definition extends UserDataHolderImpl implements CoreDefin
   // TODO[sorts]: Delete this
   public int getNumberOfPLevelParameters() {
     List<? extends LevelVariable> vars = getLevelParameters();
-    if (vars == null) return 1;
-    int result = 0;
-    for (LevelVariable param : vars) {
-      if (param.getType() != LevelVariable.LvlType.PLVL) {
-        break;
-      }
-      result++;
-    }
-    return result;
+    return vars == null ? 1 : vars.size();
   }
 
   public boolean hasNonTrivialPLevelParameters() {
@@ -138,8 +130,8 @@ public abstract class Definition extends UserDataHolderImpl implements CoreDefin
     List<? extends LevelVariable> vars = getLevelParameters();
     if (vars == null) return SingleLevel.ZERO;
     List<Level> result = new ArrayList<>(vars.size());
-    for (LevelVariable var : vars) {
-      result.add(new Level(var.getMinValue()));
+    for (LevelVariable ignored : vars) {
+      result.add(new Level(0));
     }
     return new ListLevels(result);
   }
@@ -148,8 +140,8 @@ public abstract class Definition extends UserDataHolderImpl implements CoreDefin
     List<? extends LevelVariable> vars = getLevelParameters();
     if (vars == null) return SingleLevel.generateInferVars(equations, isUniverseLike, sourceNode);
     List<Level> result = new ArrayList<>(vars.size());
-    for (LevelVariable var : vars) {
-      InferenceLevelVariable infVar = new InferenceLevelVariable(var.getType(), isUniverseLike, sourceNode);
+    for (LevelVariable ignored : vars) {
+      InferenceLevelVariable infVar = new InferenceLevelVariable(isUniverseLike, sourceNode);
       equations.addVariable(infVar);
       result.add(new Level(infVar));
     }

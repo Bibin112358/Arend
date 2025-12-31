@@ -1,6 +1,5 @@
 package org.arend.typechecking.visitor;
 
-import org.arend.core.context.binding.LevelVariable;
 import org.arend.core.definition.ClassDefinition;
 import org.arend.core.definition.DataDefinition;
 import org.arend.core.definition.Definition;
@@ -22,8 +21,7 @@ public class FindLevelParameters extends SearchVisitor<Void> {
   }
 
   private void checkLevel(Level level) {
-    LevelVariable.LvlType type = level.getType();
-    if (type == LevelVariable.LvlType.PLVL) {
+    if (level.hasVars()) {
       hasPLevels = true;
     }
   }

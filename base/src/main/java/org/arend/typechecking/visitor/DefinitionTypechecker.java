@@ -1028,7 +1028,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
             ? new TypeExpression(UniverseExpression.OMEGA, new SortExpression.Const(Sort.INFINITY))
             : checkResultTypeLater(def)
               ? typechecker.checkType(cResultType, UniverseExpression.OMEGA)
-              : typechecker.finalCheckType(cResultType, UniverseExpression.OMEGA, kind == FunctionKind.LEMMA && def.getResultTypeLevel() == null);
+              : typechecker.finalCheckType(cResultType, UniverseExpression.OMEGA);
       if (expectedTypeResult != null) {
         expectedType = expectedTypeResult.expression();
       }
@@ -1102,7 +1102,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
         return null;
       }
       Set<ClassField> pseudoImplemented = new HashSet<>();
-      TypecheckingResult result = typechecker.finalize(typechecker.typecheckClassExt(classFieldImpls, UniverseExpression.OMEGA, type, pseudoImplemented, resultType, true), def, false);
+      TypecheckingResult result = typechecker.finalize(typechecker.typecheckClassExt(classFieldImpls, UniverseExpression.OMEGA, type, pseudoImplemented, resultType, true), def);
       if (result == null) return null;
 
       Expression resultExpr = result.expression.normalize(NormalizationMode.WHNF);
@@ -1453,7 +1453,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
           checkCanBeLemma = false;
         }
       }
-      TypecheckingResult termResult = typechecker.finalize(nonFinalResult, bodyTerm, kind == FunctionKind.LEMMA);
+      TypecheckingResult termResult = typechecker.finalize(nonFinalResult, bodyTerm);
 
       if (termResult != null) {
         Expression expr = termResult.expression;
@@ -3008,7 +3008,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       instancePool.setInstancePool(localInstancePool);
       typechecker.setInstancePool(instancePool);
       ClassFieldKind kind = def instanceof Concrete.ClassField ? ((Concrete.ClassField) def).getKind() : typedDef == null ? ClassFieldKind.ANY : typedDef.isProperty() ? ClassFieldKind.PROPERTY : ClassFieldKind.FIELD;
-      TypeExpression typeResult = typechecker.finalCheckType(codomain, UniverseExpression.OMEGA, kind == ClassFieldKind.PROPERTY && def.getResultTypeLevel() == null);
+      TypeExpression typeResult = typechecker.finalCheckType(codomain, UniverseExpression.OMEGA);
       ok = typeResult != null;
       piType = new PiExpression(thisParam, ok ? typeResult.expression() : new ErrorExpression());
 

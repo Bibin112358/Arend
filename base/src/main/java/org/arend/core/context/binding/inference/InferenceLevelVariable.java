@@ -5,19 +5,12 @@ import org.arend.ext.core.ops.CMP;
 import org.arend.term.concrete.Concrete;
 
 public class InferenceLevelVariable implements LevelVariable {
-  private final LvlType myType;
   private final boolean myUniverseLike;
   private final Concrete.SourceNode mySourceNode;
 
-  public InferenceLevelVariable(LvlType type, boolean isUniverseLike, Concrete.SourceNode sourceNode) {
-    myType = type;
+  public InferenceLevelVariable(boolean isUniverseLike, Concrete.SourceNode sourceNode) {
     myUniverseLike = isUniverseLike;
     mySourceNode = sourceNode;
-  }
-
-  @Override
-  public LvlType getType() {
-    return myType;
   }
 
   @Override
@@ -45,6 +38,6 @@ public class InferenceLevelVariable implements LevelVariable {
 
   @Override
   public String toString() {
-    return myType == LvlType.PLVL ? "?p" : "?h";
+    return "?p";
   }
 }

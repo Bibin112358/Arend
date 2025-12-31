@@ -1,6 +1,5 @@
 package org.arend.term.abs;
 
-import org.arend.core.context.binding.LevelVariable;
 import org.arend.error.CountingErrorReporter;
 import org.arend.error.DummyErrorReporter;
 import org.arend.error.ParsingError;
@@ -925,7 +924,7 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
 
   @Override
   public Concrete.LevelExpression visitId(@Nullable Object data, Referable ref, Void param) {
-    return new Concrete.VarLevelExpression(data, ref, LevelVariable.LvlType.PLVL);
+    return new Concrete.VarLevelExpression(data, ref);
   }
 
   @Override

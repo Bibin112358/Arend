@@ -40,8 +40,7 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
   private final Set<Binding> myContext;
   private final Equations myEquations;
   private final Concrete.SourceNode mySourceNode;
-  private List<? extends LevelVariable> myPParameters;
-  private List<? extends LevelVariable> myHParameters;
+  private List<? extends LevelVariable> myLevelParameters;
   private boolean myCheckLevelVariables;
 
   public CoreExpressionChecker(Set<Binding> context, Equations equations, Concrete.SourceNode sourceNode) {
@@ -52,16 +51,14 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
 
   void clear() {
     if (myContext != null) myContext.clear();
-    myPParameters = null;
-    myHParameters = null;
+    myLevelParameters = null;
     myCheckLevelVariables = false;
   }
 
   void setDefinition(Definition definition) {
     List<? extends LevelVariable> params = definition.getLevelParameters();
     int pNum = definition.getNumberOfPLevelParameters();
-    myPParameters = params == null ? null : params.subList(0, pNum);
-    myHParameters = params == null ? null : params.subList(pNum, params.size());
+    myLevelParameters = params == null ? null : params.subList(0, pNum);
     myCheckLevelVariables = true;
   }
 
@@ -84,10 +81,10 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
     List<? extends Level> list = levels.toList();
     int pNum = definition.getNumberOfPLevelParameters();
     for (int i = 0; i < pNum; i++) {
-      checkLevel(list.get(i), LevelVariable.LvlType.PLVL, expr);
+      checkLevel(list.get(i), expr);
     }
     for (int i = pNum; i < list.size(); i++) {
-      checkLevel(list.get(i), LevelVariable.LvlType.HLVL, expr);
+      checkLevel(list.get(i), expr);
     }
   }
 
@@ -414,13 +411,10 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
     return check(expectedType, new UniverseExpression(SortExpression.makeMax(sorts)), expr);
   }
 
-  private void checkLevel(Level level, LevelVariable.LvlType type, Expression expr) {
+  private void checkLevel(Level level, Expression expr) {
     for (LevelVariable var : level.getVars()) {
-      if (var.getType() != type) {
-        throw new CoreException(CoreErrorWrapper.make(new TypeMismatchError(DocFactory.text(type.toString()), DocFactory.text(var.getType().toString()), mySourceNode), expr));
-      }
       if (!myCheckLevelVariables) continue;
-      List<? extends LevelVariable> params = type == LevelVariable.LvlType.HLVL ? myHParameters : myPParameters;
+      List<? extends LevelVariable> params = myLevelParameters;
       if (params != null && params.isEmpty() || var instanceof ParamLevelVariable && (params == null || !params.contains(var))) {
         throw new CoreException(CoreErrorWrapper.make(new TypecheckingError("Variable '" + var + "' is not defined", mySourceNode), expr));
       }

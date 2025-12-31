@@ -1012,7 +1012,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   }
 
   public TypecheckingResult finalCheckExpr(Concrete.Expression expr, Expression expectedType) {
-    return finalize(checkExpr(expr, expectedType), expr, false);
+    return finalize(checkExpr(expr, expectedType), expr);
   }
 
   public void invokeDeferredMetas(InPlaceLevelSubstVisitor substVisitor, StripVisitor stripVisitor, boolean afterLevels) {
@@ -1075,7 +1075,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       if (result != null) {
         result = checkTypeVisitor.checkResult(type, result, marker);
         if (afterLevels) {
-          result = checkTypeVisitor.finalize(result, marker, false);
+          result = checkTypeVisitor.finalize(result, marker);
         }
       }
       errorReporter = originalErrorReporter;
@@ -1092,19 +1092,13 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
   }
 
-  public TypecheckingResult finalize(TypecheckingResult result, Concrete.SourceNode sourceNode, boolean propIfPossible) {
+  public TypecheckingResult finalize(TypecheckingResult result, Concrete.SourceNode sourceNode) {
     if (result == null) {
       return null;
     }
 
     invokeDeferredMetas(null, null, false);
     LevelEquationsSolver levelSolver = myEquations.makeLevelEquationsSolver();
-    if (propIfPossible) {
-      Sort sort = result.type.getSortOfType();
-      if (sort != null) {
-        levelSolver.addPropEquationIfPossible(sort.getHLevel());
-      }
-    }
     LevelSubstitution levelSubstitution = levelSolver.solveLevels();
     myEquations.finalizeEquations(levelSubstitution, sourceNode);
     InPlaceLevelSubstVisitor substVisitor = new InPlaceLevelSubstVisitor(levelSubstitution);
@@ -1174,14 +1168,11 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     return new TypeExpression(result.expression, sortExpr);
   }
 
-  public TypeExpression finalCheckType(Concrete.Expression expr, Expression expectedType, boolean propIfPossible) {
+  public TypeExpression finalCheckType(Concrete.Expression expr, Expression expectedType) {
     TypeExpression result = checkType(expr, expectedType);
     if (result == null) return null;
     invokeDeferredMetas(null, null, false);
     LevelEquationsSolver levelSolver = myEquations.makeLevelEquationsSolver();
-    if (propIfPossible && result.sort() instanceof SortExpression.Const(Sort sort)) {
-      levelSolver.addPropEquationIfPossible(sort.getHLevel());
-    }
     LevelSubstitution levelSubstitution = levelSolver.solveLevels();
     myEquations.finalizeEquations(levelSubstitution, expr);
     InPlaceLevelSubstVisitor substVisitor = new InPlaceLevelSubstVisitor(levelSubstitution);
@@ -1891,11 +1882,11 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
 
     if (useMinAsDefault) {
-      result.add(new Level(param.getMinValue()));
+      result.add(new Level(0));
       return;
     }
 
-    InferenceLevelVariable var = new InferenceLevelVariable(param.getType(), isUniverseLike, sourceNode);
+    InferenceLevelVariable var = new InferenceLevelVariable(isUniverseLike, sourceNode);
     myEquations.addVariable(var);
     result.add(new Level(var));
   }
@@ -3386,7 +3377,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
 
     if (pLevel == null) {
-      InferenceLevelVariable pl = new InferenceLevelVariable(LevelVariable.LvlType.PLVL, true, expr);
+      InferenceLevelVariable pl = new InferenceLevelVariable(true, expr);
       getEquations().addVariable(pl);
       pLevel = new Level(pl);
     }

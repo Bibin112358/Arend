@@ -3,7 +3,6 @@ package org.arend.typechecking.patternmatching;
 import org.arend.core.constructor.*;
 import org.arend.core.context.Utils;
 import org.arend.core.context.binding.Binding;
-import org.arend.core.context.binding.LevelVariable;
 import org.arend.core.context.binding.TypedBinding;
 import org.arend.core.context.binding.inference.InferenceLevelVariable;
 import org.arend.core.context.param.DependentLink;
@@ -920,7 +919,7 @@ public class ElimTypechecking {
             if (type instanceof UniverseExpression universe && universe.getSortExpression() instanceof SortExpression.Const(Sort typeSort)) {
               ok = Level.compare(typeSort.getHLevel(), dataSort.getHLevel(), CMP.LE, myEquations, getClause(conClause.index, someConPattern));
             } else {
-              InferenceLevelVariable pl = new InferenceLevelVariable(LevelVariable.LvlType.PLVL, false, getClause(conClause.index, someConPattern));
+              InferenceLevelVariable pl = new InferenceLevelVariable(false, getClause(conClause.index, someConPattern));
               myEquations.addVariable(pl);
               ok = type.isLessOrEquals(new UniverseExpression(new Sort(new Level(pl), dataSort.getHLevel())), myEquations, getClause(conClause.index, someConPattern));
             }

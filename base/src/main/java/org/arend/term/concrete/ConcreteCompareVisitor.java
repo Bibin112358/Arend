@@ -212,7 +212,7 @@ public class ConcreteCompareVisitor implements ConcreteExpressionVisitor<Concret
       case Concrete.VarLevelExpression var1 -> {
         Referable ref = mySubstitution.get(var1.getReferent());
         if (ref == null) ref = var1.getReferent();
-        return level2 instanceof Concrete.VarLevelExpression var2 && ref.equals(var2.getReferent()) && var1.isInference() == var2.isInference() && var1.getLevelType().equals(var2.getLevelType());
+        return level2 instanceof Concrete.VarLevelExpression var2 && ref.equals(var2.getReferent()) && var1.isInference() == var2.isInference();
       }
       default -> {}
     }

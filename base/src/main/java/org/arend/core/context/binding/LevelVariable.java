@@ -7,23 +7,9 @@ import org.arend.ext.variable.Variable;
 import java.util.List;
 
 public interface LevelVariable extends Variable {
-  enum LvlType {
-    PLVL,
-    HLVL { @Override public int getMinValue() { return -1; } };
-
-    public int getMinValue() {
-      return 0;
-    }
-  }
-
-  LvlType getType();
   LevelVariable max(LevelVariable other);
   LevelVariable min(LevelVariable other);
   boolean compare(LevelVariable other, CMP cmp);
-
-  default int getMinValue() {
-    return getType().getMinValue();
-  }
 
   @Override
   default String getName() {
@@ -44,23 +30,18 @@ public interface LevelVariable extends Variable {
 
   LevelVariable PVAR = new LevelVariable() {
     @Override
-    public LvlType getType() {
-      return LvlType.PLVL;
-    }
-
-    @Override
     public LevelVariable max(LevelVariable other) {
-      return other instanceof InferenceLevelVariable || getType() != other.getType() ? null : other;
+      return other instanceof InferenceLevelVariable ? null : other;
     }
 
     @Override
     public LevelVariable min(LevelVariable other) {
-      return other instanceof InferenceLevelVariable || getType() != other.getType() ? null : this;
+      return other instanceof InferenceLevelVariable ? null : this;
     }
 
     @Override
     public boolean compare(LevelVariable other, CMP cmp) {
-      return this == other || other instanceof ParamLevelVariable && other.getType() == LvlType.PLVL && (cmp == CMP.LE || ((ParamLevelVariable) other).getSize() == 0);
+      return this == other || other instanceof ParamLevelVariable && (cmp == CMP.LE || ((ParamLevelVariable) other).getSize() == 0);
     }
 
     @Override

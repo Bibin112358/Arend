@@ -774,7 +774,7 @@ public class ToAbstractVisitor extends BaseExpressionVisitor<Void, Concrete.Expr
         if (!hasFlag(PrettyPrinterFlag.SHOW_LEVELS)) {
           return null;
         }
-        levelExpr = new Concrete.VarLevelExpression(null, new LocalReferable(entry.getKey().getName()), entry.getKey() instanceof InferenceLevelVariable, entry.getKey().getType());
+        levelExpr = new Concrete.VarLevelExpression(null, new LocalReferable(entry.getKey().getName()), entry.getKey() instanceof InferenceLevelVariable);
       }
 
       for (int i = 0; i < entry.getValue(); i++) {
@@ -784,7 +784,7 @@ public class ToAbstractVisitor extends BaseExpressionVisitor<Void, Concrete.Expr
       result = result == null ? levelExpr : new Concrete.MaxLevelExpression(null, result, levelExpr);
     }
 
-    if (level.getConstant() > 0 || level.getConstant() == 0 && level.getType() == LevelVariable.LvlType.HLVL) {
+    if (level.getConstant() > 0) {
       result = new Concrete.MaxLevelExpression(null, result, new Concrete.NumberLevelExpression(null, level.getConstant()));
     }
 

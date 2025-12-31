@@ -1,7 +1,6 @@
 package org.arend.term.prettyprint;
 
 import org.arend.core.context.binding.Binding;
-import org.arend.core.context.binding.LevelVariable;
 import org.arend.core.context.param.DependentLink;
 import org.arend.core.definition.Constructor;
 import org.arend.ext.concrete.expr.ConcreteUniverseExpression;
@@ -33,8 +32,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
   public static final float SMALL_RATIO = (float) 0.1;
 
   protected final StringBuilder myBuilder;
-  private final VariableTracker<Referable> myPVariables = new VariableTracker<>();
-  private final VariableTracker<Referable> myHVariables = new VariableTracker<>();
+  private final VariableTracker<Referable> myLevelVariables = new VariableTracker<>();
   protected int myIndent;
   private final boolean noIndent;
 
@@ -570,16 +568,15 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
   @Override
   public Void visitVar(Concrete.VarLevelExpression expr, Precedence param) {
     if (expr.isInference()) {
-      myBuilder.append(getLevelVariableText(expr.getReferent(), expr.getLevelType()));
+      myBuilder.append(getLevelVariableText(expr.getReferent()));
     } else {
       myBuilder.append(expr.getReferent().getRefName());
     }
     return null;
   }
 
-  public String getLevelVariableText(Referable referable, LevelVariable.LvlType levelType) {
-    VariableTracker<Referable> tracker = levelType == LevelVariable.LvlType.PLVL ? myPVariables : myHVariables;
-    return referable.getRefName() + tracker.getIndex(referable);
+  public String getLevelVariableText(Referable referable) {
+    return referable.getRefName() + myLevelVariables.getIndex(referable);
   }
 
   @Override

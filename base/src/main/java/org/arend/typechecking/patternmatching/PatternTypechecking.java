@@ -270,7 +270,7 @@ public class PatternTypechecking {
           }
         }
         if (myFinal) {
-          tcResult = myVisitor.finalize(tcResult, clause.getExpression(), false);
+          tcResult = myVisitor.finalize(tcResult, clause.getExpression());
         }
       } finally {
         if (definition != null) definition.setBody(null);

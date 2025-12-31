@@ -1,7 +1,6 @@
 package org.arend.naming.resolving.visitor;
 
 import org.arend.core.context.Utils;
-import org.arend.core.context.binding.LevelVariable;
 import org.arend.core.context.param.EmptyDependentLink;
 import org.arend.error.CountingErrorReporter;
 import org.arend.ext.LiteralTypechecker;
@@ -1023,7 +1022,7 @@ public class ExpressionResolveNameVisitor extends BaseConcreteExpressionVisitor<
     if (ref instanceof ErrorReference) {
       myErrorReporter.report(((ErrorReference) ref).getError());
     }
-    Concrete.VarLevelExpression result = new Concrete.VarLevelExpression(expr.getData(), ref, LevelVariable.LvlType.PLVL);
+    Concrete.VarLevelExpression result = new Concrete.VarLevelExpression(expr.getData(), ref);
     if (myResolverListener != null) {
       myResolverListener.levelResolved(expr.getReferent(), result, ref, new ArrayList<>(myScope.getElements(Scope.ScopeContext.LEVEL)));
     }

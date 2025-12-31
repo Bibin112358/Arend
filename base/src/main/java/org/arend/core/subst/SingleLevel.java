@@ -65,7 +65,7 @@ public class SingleLevel implements LevelSubstitution, Levels {
   }
 
   public static SingleLevel generateInferVars(Equations equations, boolean isUniverseLike, Concrete.SourceNode sourceNode) {
-    InferenceLevelVariable pl = new InferenceLevelVariable(LevelVariable.LvlType.PLVL, isUniverseLike, sourceNode);
+    InferenceLevelVariable pl = new InferenceLevelVariable(isUniverseLike, sourceNode);
     equations.addVariable(pl);
     return new SingleLevel(new Level(pl));
   }

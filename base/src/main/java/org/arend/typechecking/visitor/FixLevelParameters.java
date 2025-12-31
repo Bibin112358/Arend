@@ -102,7 +102,7 @@ public class FixLevelParameters extends VoidExpressionVisitor<Void> {
     if (myDefinitions == null) {
       List<? extends LevelVariable> params = leveled.getDefinition().getLevelParameters();
       if (params != null && (leveled.getLevels() instanceof SingleLevel || leveled.getLevels().toList().size() != params.size())) {
-        removeLevels(leveled, params.isEmpty() || params.getFirst().getType() == LevelVariable.LvlType.HLVL, params.isEmpty() || params.getFirst().getType() == LevelVariable.LvlType.PLVL);
+        removeLevels(leveled, params.isEmpty(), true);
       }
     } else if (myDefinitions.contains(leveled.getDefinition())) {
       removeLevels(leveled, myRemovePLevels, myRemoveHLevels);
@@ -165,7 +165,7 @@ public class FixLevelParameters extends VoidExpressionVisitor<Void> {
       List<? extends LevelVariable> levelParameters = expr.getDefinition().getLevelParameters();
       List<? extends Level> oldList = expr.getLevels().toList();
       for (int i = 0; i < levelParameters.size(); i++) {
-        if (myRemovePLevels && levelParameters.get(i).getType() == LevelVariable.LvlType.PLVL || myRemoveHLevels && levelParameters.get(i).getType() == LevelVariable.LvlType.HLVL) {
+        if (myRemovePLevels) {
           list.add(removeVars(oldList.get(i)));
         } else {
           list.add(oldList.get(i));

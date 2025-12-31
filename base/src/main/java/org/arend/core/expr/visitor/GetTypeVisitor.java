@@ -128,8 +128,8 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
     if (list.size() > params.size()) {
       return false;
     }
-    for (int i = 0; i < list.size(); i++) {
-      if (!(list.get(i).isClosed() && list.get(i).getConstant() == params.get(i).getMinValue())) {
+    for (Level level : list) {
+      if (!(level.isClosed() && level.getConstant() == 0) || level.isInfinity()) {
         return false;
       }
     }
@@ -174,7 +174,7 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
         List<? extends LevelVariable> vars = defCall.getDefinition().getLevelParameters();
         for (LevelVariable var : vars) {
           Level level = levelMap.get(var);
-          list.add(level == null ? new Level(var.getMinValue()) : level);
+          list.add(level == null ? new Level(0) : level);
         }
         for (int i = 0; i < list.size() - 1; i++) {
           Level maxLevel = list.get(i).max(list.get(i + 1)) /* TODO[sorts] */;

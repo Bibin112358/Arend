@@ -19,31 +19,19 @@ public class LevelEquationsSolver {
   private final List<AbstractEquation<Level>> myDeferredMaxEquations;
   private final LevelEquations<InferenceLevelVariable> myPLevelEquations = new LevelEquations<>();      // equations of the forms      c <= ?y and ?x <= max(?y + c', d)
   private final LevelEquations<InferenceLevelVariable> myBasedPLevelEquations = new LevelEquations<>(); // equations of the forms lp + c <= ?y and ?x <= max(?y + c', d)
-  private final LevelEquations<InferenceLevelVariable> myHLevelEquations = new LevelEquations<>();
-  private final LevelEquations<InferenceLevelVariable> myBasedHLevelEquations = new LevelEquations<>();
-  private final List<Pair<InferenceLevelVariable, InferenceLevelVariable>> myBoundVariables;
   private final Map<InferenceLevelVariable, Level> myConstantUpperBounds = new HashMap<>();
   private final Map<InferenceLevelVariable, Set<LevelVariable>> myLowerBounds = new HashMap<>();
   private final Map<LevelVariable, Set<InferenceLevelVariable>> myUpperBounds = new HashMap<>();
   private final ErrorReporter myErrorReporter;
   private final boolean myPBased;
-  private final boolean myHBased; // TODO[sorts]: Delete this
 
-  public LevelEquationsSolver(List<LevelEquation<LevelVariable>> levelEquations, List<? extends AbstractEquation<Level>> deferredMaxEquations, List<InferenceLevelVariable> variables, List<Pair<InferenceLevelVariable, InferenceLevelVariable>> boundVariables, ErrorReporter errorReporter, boolean pBased, boolean hBased) {
+  public LevelEquationsSolver(List<LevelEquation<LevelVariable>> levelEquations, List<? extends AbstractEquation<Level>> deferredMaxEquations, List<InferenceLevelVariable> variables, ErrorReporter errorReporter, boolean pBased) {
     myDeferredMaxEquations = new ArrayList<>(deferredMaxEquations);
     myPBased = pBased;
-    myHBased = hBased;
     for (InferenceLevelVariable var : variables) {
-      if (var.getType() == LevelVariable.LvlType.PLVL) {
-        myPLevelEquations.addVariable(var);
-        if (pBased) {
-          myBasedPLevelEquations.addVariable(var);
-        }
-      } else {
-        myHLevelEquations.addVariable(var);
-        if (hBased) {
-          myBasedHLevelEquations.addVariable(var);
-        }
+      myPLevelEquations.addVariable(var);
+      if (pBased) {
+        myBasedPLevelEquations.addVariable(var);
       }
     }
     variables.clear();
@@ -57,7 +45,6 @@ public class LevelEquationsSolver {
       }
     }
 
-    myBoundVariables = boundVariables;
     myErrorReporter = errorReporter;
   }
 
@@ -65,8 +52,8 @@ public class LevelEquationsSolver {
     // 0 <= max(_ +-c, +-d) // 10
     if (var1 == null) {
       // 0 <= max(?y - c, -d) // 1
-      if (maxConstant < 0 && (constant < 0 || constant == 0 && var2 instanceof InferenceLevelVariable && var2.getType() == LevelVariable.LvlType.HLVL)) {
-        addEquation(new LevelEquation<>(null, (InferenceLevelVariable) var2, var2.getType() == LevelVariable.LvlType.PLVL ? constant : constant - 1), false);
+      if (maxConstant < 0 && constant < 0) {
+        addEquation(new LevelEquation<>(null, (InferenceLevelVariable) var2, constant), false);
       }
       return;
     }
@@ -80,9 +67,9 @@ public class LevelEquationsSolver {
     if (var1 instanceof InferenceLevelVariable) {
       // ?x <= max(?y +- c, +-d) // 4
       if (var2 instanceof InferenceLevelVariable) {
-        LevelEquation<InferenceLevelVariable> equation = new LevelEquation<>((InferenceLevelVariable) var1, (InferenceLevelVariable) var2, constant, maxConstant < 0 ? null : var1.getType() == LevelVariable.LvlType.PLVL ? maxConstant : maxConstant + 1);
+        LevelEquation<InferenceLevelVariable> equation = new LevelEquation<>((InferenceLevelVariable) var1, (InferenceLevelVariable) var2, constant, maxConstant < 0 ? null : maxConstant);
         addEquation(equation, false);
-        if ((myPBased || var1.getType() != LevelVariable.LvlType.PLVL) && (myHBased || var1.getType() != LevelVariable.LvlType.HLVL)) {
+        if (myPBased) {
           addEquation(equation, true);
         }
       } else {
@@ -114,85 +101,23 @@ public class LevelEquationsSolver {
 
     // l <= max(?y +- c, +-d) // 4
     if (var2 instanceof InferenceLevelVariable && constant < 0) {
-      addEquation(new LevelEquation<>(null, (InferenceLevelVariable) var2, constant), var2.getType() == LevelVariable.LvlType.PLVL && myPBased || var2.getType() == LevelVariable.LvlType.HLVL && myHBased);
+      addEquation(new LevelEquation<>(null, (InferenceLevelVariable) var2, constant), myPBased);
     }
   }
 
   private void addEquation(LevelEquation<InferenceLevelVariable> equation, boolean based) {
     InferenceLevelVariable var1 = equation.isInfinity() ? equation.getVariable() : equation.getVariable1();
     InferenceLevelVariable var2 = equation.isInfinity() ? equation.getVariable() : equation.getVariable2();
-    assert var1 == null || var2 == null || var1.getType() == var2.getType();
 
-    if (var1 != null && var1.getType() == LevelVariable.LvlType.PLVL || var2 != null && var2.getType() == LevelVariable.LvlType.PLVL) {
+    if (var1 != null || var2 != null) {
       if (based) {
         myBasedPLevelEquations.addEquation(equation);
       } else {
         myPLevelEquations.addEquation(equation);
       }
-    } else if (var1 != null && var1.getType() == LevelVariable.LvlType.HLVL || var2 != null && var2.getType() == LevelVariable.LvlType.HLVL) {
-      if (based) {
-        myBasedHLevelEquations.addEquation(equation);
-      } else {
-        myHLevelEquations.addEquation(equation);
-      }
     } else {
       throw new IllegalStateException();
     }
-  }
-
-  public boolean addPropEquationIfPossible(Level level) {
-    if (level.withMaxConstant()) return false;
-
-    for (Map.Entry<LevelVariable, Integer> entry : level.getVarPairs()) {
-      if (!(entry.getKey() instanceof InferenceLevelVariable var && entry.getValue() <= 0)) {
-        return false;
-      }
-      Level oldLevel = myConstantUpperBounds.get(var);
-      if (oldLevel != null && (oldLevel.isProp() || entry.getValue() < 0 && oldLevel.isClosed() && oldLevel.getConstant() == 0)) {
-        continue;
-      }
-
-      Integer sol = trySolveProp(var);
-      if (sol != null && (sol == 0 || entry.getValue() < 0 && sol == -1)) {
-        myConstantUpperBounds.put(var, new Level(sol == 0 ? -1 : 0));
-      } else {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  // needed for lemmas and properties
-  private Integer trySolveProp(InferenceLevelVariable var) {
-    Set<InferenceLevelVariable> visited = new HashSet<>();
-    Deque<InferenceLevelVariable> toVisit = new ArrayDeque<>();
-    toVisit.add(var);
-    while (!toVisit.isEmpty()) {
-      InferenceLevelVariable vVar = toVisit.removeLast();
-      if (!visited.add(vVar)) {
-        continue;
-      }
-
-      Set<LevelVariable> lowerBounds = myLowerBounds.get(vVar);
-      if (lowerBounds == null) {
-        continue;
-      }
-
-      for (LevelVariable lowerBound : lowerBounds) {
-        if (!(lowerBound instanceof InferenceLevelVariable)) {
-          return null;
-        }
-        toVisit.add((InferenceLevelVariable) lowerBound);
-      }
-    }
-
-    if (myHLevelEquations.isEmpty()) {
-      return 0;
-    }
-
-    Map<InferenceLevelVariable, Integer> solution = new HashMap<>();
-    return myHLevelEquations.solve(solution) == null ? solution.get(var) : null;
   }
 
   private LevelVariable getLowerBound(InferenceLevelVariable var) {
@@ -217,60 +142,26 @@ public class LevelEquationsSolver {
   }
 
   public LevelSubstitution solveLevels() {
+    List<LevelEquation<InferenceLevelVariable>> cycle = null;
     Map<InferenceLevelVariable, Integer> basedSolution = new HashMap<>();
-    List<LevelEquation<InferenceLevelVariable>> cycle = myHBased ? myBasedHLevelEquations.solve(basedSolution) : null;
-
-    Set<InferenceLevelVariable> unBased = new HashSet<>();
-    if (myHBased) {
-      calculateUnBased(myBasedHLevelEquations, unBased, basedSolution);
-    } else {
-      unBased.addAll(myHLevelEquations.getVariables());
-    }
-
-    boolean ok = cycle == null;
-    if (!ok) {
-      reportCycle(cycle, unBased);
-    }
-
-    Map<InferenceLevelVariable, Integer> solution = new HashMap<>();
-    cycle = myHLevelEquations.solve(solution);
-    for (Map.Entry<InferenceLevelVariable, Integer> entry : solution.entrySet()) {
-      if (entry.getValue() != LevelEquations.INFINITY) {
-        entry.setValue(entry.getValue() + 1);
-      }
-    }
-    if (ok && cycle != null) {
-      reportCycle(cycle, unBased);
-    }
-
-    if (!myHBased || !unBased.isEmpty()) {
-      for (Pair<InferenceLevelVariable, InferenceLevelVariable> vars : myBoundVariables) {
-        if (!myHBased || unBased.contains(vars.proj2)) {
-          Integer sol = solution.get(vars.proj2);
-          if (sol == 0 || sol == 1) {
-            myPLevelEquations.getEquations().removeIf(equation -> !equation.isInfinity() && (equation.getVariable1() == vars.proj1 || equation.getVariable2() == vars.proj1));
-            myBasedPLevelEquations.getEquations().removeIf(equation -> !equation.isInfinity() && (equation.getVariable1() == vars.proj1 || equation.getVariable2() == vars.proj1));
-            myConstantUpperBounds.remove(vars.proj1);
-          }
-        }
-      }
-    }
 
     Set<InferenceLevelVariable> pUnBased = new HashSet<>();
     if (myPBased) {
       cycle = myBasedPLevelEquations.solve(basedSolution);
       calculateUnBased(myBasedPLevelEquations, pUnBased, basedSolution);
     }
-    ok = cycle == null;
+    boolean ok = cycle == null;
     if (!ok) {
       reportCycle(cycle, pUnBased);
     }
+
+    Map<InferenceLevelVariable, Integer> solution = new HashMap<>();
     cycle = myPLevelEquations.solve(solution);
     if (ok && cycle != null) {
       reportCycle(cycle, pUnBased);
     }
-    unBased.addAll(myPBased ? pUnBased : myPLevelEquations.getVariables());
 
+    Set<InferenceLevelVariable> unBased = myPBased ? pUnBased : new HashSet<>(myPLevelEquations.getVariables());
     SimpleLevelSubstitution result = new SimpleLevelSubstitution();
     for (InferenceLevelVariable var : unBased) {
       int sol = solution.get(var);
@@ -289,7 +180,7 @@ public class LevelEquationsSolver {
     }
 
     for (Map.Entry<InferenceLevelVariable, Integer> entry : basedSolution.entrySet()) {
-      assert entry.getValue() != LevelEquations.INFINITY || entry.getKey().getType() == LevelVariable.LvlType.HLVL;
+      assert entry.getValue() != LevelEquations.INFINITY;
       if (!unBased.contains(entry.getKey())) {
         int sol = solution.get(entry.getKey());
         result.add(entry.getKey(), sol == LevelEquations.INFINITY || entry.getValue() == LevelEquations.INFINITY ? Level.INFINITY : new Level(useStd ? LevelVariable.PVAR : getLowerBound(entry.getKey()), -entry.getValue(), -sol));

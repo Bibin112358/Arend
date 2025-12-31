@@ -46,7 +46,6 @@ public class TwoStageEquations implements Equations {
   private final List<AbstractEquation<SortExpression>> mySortExpressionEquations = new ArrayList<>();
   private final List<InferenceLevelVariable> myLevelVariables = new ArrayList<>();
   private final CheckTypeVisitor myVisitor;
-  private final List<Pair<InferenceLevelVariable, InferenceLevelVariable>> myBoundVariables = new ArrayList<>();
   private final Map<InferenceVariable, Expression> myNotSolvableFromEquationsVars = new HashMap<>();
 
   public TwoStageEquations(CheckTypeVisitor visitor) {
@@ -218,7 +217,7 @@ public class TwoStageEquations implements Equations {
 
       // ?x <> Type
       if (cmp == CMP.LE && cType instanceof UniverseExpression universe && universe.getSortExpression() instanceof SortExpression.Const(Sort sort) && sort.getHLevel().isInfinity()) {
-        InferenceLevelVariable pl = new InferenceLevelVariable(LevelVariable.LvlType.PLVL, true, sourceNode);
+        InferenceLevelVariable pl = new InferenceLevelVariable(true, sourceNode);
         addVariable(pl);
         Sort genSort = new Sort(new Level(pl), sort.getHLevel());
         solve(cInf, new UniverseExpression(genSort), false);
@@ -255,21 +254,14 @@ public class TwoStageEquations implements Equations {
     return true;
   }
 
-  @Override
-  public void bindVariables(InferenceLevelVariable pVar, InferenceLevelVariable hVar) {
-    assert pVar.getType() == LevelVariable.LvlType.PLVL;
-    assert hVar.getType() == LevelVariable.LvlType.HLVL;
-    myBoundVariables.add(new Pair<>(pVar, hVar));
-  }
-
   private boolean addLevelEquation(final LevelVariable var1, LevelVariable var2, int constant, int maxConstant, Concrete.SourceNode sourceNode) {
     // 0 <= max(_ + c, +-d) // 6
-    if (var1 == null && (constant >= 1 || constant == 0 && (var2 == null || var2.getType() == LevelVariable.LvlType.PLVL))) {
+    if (var1 == null && constant >= 0) {
       return true;
     }
 
     // _ <= max(-c, -d), _ <= max(l - c, -d) // 6
-    if (!(var2 instanceof InferenceLevelVariable) && maxConstant < 0 && (constant < 0 || constant == 0 && var2 != null && var2.getType() == LevelVariable.LvlType.HLVL && var1 == null) && !(var2 == null && var1 instanceof InferenceLevelVariable && var1.getType() == LevelVariable.LvlType.HLVL && constant >= -1 && maxConstant >= -1)) {
+    if (!(var2 instanceof InferenceLevelVariable) && maxConstant < 0 && constant < 0) {
       myVisitor.getErrorReporter().report(new SolveLevelEquationsError(Collections.singletonList(new LevelEquation<>(var1, var2, constant)), sourceNode));
       return false;
     }
@@ -305,7 +297,7 @@ public class TwoStageEquations implements Equations {
       for (InferenceLevelVariable var : infVars) {
         varMap.put(var, 0);
       }
-      myDeferredMaxLevelEquations.add(new AbstractEquation<>(Level.INFINITY, new Level(varMap, infVars.getFirst().getMinValue()), CMP.LE, sourceNode));
+      myDeferredMaxLevelEquations.add(new AbstractEquation<>(Level.INFINITY, new Level(varMap, 0), CMP.LE, sourceNode));
       return true;
     } else {
       myVisitor.getErrorReporter().report(new SolveLevelEquationsError(Collections.singletonList(new LevelEquation<>(vars.isEmpty() ? null : vars.iterator().next())), sourceNode));
@@ -380,7 +372,7 @@ public class TwoStageEquations implements Equations {
     }
     mySortExpressionEquations.clear();
 
-    LevelEquationsSolver solver = new LevelEquationsSolver(myLevelEquations, myDeferredMaxLevelEquations, myLevelVariables, myBoundVariables, myVisitor.getErrorReporter(), myVisitor.isPBased(), false);
+    LevelEquationsSolver solver = new LevelEquationsSolver(myLevelEquations, myDeferredMaxLevelEquations, myLevelVariables, myVisitor.getErrorReporter(), myVisitor.isPBased());
     myLevelEquations.clear();
     myDeferredMaxLevelEquations.clear();
     return solver;
@@ -414,7 +406,6 @@ public class TwoStageEquations implements Equations {
 
     myEquations.clear();
     myNotSolvableFromEquationsVars.clear();
-    myBoundVariables.clear();
   }
 
   @Override
@@ -488,7 +479,6 @@ public class TwoStageEquations implements Equations {
     state.numberOfLevelEquations = myLevelEquations.size();
     state.numberOfDeferredMaxLevelEquations = myDeferredMaxLevelEquations.size();
     state.numberOfSortExpressionEquations = mySortExpressionEquations.size();
-    state.numberOfBoundVars = myBoundVariables.size();
     state.notSolvableFromEquationsVars = new HashSet<>(myNotSolvableFromEquationsVars.keySet());
   }
 
@@ -506,9 +496,6 @@ public class TwoStageEquations implements Equations {
     }
     if (mySortExpressionEquations.size() > state.numberOfSortExpressionEquations) {
       mySortExpressionEquations.subList(state.numberOfSortExpressionEquations, mySortExpressionEquations.size()).clear();
-    }
-    if (myBoundVariables.size() > state.numberOfBoundVars) {
-      myBoundVariables.subList(state.numberOfBoundVars, myBoundVariables.size()).clear();
     }
     myNotSolvableFromEquationsVars.keySet().retainAll(state.notSolvableFromEquationsVars);
   }
