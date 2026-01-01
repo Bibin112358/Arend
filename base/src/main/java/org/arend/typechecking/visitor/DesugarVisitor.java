@@ -529,7 +529,6 @@ public class DesugarVisitor extends BaseConcreteExpressionVisitor<Void> {
   @Override
   public Concrete.Expression visitUniverse(Concrete.UniverseExpression expr, Void params) {
     visitLevelExpression(expr.getPLevel());
-    visitLevelExpression(expr.getHLevel());
     return expr;
   }
 

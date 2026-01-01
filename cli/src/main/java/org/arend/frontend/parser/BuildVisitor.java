@@ -1336,9 +1336,9 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
     return new Concrete.ClassFieldImpl(position, LongUnresolvedReference.make(position, path), term, subClassFieldImpls == null ? null : new Concrete.Coclauses(tokenPosition(ctx.start), subClassFieldImpls), false);
   }
 
-  private Concrete.LevelExpression parseTruncatedUniverse(TerminalNode terminal) {
+  private Integer parseTruncatedUniverse(TerminalNode terminal) {
     String universe = terminal.getText();
-    return new Concrete.NumberLevelExpression(tokenPosition(terminal.getSymbol()), Integer.parseInt(universe.substring(1, universe.indexOf('-'))));
+    return Integer.parseInt(universe.substring(1, universe.indexOf('-')));
   }
 
   @Override
@@ -1372,7 +1372,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
   @Override
   public Concrete.UniverseExpression visitSetUniverse(SetUniverseContext ctx) {
     Position position = tokenPosition(ctx.start);
-    return new Concrete.UniverseExpression(position, getLevelExpression(position, ctx.SET().getText().substring("\\Set".length()), ctx.maybeLevelAtom()), new Concrete.NumberLevelExpression(position, 0), ConcreteUniverseExpression.Kind.TYPE);
+    return new Concrete.UniverseExpression(position, getLevelExpression(position, ctx.SET().getText().substring("\\Set".length()), ctx.maybeLevelAtom()), 0, ConcreteUniverseExpression.Kind.TYPE);
   }
 
   @Override
@@ -1414,7 +1414,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
     Position position = tokenPosition(ctx.start);
     String text = ctx.SET().getText().substring("\\Set".length());
     Concrete.LevelExpression pLevel = text.isEmpty() ? null : new Concrete.NumberLevelExpression(position, Integer.parseInt(text));
-    return new Concrete.UniverseExpression(position, pLevel, new Concrete.NumberLevelExpression(position, 0), ConcreteUniverseExpression.Kind.TYPE);
+    return new Concrete.UniverseExpression(position, pLevel, 0, ConcreteUniverseExpression.Kind.TYPE);
   }
 
   @Override
@@ -1428,7 +1428,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
   @Override
   public Concrete.UniverseExpression visitProp(PropContext ctx) {
     Position pos = tokenPosition(ctx.start);
-    return new Concrete.UniverseExpression(pos, new Concrete.NumberLevelExpression(pos, 0), new Concrete.NumberLevelExpression(pos, -1), ConcreteUniverseExpression.Kind.TYPE);
+    return new Concrete.UniverseExpression(pos, new Concrete.NumberLevelExpression(pos, 0), -1, ConcreteUniverseExpression.Kind.TYPE);
   }
 
   @Override

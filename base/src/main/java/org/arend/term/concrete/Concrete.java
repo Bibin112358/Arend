@@ -1265,12 +1265,12 @@ public final class Concrete {
   public static class UniverseExpression extends Expression implements ConcreteUniverseExpression {
     public static final byte PREC = 12;
     private final LevelExpression myPLevel;
-    private final LevelExpression myHLevel; // TODO[sorts]: Delete this
+    private final Integer myHLevel;
     private final Kind myKind;
     private final Integer myInfIndex;
     private FieldReferableImpl myInfField;
 
-    private UniverseExpression(Object data, LevelExpression pLevel, LevelExpression hLevel, Kind kind, Integer infIndex) {
+    private UniverseExpression(Object data, LevelExpression pLevel, Integer hLevel, Kind kind, Integer infIndex) {
       super(data);
       myPLevel = pLevel;
       myHLevel = hLevel;
@@ -1278,7 +1278,7 @@ public final class Concrete {
       myInfIndex = infIndex;
     }
 
-    public UniverseExpression(Object data, LevelExpression pLevel, LevelExpression hLevel, Kind kind) {
+    public UniverseExpression(Object data, LevelExpression pLevel, Integer hLevel, Kind kind) {
       this(data, pLevel, hLevel, kind, null);
     }
 
@@ -1290,7 +1290,7 @@ public final class Concrete {
 
     @Override
     @Nullable
-    public LevelExpression getHLevel() {
+    public Integer getHLevel() {
       return myHLevel;
     }
 

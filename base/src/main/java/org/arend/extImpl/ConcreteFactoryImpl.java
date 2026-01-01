@@ -168,11 +168,11 @@ public class ConcreteFactoryImpl implements ConcreteFactory {
 
   @NotNull
   @Override
-  public Concrete.UniverseExpression universe(@Nullable ConcreteLevel pLevel, @Nullable ConcreteLevel hLevel, ConcreteUniverseExpression.Kind kind) {
-    if (!((pLevel == null || pLevel instanceof Concrete.LevelExpression) && (hLevel == null || hLevel instanceof Concrete.LevelExpression))) {
+  public Concrete.UniverseExpression universe(@Nullable ConcreteLevel pLevel, @Nullable Integer hLevel, ConcreteUniverseExpression.Kind kind) {
+    if (!(pLevel == null || pLevel instanceof Concrete.LevelExpression)) {
       throw new IllegalArgumentException();
     }
-    return new Concrete.UniverseExpression(myData, (Concrete.LevelExpression) pLevel, (Concrete.LevelExpression) hLevel, kind);
+    return new Concrete.UniverseExpression(myData, (Concrete.LevelExpression) pLevel, hLevel, kind);
   }
 
   @NotNull
@@ -550,7 +550,7 @@ public class ConcreteFactoryImpl implements ConcreteFactory {
   }
 
   @Override
-  public @NotNull Concrete.DataDefinition data(@NotNull ArendRef ref, @NotNull Collection<? extends ConcreteParameter> parameters, boolean isTruncated, @Nullable ConcreteLevel pLevel, @Nullable ConcreteLevel hLevel, @NotNull Collection<? extends ConcreteConstructorClause> clauses) {
+  public @NotNull Concrete.DataDefinition data(@NotNull ArendRef ref, @NotNull Collection<? extends ConcreteParameter> parameters, boolean isTruncated, @Nullable ConcreteLevel pLevel, @Nullable Integer hLevel, @NotNull Collection<? extends ConcreteConstructorClause> clauses) {
     if (!(ref instanceof LocatedReferableImpl cRef)) {
       throw new IllegalArgumentException("The reference must be a global reference with a parent");
     }

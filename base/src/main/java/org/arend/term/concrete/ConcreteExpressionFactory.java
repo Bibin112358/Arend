@@ -217,7 +217,7 @@ public class ConcreteExpressionFactory {
     return new Concrete.UniverseExpression(null, new Concrete.NumberLevelExpression(null, level), null, ConcreteUniverseExpression.Kind.TYPE);
   }
 
-  public static Concrete.UniverseExpression cUniverse(Concrete.LevelExpression pLevel, Concrete.LevelExpression hLevel, Concrete.UniverseExpression.Kind kind) {
+  public static Concrete.UniverseExpression cUniverse(Concrete.LevelExpression pLevel, Integer hLevel, Concrete.UniverseExpression.Kind kind) {
     return new Concrete.UniverseExpression(null, pLevel, hLevel, kind);
   }
 

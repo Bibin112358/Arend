@@ -3365,15 +3365,15 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
     Level pLevel = expr.getPLevel() != null ? expr.getPLevel().accept(this, null) : null;
     Level hLevel;
-    if (expr.getHLevel() instanceof Concrete.NumberLevelExpression numberLevelExpr) {
-      int number = numberLevelExpr.getNumber();
+    if (expr.getHLevel() != null) {
+      int number = expr.getHLevel();
       if (number < -1) {
         errorReporter.report(new TypecheckingError("Expected a number >= -1", expr));
         number = -1;
       }
       hLevel = new Level(number);
     } else {
-      hLevel = expr.getHLevel() != null ? expr.getHLevel().accept(this, null) : null;
+      hLevel = null;
     }
 
     if (pLevel == null) {
@@ -3385,7 +3385,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     Sort sort;
     if (expr.getKind() != ConcreteUniverseExpression.Kind.TYPE) {
       if (hLevel != null) {
-        errorReporter.report(new TypecheckingError("\\Cat cannot have an h-level", expr.getHLevel()));
+        errorReporter.report(new TypecheckingError("\\Cat cannot have an h-level", expr));
       }
       sort = new Sort(pLevel, true);
     } else {
@@ -3994,8 +3994,8 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     // Check if the level of the result type is specified explicitly
     if (expr.getResultTypeLevel() == null && expr.getResultType() instanceof Concrete.TypedExpression) {
       Concrete.Expression typeType = ((Concrete.TypedExpression) expr.getResultType()).type;
-      if (typeType instanceof Concrete.UniverseExpression universeType && universeType.getHLevel() instanceof Concrete.NumberLevelExpression) {
-        level = minInteger(level, Math.max(((Concrete.NumberLevelExpression) universeType.getHLevel()).getNumber(), -1));
+      if (typeType instanceof Concrete.UniverseExpression universeType && universeType.getHLevel() != null) {
+        level = minInteger(level, Math.max(universeType.getHLevel(), -1));
       }
     }
 

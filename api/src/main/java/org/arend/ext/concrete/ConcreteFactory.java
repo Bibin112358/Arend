@@ -36,7 +36,7 @@ public interface ConcreteFactory {
   @NotNull ConcreteExpression lam(@NotNull Collection<? extends ConcreteParameter> parameters, @NotNull ConcreteExpression body);
   @NotNull ConcreteExpression pi(@NotNull Collection<? extends ConcreteParameter> parameters, @NotNull ConcreteExpression codomain);
   @NotNull ConcreteExpression arr(@NotNull ConcreteExpression domain, @NotNull ConcreteExpression codomain);
-  @NotNull ConcreteExpression universe(@Nullable ConcreteLevel pLevel, @Nullable ConcreteLevel hLevel, ConcreteUniverseExpression.Kind kind);
+  @NotNull ConcreteExpression universe(@Nullable ConcreteLevel pLevel, @Nullable Integer hLevel, ConcreteUniverseExpression.Kind kind);
   @NotNull ConcreteExpression hole();
   @NotNull ConcreteExpression error(@Nullable GeneralError error);
   @NotNull ConcreteExpression goal();
@@ -73,7 +73,7 @@ public interface ConcreteFactory {
   @NotNull ConcreteFunctionBody body(@NotNull ConcreteExpression term);
   @NotNull ConcreteFunctionBody body(@NotNull Collection<? extends ConcreteReferenceExpression> elim, @NotNull Collection<? extends ConcreteClause> clauses);
   @NotNull ConcreteFunctionBody body(@NotNull Collection<? extends ConcreteClassElement> coclauses);
-  @NotNull ConcreteDefinition data(@NotNull ArendRef ref, @NotNull Collection<? extends ConcreteParameter> parameters, boolean isTruncated, @Nullable ConcreteLevel pLevel, @Nullable ConcreteLevel hLevel, @NotNull Collection<? extends ConcreteConstructorClause> clauses);
+  @NotNull ConcreteDefinition data(@NotNull ArendRef ref, @NotNull Collection<? extends ConcreteParameter> parameters, boolean isTruncated, @Nullable ConcreteLevel pLevel, @Nullable Integer hLevel, @NotNull Collection<? extends ConcreteConstructorClause> clauses);
   @NotNull ConcreteConstructorClause clause(@Nullable Collection<? extends ConcretePattern> patterns, @NotNull Collection<? extends ConcreteConstructor> constructors);
   @NotNull ConcreteConstructor constructor(@NotNull ArendRef ref, @NotNull Collection<? extends ConcreteParameter> parameters, @NotNull Collection<? extends ConcreteReferenceExpression> elimRefs, @NotNull Collection<? extends ConcreteClause> clauses, boolean isCoerce);
   @NotNull ConcreteDefinition classDef(@NotNull ArendRef ref, boolean isRecord, boolean withoutClassifying, @NotNull Collection<? extends ConcreteReferenceExpression> superClasses, @NotNull Collection<? extends ConcreteClassElement> elements);

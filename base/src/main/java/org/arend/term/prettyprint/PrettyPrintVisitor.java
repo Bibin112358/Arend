@@ -601,7 +601,8 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
 
   @Override
   public Void visitUniverse(Concrete.UniverseExpression expr, Precedence prec) {
-    if (expr.getHLevel() instanceof Concrete.NumberLevelExpression && ((Concrete.NumberLevelExpression) expr.getHLevel()).getNumber() == -1) {
+    Integer hLevel = expr.getHLevel();
+    if (hLevel != null && hLevel.equals(-1)) {
       myBuilder.append("\\Prop");
       return null;
     }
@@ -613,8 +614,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
       myBuilder.append("\\Sort");
     } else if (expr.getKind() == ConcreteUniverseExpression.Kind.CAT) {
       myBuilder.append("\\Cat");
-    } else if (expr.getHLevel() instanceof Concrete.NumberLevelExpression) {
-      int hLevel = ((Concrete.NumberLevelExpression) expr.getHLevel()).getNumber();
+    } else if (hLevel != null) {
       if (hLevel == 0) {
         myBuilder.append("\\Set");
       } else {

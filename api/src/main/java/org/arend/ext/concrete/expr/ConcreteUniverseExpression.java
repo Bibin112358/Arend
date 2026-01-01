@@ -8,6 +8,6 @@ public interface ConcreteUniverseExpression extends ConcreteExpression {
   enum Kind { SORT, CAT, TYPE }
 
   @Nullable ConcreteLevel getPLevel();
-  @Nullable ConcreteLevel getHLevel();
+  @Nullable Integer getHLevel();
   @NotNull Kind getKind();
 }

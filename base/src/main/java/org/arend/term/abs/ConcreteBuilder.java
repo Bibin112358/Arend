@@ -690,7 +690,7 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
 
     return new Concrete.UniverseExpression(data,
             pLevelNum != null ? new Concrete.NumberLevelExpression(data, pLevelNum) : pLevel != null ? pLevel.accept(this, null) : null,
-            hLevelNum != null ? new Concrete.NumberLevelExpression(data, hLevelNum) : null, ConcreteUniverseExpression.Kind.TYPE);
+            hLevelNum, ConcreteUniverseExpression.Kind.TYPE);
   }
 
   @Override

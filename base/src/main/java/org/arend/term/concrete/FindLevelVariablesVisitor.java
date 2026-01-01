@@ -27,9 +27,6 @@ public class FindLevelVariablesVisitor extends VoidConcreteVisitor<Void> {
     if (expr.getPLevel() != null) {
       expr.getPLevel().accept(this, null);
     }
-    if (expr.getHLevel() != null) {
-      expr.getHLevel().accept(this, null);
-    }
     return null;
   }
 
