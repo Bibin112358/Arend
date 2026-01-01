@@ -1617,9 +1617,9 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
     return null;
   }
 
-  private void prettyPrintLevelParameters(List<? extends Referable> referables, boolean isIncreasing, Boolean isPLevels) {
-    if (isPLevels != null) {
-      myBuilder.append(isPLevels ? "\\plevels " : "\\hlevels "); // TODO[sorts]: Delete hlevels
+  private void prettyPrintLevelParameters(List<? extends Referable> referables, boolean isIncreasing, boolean printHeader) {
+    if (printHeader) {
+      myBuilder.append("\\plevels ");
     }
     for (int i = 0; i < referables.size(); i++) {
       if (i > 0) {
@@ -1629,8 +1629,8 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
     }
   }
 
-  public void prettyPrintLevelParameters(Concrete.LevelParameters parameters, Boolean isPLevels) {
-    prettyPrintLevelParameters(parameters.getReferables(), parameters.isIncreasing, isPLevels);
+  public void prettyPrintLevelParameters(Concrete.LevelParameters parameters, boolean printHeader) {
+    prettyPrintLevelParameters(parameters.getReferables(), parameters.isIncreasing, printHeader);
   }
 
   public void prettyPrintLevelsDefinition(Concrete.LevelsDefinition def) {

@@ -338,8 +338,8 @@ public class CoreDefinitionChecker extends BaseDefinitionTypechecker {
       }
     }
 
-    for (Map.Entry<ClassDefinition, Levels> entry : definition.getSuperLevels().entrySet()) {
-      myChecker.checkLevels(entry.getValue(), entry.getKey(), null);
+    for (Levels levels : definition.getSuperLevels().values()) {
+      myChecker.checkLevels(levels, null);
     }
 
     for (ClassField field : definition.getPersonalFields()) {

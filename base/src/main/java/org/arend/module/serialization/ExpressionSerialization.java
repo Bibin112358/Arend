@@ -82,13 +82,8 @@ class ExpressionSerialization implements ExpressionVisitor<Void, ExpressionProto
       builder.addPLevel(writeLevel(((SingleLevel) levels).get(LevelVariable.PVAR)));
       builder.setIsStd(true);
     } else {
-      List<? extends Level> list = levels.toList();
-      int pNum = def.getNumberOfPLevelParameters();
-      for (int i = 0; i < list.size(); i++) {
-        Level level = list.get(i);
-        if (i < pNum) {
-          builder.addPLevel(writeLevel(level));
-        }
+      for (Level level : levels.toList()) {
+        builder.addPLevel(writeLevel(level));
       }
       builder.setIsStd(false);
     }

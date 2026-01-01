@@ -56,9 +56,7 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
   }
 
   void setDefinition(Definition definition) {
-    List<? extends LevelVariable> params = definition.getLevelParameters();
-    int pNum = definition.getNumberOfPLevelParameters();
-    myLevelParameters = params == null ? null : params.subList(0, pNum);
+    myLevelParameters = definition.getLevelParameters();
     myCheckLevelVariables = true;
   }
 
@@ -77,14 +75,9 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
     }
   }
 
-  void checkLevels(Levels levels, Definition definition, Expression expr) {
-    List<? extends Level> list = levels.toList();
-    int pNum = definition.getNumberOfPLevelParameters();
-    for (int i = 0; i < pNum; i++) {
-      checkLevel(list.get(i), expr);
-    }
-    for (int i = pNum; i < list.size(); i++) {
-      checkLevel(list.get(i), expr);
+  void checkLevels(Levels levels, Expression expr) {
+    for (Level level : levels.toList()) {
+      checkLevel(level, expr);
     }
   }
 
@@ -100,7 +93,7 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
 
   @Override
   public Expression visitFunCall(FunCallExpression expr, Expression expectedType) {
-    checkLevels(expr.getLevels(), expr.getDefinition(), expr);
+    checkLevels(expr.getLevels(), expr);
     checkBoxes(expr);
     ExprSubstitution substitution = new ExprSubstitution();
     List<? extends Expression> args = expr.getDefCallArguments();
@@ -119,7 +112,7 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
 
   @Override
   public Expression visitConCall(ConCallExpression expr, Expression expectedType) {
-    checkLevels(expr.getLevels(), expr.getDefinition(), expr);
+    checkLevels(expr.getLevels(), expr);
     checkBoxes(expr);
     if (expr.getDefinition() == Prelude.FIN_ZERO || expr.getDefinition() == Prelude.FIN_SUC) {
       throw new CoreException(CoreErrorWrapper.make(new TypecheckingError("'Fin." + expr.getDefinition().getName() + "' is not allowed", mySourceNode), expr));
@@ -183,7 +176,7 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
 
   @Override
   public Expression visitDataCall(DataCallExpression expr, Expression expectedType) {
-    checkLevels(expr.getLevels(), expr.getDefinition(), expr);
+    checkLevels(expr.getLevels(), expr);
     checkBoxes(expr);
     checkList(expr.getDefCallArguments(), expr.getDefinition().getParameters(), new ExprSubstitution(), expr.getLevelSubstitution());
     return check(expectedType, GetTypeVisitor.INSTANCE.visitDataCall(expr, null), expr);
@@ -214,7 +207,7 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
     if (!(expr.getImplementedHere().size() <= 1 || expr.getImplementedHere() instanceof LinkedHashMap)) {
       throw new CoreException(CoreErrorWrapper.make(new TypecheckingError("Implementations in a classCall have wrong type: " + expr.getImplementedHere().getClass(), mySourceNode), expr));
     }
-    checkLevels(expr.getLevels(), expr.getDefinition(), expr);
+    checkLevels(expr.getLevels(), expr);
     addBinding(expr.getThisBinding(), expr);
     Expression thisExpr = new ReferenceExpression(expr.getThisBinding());
     for (Map.Entry<ClassField, Expression> entry : expr.getImplementedHere().entrySet()) {

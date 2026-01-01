@@ -322,10 +322,9 @@ public class ToAbstractVisitor extends BaseExpressionVisitor<Void, Concrete.Expr
       if (params == null) {
         pLevels = Collections.singletonList((Level) subst.get(LevelVariable.PVAR));
       } else {
-        int pNum = def.getNumberOfPLevelParameters();
-        pLevels = new ArrayList<>(pNum);
-        for (int i = 0; i < pNum; i++) {
-          pLevels.add((Level) subst.get(params.get(i)));
+        pLevels = new ArrayList<>(params.size());
+        for (LevelVariable param : params) {
+          pLevels.add((Level) subst.get(param));
         }
       }
     } else {

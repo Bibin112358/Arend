@@ -1925,7 +1925,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
 
     List<? extends LevelVariable> params = def.getLevelParameters();
-    List<? extends LevelVariable> pParams = params == null ? Collections.singletonList(LevelVariable.PVAR) : params.subList(0, def.getNumberOfPLevelParameters());
+    List<? extends LevelVariable> pParams = params == null ? Collections.singletonList(LevelVariable.PVAR) : params;
 
     List<Level> result = new ArrayList<>();
     LevelSubstitution defaultSubst = defaultLevels == null ? null : defaultLevels.makeSubstitution(def);
