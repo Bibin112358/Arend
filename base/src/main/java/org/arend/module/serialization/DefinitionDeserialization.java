@@ -57,16 +57,11 @@ public class DefinitionDeserialization implements ArendDeserializer {
 
     if (def instanceof TopLevelDefinition topDef) {
       topDef.setUniverseKind(defDeserializer.readUniverseKind(defProto.getUniverseKind()));
-      int pLevelsParent = defProto.getPLevelsParent();
+      int pLevelsParent = defProto.getLevelsParent();
       if (pLevelsParent != 0) {
-        topDef.setPLevelsParent(myCallTargetProvider.getRef(pLevelsParent - 1));
+        topDef.setLevelsParent(myCallTargetProvider.getRef(pLevelsParent - 1));
       }
-      int hLevelsParent = defProto.getHLevelsParent();
-      if (hLevelsParent != 0) {
-        topDef.setHLevelsParent(myCallTargetProvider.getRef(hLevelsParent - 1));
-      }
-      topDef.setPLevelsDerived(defProto.getPLevelsDerived());
-      topDef.setHLevelsDerived(defProto.getHLevelsDerived());
+      topDef.setLevelsDerived(defProto.getLevelsDerived());
       topDef.setAxioms(readDefinitions(defProto.getAxiomList(), FunctionDefinition.class));
 
       topDef.setParametersOriginalDefinitions(parametersOriginalDefinitions);

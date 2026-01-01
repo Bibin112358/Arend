@@ -52,19 +52,11 @@ public abstract class Definition extends UserDataHolderImpl implements CoreDefin
     return Collections.emptySet();
   }
 
-  public LocatedReferable getPLevelsParent() {
+  public LocatedReferable getLevelsParent() {
     return null;
   }
 
-  public LocatedReferable getHLevelsParent() {
-    return null;
-  }
-
-  public boolean arePLevelsDerived() {
-    return false;
-  }
-
-  public boolean areHLevelsDerived() {
+  public boolean areLevelsDerived() {
     return false;
   }
 

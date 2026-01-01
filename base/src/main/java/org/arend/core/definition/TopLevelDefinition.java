@@ -12,10 +12,8 @@ import java.util.Set;
 public abstract class TopLevelDefinition extends CallableDefinition {
   private UniverseKind myUniverseKind = UniverseKind.NO_UNIVERSES;
   private List<? extends LevelVariable> myLevelParameters;
-  private LocatedReferable myPLevelsParent;
-  private LocatedReferable myHLevelsParent; // TODO[sorts]: Delete this
-  private boolean myPLevelsDerived;
-  private boolean myHLevelsDerived; // TODO[sorts]: Delete this
+  private LocatedReferable myLevelsParent;
+  private boolean myLevelsDerived;
   private List<Pair<TCDefReferable,Integer>> myParametersOriginalDefinitions = Collections.emptyList();
   private Set<? extends FunctionDefinition> myAxioms = Collections.emptySet();
   private Set<? extends Definition> myGoals = Collections.emptySet();
@@ -48,39 +46,21 @@ public abstract class TopLevelDefinition extends CallableDefinition {
   }
 
   @Override
-  public LocatedReferable getPLevelsParent() {
-    return myPLevelsParent;
+  public LocatedReferable getLevelsParent() {
+    return myLevelsParent;
+  }
+
+  public void setLevelsParent(LocatedReferable parent) {
+    myLevelsParent = parent;
   }
 
   @Override
-  public LocatedReferable getHLevelsParent() {
-    return myHLevelsParent;
+  public boolean areLevelsDerived() {
+    return myLevelsDerived;
   }
 
-  public void setPLevelsParent(LocatedReferable parent) {
-    myPLevelsParent = parent;
-  }
-
-  public void setHLevelsParent(LocatedReferable parent) {
-    myHLevelsParent = parent;
-  }
-
-  @Override
-  public boolean arePLevelsDerived() {
-    return myPLevelsDerived;
-  }
-
-  @Override
-  public boolean areHLevelsDerived() {
-    return myHLevelsDerived;
-  }
-
-  public void setPLevelsDerived(boolean derived) {
-    myPLevelsDerived = derived;
-  }
-
-  public void setHLevelsDerived(boolean derived) {
-    myHLevelsDerived = derived;
+  public void setLevelsDerived(boolean derived) {
+    myLevelsDerived = derived;
   }
 
   @Override

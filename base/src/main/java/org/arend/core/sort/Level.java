@@ -117,19 +117,6 @@ public class Level implements CoreLevel {
     return new Level(vars, keepConstant ? myConstant : myConstant + constant);
   }
 
-  // TODO[sorts]: Delete this after deleting h-level variables
-  private Level add1(int constant) {
-    assert constant >= -1;
-    if (constant == 0 || myVars == null) return this;
-    Map<LevelVariable,Integer> vars = new HashMap<>(myVars.size());
-    for (Map.Entry<LevelVariable, Integer> entry : myVars.entrySet()) {
-      int newConstant = entry.getValue() + constant;
-      vars.put(entry.getKey(), newConstant < 0 ? -1 : newConstant);
-    }
-    int newConstant = myConstant + constant;
-    return new Level(vars, newConstant < 0 ? -1 : newConstant);
-  }
-
   public Level max(Level level) {
     if (isInfinity() || level.isInfinity()) {
       return INFINITY;
@@ -166,7 +153,7 @@ public class Level implements CoreLevel {
       if (level == null) {
         rest.put(entry.getKey(), entry.getValue());
       } else {
-        substLevels.add(level.add1(entry.getValue()));
+        substLevels.add(level.add(entry.getValue()));
       }
     }
 

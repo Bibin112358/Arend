@@ -44,14 +44,10 @@ public class DefinitionSerialization implements ArendSerializer {
     final DefinitionProtos.Definition.Builder out = DefinitionProtos.Definition.newBuilder();
     out.setUniverseKind(defSerializer.writeUniverseKind(definition.getUniverseKind()));
     out.putAllUserData(writeUserData(definition));
-    if (definition.getPLevelsParent() != null) {
-      out.setPLevelsParent(myCallTargetIndexProvider.getDefIndex(definition.getPLevelsParent()) + 1);
+    if (definition.getLevelsParent() != null) {
+      out.setLevelsParent(myCallTargetIndexProvider.getDefIndex(definition.getLevelsParent()) + 1);
     }
-    if (definition.getHLevelsParent() != null) {
-      out.setHLevelsParent(myCallTargetIndexProvider.getDefIndex(definition.getHLevelsParent()) + 1);
-    }
-    out.setPLevelsDerived(definition.arePLevelsDerived());
-    out.setHLevelsDerived(definition.areHLevelsDerived());
+    out.setLevelsDerived(definition.areLevelsDerived());
     out.setIsStdLevels(definition.getLevelParameters() == null);
     out.setNoErrors(definition.status().noErrors());
     if (definition.getLevelParameters() != null) {
