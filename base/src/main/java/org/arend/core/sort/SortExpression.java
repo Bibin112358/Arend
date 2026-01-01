@@ -1,12 +1,11 @@
 package org.arend.core.sort;
 
-import org.arend.core.context.binding.LevelVariable;
-import org.arend.core.context.binding.inference.InferenceLevelVariable;
 import org.arend.core.context.binding.inference.InferenceVariable;
 import org.arend.core.definition.ClassField;
 import org.arend.core.expr.Expression;
 import org.arend.core.expr.PiExpression;
 import org.arend.core.expr.UniverseExpression;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.ext.core.level.LevelSubstitution;
 import org.arend.ext.core.ops.CMP;
 import org.arend.ext.core.ops.NormalizationMode;
@@ -58,14 +57,14 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
       case Var(int index1) -> {
         if (sortExpr2 instanceof Var(int index2)) {
           return index1 == index2;
-        } else if (sortExpr2 instanceof Const(Sort sort2) && sort2.getPLevel().isClosed() && sort2.getHLevel().isClosed()) {
+        } else if (sortExpr2 instanceof Const(Sort sort2) && sort2.getPLevel().isClosed()) {
           return sort2.getPLevel().isInfinity() && sort2.getHLevel().isInfinity();
         }
       }
       case Field(FieldReferableImpl field1) -> {
         if (sortExpr2 instanceof Field(FieldReferableImpl field2)) {
           return field1.equals(field2);
-        } else if (sortExpr2 instanceof Const(Sort sort2) && sort2.getPLevel().isClosed() && sort2.getHLevel().isClosed()) {
+        } else if (sortExpr2 instanceof Const(Sort sort2) && sort2.getPLevel().isClosed()) {
           return sort2.getPLevel().isInfinity() && sort2.getHLevel().isInfinity();
         }
       }
@@ -102,8 +101,8 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
 
     @Override
     public @Nullable BigInteger getSortHLevel() {
-      Level level = sort.getHLevel();
-      return level.isClosed() ? BigInteger.valueOf(level.getConstant()) : null;
+      ConstLevel level = sort.getHLevel();
+      return level.value() == null ? null : BigInteger.valueOf(level.value());
     }
   }
 
@@ -341,28 +340,15 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
   }
 
   static @NotNull SortExpression makeTrunc(@NotNull SortExpression sort, int level) {
-    return makePi(sort, new Const(new Sort(new Level(0), new Level(level))));
+    return makePi(sort, new Const(new Sort(new Level(0), new ConstLevel(level))));
   }
 
   static @NotNull SortExpression makePrev(@NotNull SortExpression sort) {
     if (sort instanceof Const(Sort aSort)) {
       if (aSort.isProp() || aSort.isSet()) return new Const(Sort.PROP);
-      Level hLevel = aSort.getHLevel();
+      ConstLevel hLevel = aSort.getHLevel();
       if (hLevel.isInfinity()) return sort;
-      if (hLevel.isClosed()) return new Const(new Sort(aSort.getPLevel(), new Level(hLevel.getConstant() - 1)));
-
-      Map<LevelVariable, Integer> newVars = new HashMap<>();
-      for (Map.Entry<LevelVariable, Integer> entry : hLevel.getVarPairs()) {
-        if (entry.getValue() > 0) {
-          newVars.put(entry.getKey(), entry.getValue() - 1);
-        } else if (!(entry.getKey() instanceof InferenceLevelVariable)) {
-          newVars.put(entry.getKey(), entry.getValue());
-        } else {
-          return new Prev(sort);
-        }
-      }
-
-      return new Const(new Sort(aSort.getPLevel(), new Level(newVars, hLevel.getConstant() >= 0 ? hLevel.getConstant() - 1 : -1)));
+      return new Const(new Sort(aSort.getPLevel(), new ConstLevel(hLevel.value() - 1)));
     }
     return new Prev(sort);
   }
@@ -433,7 +419,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     @Override
     public @NotNull Sort withInfLevel() {
       Sort result = mySort.withInfLevel();
-      return result.isSet() || result.isProp() ? Sort.PROP : result.getHLevel().isInfinity() || !result.getHLevel().isClosed() ? result : new Sort(result.getPLevel(), new Level(result.getHLevel().getConstant() - 1));
+      return result.isSet() || result.isProp() ? Sort.PROP : result.getHLevel().isInfinity() ? result : new Sort(result.getPLevel(), new ConstLevel(result.getHLevel().value() - 1));
     }
 
     @Override

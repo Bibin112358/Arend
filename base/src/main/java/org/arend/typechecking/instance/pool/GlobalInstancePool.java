@@ -114,7 +114,7 @@ public class GlobalInstancePool implements InstancePool {
       if (!(inferredExpr instanceof UniverseExpression)) return false;
       SortExpression instanceSortExpr = ((UniverseExpression) instanceExpr).getSortExpression();
       SortExpression inferredSortExpr = ((UniverseExpression) inferredExpr).getSortExpression();
-      return !(instanceSortExpr instanceof SortExpression.Const(Sort instanceSort)) || !(inferredSortExpr instanceof SortExpression.Const(Sort inferredSort)) || compareLevel(instanceSort.getPLevel(), inferredSort.getPLevel()) && compareLevel(instanceSort.getHLevel(), inferredSort.getHLevel());
+      return !(instanceSortExpr instanceof SortExpression.Const(Sort instanceSort)) || !(inferredSortExpr instanceof SortExpression.Const(Sort inferredSort)) || compareLevel(instanceSort.getPLevel(), inferredSort.getPLevel()) && instanceSort.getHLevel().equals(inferredSort.getHLevel());
     } else if (instanceExpr instanceof SigmaExpression) {
       if (!(inferredExpr instanceof SigmaExpression)) return false;
       DependentLink instanceParams = ((SigmaExpression) instanceExpr).getParameters();

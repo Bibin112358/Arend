@@ -13,6 +13,7 @@ import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.Levels;
 import org.arend.ext.core.definition.CoreFunctionDefinition;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.ext.core.ops.CMP;
 import org.arend.ext.core.ops.NormalizationMode;
 import org.arend.ext.error.ErrorReporter;
@@ -226,7 +227,7 @@ public class CoreDefinitionChecker extends BaseDefinitionTypechecker {
     if (!definition.isTruncated() && definition.getSquasher() == null) {
       for (Constructor constructor : definition.getConstructors()) {
         if (constructor.getBody() instanceof IntervalElim && !(definition.getSortExpression() instanceof SortExpression.Const(Sort sort) && sort.getHLevel().isInfinity())) {
-          errorReporter.report(new TypecheckingError("A higher inductive type must have sort " + new Sort(new Level(LevelVariable.PVAR), Level.INFINITY), null));
+          errorReporter.report(new TypecheckingError("A higher inductive type must have sort " + new Sort(new Level(LevelVariable.PVAR), ConstLevel.INFINITY), null));
           return false;
         }
       }
@@ -280,8 +281,8 @@ public class CoreDefinitionChecker extends BaseDefinitionTypechecker {
       return false;
     }
 
-    Level hLevel = new Level(parametersLevel.level);
-    if (!Level.compare(hLevel, sort.getHLevel(), CMP.LE, DummyEquations.getInstance(), null)) {
+    ConstLevel hLevel = new ConstLevel(parametersLevel.level);
+    if (!hLevel.isLessOrEquals(sort.getHLevel())) {
       errorReporter.report(new TypecheckingError("The h-level " + sort.getHLevel() + " of '" + definition.getName() + "' does not fit into the h-level " + hLevel + " of \\use \\level " + squasher.getName(), null));
       return false;
     }
@@ -405,7 +406,7 @@ public class CoreDefinitionChecker extends BaseDefinitionTypechecker {
           propertyOK = true;
         }
         if (field.getResultTypeLevel() != level) {
-          errorReporter.report(CoreErrorWrapper.make(new TypecheckingError("The level (" + field.getResultTypeLevel() + ") of the type of the field does not match the level (" + level + ") inferred from the proof", null), fieldType));
+          errorReporter.report(CoreErrorWrapper.make(new TypecheckingError("The level (" + new ConstLevel(field.getResultTypeLevel()) + ") of the type of the field does not match the level (" + level + ") inferred from the proof", null), fieldType));
         }
       }
 

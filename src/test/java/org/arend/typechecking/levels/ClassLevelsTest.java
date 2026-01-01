@@ -7,6 +7,7 @@ import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.subst.Levels;
 import org.arend.core.subst.ListLevels;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.typechecking.TypeCheckingTestCase;
 import org.arend.typechecking.error.local.SuperLevelsMismatchError;
 import org.junit.Test;
@@ -23,7 +24,7 @@ public class ClassLevelsTest extends TypeCheckingTestCase {
         \\record S \\extends R (\\suc \\lp)
         \\func test (s : S \\lp) : \\Type (\\suc \\lp) => s.A
         """);
-    assertEquals(new Sort(new Level(LevelVariable.PVAR, 2), Level.INFINITY), ((ClassDefinition) getDefinition("S")).getSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR, 2), ConstLevel.INFINITY), ((ClassDefinition) getDefinition("S")).getSort());
   }
 
   @Test

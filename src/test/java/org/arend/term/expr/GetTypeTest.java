@@ -6,11 +6,11 @@ import org.arend.core.definition.*;
 import org.arend.core.expr.ClassCallExpression;
 import org.arend.core.expr.Expression;
 import org.arend.core.expr.SigmaExpression;
-import org.arend.core.expr.UniverseExpression;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.subst.SingleLevel;
 import org.arend.core.subst.Levels;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.ext.core.ops.NormalizationMode;
 import org.arend.prelude.Prelude;
 import org.arend.typechecking.TypeCheckingTestCase;
@@ -47,7 +47,7 @@ public class GetTypeTest extends TypeCheckingTestCase {
   @Test
   public void classExtTest() {
     typeCheckModule("\\class Test { | A : \\Type0 | a : A } \\func test => Test { | A => Nat }");
-    assertEquals(Universe(new Level(1), Level.INFINITY), getDefinition("Test").getTypeWithParams(new ArrayList<>(), SingleLevel.STD));
+    assertEquals(Universe(new Level(1), ConstLevel.INFINITY), getDefinition("Test").getTypeWithParams(new ArrayList<>(), SingleLevel.STD));
     assertEquals(Universe(Sort.SET0), getDefinition("test").getTypeWithParams(new ArrayList<>(), SingleLevel.ZERO));
     testType(Universe(Sort.SET0));
   }
@@ -61,7 +61,7 @@ public class GetTypeTest extends TypeCheckingTestCase {
   @Test
   public void lambdaTest2() {
     typeCheckModule("\\func test => \\lam (A : \\Type0) (x : A) => x");
-    SingleDependentLink A = singleParam("A", new UniverseExpression(Sort.TypeOfLevel(0)));
+    SingleDependentLink A = singleParam("A", Universe(new Level(0), ConstLevel.INFINITY));
     Expression expectedType = Pi(A, Pi(singleParam("x", Ref(A)), Ref(A)));
     testType(expectedType);
   }
@@ -89,7 +89,7 @@ public class GetTypeTest extends TypeCheckingTestCase {
   @Test
   public void letTest() {
     Definition def = typeCheckDef("\\func test => \\lam (F : Nat -> \\Type0) (f : \\Pi (x : Nat) -> F x) => \\let | x => 0 \\in f x");
-    SingleDependentLink F = singleParam("F", Pi(Nat(), new UniverseExpression(Sort.TypeOfLevel(0))));
+    SingleDependentLink F = singleParam("F", Pi(Nat(), Universe(new Level(0), ConstLevel.INFINITY)));
     SingleDependentLink x = singleParam("x", Nat());
     SingleDependentLink f = singleParam("f", Pi(x, Apps(Ref(F), Ref(x))));
     Expression type = ((Expression) Objects.requireNonNull(((FunctionDefinition) def).getBody())).getType();

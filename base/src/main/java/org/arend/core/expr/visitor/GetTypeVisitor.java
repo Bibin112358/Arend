@@ -78,7 +78,7 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
       }
       SortExpression paramSortExpr = ((UniverseExpression) paramType).getSortExpression();
       SortExpression argSortExpr = ((UniverseExpression) argType).getSortExpression();
-      return paramSortExpr instanceof SortExpression.Const(Sort paramSort) && argSortExpr instanceof SortExpression.Const(Sort argSort) && matchLevels(new ListLevels(Arrays.asList(paramSort.getPLevel(), paramSort.getHLevel())), new ListLevels(Arrays.asList(argSort.getPLevel(), argSort.getHLevel())), levelMap);
+      return paramSortExpr instanceof SortExpression.Const(Sort paramSort) && argSortExpr instanceof SortExpression.Const(Sort argSort) && matchLevels(new ListLevels(paramSort.getPLevel()), new ListLevels(argSort.getPLevel()), levelMap);
     } else if (paramType instanceof SigmaExpression) {
       argType = argType.dropPiParameter(skip);
       argType = argType == null ? null : argType.normalize(NormalizationMode.WHNF);

@@ -11,6 +11,7 @@ import org.arend.core.expr.let.LetClause;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.subst.Levels;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.ext.core.ops.NormalizationMode;
 import org.arend.naming.reference.LocalReferable;
 import org.arend.prelude.Prelude;
@@ -224,7 +225,7 @@ public class NormalizationTest extends TypeCheckingTestCase {
     Concrete.LetClause xClause = clet(x, cargs(cTele(cvars(y), cNat())), cUniverseInf(2), cUniverse(0));
     incModification();
     TypecheckingResult result = typeCheckExpr(cLet(clets(xClause), cApps(cVar(x), cZero())), null);
-    assertEquals(Universe(new Level(0), Level.INFINITY), result.expression.normalize(NormalizationMode.NF));
+    assertEquals(Universe(new Level(0), ConstLevel.INFINITY), result.expression.normalize(NormalizationMode.NF));
   }
 
   @Test
@@ -281,8 +282,8 @@ public class NormalizationTest extends TypeCheckingTestCase {
 
   @Test
   public void testIsoRight() {
-    DependentLink A = param("A", Universe(new Level(LevelVariable.PVAR), Level.INFINITY));
-    DependentLink B = param("B", Universe(new Level(LevelVariable.PVAR), Level.INFINITY));
+    DependentLink A = param("A", Universe(new Level(LevelVariable.PVAR), ConstLevel.INFINITY));
+    DependentLink B = param("B", Universe(new Level(LevelVariable.PVAR), ConstLevel.INFINITY));
     DependentLink f = param("f", Pi(Ref(A), Ref(B)));
     DependentLink g = param("g", Pi(Ref(B), Ref(A)));
     SingleDependentLink a = singleParam("a", Ref(A));

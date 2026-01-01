@@ -211,7 +211,7 @@ public class DefinitionDeserialization implements ArendDeserializer {
       } else {
         strictList = null;
       }
-      classDef.addParametersLevel(new ClassDefinition.ParametersLevel(parametersLevelProto.getHasParameters() ? defDeserializer.readParameters(parametersLevelProto.getParameterList()) : null, parametersLevelProto.getLevel(), fields, strictList));
+      // classDef.addParametersLevel(new ClassDefinition.ParametersLevel(parametersLevelProto.getHasParameters() ? defDeserializer.readParameters(parametersLevelProto.getParameterList()) : null, parametersLevelProto.getLevel(), fields, strictList));
     }
 
     List<Integer> goodFieldIndices = classProto.getGoodFieldList();
@@ -318,7 +318,7 @@ public class DefinitionDeserialization implements ArendDeserializer {
 
     int truncatedLevel = dataProto.getTruncatedLevel();
     if (truncatedLevel >= -1) {
-      dataDef.setTruncatedLevel(truncatedLevel);
+      // dataDef.setTruncatedLevel(truncatedLevel);
     }
     dataDef.setSquashed(dataProto.getIsSquashed());
     int squasher = dataProto.getSquasher();
@@ -397,7 +397,7 @@ public class DefinitionDeserialization implements ArendDeserializer {
   }
 
   private ParametersLevel readParametersLevel(ExpressionDeserialization defDeserializer, DefinitionProtos.Definition.ParametersLevel proto) throws DeserializationException {
-    return new ParametersLevel(proto.getHasParameters() ? defDeserializer.readParameters(proto.getParameterList()) : null, proto.getLevel());
+    return null; // new ParametersLevel(proto.getHasParameters() ? defDeserializer.readParameters(proto.getParameterList()) : null, proto.getLevel());
   }
 
   private void fillInFunctionDefinition(ExpressionDeserialization defDeserializer, DefinitionProtos.Definition.FunctionData functionProto, FunctionDefinition functionDef) throws DeserializationException {

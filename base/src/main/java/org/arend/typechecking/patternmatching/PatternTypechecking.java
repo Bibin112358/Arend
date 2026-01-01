@@ -15,10 +15,10 @@ import org.arend.core.elimtree.IntervalElim;
 import org.arend.core.expr.*;
 import org.arend.core.expr.visitor.*;
 import org.arend.core.pattern.*;
-import org.arend.core.sort.Level;
 import org.arend.core.subst.ExprSubstitution;
 import org.arend.core.subst.Levels;
 import org.arend.ext.core.definition.CoreFunctionDefinition;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.ext.core.level.LevelSubstitution;
 import org.arend.core.subst.SubstVisitor;
 import org.arend.ext.concrete.pattern.ConcretePattern;
@@ -191,7 +191,7 @@ public class PatternTypechecking {
         List<Binding> intervalBindings;
         Expression exprType = expectedType;
         if (!myPathPatterns.isEmpty()) {
-          Body body = new ElimTypechecking(null, null, null, myMode, null, Level.INFINITY, false, null, 0, null).typecheckElim(resultClauses, parameters, myElimParams);
+          Body body = new ElimTypechecking(null, null, null, myMode, null, ConstLevel.INFINITY, false, null, 0, null).typecheckElim(resultClauses, parameters, myElimParams);
           if (body == null) {
             myErrorReporter.report(new TypecheckingError("Cannot compute body", clause));
             return false;

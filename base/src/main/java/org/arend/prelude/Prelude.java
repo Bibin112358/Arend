@@ -19,6 +19,7 @@ import org.arend.ext.core.definition.CoreClassDefinition;
 import org.arend.ext.core.definition.CoreClassField;
 import org.arend.ext.core.definition.CoreDataDefinition;
 import org.arend.ext.core.definition.CoreFunctionDefinition;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.ext.module.ModulePath;
 import org.arend.ext.reference.ArendRef;
 import org.arend.ext.reference.Precedence;
@@ -145,7 +146,7 @@ public class Prelude implements ArendPrelude {
       case "String" -> STRING = (DataDefinition) definition;
       case "I" -> {
         INTERVAL = (DataDefinition) definition;
-        INTERVAL.setSort(new Sort(new Level(0), Level.INFINITY));
+        INTERVAL.setSort(new Sort(new Level(0), ConstLevel.INFINITY));
         LEFT = INTERVAL.getConstructor("left");
         RIGHT = INTERVAL.getConstructor("right");
       }

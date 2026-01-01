@@ -4,7 +4,6 @@ import org.arend.core.context.binding.Binding;
 import org.arend.core.context.param.DependentLink;
 import org.arend.core.expr.*;
 import org.arend.core.expr.visitor.FindBindingVisitor;
-import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.ExprSubstitution;
@@ -12,6 +11,7 @@ import org.arend.core.subst.Levels;
 import org.arend.core.subst.SubstVisitor;
 import org.arend.ext.core.definition.CoreClassDefinition;
 import org.arend.ext.core.definition.CoreClassField;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.ext.core.level.LevelSubstitution;
 import org.arend.ext.core.ops.NormalizationMode;
 import org.arend.naming.reference.TCDefReferable;
@@ -205,8 +205,9 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     SortExpression sort = SortExpression.makeMax(sorts);
     if (hLevel != null) {
       Sort infSort = sort.withInfLevel();
-      if (!infSort.getHLevel().isClosed() || infSort.getHLevel().getConstant() > hLevel) {
-        sort = new SortExpression.Const(new Sort(infSort.getPLevel(), new Level(hLevel)));
+      ConstLevel constLevel = new ConstLevel(hLevel);
+      if (constLevel.isLess(infSort.getHLevel())) {
+        sort = new SortExpression.Const(new Sort(infSort.getPLevel(), constLevel));
       }
     }
 

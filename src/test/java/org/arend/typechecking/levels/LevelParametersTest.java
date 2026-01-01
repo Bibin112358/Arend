@@ -8,6 +8,7 @@ import org.arend.core.expr.*;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.subst.ListLevels;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.typechecking.TypeCheckingTestCase;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -60,7 +61,7 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   @Test
   public void maxLevelTest() {
     FunctionDefinition def = (FunctionDefinition) typeCheckDef("\\func test \\plevels p1 >= p2 (A : \\Type p1) (B : \\Type p2) => A -> B");
-    assertEquals(new Sort(new Level(def.getLevelParameters().getFirst()), Level.INFINITY), def.getResultType().toSort());
+    assertEquals(new Sort(new Level(def.getLevelParameters().getFirst()), ConstLevel.INFINITY), def.getResultType().toSort());
   }
 
   @Test

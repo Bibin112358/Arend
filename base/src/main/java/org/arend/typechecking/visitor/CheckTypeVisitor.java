@@ -34,6 +34,7 @@ import org.arend.ext.core.context.CoreParameter;
 import org.arend.ext.core.context.CoreParameterBuilder;
 import org.arend.ext.core.definition.CoreFunctionDefinition;
 import org.arend.ext.core.expr.*;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.ext.core.level.LevelSubstitution;
 import org.arend.ext.core.ops.CMP;
 import org.arend.ext.core.ops.NormalizationMode;
@@ -3364,14 +3365,14 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
 
     Level pLevel = expr.getPLevel() != null ? expr.getPLevel().accept(this, null) : null;
-    Level hLevel;
+    Integer hLevel;
     if (expr.getHLevel() != null) {
       int number = expr.getHLevel();
       if (number < -1) {
         errorReporter.report(new TypecheckingError("Expected a number >= -1", expr));
         number = -1;
       }
-      hLevel = new Level(number);
+      hLevel = number;
     } else {
       hLevel = null;
     }
@@ -3389,10 +3390,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       }
       sort = new Sort(pLevel, true);
     } else {
-      if (hLevel == null) {
-        hLevel = Level.INFINITY;
-      }
-      sort = new Sort(pLevel, hLevel);
+      sort = new Sort(pLevel, new ConstLevel(hLevel));
     }
 
     return checkResult(expectedType, new TypecheckingResult(new UniverseExpression(sort), new UniverseExpression(sort.succ())), expr);
@@ -4012,10 +4010,10 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       level = minInteger(level, level2);
     }
 
-    Level actualLevel;
+    ConstLevel actualLevel;
     {
       Sort sort = resultType == null ? null : resultType.sort().withInfLevel();
-      actualLevel = sort != null ? sort.getHLevel() : Level.INFINITY;
+      actualLevel = sort != null ? sort.getHLevel() : ConstLevel.INFINITY;
     }
 
     List<ExtElimClause> clauses;

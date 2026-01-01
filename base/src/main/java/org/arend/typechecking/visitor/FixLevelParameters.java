@@ -30,7 +30,7 @@ public class FixLevelParameters extends VoidExpressionVisitor<Void> {
 
   public static void fix(Set<? extends TopLevelDefinition> definitions, Set<Definition> newDefs) {
     for (Definition definition : definitions) {
-      if (definition.hasNonTrivialPLevelParameters()) return;
+      if (definition.hasNonTrivialLevelParameters()) return;
     }
 
     Set<Definition> extendedDefs = new HashSet<>();
@@ -54,7 +54,7 @@ public class FixLevelParameters extends VoidExpressionVisitor<Void> {
 
     FindLevelParameters visitor = new FindLevelParameters(extendedDefs);
     for (Definition definition : definitions) {
-      if (definition.hasNonTrivialPLevelParameters()) {
+      if (definition.hasNonTrivialLevelParameters()) {
         visitor.hasPLevels = true;
       }
     }
@@ -130,7 +130,7 @@ public class FixLevelParameters extends VoidExpressionVisitor<Void> {
   }
 
   private Sort removeVars(Sort sort) {
-    return new Sort(myRemovePLevels ? removeVars(sort.getPLevel()) : sort.getPLevel(), myRemoveHLevels ? removeVars(sort.getHLevel()) : sort.getHLevel());
+    return new Sort(myRemovePLevels ? removeVars(sort.getPLevel()) : sort.getPLevel(), sort.getHLevel());
   }
 
   private SortExpression removeVars(SortExpression sort) {

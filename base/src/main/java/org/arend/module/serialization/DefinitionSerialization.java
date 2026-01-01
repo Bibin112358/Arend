@@ -132,7 +132,7 @@ public class DefinitionSerialization implements ArendSerializer {
       if (field.getTypeLevel() != null) {
         fBuilder.setTypeLevel(defSerializer.writeExpr(field.getTypeLevel()));
       }
-      fBuilder.setResultTypeLevel(field.getResultTypeLevel());
+      // fBuilder.setResultTypeLevel(field.getResultTypeLevel());
       fBuilder.setNumberOfParameters(field.getNumberOfParameters());
       fBuilder.setIsExplicit(field.getReferable().isExplicitField());
       fBuilder.setIsParameter(field.getReferable().isParameterField());
@@ -287,7 +287,7 @@ public class DefinitionSerialization implements ArendSerializer {
       builder.addConstructor(cBuilder.build());
     }
 
-    builder.setTruncatedLevel(definition.getTruncatedLevel());
+    // builder.setTruncatedLevel(definition.getTruncatedLevel());
     builder.setIsSquashed(definition.isSquashed());
     if (definition.getSquasher() != null) {
       builder.setSquasher(myCallTargetIndexProvider.getDefIndex(definition.getSquasher()));

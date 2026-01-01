@@ -10,10 +10,10 @@ import org.arend.term.abs.AbstractExpressionVisitor
 
 
 private fun <P, R> acceptSet(data: ArendCompositeElement, setElem: PsiElement, pLevel: Abstract.LevelExpression?, visitor: AbstractExpressionVisitor<in P, out R>, params: P?): R =
-    visitor.visitUniverse(data, setElem.text.substring("\\Set".length).toIntOrNull(), 0, pLevel, null, params)
+    visitor.visitUniverse(data, setElem.text.substring("\\Set".length).toIntOrNull(), 0, pLevel, params)
 
-private fun <P, R> acceptUniverse(data: ArendCompositeElement, universeElem: PsiElement, pLevel: Abstract.LevelExpression?, hLevel: Abstract.LevelExpression?, visitor: AbstractExpressionVisitor<in P, out R>, params: P?): R =
-    visitor.visitUniverse(data, universeElem.text.substring("\\Type".length).toIntOrNull(), null, pLevel, hLevel, params)
+private fun <P, R> acceptUniverse(data: ArendCompositeElement, universeElem: PsiElement, pLevel: Abstract.LevelExpression?, visitor: AbstractExpressionVisitor<in P, out R>, params: P?): R =
+    visitor.visitUniverse(data, universeElem.text.substring("\\Type".length).toIntOrNull(), null, pLevel, params)
 
 private fun <P, R> acceptCatUniverse(data: ArendCompositeElement, catElem: PsiElement, pLevel: Abstract.LevelExpression?, visitor: AbstractExpressionVisitor<in P, out R>, params: P?): R =
     visitor.visitCatUniverse(data, catElem.text.substring("\\Set".length).toIntOrNull(), pLevel, params)
@@ -23,7 +23,7 @@ private fun <P, R> acceptTruncated(data: ArendCompositeElement, truncatedElem: P
     val index = uniText.indexOf('T')
     val hLevelNum = if (index > 0 && uniText[0] == '\\') uniText.substring(1, index - 1).toIntOrNull() else null
     val pLevelNum = if (hLevelNum != null) uniText.substring(index + "Type".length).toIntOrNull() else null
-    return visitor.visitUniverse(data, pLevelNum, hLevelNum, pLevel, null, params)
+    return visitor.visitUniverse(data, pLevelNum, hLevelNum, pLevel, params)
 }
 
 
@@ -52,10 +52,8 @@ class ArendTruncatedUniverseAppExpr(node: ASTNode) : ArendAppExpr(node) {
 }
 
 class ArendUniverseAppExpr(node: ASTNode) : ArendAppExpr(node) {
-    fun getMaybeAtomLevelExpr(index: Int): ArendMaybeAtomLevelExpr? = childOfType(index)
-
     override fun <P, R> accept(visitor: AbstractExpressionVisitor<in P, out R>, params: P?): R =
-        acceptUniverse(this, notNullChild(firstRelevantChild), getMaybeAtomLevelExpr(0)?.atomLevelExpr, getMaybeAtomLevelExpr(1)?.atomLevelExpr, visitor, params)
+        acceptUniverse(this, notNullChild(firstRelevantChild), childOfType<ArendMaybeAtomLevelExpr>()?.atomLevelExpr, visitor, params)
 }
 
 class ArendUniverseAtom(node: ASTNode) : ArendExpr(node), ArendArgument {
@@ -70,7 +68,7 @@ class ArendUniverseAtom(node: ASTNode) : ArendExpr(node), ArendArgument {
         return when (child.elementType) {
             SET -> acceptSet(this, child!!, null, visitor, params)
             CAT_UNIVERSE -> acceptCatUniverse(this, child!!, null, visitor, params)
-            UNIVERSE -> acceptUniverse(this, child!!, null, null, visitor, params)
+            UNIVERSE -> acceptUniverse(this, child!!, null, visitor, params)
             TRUNCATED_UNIVERSE -> acceptTruncated(this, child!!, null, visitor, params)
             else -> error("Incorrect expression: universe")
         }

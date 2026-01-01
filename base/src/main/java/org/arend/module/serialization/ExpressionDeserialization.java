@@ -20,6 +20,7 @@ import org.arend.core.sort.Sort;
 import org.arend.core.subst.SingleLevel;
 import org.arend.core.subst.Levels;
 import org.arend.core.subst.ListLevels;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.ext.serialization.DeserializationException;
 import org.arend.prelude.Prelude;
 import org.arend.typechecking.order.dependency.DependencyListener;
@@ -78,7 +79,7 @@ class ExpressionDeserialization {
   }
 
   Sort readSort(LevelProtos.Sort proto) {
-    return new Sort(readLevel(proto.getPLevel()), readLevel(proto.getHLevel()));
+    return new Sort(readLevel(proto.getPLevel()), ConstLevel.INFINITY);
   }
 
   Levels readLevels(LevelProtos.Levels proto) {

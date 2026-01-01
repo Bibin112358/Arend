@@ -72,7 +72,6 @@ class ExpressionSerialization implements ExpressionVisitor<Void, ExpressionProto
   LevelProtos.Sort writeSort(Sort sort) {
     LevelProtos.Sort.Builder builder = LevelProtos.Sort.newBuilder();
     builder.setPLevel(writeLevel(sort.getPLevel()));
-    builder.setHLevel(writeLevel(sort.getHLevel()));
     return builder.build();
   }
 

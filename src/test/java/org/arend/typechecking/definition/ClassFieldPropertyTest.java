@@ -5,6 +5,7 @@ import org.arend.core.definition.ClassDefinition;
 import org.arend.core.definition.ClassField;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.typechecking.TypeCheckingTestCase;
 import org.arend.typechecking.error.local.LevelMismatchError;
 import org.arend.typechecking.error.local.NotEqualExpressionsError;
@@ -90,7 +91,7 @@ public class ClassFieldPropertyTest extends TypeCheckingTestCase {
         \\property f (A : \\Type) (p : \\Pi (x y : A) -> x = y) : \\level A p
       }
       """);
-    assertEquals(new Sort(new Level(LevelVariable.PVAR, 1), Level.INFINITY), ((ClassDefinition) getDefinition("A")).getSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR, 1), ConstLevel.INFINITY), ((ClassDefinition) getDefinition("A")).getSort());
   }
 
   @Test

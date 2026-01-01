@@ -21,6 +21,7 @@ import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.*;
 import org.arend.ext.concrete.expr.ConcreteUniverseExpression;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.ext.core.level.LevelSubstitution;
 import org.arend.error.CountingErrorReporter;
 import org.arend.ext.core.definition.CoreFunctionDefinition;
@@ -659,7 +660,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
 
   private boolean checkLevel(LevelMismatchError.TargetKind kind, Integer level, Sort actualSort, Concrete.SourceNode sourceNode) {
     if (kind != null && (level == null || level != -1)) {
-      Sort sort = level != null ? new Sort(new Level(LevelVariable.PVAR), new Level(actualSort != null && actualSort.getHLevel().isClosed() ? Math.min(level, actualSort.getHLevel().getConstant()) : level)) : actualSort;
+      Sort sort = level != null ? new Sort(new Level(LevelVariable.PVAR), new ConstLevel(actualSort != null ? Math.min(level, actualSort.getHLevel().value()) : level)) : actualSort;
       errorReporter.report(new LevelMismatchError(kind, sort, sourceNode));
       return false;
     } else {
@@ -955,7 +956,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
 
     if (def.getKind() == FunctionKind.LEVEL) {
       Definition useParent = def.getUseParent().getTypechecked();
-      if (def.getPLevelParameters() == null && useParent.hasNonTrivialPLevelParameters()) {
+      if (def.getPLevelParameters() == null && useParent.hasNonTrivialLevelParameters()) {
         def.setPLevelParameters(Concrete.LevelParameters.makeLevelParameters(useParent.getLevelParameters()));
       }
     }
@@ -979,7 +980,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
           typedDef.setLevelParameters(typecheckLevelParameters(def));
           typedDef.setLevelsParent(enclosingClass.getLevelsParent());
         } else {
-          boolean setPLevel = def.getPLevelParameters() == null && enclosingClass.hasNonTrivialPLevelParameters();
+          boolean setPLevel = def.getPLevelParameters() == null && enclosingClass.hasNonTrivialLevelParameters();
           if (setPLevel) {
             typedDef.setLevelParameters(new ArrayList<>(enclosingClass.getLevelParameters()));
             typedDef.setLevelsParent(enclosingClass.getLevelsParent());
@@ -1378,7 +1379,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
         clauses = typechecker.withErrorReporter(countingErrorReporter, tc -> new PatternTypechecking(PatternTypechecking.Mode.FUNCTION, typechecker, true, null, elimParams).typecheckClauses(elimBody.getClauses(), def.getParameters(), typedDef.getParameters(), expectedType, typedDef));
       }
       SortExpression sort = expectedType.getSortExpressionOfType();
-      Body typedBody = clauses == null || def.getKind() == FunctionKind.AXIOM ? null : new ElimTypechecking(errorReporter, typechecker.getEquations(), expectedType, PatternTypechecking.Mode.FUNCTION, typeLevel, sort != null ? sort.withInfLevel().getHLevel() : Level.INFINITY, kind.isSFunc() && kind != FunctionKind.TYPE, elimBody.getClauses(), typedDef.getParametersOriginalDefinitions().size(), def).typecheckElim(clauses, typedDef.getParameters(), elimParams);
+      Body typedBody = clauses == null || def.getKind() == FunctionKind.AXIOM ? null : new ElimTypechecking(errorReporter, typechecker.getEquations(), expectedType, PatternTypechecking.Mode.FUNCTION, typeLevel, sort != null ? sort.withInfLevel().getHLevel() : ConstLevel.INFINITY, kind.isSFunc() && kind != FunctionKind.TYPE, elimBody.getClauses(), typedDef.getParametersOriginalDefinitions().size(), def).typecheckElim(clauses, typedDef.getParameters(), elimParams);
       if (typedBody != null) {
         typedDef.setBody(typedBody);
         typedDef.addStatus(Definition.TypeCheckingStatus.NO_ERRORS);
@@ -2012,7 +2013,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
         if (inferredSort instanceof SortExpression.Const(Sort sort) && sort.isLessOrEquals(userSort)) {
           originalErrorReporter.report(new CertainTypecheckingError(CertainTypecheckingError.Kind.DATA_WONT_BE_TRUNCATED, def.getUniverse() == null ? def : def.getUniverse()));
         } else {
-          dataDefinition.setTruncatedLevel(userSort.getHLevel().getConstant());
+          dataDefinition.setTruncatedLevel(userSort.getHLevel().value());
           dataDefinition.setSquashed(true);
         }
       }
@@ -2030,7 +2031,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       countingErrorReporter.report(new DataUniverseError(inferredSort.withInfLevel(), userSort, def.getUniverse() == null ? def : def.getUniverse()));
     }
 
-    dataDefinition.setSortExpression(def.isTruncated() && userSort != null && userSort.getHLevel().isClosed() ? SortExpression.makeTrunc(inferredSort, userSort.getHLevel().getConstant()) : countingErrorReporter.getErrorsNumber() == 0 && userSort != null ? new SortExpression.Const(userSort) : inferredSort);
+    dataDefinition.setSortExpression(def.isTruncated() && userSort != null ? SortExpression.makeTrunc(inferredSort, userSort.getHLevel().value()) : countingErrorReporter.getErrorsNumber() == 0 && userSort != null ? new SortExpression.Const(userSort) : inferredSort);
     typechecker.setStatus(def.getStatus().getTypecheckingStatus());
     dataDefinition.addStatus(typechecker.getStatus());
 

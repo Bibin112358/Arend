@@ -39,7 +39,6 @@ public class FindLevelParameters extends SearchVisitor<Void> {
   private boolean checkSort(SortExpression sortExpr) {
     if (!(sortExpr instanceof SortExpression.Const(Sort sort))) return false;
     checkLevel(sort.getPLevel());
-    checkLevel(sort.getHLevel());
     return hasPLevels;
   }
 

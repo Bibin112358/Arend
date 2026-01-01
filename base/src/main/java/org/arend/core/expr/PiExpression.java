@@ -28,7 +28,7 @@ public class PiExpression extends Expression implements CorePiExpression, CoreAb
   }
 
   public static Sort piSort(Sort domSort, Sort codSort) {
-    return Sort.make(domSort.getPLevel().max(codSort.getPLevel()), codSort.getHLevel(), domSort.isCat() || codSort.isCat());
+    return new Sort(domSort.getPLevel().max(codSort.getPLevel()), codSort.getHLevel(), domSort.isCat() || codSort.isCat());
   }
 
   @NotNull

@@ -15,6 +15,7 @@ import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.ExprSubstitution;
 import org.arend.core.subst.Levels;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.ext.core.level.LevelSubstitution;
 import org.arend.ext.core.ops.CMP;
 import org.arend.ext.core.ops.NormalizationMode;
@@ -789,7 +790,7 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
 
     Sort sort = type.getSortOfType();
     ErrorReporter errorReporter = new MyErrorReporter(errorExpr);
-    ElimBody newBody = new ElimTypechecking(errorReporter, myEquations, type, mode, level, sort != null ? sort.getHLevel() : Level.INFINITY, isSFunc, null, 0, mySourceNode).typecheckElim(exprClauses, parameters);
+    ElimBody newBody = new ElimTypechecking(errorReporter, myEquations, type, mode, level, sort != null ? sort.getHLevel() : ConstLevel.INFINITY, isSFunc, null, 0, mySourceNode).typecheckElim(exprClauses, parameters);
     if (newBody == null) {
       throw new CoreException(CoreErrorWrapper.make(new TypecheckingError("Cannot check the body", mySourceNode), errorExpr));
     }

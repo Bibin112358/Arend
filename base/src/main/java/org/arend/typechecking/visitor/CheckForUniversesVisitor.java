@@ -30,7 +30,7 @@ public class CheckForUniversesVisitor extends SearchVisitor<Void> {
 
   @Override
   public Boolean visitUniverse(UniverseExpression expression, Void param) {
-    return expression.getSortExpression() instanceof SortExpression.Const(Sort sort) && (!sort.getPLevel().isClosed() || !sort.getHLevel().isClosed());
+    return expression.getSortExpression() instanceof SortExpression.Const(Sort sort) && !sort.getPLevel().isClosed();
   }
 
   private boolean visitFieldCall(FieldCallExpression expr, int apps) {

@@ -11,7 +11,7 @@ import org.arend.ext.core.definition.CoreClassDefinition;
 import org.arend.ext.core.definition.CoreClassField;
 import org.arend.ext.core.definition.CoreDefinition;
 import org.arend.ext.core.expr.*;
-import org.arend.ext.core.level.CoreLevel;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.ext.core.level.LevelSubstitution;
 import org.arend.ext.core.ops.CMP;
 import org.arend.ext.core.ops.NormalizationMode;
@@ -22,7 +22,6 @@ import org.arend.ext.reference.ArendRef;
 import org.arend.ext.typechecking.*;
 import org.arend.ext.typechecking.meta.Dependency;
 import org.arend.ext.ui.ArendUI;
-import org.arend.ext.variable.Variable;
 import org.arend.lib.error.IgnoredArgumentError;
 import org.arend.lib.error.SubclassError;
 import org.arend.lib.error.TypeError;
@@ -705,13 +704,8 @@ public class ExtMeta extends BaseMetaDefinition {
 
   private static boolean sortAtLeast(CoreSortExpression sort, BigInteger level) {
     if (sort instanceof ConstSortExpression constSort) {
-      CoreLevel hLevel = constSort.getSort().getHLevel();
-      if (hLevel == null) return false;
-      if (BigInteger.valueOf(hLevel.getConstant()).compareTo(level) >= 0) return true;
-      for (Map.Entry<? extends Variable, Integer> entry : hLevel.getVarPairs()) {
-        if (BigInteger.valueOf(entry.getValue()).compareTo(level.add(BigInteger.ONE)) >= 0) return true;
-      }
-      return false;
+      ConstLevel hLevel = constSort.getSort().getHLevel();
+      return hLevel.isInfinity() || BigInteger.valueOf(hLevel.value()).compareTo(level) >= 0;
     } else if (sort instanceof PreviousSortExpression equalitySort) {
       return sortAtLeast(equalitySort.getSort(), level.add(BigInteger.ONE));
     } else if (sort instanceof MaxSortExpression maxSort) {

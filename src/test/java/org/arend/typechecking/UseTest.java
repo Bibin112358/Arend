@@ -7,6 +7,7 @@ import org.arend.core.definition.DataDefinition;
 import org.arend.core.definition.FunctionDefinition;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
+import org.arend.ext.core.level.ConstLevel;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -47,7 +48,7 @@ public class UseTest extends TypeCheckingTestCase {
             | no na1, yes a2 => absurd (na1 a2)
             | no na1, no na2 => path (\\lam i => no (\\lam a => (absurd (na1 a) : na1 a = na2 a) @ i))
       """);
-    assertEquals(new Sort(new Level(LevelVariable.PVAR), Level.INFINITY), ((DataDefinition) getDefinition("Dec")).getSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR), ConstLevel.INFINITY), ((DataDefinition) getDefinition("Dec")).getSort());
   }
 
   @Test
@@ -125,7 +126,7 @@ public class UseTest extends TypeCheckingTestCase {
           \\use \\level isProp {A B : \\Type} (f : A -> B) (c1 c2 : C f) : c1 = c2 => absurd c1.d
       \\func f : \\Prop => C (\\lam (x : Nat) => x)
       """);
-    assertEquals(new Sort(new Level(LevelVariable.PVAR, 1), Level.INFINITY), ((ClassDefinition) getDefinition("C")).getSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR, 1), ConstLevel.INFINITY), ((ClassDefinition) getDefinition("C")).getSort());
   }
 
   @Test
@@ -451,7 +452,7 @@ public class UseTest extends TypeCheckingTestCase {
         \\where \\use \\level levelProp (A : \\Prop) (p : \\Pi (a a' : A) -> a = a') (r1 r2 : R A p) : r1 = r2
           => path (\\lam i => \\new R A p { | a => p r1.a r2.a @ i })
       """);
-    assertEquals(new Sort(new Level(LevelVariable.PVAR), Level.INFINITY).succ(), ((ClassDefinition) getDefinition("R")).getSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR), ConstLevel.INFINITY).succ(), ((ClassDefinition) getDefinition("R")).getSort());
   }
 
   @Test

@@ -4,6 +4,7 @@ import org.arend.core.context.binding.LevelVariable;
 import org.arend.core.definition.FunctionDefinition;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.typechecking.TypeCheckingTestCase;
 import org.junit.Test;
 
@@ -55,7 +56,7 @@ public class FunctionPolyTest extends TypeCheckingTestCase {
   public void funWithTypeOmegaResultRecursive() {
     FunctionDefinition funDefinition = (FunctionDefinition) typeCheckDef(
       "\\func f (A : \\Type) (n : Nat) : \\Type (\\max \\lp 1) \\elim n | zero => \\Set0 | suc n => A");
-    assertEquals(new Sort(new Level(LevelVariable.PVAR, 0, 1), Level.INFINITY), funDefinition.getResultType().toSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR, 0, 1), ConstLevel.INFINITY), funDefinition.getResultType().toSort());
   }
 
   @Test
@@ -72,36 +73,36 @@ public class FunctionPolyTest extends TypeCheckingTestCase {
   @Test
   public void funOmega() {
     FunctionDefinition funDefinition = (FunctionDefinition) typeCheckDef("\\func f (A : \\Type) => A");
-    assertEquals(new Sort(new Level(LevelVariable.PVAR), Level.INFINITY), funDefinition.getResultType().toSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR), ConstLevel.INFINITY), funDefinition.getResultType().toSort());
   }
 
   @Test
   public void funOmegaExplicit() {
     FunctionDefinition funDefinition = (FunctionDefinition) typeCheckDef("\\func f (A : \\Type) : \\Type => A");
-    assertEquals(new Sort(new Level(LevelVariable.PVAR), Level.INFINITY), funDefinition.getResultType().toSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR), ConstLevel.INFINITY), funDefinition.getResultType().toSort());
   }
 
   @Test
   public void funOmegaProp() {
     FunctionDefinition funDefinition = (FunctionDefinition) typeCheckDef("\\func f (A : \\Type) (n : Nat) => \\Sigma A (n = n)");
-    assertEquals(new Sort(new Level(LevelVariable.PVAR), Level.INFINITY), funDefinition.getResultType().toSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR), ConstLevel.INFINITY), funDefinition.getResultType().toSort());
   }
 
   @Test
   public void funOmegaPropExplicit() {
     FunctionDefinition funDefinition = (FunctionDefinition) typeCheckDef("\\func f (A : \\Type) (n : Nat) : \\Type => \\Sigma (n = n) A");
-    assertEquals(new Sort(new Level(LevelVariable.PVAR), Level.INFINITY), funDefinition.getResultType().toSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR), ConstLevel.INFINITY), funDefinition.getResultType().toSort());
   }
 
   @Test
   public void funOmegaSet() {
     FunctionDefinition funDefinition = (FunctionDefinition) typeCheckDef("\\func f (A : \\Type) (n : Nat) => \\Sigma (n = n) A Nat");
-    assertEquals(new Sort(new Level(LevelVariable.PVAR), Level.INFINITY), funDefinition.getResultType().toSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR), ConstLevel.INFINITY), funDefinition.getResultType().toSort());
   }
 
   @Test
   public void funOmegaSetExplicit() {
     FunctionDefinition funDefinition = (FunctionDefinition) typeCheckDef("\\func f (A : \\Type) (n : Nat) : \\Type => \\Sigma (n = n) A Nat");
-    assertEquals(new Sort(new Level(LevelVariable.PVAR), Level.INFINITY), funDefinition.getResultType().toSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR), ConstLevel.INFINITY), funDefinition.getResultType().toSort());
   }
 }

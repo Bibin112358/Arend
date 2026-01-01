@@ -16,7 +16,7 @@ import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.ExprSubstitution;
 import org.arend.core.subst.Levels;
-import org.arend.ext.core.ops.CMP;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.ext.core.ops.NormalizationMode;
 import org.arend.ext.error.ErrorReporter;
 import org.arend.ext.error.MissingClausesError;
@@ -44,7 +44,7 @@ public class ElimTypechecking {
   private final PatternTypechecking.Mode myMode;
   private final Expression myExpectedType;
   private final Integer myLevel;
-  private final Level myActualLevel;
+  private final ConstLevel myActualLevel;
   private final int myActualLevelSub;
   private boolean myOK;
   private Stack<Util.ClauseElem> myContext;
@@ -55,13 +55,13 @@ public class ElimTypechecking {
   private List<ExtElimClause> myCoreClauses;
   private final int myNumberOfExternalParameters;
 
-  private static Integer getMinPlus1(Integer level1, Level l2, int sub) {
-    Integer level2 = !l2.isInfinity() && l2.isClosed() ? l2.getConstant() : null;
+  private static Integer getMinPlus1(Integer level1, ConstLevel l2, int sub) {
+    Integer level2 = l2.value();
     Integer result = level1 != null && level2 != null ? Integer.valueOf(Math.min(level1, level2 - sub)) : level2 != null ? Integer.valueOf(level2 - sub) : level1;
     return result == null ? null : result + 1;
   }
 
-  public ElimTypechecking(@Nullable ErrorReporter errorReporter, Equations equations, Expression expectedType, PatternTypechecking.Mode mode, @Nullable Integer level, @NotNull Level actualLevel, boolean isSFunc, List<? extends Concrete.FunctionClause> clauses, int numberOfExternalParameters, Concrete.SourceNode sourceNode) {
+  public ElimTypechecking(@Nullable ErrorReporter errorReporter, Equations equations, Expression expectedType, PatternTypechecking.Mode mode, @Nullable Integer level, @NotNull ConstLevel actualLevel, boolean isSFunc, List<? extends Concrete.FunctionClause> clauses, int numberOfExternalParameters, Concrete.SourceNode sourceNode) {
     myErrorReporter = errorReporter;
     myEquations = equations;
     myExpectedType = expectedType;
@@ -92,8 +92,8 @@ public class ElimTypechecking {
       Sort pathSort = pathSortExpr == null ? null : pathSortExpr.withInfLevel();
       if (pathSort != null && !pathSort.getHLevel().isInfinity()) {
         actualLevel = pathSort.getHLevel();
-        if (actualLevel.isClosed() && actualLevel.getConstant() - actualLevelSub < -1) {
-          actualLevelSub = actualLevel.getConstant() + 1;
+        if (!actualLevel.isInfinity() && actualLevel.value() - actualLevelSub < -1) {
+          actualLevelSub = actualLevel.value() + 1;
         }
       } else {
         actualLevelSub = 0;
@@ -111,7 +111,7 @@ public class ElimTypechecking {
     myExpectedType = expectedType;
     myMode = mode;
     myLevel = null;
-    myActualLevel = Level.INFINITY;
+    myActualLevel = ConstLevel.INFINITY;
     myActualLevelSub = 0;
     myClauses = clauses;
     myNumberOfExternalParameters = 0;
@@ -907,7 +907,7 @@ public class ElimTypechecking {
 
       if (dataType != null && dataType.isSquashed() && myErrorReporter != null) {
         Sort dataSort = dataType.getSortExpression().withInfLevel();
-        if (myActualLevel != null && !Level.compare(myActualLevel, dataSort.getHLevel().add(myActualLevelSub), CMP.LE, myEquations, getClause(conClause.index, someConPattern))) {
+        if (myActualLevel != null && !myActualLevel.isLessOrEquals(dataSort.getHLevel().add(myActualLevelSub))) {
           myErrorReporter.report(new SquashedDataError(dataType, getClause(conClause.index, someConPattern)));
         }
 
@@ -917,7 +917,7 @@ public class ElimTypechecking {
           if (type != null) {
             type = type.normalize(NormalizationMode.WHNF);
             if (type instanceof UniverseExpression universe && universe.getSortExpression() instanceof SortExpression.Const(Sort typeSort)) {
-              ok = Level.compare(typeSort.getHLevel(), dataSort.getHLevel(), CMP.LE, myEquations, getClause(conClause.index, someConPattern));
+              ok = typeSort.getHLevel().isLessOrEquals(dataSort.getHLevel());
             } else {
               InferenceLevelVariable pl = new InferenceLevelVariable(false, getClause(conClause.index, someConPattern));
               myEquations.addVariable(pl);

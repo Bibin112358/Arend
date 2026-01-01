@@ -14,6 +14,7 @@ import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.subst.ExprSubstitution;
 import org.arend.core.subst.Levels;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.ext.core.level.LevelSubstitution;
 
 import java.util.ArrayList;
@@ -132,7 +133,7 @@ public class ExpressionFactory {
     return new UniverseExpression(hLevel == -1 ? Sort.PROP : new Sort(pLevel, hLevel));
   }
 
-  public static UniverseExpression Universe(Level pLevel, Level hLevel) {
+  public static UniverseExpression Universe(Level pLevel, ConstLevel hLevel) {
     return new UniverseExpression(new Sort(pLevel, hLevel));
   }
 
