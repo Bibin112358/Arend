@@ -4,6 +4,7 @@ import org.arend.core.context.binding.Binding;
 import org.arend.core.context.param.DependentLink;
 import org.arend.core.definition.Constructor;
 import org.arend.ext.concrete.expr.ConcreteUniverseExpression;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.ext.prettyprinting.PrettyPrinterConfig;
 import org.arend.ext.prettyprinting.doc.DocStringBuilder;
 import org.arend.ext.prettyprinting.doc.LineDoc;
@@ -24,6 +25,7 @@ import org.arend.util.StringEscapeUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigInteger;
 import java.util.*;
 
 public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence, Void>, ConcreteLevelExpressionVisitor<Precedence, Void>, ConcreteResolvableDefinitionVisitor<Void, Void> {
@@ -601,8 +603,8 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
 
   @Override
   public Void visitUniverse(Concrete.UniverseExpression expr, Precedence prec) {
-    Integer hLevel = expr.getHLevel();
-    if (hLevel != null && hLevel.equals(-1)) {
+    BigInteger hLevel = expr.getHLevel();
+    if (hLevel != null && hLevel.equals(ConstLevel.PROP.value())) {
       myBuilder.append("\\Prop");
       return null;
     }
@@ -615,7 +617,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
     } else if (expr.getKind() == ConcreteUniverseExpression.Kind.CAT) {
       myBuilder.append("\\Cat");
     } else if (hLevel != null) {
-      if (hLevel == 0) {
+      if (hLevel.equals(BigInteger.ZERO)) {
         myBuilder.append("\\Set");
       } else {
         myBuilder.append("\\").append(hLevel).append("-Type");

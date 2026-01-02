@@ -20,6 +20,7 @@ import org.arend.typechecking.dfs.ClassDFS;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigInteger;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -72,7 +73,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     public final List<ClassField> fields;
     public final List<Pair<ClassDefinition,Set<ClassField>>> strictList;
 
-    public ParametersLevel(DependentLink parameters, int level, List<ClassField> fields, List<Pair<ClassDefinition,Set<ClassField>>> strictList) {
+    public ParametersLevel(DependentLink parameters, BigInteger level, List<ClassField> fields, List<Pair<ClassDefinition,Set<ClassField>>> strictList) {
       super(parameters, level);
       this.fields = fields;
       this.strictList = strictList;
@@ -146,7 +147,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     return result == null ? levels : result.subst(levels.makeSubstitution(this));
   }
 
-  public Integer getUseLevel(Map<ClassField,Expression> implemented, Binding thisBinding, boolean isStrict) {
+  public BigInteger getUseLevel(Map<ClassField,Expression> implemented, Binding thisBinding, boolean isStrict) {
     loop:
     for (ParametersLevel parametersLevel : myParametersLevels.getList()) {
       if (isStrict && parametersLevel.strictList == null || parametersLevel.fields.size() > implemented.size()) {
@@ -179,8 +180,8 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     Levels idLevels = makeIdLevels();
     Expression thisExpr1 = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, idLevels, implemented, myBaseUniverseKind)));
     Expression thisExpr2 = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, idLevels)));
-    Integer hLevel = getUseLevel(implemented, thisBinding, true);
-    if (hLevel != null && hLevel == -1) {
+    BigInteger hLevel = getUseLevel(implemented, thisBinding, true);
+    if (hLevel != null && hLevel.equals(ConstLevel.PROP.value())) {
       return new SortExpression.Const(Sort.PROP);
     }
 

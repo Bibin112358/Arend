@@ -32,6 +32,7 @@ import org.arend.ext.util.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -43,9 +44,9 @@ public class ElimTypechecking {
   private Set<Integer> myUnusedClauses;
   private final PatternTypechecking.Mode myMode;
   private final Expression myExpectedType;
-  private final Integer myLevel;
+  private final BigInteger myLevel;
   private final ConstLevel myActualLevel;
-  private final int myActualLevelSub;
+  private final BigInteger myActualLevelSub;
   private boolean myOK;
   private Stack<Util.ClauseElem> myContext;
   private List<Pair<List<Util.ClauseElem>, Boolean>> myMissingClauses;
@@ -55,13 +56,13 @@ public class ElimTypechecking {
   private List<ExtElimClause> myCoreClauses;
   private final int myNumberOfExternalParameters;
 
-  private static Integer getMinPlus1(Integer level1, ConstLevel l2, int sub) {
-    Integer level2 = l2.value();
-    Integer result = level1 != null && level2 != null ? Integer.valueOf(Math.min(level1, level2 - sub)) : level2 != null ? Integer.valueOf(level2 - sub) : level1;
-    return result == null ? null : result + 1;
+  private static BigInteger getMinPlus1(BigInteger level1, ConstLevel l2, BigInteger sub) {
+    BigInteger level2 = l2.value();
+    BigInteger result = level1 != null && level2 != null ? level1.min(level2.subtract(sub)) : level2 != null ? level2.subtract(sub) : level1;
+    return result == null ? null : result.add(BigInteger.ONE);
   }
 
-  public ElimTypechecking(@Nullable ErrorReporter errorReporter, Equations equations, Expression expectedType, PatternTypechecking.Mode mode, @Nullable Integer level, @NotNull ConstLevel actualLevel, boolean isSFunc, List<? extends Concrete.FunctionClause> clauses, int numberOfExternalParameters, Concrete.SourceNode sourceNode) {
+  public ElimTypechecking(@Nullable ErrorReporter errorReporter, Equations equations, Expression expectedType, PatternTypechecking.Mode mode, @Nullable BigInteger level, @NotNull ConstLevel actualLevel, boolean isSFunc, List<? extends Concrete.FunctionClause> clauses, int numberOfExternalParameters, Concrete.SourceNode sourceNode) {
     myErrorReporter = errorReporter;
     myEquations = equations;
     myExpectedType = expectedType;
@@ -70,12 +71,12 @@ public class ElimTypechecking {
     myNumberOfExternalParameters = numberOfExternalParameters;
     mySourceNode = sourceNode;
 
-    int actualLevelSub = 0;
+    BigInteger actualLevelSub = BigInteger.ZERO;
     if (!actualLevel.isProp() && expectedType != null) {
       Expression pathType = expectedType.getPiParameters(null, false);
       for (DataCallExpression dataCall = pathType.cast(DataCallExpression.class); dataCall != null; dataCall = pathType.cast(DataCallExpression.class)) {
         if (dataCall.getDefinition() == Prelude.PATH) {
-          actualLevelSub++;
+          actualLevelSub = actualLevelSub.add(BigInteger.ONE);
           pathType = dataCall.getDefCallArguments().getFirst().normalize(NormalizationMode.WHNF);
           LamExpression lam = pathType.cast(LamExpression.class);
           if (lam == null) {
@@ -92,17 +93,17 @@ public class ElimTypechecking {
       Sort pathSort = pathSortExpr == null ? null : pathSortExpr.withInfLevel();
       if (pathSort != null && !pathSort.getHLevel().isInfinity()) {
         actualLevel = pathSort.getHLevel();
-        if (!actualLevel.isInfinity() && actualLevel.value() - actualLevelSub < -1) {
-          actualLevelSub = actualLevel.value() + 1;
+        if (!actualLevel.isInfinity() && actualLevel.value().subtract(actualLevelSub).compareTo(ConstLevel.PROP.value()) < 0) {
+          actualLevelSub = actualLevel.value().add(BigInteger.ONE);
         }
       } else {
-        actualLevelSub = 0;
+        actualLevelSub = BigInteger.ZERO;
       }
     }
 
     myLevel = getMinPlus1(level, actualLevel, actualLevelSub);
     myActualLevel = isSFunc ? null : actualLevel;
-    myActualLevelSub = isSFunc ? 0 : actualLevelSub;
+    myActualLevelSub = isSFunc ? BigInteger.ZERO : actualLevelSub;
   }
 
   public ElimTypechecking(@Nullable ErrorReporter errorReporter, Equations equations, Expression expectedType, PatternTypechecking.Mode mode, List<? extends Concrete.FunctionClause> clauses, Concrete.SourceNode sourceNode) {
@@ -112,7 +113,7 @@ public class ElimTypechecking {
     myMode = mode;
     myLevel = null;
     myActualLevel = ConstLevel.INFINITY;
-    myActualLevelSub = 0;
+    myActualLevelSub = BigInteger.ZERO;
     myClauses = clauses;
     myNumberOfExternalParameters = 0;
     mySourceNode = sourceNode;
@@ -490,16 +491,16 @@ public class ElimTypechecking {
     }
   }
 
-  private static int numberOfIntervals(List<? extends ExpressionPattern> patterns) {
-    int result = 0;
+  private static BigInteger numberOfIntervals(List<? extends ExpressionPattern> patterns) {
+    BigInteger result = BigInteger.ZERO;
     for (ExpressionPattern pattern : patterns) {
       if (pattern.getDefinition() instanceof Constructor) {
         Body body = ((Constructor) pattern.getDefinition()).getBody();
         if (body instanceof IntervalElim) {
-          result += ((IntervalElim) body).getNumberOfTotalElim();
+          result = result.add(BigInteger.valueOf(((IntervalElim) body).getNumberOfTotalElim()));
         }
       }
-      result += numberOfIntervals(pattern.getSubPatterns());
+      result = result.add(numberOfIntervals(pattern.getSubPatterns()));
     }
     return result;
   }
@@ -610,7 +611,7 @@ public class ElimTypechecking {
     }
 
     if (myLevel != null) {
-      missingClauses.removeIf(clause -> numberOfIntervals(clause) > myLevel);
+      missingClauses.removeIf(clause -> numberOfIntervals(clause).compareTo(myLevel) > 0);
     }
 
     if (missingClauses.isEmpty()) {
@@ -911,7 +912,7 @@ public class ElimTypechecking {
           myErrorReporter.report(new SquashedDataError(dataType, getClause(conClause.index, someConPattern)));
         }
 
-        boolean ok = !dataType.isTruncated() || myLevel != null && myLevel <= dataType.getTruncatedLevel() + 1;
+        boolean ok = !dataType.isTruncated() || myLevel != null && myLevel.compareTo(dataType.getTruncatedLevel().add(BigInteger.ONE)) <= 0;
         if (!ok) {
           Expression type = myExpectedType.getType();
           if (type != null) {
@@ -933,7 +934,7 @@ public class ElimTypechecking {
 
       if (myLevel != null && !branchKeys.isEmpty() && !(branchKeys.getFirst() instanceof SingleConstructor)) {
         //noinspection ConstantConditions
-        branchKeys.removeIf(key -> numberOfIntervals + (key.getBody() instanceof IntervalElim ? ((IntervalElim) key.getBody()).getNumberOfTotalElim() : 0) > myLevel);
+        branchKeys.removeIf(key -> BigInteger.valueOf(numberOfIntervals + (key.getBody() instanceof IntervalElim ? ((IntervalElim) key.getBody()).getNumberOfTotalElim() : 0)).compareTo(myLevel) > 0);
       }
 
       boolean hasVars = false;

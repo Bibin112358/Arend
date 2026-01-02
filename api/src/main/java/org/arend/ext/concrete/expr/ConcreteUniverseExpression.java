@@ -4,10 +4,12 @@ import org.arend.ext.concrete.ConcreteLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigInteger;
+
 public interface ConcreteUniverseExpression extends ConcreteExpression {
   enum Kind { SORT, CAT, TYPE }
 
   @Nullable ConcreteLevel getPLevel();
-  @Nullable Integer getHLevel();
+  @Nullable BigInteger getHLevel();
   @NotNull Kind getKind();
 }

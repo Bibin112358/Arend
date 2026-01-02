@@ -8,13 +8,14 @@ import org.arend.core.subst.ExprSubstitution;
 import org.arend.ext.core.ops.CMP;
 import org.arend.typechecking.implicitargs.equations.DummyEquations;
 
+import java.math.BigInteger;
 import java.util.List;
 
 public class ParametersLevel {
   public final DependentLink parameters;
-  public int level;
+  public BigInteger level;
 
-  public ParametersLevel(DependentLink parameters, int level) {
+  public ParametersLevel(DependentLink parameters, BigInteger level) {
     this.parameters = parameters;
     this.level = level;
   }
@@ -50,6 +51,6 @@ public class ParametersLevel {
   }
 
   public void mergeCodomain(ParametersLevel another) {
-    level = Math.min(level, another.level);
+    level = level.min(another.level);
   }
 }

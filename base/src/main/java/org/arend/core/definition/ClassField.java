@@ -10,6 +10,7 @@ import org.arend.ext.core.definition.CoreClassField;
 import org.arend.naming.reference.FieldReferableImpl;
 import org.jetbrains.annotations.NotNull;
 
+import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
 
@@ -18,7 +19,7 @@ public class ClassField extends CallableDefinition implements CoreClassField {
   private boolean myProperty;
   private PiExpression myType;
   private Expression myTypeLevel;
-  private int myResultTypeLevel = -2;
+  private BigInteger myResultTypeLevel;
   private int myNumberOfParameters;
   private boolean myHideable;
   private UniverseKind myUniverseKind = UniverseKind.NO_UNIVERSES;
@@ -93,11 +94,11 @@ public class ClassField extends CallableDefinition implements CoreClassField {
     return myTypeLevel;
   }
 
-  public int getResultTypeLevel() {
+  public BigInteger getResultTypeLevel() {
     return myResultTypeLevel;
   }
 
-  public void setTypeLevel(Expression typeLevel, int level) {
+  public void setTypeLevel(Expression typeLevel, BigInteger level) {
     myTypeLevel = typeLevel;
     myResultTypeLevel = level;
   }
@@ -178,6 +179,6 @@ public class ClassField extends CallableDefinition implements CoreClassField {
 
   @Override
   public Expression getDefCall(Levels levels, List<Expression> args) {
-    return FieldCallExpression.make(this, args.get(0));
+    return FieldCallExpression.make(this, args.getFirst());
   }
 }

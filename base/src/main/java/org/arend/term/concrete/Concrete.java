@@ -1265,12 +1265,12 @@ public final class Concrete {
   public static class UniverseExpression extends Expression implements ConcreteUniverseExpression {
     public static final byte PREC = 12;
     private final LevelExpression myPLevel;
-    private final Integer myHLevel;
+    private final BigInteger myHLevel;
     private final Kind myKind;
     private final Integer myInfIndex;
     private FieldReferableImpl myInfField;
 
-    private UniverseExpression(Object data, LevelExpression pLevel, Integer hLevel, Kind kind, Integer infIndex) {
+    private UniverseExpression(Object data, LevelExpression pLevel, BigInteger hLevel, Kind kind, Integer infIndex) {
       super(data);
       myPLevel = pLevel;
       myHLevel = hLevel;
@@ -1278,7 +1278,7 @@ public final class Concrete {
       myInfIndex = infIndex;
     }
 
-    public UniverseExpression(Object data, LevelExpression pLevel, Integer hLevel, Kind kind) {
+    public UniverseExpression(Object data, LevelExpression pLevel, BigInteger hLevel, Kind kind) {
       this(data, pLevel, hLevel, kind, null);
     }
 
@@ -1290,7 +1290,7 @@ public final class Concrete {
 
     @Override
     @Nullable
-    public Integer getHLevel() {
+    public BigInteger getHLevel() {
       return myHLevel;
     }
 
@@ -1419,7 +1419,7 @@ public final class Concrete {
     private Expression myResultType;
     private Expression myResultTypeLevel;
     private final List<FunctionClause> myClauses;
-    public int level = -2; // the level of the result type; -2 means not truncated
+    public BigInteger level = null; // the level of the result type
 
     public CaseExpression(Object data, boolean isSCase, List<CaseArgument> arguments, Expression resultType, Expression resultTypeLevel, List<FunctionClause> clauses) {
       super(data);

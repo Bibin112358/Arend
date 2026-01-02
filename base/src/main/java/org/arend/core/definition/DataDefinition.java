@@ -16,13 +16,14 @@ import org.arend.naming.reference.TCDefReferable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigInteger;
 import java.util.*;
 
 public class DataDefinition extends TopLevelDefinition implements CoreDataDefinition {
   private final List<Constructor> myConstructors;
   private DependentLink myParameters;
   private SortExpression mySort = new SortExpression.Const(Sort.SET0); // TODO[sorts]: Replace with Sort.INFINITY
-  private int myTruncatedLevel = -2;
+  private BigInteger myTruncatedLevel;
   private boolean mySquashed;
   private FunctionDefinition mySquasher;
   private final Set<Integer> myCovariantParameters = new HashSet<>();
@@ -109,11 +110,11 @@ public class DataDefinition extends TopLevelDefinition implements CoreDataDefini
   }
 
   @Override
-  public int getTruncatedLevel() {
+  public @Nullable BigInteger getTruncatedLevel() {
     return myTruncatedLevel;
   }
 
-  public void setTruncatedLevel(int level) {
+  public void setTruncatedLevel(BigInteger level) {
     myTruncatedLevel = level;
   }
 

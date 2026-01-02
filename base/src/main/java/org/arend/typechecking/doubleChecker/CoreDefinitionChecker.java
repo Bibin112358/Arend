@@ -30,6 +30,7 @@ import org.arend.typechecking.patternmatching.PatternTypechecking;
 import org.arend.typechecking.visitor.BaseDefinitionTypechecker;
 import org.arend.typechecking.visitor.DefinitionTypechecker;
 
+import java.math.BigInteger;
 import java.util.*;
 
 public class CoreDefinitionChecker extends BaseDefinitionTypechecker {
@@ -104,12 +105,12 @@ public class CoreDefinitionChecker extends BaseDefinitionTypechecker {
     }
 
     Expression typeType = checkType ? (definition.getResultType() instanceof UniverseExpression && body instanceof Expression ? definition.getResultType() : definition.getResultType().accept(myChecker, UniverseExpression.OMEGA)) : null;
-    Integer level = definition.getResultTypeLevel() == null ? null : myChecker.checkLevelProof(definition.getResultTypeLevel(), definition.getResultType());
+    BigInteger level = definition.getResultTypeLevel() == null ? null : myChecker.checkLevelProof(definition.getResultTypeLevel(), definition.getResultType());
 
-    if (definition.getKind() == CoreFunctionDefinition.Kind.LEMMA && (level == null || level != -1)) {
+    if (definition.getKind() == CoreFunctionDefinition.Kind.LEMMA && !Objects.equals(level, ConstLevel.PROP.value())) {
       if (!DefinitionTypechecker.isBoxed(definition)) {
         DefCallExpression resultDefCall = definition.getResultType().cast(DefCallExpression.class);
-        if (resultDefCall == null || !Objects.equals(resultDefCall.getUseLevel(), -1)) {
+        if (resultDefCall == null || !Objects.equals(resultDefCall.getUseLevel(), ConstLevel.PROP.value())) {
           SortExpression sort = typeType == null ? definition.getResultType().getSortExpressionOfType() : typeType.toSortExpression();
           if (sort == null) {
             errorReporter.report(CoreErrorWrapper.make(new TypecheckingError("Cannot infer the sort of the type", null), definition.getResultType()));
@@ -354,7 +355,7 @@ public class CoreDefinitionChecker extends BaseDefinitionTypechecker {
       Expression typeType = myChecker.checkInf(fieldType.getCodomain(), UniverseExpression.OMEGA, true);
       myChecker.removeBinding(fieldType.getParameters());
 
-      Integer level;
+      BigInteger level;
       if (field.getTypeLevel() != null) {
         List<DependentLink> parameters = new ArrayList<>();
         Expression type = fieldType;
@@ -402,10 +403,10 @@ public class CoreDefinitionChecker extends BaseDefinitionTypechecker {
 
       boolean propertyOK = !field.isProperty();
       if (level != null) {
-        if (field.isProperty() && level == -1) {
+        if (field.isProperty() && level.equals(ConstLevel.PROP.value())) {
           propertyOK = true;
         }
-        if (field.getResultTypeLevel() != level) {
+        if (!Objects.equals(field.getResultTypeLevel(), level)) {
           errorReporter.report(CoreErrorWrapper.make(new TypecheckingError("The level (" + new ConstLevel(field.getResultTypeLevel()) + ") of the type of the field does not match the level (" + level + ") inferred from the proof", null), fieldType));
         }
       }
@@ -413,8 +414,8 @@ public class CoreDefinitionChecker extends BaseDefinitionTypechecker {
       if (!propertyOK) {
         DefCallExpression defCall = fieldType.getCodomain().cast(DefCallExpression.class);
         if (defCall != null) {
-          Integer defCallLevel = defCall.getUseLevel();
-          propertyOK = defCallLevel != null && defCallLevel == -1;
+          BigInteger defCallLevel = defCall.getUseLevel();
+          propertyOK = defCallLevel != null && defCallLevel.equals(ConstLevel.PROP.value());
         }
       }
 

@@ -21,6 +21,7 @@ import org.arend.typechecking.dfs.DFS;
 import org.arend.typechecking.visitor.CheckTypeVisitor;
 import org.arend.ext.util.Pair;
 
+import java.math.BigInteger;
 import java.util.*;
 
 public class UseTypechecking {
@@ -237,7 +238,7 @@ public class UseTypechecking {
       }
     }
 
-    Integer level = CheckTypeVisitor.getExpressionLevel(link, resultType, ok ? type : null, DummyEquations.getInstance(), def, errorReporter);
+    BigInteger level = CheckTypeVisitor.getExpressionLevel(link, resultType, ok ? type : null, DummyEquations.getInstance(), def, errorReporter);
     if (level == null) {
       return null;
     }
@@ -252,9 +253,9 @@ public class UseTypechecking {
     if (useParent instanceof DataDefinition dataDef) {
       if (parametersLevel.parameters == null) {
         Sort dataSort = dataDef.getSortExpression().withInfLevel();
-        Sort newSort = parametersLevel.level == -1 ? Sort.PROP : new Sort(dataSort.getPLevel(), new ConstLevel(parametersLevel.level));
+        Sort newSort = parametersLevel.level.equals(ConstLevel.PROP.value()) ? Sort.PROP : new Sort(dataSort.getPLevel(), new ConstLevel(parametersLevel.level));
         if (!dataSort.isLessOrEquals(newSort)) {
-          if (!(parametersLevel.level == -1 && dataSort.isSet() && dataDef.getRecursiveDefinitions().isEmpty())) {
+          if (!(parametersLevel.level.equals(ConstLevel.PROP.value()) && dataSort.isSet() && dataDef.getRecursiveDefinitions().isEmpty())) {
             dataDef.setSquashed(true);
           }
           dataDef.setSquasher(useDefinition);
@@ -270,7 +271,7 @@ public class UseTypechecking {
       ClassDefinition.ParametersLevel classParametersLevel = (ClassDefinition.ParametersLevel) parametersLevel;
       if (classParametersLevel.fields == null) {
         classDef.setSquasher(useDefinition);
-        classDef.setSortExpression(new SortExpression.Const(parametersLevel.level == -1 ? Sort.PROP : new Sort(classDef.getSortExpression().withInfLevel().getPLevel(), new ConstLevel(parametersLevel.level))));
+        classDef.setSortExpression(new SortExpression.Const(parametersLevel.level.equals(ConstLevel.PROP.value()) ? Sort.PROP : new Sort(classDef.getSortExpression().withInfLevel().getPLevel(), new ConstLevel(parametersLevel.level))));
       } else {
         classDef.addParametersLevel(classParametersLevel);
       }

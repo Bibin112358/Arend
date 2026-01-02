@@ -10,6 +10,8 @@ import org.arend.core.sort.Sort;
 import org.arend.ext.core.level.ConstLevel;
 import org.junit.Test;
 
+import java.math.BigInteger;
+
 import static org.junit.Assert.*;
 
 public class UseTest extends TypeCheckingTestCase {
@@ -346,7 +348,7 @@ public class UseTest extends TypeCheckingTestCase {
     typeCheckModule(
       "\\func test (A : \\Type) (p : \\Pi (x y : A) -> x = y) => A\n" +
       "  \\where \\use \\level levelProp (A : \\Type) (p : \\Pi (x y : A) -> x = y) : \\Pi (x y : A) -> x = y => p");
-    assertEquals(-1, getDefinition("test").getParametersLevels().getFirst().level);
+    assertEquals(BigInteger.valueOf(-1), getDefinition("test").getParametersLevels().getFirst().level);
   }
 
   @Test
@@ -367,7 +369,7 @@ public class UseTest extends TypeCheckingTestCase {
         }
       """);
     assertEquals(1, getDefinition("f").getParametersLevels().size());
-    assertEquals(-1, getDefinition("f").getParametersLevels().getFirst().level);
+    assertEquals(BigInteger.valueOf(-1), getDefinition("f").getParametersLevels().getFirst().level);
   }
 
   @Test
@@ -381,7 +383,7 @@ public class UseTest extends TypeCheckingTestCase {
         }
       """);
     assertEquals(1, getDefinition("f").getParametersLevels().size());
-    assertEquals(-1, getDefinition("f").getParametersLevels().getFirst().level);
+    assertEquals(BigInteger.valueOf(-1), getDefinition("f").getParametersLevels().getFirst().level);
   }
 
   @Test

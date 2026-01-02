@@ -3,9 +3,11 @@ package org.arend.ext.core.level;
 import org.arend.ext.core.ops.CMP;
 import org.jetbrains.annotations.NotNull;
 
-public record ConstLevel(Integer value) {
+import java.math.BigInteger;
+
+public record ConstLevel(BigInteger value) {
   public final static ConstLevel INFINITY = new ConstLevel(null);
-  public final static ConstLevel PROP = new ConstLevel(-1);
+  public final static ConstLevel PROP = new ConstLevel(BigInteger.valueOf(-1));
 
   public boolean isProp() {
     return value != null && value.equals(PROP.value);
@@ -28,11 +30,11 @@ public record ConstLevel(Integer value) {
   }
 
   public ConstLevel max(ConstLevel level) {
-    return value == null || level.value == null ? INFINITY : new ConstLevel(Math.max(value, level.value));
+    return value == null || level.value == null ? INFINITY : new ConstLevel(value.max(level.value));
   }
 
-  public ConstLevel add(int val) {
-    return value == null ? this : new ConstLevel(value + val);
+  public ConstLevel add(BigInteger val) {
+    return value == null ? this : new ConstLevel(value.add(val));
   }
 
   @Override

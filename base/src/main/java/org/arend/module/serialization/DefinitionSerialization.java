@@ -342,7 +342,6 @@ public class DefinitionSerialization implements ArendSerializer {
     if (parametersLevel.parameters != null) {
       builder.addAllParameter(defSerializer.writeParameters(parametersLevel.parameters));
     }
-    builder.setLevel(parametersLevel.level);
     return builder.build();
   }
 

@@ -10,6 +10,7 @@ import org.arend.ext.core.level.LevelSubstitution;
 import org.arend.util.Decision;
 import org.jetbrains.annotations.NotNull;
 
+import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
 
@@ -38,7 +39,7 @@ public abstract class DefCallExpression extends Expression implements CoreDefCal
     return myDefinition;
   }
 
-  public Integer getUseLevel() {
+  public BigInteger getUseLevel() {
     for (ParametersLevel parametersLevel : myDefinition.getParametersLevels()) {
       if (parametersLevel.checkExpressionsTypes(getDefCallArguments())) {
         return parametersLevel.level;

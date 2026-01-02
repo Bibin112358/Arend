@@ -33,6 +33,7 @@ import org.arend.typechecking.patternmatching.PatternTypechecking;
 import org.arend.util.SingletonList;
 import org.arend.util.SingletonMap;
 
+import java.math.BigInteger;
 import java.util.*;
 
 import static org.arend.core.expr.ExpressionFactory.*;
@@ -213,11 +214,11 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
     Expression thisExpr = new ReferenceExpression(expr.getThisBinding());
     for (Map.Entry<ClassField, Expression> entry : expr.getImplementedHere().entrySet()) {
       Expression type = expr.getDefinition().getFieldType(entry.getKey(), expr.getLevels(entry.getKey().getParentClass()), thisExpr);
-      if (entry.getKey().isProperty() || entry.getKey().getResultTypeLevel() == -1) {
+      if (entry.getKey().isProperty() || Objects.equals(entry.getKey().getResultTypeLevel(), ConstLevel.PROP.value())) {
         if (entry.getValue() instanceof LamExpression) {
-          checkLam((LamExpression) entry.getValue(), type, -1);
+          checkLam((LamExpression) entry.getValue(), type, ConstLevel.PROP.value());
         } else if (entry.getValue() instanceof CaseExpression) {
-          checkCase((CaseExpression) entry.getValue(), type, -1);
+          checkCase((CaseExpression) entry.getValue(), type, ConstLevel.PROP.value());
         } else {
           entry.getValue().accept(this, type);
         }
@@ -367,7 +368,7 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
     }
   }
 
-  private Expression checkLam(LamExpression expr, Expression expectedType, Integer level) {
+  private Expression checkLam(LamExpression expr, Expression expectedType, BigInteger level) {
     checkDependentLink(expr.getParameters(), UniverseExpression.OMEGA, expr, false);
     Expression type;
     if (expr.getBody() instanceof LamExpression) {
@@ -525,7 +526,7 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
     return type;
   }
 
-  Integer checkLevelProof(Expression proof, Expression type) {
+  BigInteger checkLevelProof(Expression proof, Expression type) {
     Expression proofType = proof.accept(this, null);
 
     List<SingleDependentLink> params = new ArrayList<>();
@@ -546,7 +547,7 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
       type = FunCallExpression.make(Prelude.PATH_INFIX, Levels.EMPTY, args);
     }
 
-    return params.size() / 2 - 2;
+    return BigInteger.valueOf(params.size() / 2 - 2);
   }
 
   private boolean checkElimPattern(Expression type, Pattern pattern, List<Binding> newBindings, ExprSubstitution idpSubst, ExprSubstitution patternSubst, ExprSubstitution reversePatternSubst, Expression errorExpr) {
@@ -741,7 +742,7 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
     return link;
   }
 
-  void checkElimBody(FunctionDefinition definition, ElimBody elimBody, DependentLink parameters, Expression type, Integer level, Expression errorExpr, boolean isSFunc, PatternTypechecking.Mode mode) {
+  void checkElimBody(FunctionDefinition definition, ElimBody elimBody, DependentLink parameters, Expression type, BigInteger level, Expression errorExpr, boolean isSFunc, PatternTypechecking.Mode mode) {
     List<ExtElimClause> exprClauses = new ArrayList<>();
     for (ElimClause<Pattern> clause : elimBody.getClauses()) {
       DependentLink firstBinding = Pattern.getFirstBinding(clause.getPatterns());
@@ -818,16 +819,16 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
     }
   }
 
-  Expression checkCase(CaseExpression expr, Expression expectedType, Integer level) {
+  Expression checkCase(CaseExpression expr, Expression expectedType, BigInteger level) {
     ExprSubstitution substitution = new ExprSubstitution();
     checkList(expr.getArguments(), expr.getParameters(), substitution, LevelSubstitution.EMPTY);
     checkDependentLink(expr.getParameters(), UniverseExpression.OMEGA, expr, false);
     expr.getResultType().accept(this, UniverseExpression.OMEGA);
 
-    Integer level2 = expr.getResultTypeLevel() == null ? null : checkLevelProof(expr.getResultTypeLevel(), expr.getResultType());
+    BigInteger level2 = expr.getResultTypeLevel() == null ? null : checkLevelProof(expr.getResultTypeLevel(), expr.getResultType());
 
     freeDependentLink(expr.getParameters());
-    checkElimBody(null, expr.getElimBody(), expr.getParameters(), expr.getResultType(), level == null ? level2 : level2 == null ? level : Integer.valueOf(Math.min(level, level2)), expr, expr.isSCase(), PatternTypechecking.Mode.CASE);
+    checkElimBody(null, expr.getElimBody(), expr.getParameters(), expr.getResultType(), level == null ? level2 : level2 == null ? level : level.min(level2), expr, expr.isSCase(), PatternTypechecking.Mode.CASE);
     return check(expectedType, expr.getResultType().subst(substitution), expr);
   }
 

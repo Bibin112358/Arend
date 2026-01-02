@@ -30,7 +30,7 @@ class ShrinkAbstractVisitor(val textRange: TextRange) : AbstractExpressionVisito
     override fun visitPi(data: Any?, parameters: MutableCollection<out Abstract.Parameter>, codomain: Abstract.Expression?, params: Unit?): String =
             """\Pi $DOTS -> ${codomain?.accept(this, Unit) ?: "INVALID"}"""
 
-    override fun visitUniverse(data: Any?, pLevelNum: BigInteger?, hLevelNum: Int?, pLevel: Abstract.LevelExpression?, params: Unit?): String =
+    override fun visitUniverse(data: Any?, pLevelNum: BigInteger?, hLevelNum: BigInteger?, pLevel: Abstract.LevelExpression?, params: Unit?): String =
             """\Type"""
 
     override fun visitCatUniverse(data: Any?, pLevelNum: BigInteger?, pLevel: Abstract.LevelExpression?, params: Unit?): String =

@@ -346,12 +346,12 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     return universeKind;
   }
 
-  private Integer checkResultTypeLevel(TypecheckingResult result, LevelMismatchError.TargetKind kind, Expression resultType, FunctionDefinition funDef, ClassField classField, boolean isOverridden, Concrete.SourceNode sourceNode) {
+  private BigInteger checkResultTypeLevel(TypecheckingResult result, LevelMismatchError.TargetKind kind, Expression resultType, FunctionDefinition funDef, ClassField classField, boolean isOverridden, Concrete.SourceNode sourceNode) {
     if (result == null || resultType == null) {
       return null;
     }
 
-    Integer level = typechecker.getExpressionLevel(EmptyDependentLink.getInstance(), result.type, resultType, DummyEquations.getInstance(), sourceNode);
+    BigInteger level = typechecker.getExpressionLevel(EmptyDependentLink.getInstance(), result.type, resultType, DummyEquations.getInstance(), sourceNode);
     if (level != null) {
       if (!checkLevel(kind, level, null, sourceNode)) {
         if (funDef != null && kind == LevelMismatchError.TargetKind.LEMMA) {
@@ -371,7 +371,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     return level;
   }
 
-  private Integer typecheckResultTypeLevel(Concrete.Expression resultTypeLevel, LevelMismatchError.TargetKind kind, Expression resultType, FunctionDefinition funDef, ClassField classField, boolean isOverridden) {
+  private BigInteger typecheckResultTypeLevel(Concrete.Expression resultTypeLevel, LevelMismatchError.TargetKind kind, Expression resultType, FunctionDefinition funDef, ClassField classField, boolean isOverridden) {
     if (resultTypeLevel == null) return null;
     if (kind != null) {
       TypedSingleDependentLink y = new TypedSingleDependentLink(true, "y", resultType);
@@ -382,9 +382,9 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
         funDef.setResultTypeLevel(result.expression);
       }
       if (!isOverridden && classField != null) {
-        classField.setTypeLevel(result.expression, -1);
+        classField.setTypeLevel(result.expression, ConstLevel.PROP.value());
       }
-      return -1;
+      return ConstLevel.PROP.value();
     }
     return checkResultTypeLevel(typechecker.finalCheckExpr(resultTypeLevel, null), kind, resultType, funDef, classField, isOverridden, resultTypeLevel);
   }
@@ -659,9 +659,9 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     return result;
   }
 
-  private boolean checkLevel(LevelMismatchError.TargetKind kind, Integer level, Sort actualSort, Concrete.SourceNode sourceNode) {
-    if (kind != null && (level == null || level != -1)) {
-      Sort sort = level != null ? new Sort(new Level(LevelVariable.PVAR), new ConstLevel(actualSort != null ? Math.min(level, actualSort.getHLevel().value()) : level)) : actualSort;
+  private boolean checkLevel(LevelMismatchError.TargetKind kind, BigInteger level, Sort actualSort, Concrete.SourceNode sourceNode) {
+    if (kind != null && !Objects.equals(level, ConstLevel.PROP.value())) {
+      Sort sort = level != null ? new Sort(new Level(LevelVariable.PVAR), new ConstLevel(actualSort != null ? level.min(actualSort.getHLevel().value()) : level)) : actualSort;
       errorReporter.report(new LevelMismatchError(kind, sort, sourceNode));
       return false;
     } else {
@@ -1265,13 +1265,13 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     }
   }
 
-  private Integer checkTypeLevel(Concrete.BaseFunctionDefinition def, FunctionDefinition typedDef, boolean checked) {
+  private BigInteger checkTypeLevel(Concrete.BaseFunctionDefinition def, FunctionDefinition typedDef, boolean checked) {
     if (checked && isBoxed(typedDef)) {
-      return -1;
+      return ConstLevel.PROP.value();
     }
 
     Expression type = typedDef.getResultType();
-    Integer resultTypeLevel = type.isError() ? null : typecheckResultTypeLevel(def.getResultTypeLevel(), def.getKind() == FunctionKind.LEMMA ? LevelMismatchError.TargetKind.LEMMA : def.getKind() == FunctionKind.AXIOM ? LevelMismatchError.TargetKind.AXIOM : null, type, typedDef, null, false);
+    BigInteger resultTypeLevel = type.isError() ? null : typecheckResultTypeLevel(def.getResultTypeLevel(), def.getKind() == FunctionKind.LEMMA ? LevelMismatchError.TargetKind.LEMMA : def.getKind() == FunctionKind.AXIOM ? LevelMismatchError.TargetKind.AXIOM : null, type, typedDef, null, false);
     if (resultTypeLevel == null && !type.isError()) {
       DefCallExpression defCall = type.cast(DefCallExpression.class);
       resultTypeLevel = defCall == null ? null : defCall.getUseLevel();
@@ -1359,7 +1359,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     List<ExtElimClause> clauses = null;
     Concrete.FunctionBody body = def.getBody();
     boolean checkLevelNow = (body instanceof Concrete.ElimFunctionBody || body.getTerm() instanceof Concrete.CaseExpression && def.getKind() != FunctionKind.LEVEL) && def.getKind() != FunctionKind.AXIOM && !checkResultTypeLater(def);
-    Integer typeLevel = checkLevelNow ? checkTypeLevel(def, typedDef, false) : null;
+    BigInteger typeLevel = checkLevelNow ? checkTypeLevel(def, typedDef, false) : null;
     if (typeLevel != null && typedDef.isSFunc()) {
       if (body instanceof Concrete.ElimFunctionBody) {
         for (Concrete.FunctionClause clause : body.getClauses()) {
@@ -1596,7 +1596,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     }
 
     if (kind != FunctionKind.LEMMA && kind != FunctionKind.LEVEL && typedDef.getBody() instanceof DefCallExpression) {
-      Integer level = ((DefCallExpression) typedDef.getBody()).getUseLevel();
+      BigInteger level = ((DefCallExpression) typedDef.getBody()).getUseLevel();
       if (level != null) {
         typedDef.addParametersLevel(new ParametersLevel(null, level));
       }
@@ -2672,8 +2672,8 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
           instancePool.setInstancePool(localInstancePool);
           typechecker.setInstancePool(instancePool);
           if (field.isProperty()) {
-            CheckTypeVisitor.setCaseLevel(lamImpl.body, -1, true);
-          } else if (field.getResultTypeLevel() >= -1) {
+            CheckTypeVisitor.setCaseLevel(lamImpl.body, ConstLevel.PROP.value(), true);
+          } else if (field.getResultTypeLevel() != null) {
             CheckTypeVisitor.setCaseLevel(lamImpl.body, field.getResultTypeLevel(), false);
           }
           Levels superLevels = typedDef.getSuperLevels().get(field.getParentClass());
@@ -3012,8 +3012,8 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       if (ok && def.getResultTypeLevel() != null) {
         var pair = addPiParametersToContext(def.getParameters(), piType);
         if (!pair.proj1.hasNext() && pair.proj2 != null) {
-          Integer level = typecheckResultTypeLevel(def.getResultTypeLevel(), LevelMismatchError.TargetKind.PROPERTY, pair.proj2, null, typedDef, def instanceof Concrete.OverriddenField);
-          isProperty = level != null && level == -1 && kind != ClassFieldKind.FIELD;
+          BigInteger level = typecheckResultTypeLevel(def.getResultTypeLevel(), LevelMismatchError.TargetKind.PROPERTY, pair.proj2, null, typedDef, def instanceof Concrete.OverriddenField);
+          isProperty = Objects.equals(level, ConstLevel.PROP.value()) && kind != ClassFieldKind.FIELD;
         } else {
           // Just reports an error
           typechecker.getExpressionLevel(pair.proj1, null, null, DummyEquations.getInstance(), def.getResultTypeLevel());
@@ -3024,13 +3024,13 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
           isProperty = true;
         } else {
           DefCallExpression defCall = typeResult.expression().cast(DefCallExpression.class);
-          Integer level = defCall == null ? null : defCall.getUseLevel();
+          BigInteger level = defCall == null ? null : defCall.getUseLevel();
           if (kind == ClassFieldKind.PROPERTY) {
             if (checkLevel(LevelMismatchError.TargetKind.PROPERTY, level, sort.withInfLevel(), def)) {
               isProperty = true;
             }
           } else {
-            if (level != null && level == -1) {
+            if (Objects.equals(level, ConstLevel.PROP.value())) {
               isProperty = true;
             }
           }

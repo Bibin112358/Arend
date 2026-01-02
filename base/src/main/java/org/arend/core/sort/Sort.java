@@ -19,7 +19,7 @@ public class Sort implements CoreSort {
   private final boolean myCat;
 
   public static final Sort PROP = new Sort(new Level(BigInteger.ZERO), ConstLevel.PROP);
-  public static final Sort SET0 = new Sort(new Level(BigInteger.ZERO), new ConstLevel(0));
+  public static final Sort SET0 = new Sort(new Level(BigInteger.ZERO), new ConstLevel(BigInteger.ZERO));
   public static final Sort INFINITY = new Sort(Level.INFINITY, ConstLevel.INFINITY, true);
 
   public static Sort SetOfLevel(int pLevel) {
@@ -27,7 +27,7 @@ public class Sort implements CoreSort {
   }
 
   public static Sort SetOfLevel(Level pLevel) {
-    return new Sort(pLevel, new ConstLevel(0));
+    return new Sort(pLevel, new ConstLevel(BigInteger.ZERO));
   }
 
   public static Sort TypeOfLevel(int pLevel) {
@@ -45,7 +45,7 @@ public class Sort implements CoreSort {
   }
 
   public Sort(int pLevel, int hLevel) {
-    this(new Level(BigInteger.valueOf(pLevel)), new ConstLevel(hLevel));
+    this(new Level(BigInteger.valueOf(pLevel)), new ConstLevel(BigInteger.valueOf(hLevel)));
     assert pLevel >= 0;
     assert hLevel >= 0;
   }
@@ -75,7 +75,7 @@ public class Sort implements CoreSort {
   }
 
   public Sort succ() {
-    return isProp() ? SET0 : new Sort(getPLevel().add(BigInteger.ONE), getHLevel().add(1));
+    return isProp() ? SET0 : new Sort(getPLevel().add(BigInteger.ONE), getHLevel().add(BigInteger.ONE));
   }
 
   public Sort max(Sort sort) {
@@ -101,7 +101,7 @@ public class Sort implements CoreSort {
 
   @Override
   public boolean isSet() {
-    return !myHLevel.isInfinity() && myHLevel.value() == 0;
+    return !myHLevel.isInfinity() && myHLevel.value().equals(BigInteger.ZERO);
   }
 
   public static boolean compare(Sort sort1, Sort sort2, CMP cmp, Equations equations, Concrete.SourceNode sourceNode) {

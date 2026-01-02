@@ -124,9 +124,6 @@ public class DefinitionDeserialization implements ArendDeserializer {
         field.setIsProperty();
       }
       field.setType(fieldType);
-      if (fieldProto.hasTypeLevel()) {
-        field.setTypeLevel(defDeserializer.readExpr(fieldProto.getTypeLevel()), fieldProto.getResultTypeLevel());
-      }
       field.setNumberOfParameters(fieldProto.getNumberOfParameters());
       // setTypeClassReference(field.getReferable(), EmptyDependentLink.getInstance(), fieldType.getCodomain());
       field.setHideable(fieldProto.getIsHideable());

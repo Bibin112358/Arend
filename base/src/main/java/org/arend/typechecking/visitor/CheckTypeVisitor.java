@@ -1584,7 +1584,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     return checkResult(expectedType, new TypecheckingResult(resultClassCall, new UniverseExpression(sort)), expr);
   }
 
-  static void setCaseLevel(Concrete.Expression expr, int level, boolean setSCase) {
+  static void setCaseLevel(Concrete.Expression expr, BigInteger level, boolean setSCase) {
     while (expr instanceof Concrete.LamExpression) {
       expr = ((Concrete.LamExpression) expr).getBody();
     }
@@ -1626,8 +1626,8 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
 
     if (field.isProperty()) {
-      setCaseLevel(implBody, -1, true);
-    } else if (field.getResultTypeLevel() >= -1) {
+      setCaseLevel(implBody, ConstLevel.PROP.value(), true);
+    } else if (field.getResultTypeLevel() != null) {
       CheckTypeVisitor.setCaseLevel(implBody, field.getResultTypeLevel(), false);
     }
 
@@ -3365,12 +3365,12 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
 
     Level pLevel = expr.getPLevel() != null ? expr.getPLevel().accept(this, null) : null;
-    Integer hLevel;
+    BigInteger hLevel;
     if (expr.getHLevel() != null) {
-      int number = expr.getHLevel();
-      if (number < -1) {
+      BigInteger number = expr.getHLevel();
+      if (number.compareTo(ConstLevel.PROP.value()) < 0) {
         errorReporter.report(new TypecheckingError("Expected a number >= -1", expr));
-        number = -1;
+        number = ConstLevel.PROP.value();
       }
       hLevel = number;
     } else {
@@ -3749,14 +3749,14 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     return null;
   }
 
-  public Integer getExpressionLevel(DependentLink link, Expression type, Expression expr, Equations equations, Concrete.SourceNode sourceNode) {
+  public BigInteger getExpressionLevel(DependentLink link, Expression type, Expression expr, Equations equations, Concrete.SourceNode sourceNode) {
     return getExpressionLevel(link, type, expr, equations, sourceNode, errorReporter);
   }
 
-  public static Integer getExpressionLevel(DependentLink link, Expression type, Expression expr, Equations equations, Concrete.SourceNode sourceNode, ErrorReporter errorReporter) {
+  public static BigInteger getExpressionLevel(DependentLink link, Expression type, Expression expr, Equations equations, Concrete.SourceNode sourceNode, ErrorReporter errorReporter) {
     boolean ok = expr != null;
 
-    int level = -2;
+    BigInteger level = BigInteger.valueOf(-2);
     if (ok) {
       List<DependentLink> parameters = new ArrayList<>();
       for (; link.hasNext(); link = link.getNext()) {
@@ -3789,7 +3789,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
         pathArgs.add(new ReferenceExpression(link));
         expr = FunCallExpression.make(Prelude.PATH_INFIX, Levels.EMPTY, pathArgs);
-        level++;
+        level = level.add(BigInteger.ONE);
       }
 
       if (ok && resultType != null && !CompareVisitor.compare(equations, CMP.EQ, resultType, expr, UniverseExpression.OMEGA, sourceNode)) {
@@ -3797,13 +3797,13 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       }
     }
 
-    if (!ok || level < -1) {
+    if (!ok || level.compareTo(ConstLevel.PROP.value()) < 0) {
       type = type == null ? null : type.normalize(NormalizationMode.WHNF);
       if (!(type instanceof ErrorExpression && ((ErrorExpression) type).isGoal())) {
         errorReporter.report(new TypecheckingError("\\level has wrong format", sourceNode));
         return null;
       }
-      return -1;
+      return ConstLevel.PROP.value();
     } else {
       return level;
     }
@@ -3854,8 +3854,8 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
   }
 
-  Integer minInteger(Integer int1, Integer int2) {
-    return int1 == null ? int2 : int2 == null ? int1 : Integer.valueOf(Math.min(int1, int2));
+  BigInteger minInteger(BigInteger int1, BigInteger int2) {
+    return int1 == null ? int2 : int2 == null ? int1 : int1.min(int2);
   }
 
   @Override
@@ -3872,7 +3872,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     ExprSubstitution substitution = new ExprSubstitution();
     TypeExpression resultType = null;
     Expression resultExpr;
-    Integer level = expr.level >= -1 ? expr.level : null;
+    BigInteger level = expr.level;
     Expression resultTypeLevel = null;
     Map<Referable, Binding> origElimBindings = new HashMap<>();
     ExprSubstitution elimSubst = new ExprSubstitution();
@@ -3993,14 +3993,14 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     if (expr.getResultTypeLevel() == null && expr.getResultType() instanceof Concrete.TypedExpression) {
       Concrete.Expression typeType = ((Concrete.TypedExpression) expr.getResultType()).type;
       if (typeType instanceof Concrete.UniverseExpression universeType && universeType.getHLevel() != null) {
-        level = minInteger(level, Math.max(universeType.getHLevel(), -1));
+        level = minInteger(level, universeType.getHLevel().max(ConstLevel.PROP.value()));
       }
     }
 
     // Try to infer level from \\use annotations of the definition in the result type.
     if (expr.getResultTypeLevel() == null) {
       DefCallExpression defCall = resultExpr.cast(DefCallExpression.class);
-      Integer level2 = defCall == null ? null : defCall.getUseLevel();
+      BigInteger level2 = defCall == null ? null : defCall.getUseLevel();
       if (level2 == null) {
         defCall = resultExpr.getPiParameters(null, false).cast(DefCallExpression.class);
         if (defCall != null) {

@@ -26,6 +26,7 @@ import org.arend.ext.util.Wrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigInteger;
 import java.util.*;
 
 public class ClassCallExpression extends LeveledDefCallExpression implements CoreClassCallExpression {
@@ -440,7 +441,7 @@ public class ClassCallExpression extends LeveledDefCallExpression implements Cor
   }
 
   @Override
-  public Integer getUseLevel() {
+  public BigInteger getUseLevel() {
     return getDefinition().getUseLevel(myImplementations, myThisBinding, false);
   }
 

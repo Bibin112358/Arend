@@ -31,7 +31,7 @@ class ArendLiteral(node: ASTNode) : ArendExpr(node) {
             is ArendRefIdentifier -> visitor.visitReference(child, child.referent, null, null, params)
             is ArendGoal -> visitor.visitGoal(child, child.defIdentifier?.refName, child.expr, params)
             else -> when (child.elementType) {
-                PROP_KW -> visitor.visitUniverse(this, BigInteger.ZERO, -1, null, params)
+                PROP_KW -> visitor.visitUniverse(this, BigInteger.ZERO, BigInteger.valueOf(-1), null, params)
                 SORT_KW -> visitor.visitSortUniverse(this, params)
                 UNDERSCORE -> visitor.visitInferHole(this, params)
                 APPLY_HOLE -> visitor.visitApplyHole(this, params)

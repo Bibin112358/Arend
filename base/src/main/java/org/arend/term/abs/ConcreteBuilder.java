@@ -683,7 +683,7 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
   }
 
   @Override
-  public Concrete.UniverseExpression visitUniverse(@Nullable Object data, @Nullable BigInteger pLevelNum, @Nullable Integer hLevelNum, @Nullable Abstract.LevelExpression pLevel, Void params) {
+  public Concrete.UniverseExpression visitUniverse(@Nullable Object data, @Nullable BigInteger pLevelNum, @Nullable BigInteger hLevelNum, @Nullable Abstract.LevelExpression pLevel, Void params) {
     if (pLevelNum != null) {
       pLevel = null;
     }
