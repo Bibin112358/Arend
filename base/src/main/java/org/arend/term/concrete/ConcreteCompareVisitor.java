@@ -201,7 +201,7 @@ public class ConcreteCompareVisitor implements ConcreteExpressionVisitor<Concret
         return level2 instanceof Concrete.PLevelExpression;
       }
       case Concrete.NumberLevelExpression numberLevelExpression -> {
-        return level2 instanceof Concrete.NumberLevelExpression && numberLevelExpression.getNumber() == ((Concrete.NumberLevelExpression) level2).getNumber();
+        return level2 instanceof Concrete.NumberLevelExpression && numberLevelExpression.getNumber().equals(((Concrete.NumberLevelExpression) level2).getNumber());
       }
       case Concrete.SucLevelExpression sucLevelExpression -> {
         return level2 instanceof Concrete.SucLevelExpression && compareLevel(sucLevelExpression.getExpression(), ((Concrete.SucLevelExpression) level2).getExpression());

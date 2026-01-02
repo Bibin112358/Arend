@@ -69,13 +69,7 @@ class ExpressionDeserialization {
     LevelVariable var;
     int index = proto.getVariable();
     var = index == -2 ? null : index == -1 ? LevelVariable.PVAR : definition.getLevelParameters().get(index);
-
-    int constant = proto.getConstant();
-    if (var == null && constant == Level.INFINITY.getConstant()) {
-      return Level.INFINITY;
-    } else {
-      return new Level(var, constant, proto.getMaxConstant());
-    }
+    return new Level(var);
   }
 
   Sort readSort(LevelProtos.Sort proto) {

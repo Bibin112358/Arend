@@ -20,6 +20,7 @@ import org.arend.typechecking.implicitargs.equations.Equations;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigInteger;
 import java.util.*;
 
 public abstract class Definition extends UserDataHolderImpl implements CoreDefinition {
@@ -117,7 +118,7 @@ public abstract class Definition extends UserDataHolderImpl implements CoreDefin
     if (vars == null) return SingleLevel.ZERO;
     List<Level> result = new ArrayList<>(vars.size());
     for (LevelVariable ignored : vars) {
-      result.add(new Level(0));
+      result.add(new Level(BigInteger.ZERO));
     }
     return new ListLevels(result);
   }

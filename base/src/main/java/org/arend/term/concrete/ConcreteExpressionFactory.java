@@ -74,7 +74,7 @@ public class ConcreteExpressionFactory {
   }
 
   public static Concrete.NumericLiteral cZero() {
-    return new Concrete.NumericLiteral(null, BigInteger.valueOf(0));
+    return new Concrete.NumericLiteral(null, BigInteger.ZERO);
   }
 
   public static Concrete.ReferenceExpression cSuc() {
@@ -214,7 +214,7 @@ public class ConcreteExpressionFactory {
   }
 
   public static Concrete.UniverseExpression cUniverseInf(int level) {
-    return new Concrete.UniverseExpression(null, new Concrete.NumberLevelExpression(null, level), null, ConcreteUniverseExpression.Kind.TYPE);
+    return new Concrete.UniverseExpression(null, new Concrete.NumberLevelExpression(null, BigInteger.valueOf(level)), null, ConcreteUniverseExpression.Kind.TYPE);
   }
 
   public static Concrete.UniverseExpression cUniverse(Concrete.LevelExpression pLevel, Integer hLevel, Concrete.UniverseExpression.Kind kind) {
@@ -222,7 +222,7 @@ public class ConcreteExpressionFactory {
   }
 
   public static Concrete.UniverseExpression cUniverse(int level) {
-    return new Concrete.UniverseExpression(null, new Concrete.NumberLevelExpression(null, level), null, ConcreteUniverseExpression.Kind.TYPE);
+    return new Concrete.UniverseExpression(null, new Concrete.NumberLevelExpression(null, BigInteger.valueOf(level)), null, ConcreteUniverseExpression.Kind.TYPE);
   }
 
   public static Concrete.ConstructorPattern cConPattern(boolean isExplicit, Referable referable, List<Concrete.Pattern> patternArgs) {

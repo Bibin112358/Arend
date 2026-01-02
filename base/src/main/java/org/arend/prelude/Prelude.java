@@ -38,6 +38,7 @@ import org.arend.typechecking.visitor.ArendCheckerFactory;
 import org.arend.util.SingletonList;
 import org.arend.util.Version;
 
+import java.math.BigInteger;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -146,7 +147,7 @@ public class Prelude implements ArendPrelude {
       case "String" -> STRING = (DataDefinition) definition;
       case "I" -> {
         INTERVAL = (DataDefinition) definition;
-        INTERVAL.setSort(new Sort(new Level(0), ConstLevel.INFINITY));
+        INTERVAL.setSort(new Sort(new Level(BigInteger.ZERO), ConstLevel.INFINITY));
         LEFT = INTERVAL.getConstructor("left");
         RIGHT = INTERVAL.getConstructor("right");
       }

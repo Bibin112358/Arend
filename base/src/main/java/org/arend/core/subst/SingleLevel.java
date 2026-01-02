@@ -12,12 +12,13 @@ import org.arend.typechecking.implicitargs.equations.DummyEquations;
 import org.arend.typechecking.implicitargs.equations.Equations;
 import org.jetbrains.annotations.NotNull;
 
+import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
 
 public class SingleLevel implements LevelSubstitution, Levels {
   public static final SingleLevel STD = new SingleLevel(new Level(LevelVariable.PVAR));
-  public static final SingleLevel ZERO = new SingleLevel(new Level(0));
+  public static final SingleLevel ZERO = new SingleLevel(new Level(BigInteger.ZERO));
 
   private final Level myLevel;
 

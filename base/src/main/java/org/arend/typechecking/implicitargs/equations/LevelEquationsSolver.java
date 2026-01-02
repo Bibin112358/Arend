@@ -13,6 +13,7 @@ import org.arend.typechecking.dfs.DFS;
 import org.arend.typechecking.dfs.MapDFS;
 import org.arend.ext.util.Pair;
 
+import java.math.BigInteger;
 import java.util.*;
 
 public class LevelEquationsSolver {
@@ -48,11 +49,11 @@ public class LevelEquationsSolver {
     myErrorReporter = errorReporter;
   }
 
-  private void addLevelEquation(final LevelVariable var1, LevelVariable var2, int constant, int maxConstant) {
+  private void addLevelEquation(final LevelVariable var1, LevelVariable var2, BigInteger constant, BigInteger maxConstant) {
     // 0 <= max(_ +-c, +-d) // 10
     if (var1 == null) {
       // 0 <= max(?y - c, -d) // 1
-      if (maxConstant < 0 && constant < 0) {
+      if (maxConstant.compareTo(BigInteger.ZERO) < 0 && constant.compareTo(BigInteger.ZERO) < 0) {
         addEquation(new LevelEquation<>(null, (InferenceLevelVariable) var2, constant), false);
       }
       return;
@@ -67,7 +68,7 @@ public class LevelEquationsSolver {
     if (var1 instanceof InferenceLevelVariable) {
       // ?x <= max(?y +- c, +-d) // 4
       if (var2 instanceof InferenceLevelVariable) {
-        LevelEquation<InferenceLevelVariable> equation = new LevelEquation<>((InferenceLevelVariable) var1, (InferenceLevelVariable) var2, constant, maxConstant < 0 ? null : maxConstant);
+        LevelEquation<InferenceLevelVariable> equation = new LevelEquation<>((InferenceLevelVariable) var1, (InferenceLevelVariable) var2, constant, maxConstant.compareTo(BigInteger.ZERO) < 0 ? null : maxConstant);
         addEquation(equation, false);
         if (myPBased) {
           addEquation(equation, true);
@@ -78,20 +79,20 @@ public class LevelEquationsSolver {
         if (oldLevel == null) {
           myConstantUpperBounds.put((InferenceLevelVariable) var1, new Level(var2, constant, maxConstant));
         } else {
-          Map.Entry<LevelVariable,Integer> oldEntry = oldLevel.getVarPairs().isEmpty() ? null : oldLevel.getVarPairs().iterator().next();
+          Map.Entry<LevelVariable,BigInteger> oldEntry = oldLevel.getVarPairs().isEmpty() ? null : oldLevel.getVarPairs().iterator().next();
           if (var2 == null && oldEntry != null || var2 != null && oldEntry == null) {
-            int otherConstant = var2 == null ? Math.max(constant, maxConstant) : oldLevel.getConstant();
-            int thisConst = var2 == null ? oldEntry.getValue() : constant;
-            int thisMaxConst = var2 == null ? oldLevel.getConstant() : maxConstant;
-            myConstantUpperBounds.put((InferenceLevelVariable) var1, new Level(Math.max(Math.min(thisMaxConst, otherConstant), Math.min(thisConst, otherConstant))));
+            BigInteger otherConstant = var2 == null ? constant.max(maxConstant) : oldLevel.getConstant();
+            BigInteger thisConst = var2 == null ? oldEntry.getValue() : constant;
+            BigInteger thisMaxConst = var2 == null ? oldLevel.getConstant() : maxConstant;
+            myConstantUpperBounds.put((InferenceLevelVariable) var1, new Level(thisMaxConst.min(otherConstant).max(thisConst.min(otherConstant))));
           } else {
             if (var2 == null) {
-              int newConst = Math.max(constant, maxConstant);
-              if (newConst < oldLevel.getConstant()) {
+              BigInteger newConst = constant.max(maxConstant);
+              if (newConst.compareTo(oldLevel.getConstant()) < 0) {
                 myConstantUpperBounds.put((InferenceLevelVariable) var1, new Level(newConst));
               }
             } else {
-              myConstantUpperBounds.put((InferenceLevelVariable) var1, constant < 0 ? new Level(Math.min(maxConstant, oldLevel.getConstant())) : new Level(var2.min(oldEntry.getKey()), Math.min(constant, oldEntry.getValue()), Math.min(maxConstant, oldLevel.getConstant())));
+              myConstantUpperBounds.put((InferenceLevelVariable) var1, constant.compareTo(BigInteger.ZERO) < 0 ? new Level(maxConstant.min(oldLevel.getConstant())) : new Level(var2.min(oldEntry.getKey()), constant.min(oldEntry.getValue()), maxConstant.min(oldLevel.getConstant())));
             }
           }
         }
@@ -100,7 +101,7 @@ public class LevelEquationsSolver {
     }
 
     // l <= max(?y +- c, +-d) // 4
-    if (var2 instanceof InferenceLevelVariable && constant < 0) {
+    if (var2 instanceof InferenceLevelVariable && constant.compareTo(BigInteger.ZERO) < 0) {
       addEquation(new LevelEquation<>(null, (InferenceLevelVariable) var2, constant), myPBased);
     }
   }
@@ -143,7 +144,7 @@ public class LevelEquationsSolver {
 
   public LevelSubstitution solveLevels() {
     List<LevelEquation<InferenceLevelVariable>> cycle = null;
-    Map<InferenceLevelVariable, Integer> basedSolution = new HashMap<>();
+    Map<InferenceLevelVariable, BigInteger> basedSolution = new HashMap<>();
 
     Set<InferenceLevelVariable> pUnBased = new HashSet<>();
     if (myPBased) {
@@ -155,7 +156,7 @@ public class LevelEquationsSolver {
       reportCycle(cycle, pUnBased);
     }
 
-    Map<InferenceLevelVariable, Integer> solution = new HashMap<>();
+    Map<InferenceLevelVariable, BigInteger> solution = new HashMap<>();
     cycle = myPLevelEquations.solve(solution);
     if (ok && cycle != null) {
       reportCycle(cycle, pUnBased);
@@ -164,8 +165,8 @@ public class LevelEquationsSolver {
     Set<InferenceLevelVariable> unBased = myPBased ? pUnBased : new HashSet<>(myPLevelEquations.getVariables());
     SimpleLevelSubstitution result = new SimpleLevelSubstitution();
     for (InferenceLevelVariable var : unBased) {
-      int sol = solution.get(var);
-      result.add(var, sol == LevelEquations.INFINITY ? Level.INFINITY : new Level(-sol));
+      BigInteger sol = solution.get(var);
+      result.add(var, sol.equals(LevelEquations.INFINITY) ? Level.INFINITY : new Level(sol.negate()));
     }
 
     boolean useStd = true;
@@ -179,28 +180,28 @@ public class LevelEquationsSolver {
       }
     }
 
-    for (Map.Entry<InferenceLevelVariable, Integer> entry : basedSolution.entrySet()) {
-      assert entry.getValue() != LevelEquations.INFINITY;
+    for (Map.Entry<InferenceLevelVariable, BigInteger> entry : basedSolution.entrySet()) {
+      assert !entry.getValue().equals(LevelEquations.INFINITY);
       if (!unBased.contains(entry.getKey())) {
-        int sol = solution.get(entry.getKey());
-        result.add(entry.getKey(), sol == LevelEquations.INFINITY || entry.getValue() == LevelEquations.INFINITY ? Level.INFINITY : new Level(useStd ? LevelVariable.PVAR : getLowerBound(entry.getKey()), -entry.getValue(), -sol));
+        BigInteger sol = solution.get(entry.getKey());
+        result.add(entry.getKey(), sol.equals(LevelEquations.INFINITY) || entry.getValue().equals(LevelEquations.INFINITY) ? Level.INFINITY : new Level(useStd ? LevelVariable.PVAR : getLowerBound(entry.getKey()), entry.getValue().negate(), sol.negate()));
       }
     }
 
     for (Map.Entry<InferenceLevelVariable, Level> entry : myConstantUpperBounds.entrySet()) {
       Level level = result.get(entry.getKey());
       if (!Level.compare(level, entry.getValue(), CMP.LE, DummyEquations.getInstance(), null)) {
-        int maxConstant = entry.getValue().getConstant();
+        BigInteger maxConstant = entry.getValue().getConstant();
         List<LevelEquation<LevelVariable>> equations = new ArrayList<>(2);
-        Map.Entry<LevelVariable,Integer> levelEntry = level.getVarPairs().isEmpty() ? null : level.getVarPairs().iterator().next();
+        Map.Entry<LevelVariable,BigInteger> levelEntry = level.getVarPairs().isEmpty() ? null : level.getVarPairs().iterator().next();
         LevelVariable levelVar = levelEntry == null ? null : levelEntry.getKey();
-        if (!Level.compare(level.withMaxConstant() ? new Level(levelVar, levelVar == null ? level.getConstant() : levelEntry.getValue()) : level, entry.getValue(), CMP.LE, DummyEquations.getInstance(), null)) {
-          equations.add(level.isInfinity() ? new LevelEquation<>(entry.getKey()) : new LevelEquation<>(levelVar, entry.getKey(), -(levelEntry == null ? level.getConstant() : levelEntry.getValue())));
+        if (!Level.compare(level.withMaxConstant() ? new Level(levelVar, levelVar == null ? level.getConstant() : levelEntry.getValue(), BigInteger.ZERO) : level, entry.getValue(), CMP.LE, DummyEquations.getInstance(), null)) {
+          equations.add(level.isInfinity() ? new LevelEquation<>(entry.getKey()) : new LevelEquation<>(levelVar, entry.getKey(), levelEntry == null ? level.getConstant().negate() : levelEntry.getValue().negate()));
         }
         if (level.withMaxConstant() && !Level.compare(new Level(level.getConstant()), entry.getValue(), CMP.LE, DummyEquations.getInstance(), null)) {
-          equations.add(new LevelEquation<>(null, entry.getKey(), -level.getConstant()));
+          equations.add(new LevelEquation<>(null, entry.getKey(), level.getConstant().negate()));
         }
-        Map.Entry<LevelVariable,Integer> entryEntry = entry.getValue().getVarPairs().isEmpty() ? null : entry.getValue().getVarPairs().iterator().next();
+        Map.Entry<LevelVariable,BigInteger> entryEntry = entry.getValue().getVarPairs().isEmpty() ? null : entry.getValue().getVarPairs().iterator().next();
         equations.add(new LevelEquation<>(entry.getKey(), entryEntry == null ? null : entryEntry.getKey(), entryEntry == null ? entry.getValue().getConstant() : entryEntry.getValue(), maxConstant));
         myErrorReporter.report(new SolveLevelEquationsError(equations, entry.getKey().getSourceNode()));
       }
@@ -215,7 +216,7 @@ public class LevelEquationsSolver {
     return result;
   }
 
-  private void calculateUnBased(LevelEquations<InferenceLevelVariable> basedEquations, Set<InferenceLevelVariable> unBased, Map<InferenceLevelVariable, Integer> basedSolution) {
+  private void calculateUnBased(LevelEquations<InferenceLevelVariable> basedEquations, Set<InferenceLevelVariable> unBased, Map<InferenceLevelVariable, BigInteger> basedSolution) {
     Set<InferenceLevelVariable> unBasedSet = new HashSet<>();
     if (!myConstantUpperBounds.isEmpty()) {
       for (InferenceLevelVariable var : basedEquations.getVariables()) {
@@ -224,8 +225,8 @@ public class LevelEquationsSolver {
           if (ub.getVarPairs().isEmpty()) {
             unBasedSet.add(var);
           } else {
-            int sol = basedSolution.get(var);
-            if (sol == LevelEquations.INFINITY || ub.getVarPairs().iterator().next().getValue() < sol) {
+            BigInteger sol = basedSolution.get(var);
+            if (sol.equals(LevelEquations.INFINITY) || ub.getVarPairs().iterator().next().getValue().compareTo(sol) < 0) {
               unBasedSet.add(var);
             }
           }

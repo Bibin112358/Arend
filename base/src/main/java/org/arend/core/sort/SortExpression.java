@@ -279,7 +279,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
       return codomain;
     }
     if (domain instanceof Const(Sort sort1)) {
-      if (sort1.getPLevel().isClosed() && sort1.getPLevel().getConstant() == 0) {
+      if (sort1.getPLevel().isZero()) {
         return codomain;
       }
       if (codomain instanceof Const(Sort sort2)) {
@@ -340,7 +340,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
   }
 
   static @NotNull SortExpression makeTrunc(@NotNull SortExpression sort, int level) {
-    return makePi(sort, new Const(new Sort(new Level(0), new ConstLevel(level))));
+    return makePi(sort, new Const(new Sort(new Level(BigInteger.ZERO), new ConstLevel(level))));
   }
 
   static @NotNull SortExpression makePrev(@NotNull SortExpression sort) {

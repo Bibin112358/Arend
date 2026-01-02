@@ -22,6 +22,7 @@ import org.arend.ext.core.ops.NormalizationMode;
 import org.arend.prelude.Prelude;
 import org.arend.util.SingletonList;
 
+import java.math.BigInteger;
 import java.util.*;
 
 import static org.arend.core.expr.ExpressionFactory.*;
@@ -129,7 +130,7 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
       return false;
     }
     for (Level level : list) {
-      if (!(level.isClosed() && level.getConstant() == 0) || level.isInfinity()) {
+      if (!level.isZero()) {
         return false;
       }
     }
@@ -168,13 +169,13 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
     if (ok) {
       if (defCall.getDefinition().getLevelParameters() == null) {
         Level pLevel = levelMap.get(LevelVariable.PVAR);
-        levels = new SingleLevel(pLevel == null ? new Level(0) : pLevel);
+        levels = new SingleLevel(pLevel == null ? new Level(BigInteger.ZERO) : pLevel);
       } else {
         List<Level> list = new ArrayList<>();
         List<? extends LevelVariable> vars = defCall.getDefinition().getLevelParameters();
         for (LevelVariable var : vars) {
           Level level = levelMap.get(var);
-          list.add(level == null ? new Level(0) : level);
+          list.add(level == null ? new Level(BigInteger.ZERO) : level);
         }
         for (int i = 0; i < list.size() - 1; i++) {
           Level maxLevel = list.get(i).max(list.get(i + 1)) /* TODO[sorts] */;

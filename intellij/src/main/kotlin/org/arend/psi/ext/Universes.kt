@@ -7,22 +7,23 @@ import org.arend.psi.*
 import org.arend.psi.ArendElementTypes.*
 import org.arend.term.abs.Abstract
 import org.arend.term.abs.AbstractExpressionVisitor
+import java.math.BigInteger
 
 
 private fun <P, R> acceptSet(data: ArendCompositeElement, setElem: PsiElement, pLevel: Abstract.LevelExpression?, visitor: AbstractExpressionVisitor<in P, out R>, params: P?): R =
-    visitor.visitUniverse(data, setElem.text.substring("\\Set".length).toIntOrNull(), 0, pLevel, params)
+    visitor.visitUniverse(data, BigInteger(setElem.text.substring("\\Set".length), 10), 0, pLevel, params)
 
 private fun <P, R> acceptUniverse(data: ArendCompositeElement, universeElem: PsiElement, pLevel: Abstract.LevelExpression?, visitor: AbstractExpressionVisitor<in P, out R>, params: P?): R =
-    visitor.visitUniverse(data, universeElem.text.substring("\\Type".length).toIntOrNull(), null, pLevel, params)
+    visitor.visitUniverse(data, BigInteger(universeElem.text.substring("\\Type".length), 10), null, pLevel, params)
 
 private fun <P, R> acceptCatUniverse(data: ArendCompositeElement, catElem: PsiElement, pLevel: Abstract.LevelExpression?, visitor: AbstractExpressionVisitor<in P, out R>, params: P?): R =
-    visitor.visitCatUniverse(data, catElem.text.substring("\\Set".length).toIntOrNull(), pLevel, params)
+    visitor.visitCatUniverse(data, BigInteger(catElem.text.substring("\\Set".length), 10), pLevel, params)
 
 private fun <P, R> acceptTruncated(data: ArendCompositeElement, truncatedElem: PsiElement, pLevel: Abstract.LevelExpression?, visitor: AbstractExpressionVisitor<in P, out R>, params: P?): R {
     val uniText = truncatedElem.text
     val index = uniText.indexOf('T')
     val hLevelNum = if (index > 0 && uniText[0] == '\\') uniText.substring(1, index - 1).toIntOrNull() else null
-    val pLevelNum = if (hLevelNum != null) uniText.substring(index + "Type".length).toIntOrNull() else null
+    val pLevelNum = if (hLevelNum != null) BigInteger(uniText.substring(index + "Type".length), 10) else null
     return visitor.visitUniverse(data, pLevelNum, hLevelNum, pLevel, params)
 }
 

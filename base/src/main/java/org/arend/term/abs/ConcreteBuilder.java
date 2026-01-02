@@ -683,7 +683,7 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
   }
 
   @Override
-  public Concrete.UniverseExpression visitUniverse(@Nullable Object data, @Nullable Integer pLevelNum, @Nullable Integer hLevelNum, @Nullable Abstract.LevelExpression pLevel, Void params) {
+  public Concrete.UniverseExpression visitUniverse(@Nullable Object data, @Nullable BigInteger pLevelNum, @Nullable Integer hLevelNum, @Nullable Abstract.LevelExpression pLevel, Void params) {
     if (pLevelNum != null) {
       pLevel = null;
     }
@@ -694,7 +694,7 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
   }
 
   @Override
-  public Concrete.Expression visitCatUniverse(@Nullable Object data, @Nullable Integer pLevelNum, Abstract.@Nullable LevelExpression pLevel, Void params) {
+  public Concrete.Expression visitCatUniverse(@Nullable Object data, @Nullable BigInteger pLevelNum, Abstract.@Nullable LevelExpression pLevel, Void params) {
     if (pLevelNum != null && pLevel != null) {
       myErrorReporter.report(new AbstractExpressionError(GeneralError.Level.ERROR, "p-level is already specified", pLevel.getData()));
     }
@@ -918,7 +918,7 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
   }
 
   @Override
-  public Concrete.NumberLevelExpression visitNumber(@Nullable Object data, int number, Void param) {
+  public Concrete.NumberLevelExpression visitNumber(@Nullable Object data, @NotNull BigInteger number, Void param) {
     return new Concrete.NumberLevelExpression(data, number);
   }
 
@@ -931,7 +931,7 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
   public Concrete.LevelExpression visitSuc(@Nullable Object data, @Nullable Abstract.LevelExpression expr, Void param) {
     if (expr == null) {
       myErrorLevel = GeneralError.Level.ERROR;
-      return new Concrete.NumberLevelExpression(data, 0);
+      return new Concrete.NumberLevelExpression(data, BigInteger.ZERO);
     }
     return new Concrete.SucLevelExpression(data, expr.accept(this, param));
   }
@@ -942,7 +942,7 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
       myErrorLevel = GeneralError.Level.ERROR;
     }
     return left == null && right == null
-      ? (new Concrete.NumberLevelExpression(data, 0))
+      ? (new Concrete.NumberLevelExpression(data, BigInteger.ZERO))
       : left == null
         ? right.accept(this, param)
         : right == null
@@ -953,6 +953,6 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
   @Override
   public Concrete.LevelExpression visitError(@Nullable Object data, Void param) {
     myErrorLevel = GeneralError.Level.ERROR;
-    return new Concrete.NumberLevelExpression(data, 0);
+    return new Concrete.NumberLevelExpression(data, BigInteger.ZERO);
   }
 }

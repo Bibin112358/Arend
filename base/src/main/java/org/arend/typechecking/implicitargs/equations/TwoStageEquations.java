@@ -35,6 +35,7 @@ import org.arend.typechecking.error.local.SolveLevelEquationsError;
 import org.arend.typechecking.visitor.CheckTypeVisitor;
 import org.arend.ext.util.Pair;
 
+import java.math.BigInteger;
 import java.util.*;
 
 import static org.arend.core.expr.ExpressionFactory.Nat;
@@ -254,21 +255,21 @@ public class TwoStageEquations implements Equations {
     return true;
   }
 
-  private boolean addLevelEquation(final LevelVariable var1, LevelVariable var2, int constant, int maxConstant, Concrete.SourceNode sourceNode) {
+  private boolean addLevelEquation(final LevelVariable var1, LevelVariable var2, BigInteger constant, BigInteger maxConstant, Concrete.SourceNode sourceNode) {
     // 0 <= max(_ + c, +-d) // 6
-    if (var1 == null && constant >= 0) {
+    if (var1 == null && constant.compareTo(BigInteger.ZERO) >= 0) {
       return true;
     }
 
     // _ <= max(-c, -d), _ <= max(l - c, -d) // 6
-    if (!(var2 instanceof InferenceLevelVariable) && maxConstant < 0 && constant < 0) {
+    if (!(var2 instanceof InferenceLevelVariable) && maxConstant.compareTo(BigInteger.ZERO) < 0 && constant.compareTo(BigInteger.ZERO) < 0) {
       myVisitor.getErrorReporter().report(new SolveLevelEquationsError(Collections.singletonList(new LevelEquation<>(var1, var2, constant)), sourceNode));
       return false;
     }
 
     // l <= max(l' +- c, +d), l <= max(+-c, +-d) // 6
     if (var1 != null && !(var1 instanceof InferenceLevelVariable) && !(var2 instanceof InferenceLevelVariable)) {
-      if (!(var2 != null && constant >= 0 && var1.compare(var2, CMP.LE))) {
+      if (!(var2 != null && constant.compareTo(BigInteger.ZERO) >= 0 && var1.compare(var2, CMP.LE))) {
         myVisitor.getErrorReporter().report(new SolveLevelEquationsError(Collections.singletonList(new LevelEquation<>(var1, var2, constant, maxConstant)), sourceNode));
         return false;
       }
@@ -293,11 +294,11 @@ public class TwoStageEquations implements Equations {
     }
 
     if (infVars.size() > 1) {
-      Map<LevelVariable, Integer> varMap = new HashMap<>();
+      Map<LevelVariable, BigInteger> varMap = new HashMap<>();
       for (InferenceLevelVariable var : infVars) {
-        varMap.put(var, 0);
+        varMap.put(var, BigInteger.ZERO);
       }
-      myDeferredMaxLevelEquations.add(new AbstractEquation<>(Level.INFINITY, new Level(varMap, 0), CMP.LE, sourceNode));
+      myDeferredMaxLevelEquations.add(new AbstractEquation<>(Level.INFINITY, new Level(varMap, BigInteger.ZERO), CMP.LE, sourceNode));
       return true;
     } else {
       myVisitor.getErrorReporter().report(new SolveLevelEquationsError(Collections.singletonList(new LevelEquation<>(vars.isEmpty() ? null : vars.iterator().next())), sourceNode));
@@ -321,13 +322,13 @@ public class TwoStageEquations implements Equations {
       return true;
     }
 
-    Map.Entry<LevelVariable,Integer> entry2 = level2.getVarPairs().isEmpty() ? null : level2.getVarPairs().iterator().next();
-    for (Map.Entry<LevelVariable, Integer> entry1 : level1.getVarPairs()) {
-      if (!addLevelEquation(entry1.getKey(), entry2 == null ? null : entry2.getKey(), (entry2 == null ? level2.getConstant() : entry2.getValue()) - entry1.getValue(), level2.getConstant() - entry1.getValue(), sourceNode)) return false;
+    Map.Entry<LevelVariable,BigInteger> entry2 = level2.getVarPairs().isEmpty() ? null : level2.getVarPairs().iterator().next();
+    for (Map.Entry<LevelVariable, BigInteger> entry1 : level1.getVarPairs()) {
+      if (!addLevelEquation(entry1.getKey(), entry2 == null ? null : entry2.getKey(), (entry2 == null ? level2.getConstant() : entry2.getValue()).subtract(entry1.getValue()), level2.getConstant().subtract(entry1.getValue()), sourceNode)) return false;
     }
 
-    if (level1.getConstant() > level2.getConstant()) {
-      if (!addLevelEquation(null, entry2 == null ? null : entry2.getKey(), (entry2 == null ? level2.getConstant() : entry2.getValue()) - level1.getConstant(), -1, sourceNode)) return false;
+    if (level1.getConstant().compareTo(level2.getConstant()) > 0) {
+      if (!addLevelEquation(null, entry2 == null ? null : entry2.getKey(), (entry2 == null ? level2.getConstant() : entry2.getValue()).subtract(level1.getConstant()), BigInteger.valueOf(-1), sourceNode)) return false;
     }
 
     return true;

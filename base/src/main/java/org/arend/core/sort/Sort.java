@@ -10,6 +10,7 @@ import org.arend.typechecking.implicitargs.equations.DummyEquations;
 import org.arend.typechecking.implicitargs.equations.Equations;
 import org.jetbrains.annotations.NotNull;
 
+import java.math.BigInteger;
 import java.util.List;
 
 public class Sort implements CoreSort {
@@ -17,8 +18,8 @@ public class Sort implements CoreSort {
   private final ConstLevel myHLevel;
   private final boolean myCat;
 
-  public static final Sort PROP = new Sort(new Level(0), ConstLevel.PROP);
-  public static final Sort SET0 = new Sort(new Level(0), new ConstLevel(0));
+  public static final Sort PROP = new Sort(new Level(BigInteger.ZERO), ConstLevel.PROP);
+  public static final Sort SET0 = new Sort(new Level(BigInteger.ZERO), new ConstLevel(0));
   public static final Sort INFINITY = new Sort(Level.INFINITY, ConstLevel.INFINITY, true);
 
   public static Sort SetOfLevel(int pLevel) {
@@ -30,11 +31,11 @@ public class Sort implements CoreSort {
   }
 
   public static Sort TypeOfLevel(int pLevel) {
-    return new Sort(new Level(pLevel), ConstLevel.INFINITY);
+    return new Sort(new Level(BigInteger.valueOf(pLevel)), ConstLevel.INFINITY);
   }
 
   public Sort(@NotNull Level pLevel, @NotNull ConstLevel hLevel, boolean isCat) {
-    myPLevel = hLevel.isProp() && (!(pLevel.isClosed() && pLevel.getConstant() == 0) || pLevel.isInfinity()) ? new Level(0) : pLevel;
+    myPLevel = hLevel.isProp() && !pLevel.isZero() ? new Level(BigInteger.ZERO) : pLevel;
     myHLevel = hLevel;
     myCat = false; // TODO[sorts]: Temporarily disable \Cat sorts.
   }
@@ -44,7 +45,7 @@ public class Sort implements CoreSort {
   }
 
   public Sort(int pLevel, int hLevel) {
-    this(new Level(pLevel), new ConstLevel(hLevel));
+    this(new Level(BigInteger.valueOf(pLevel)), new ConstLevel(hLevel));
     assert pLevel >= 0;
     assert hLevel >= 0;
   }
@@ -74,7 +75,7 @@ public class Sort implements CoreSort {
   }
 
   public Sort succ() {
-    return isProp() ? SET0 : new Sort(getPLevel().add(1), getHLevel().add(1));
+    return isProp() ? SET0 : new Sort(getPLevel().add(BigInteger.ONE), getHLevel().add(1));
   }
 
   public Sort max(Sort sort) {

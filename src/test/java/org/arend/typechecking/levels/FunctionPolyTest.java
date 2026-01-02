@@ -8,6 +8,8 @@ import org.arend.ext.core.level.ConstLevel;
 import org.arend.typechecking.TypeCheckingTestCase;
 import org.junit.Test;
 
+import java.math.BigInteger;
+
 import static org.junit.Assert.assertEquals;
 
 public class FunctionPolyTest extends TypeCheckingTestCase {
@@ -56,7 +58,7 @@ public class FunctionPolyTest extends TypeCheckingTestCase {
   public void funWithTypeOmegaResultRecursive() {
     FunctionDefinition funDefinition = (FunctionDefinition) typeCheckDef(
       "\\func f (A : \\Type) (n : Nat) : \\Type (\\max \\lp 1) \\elim n | zero => \\Set0 | suc n => A");
-    assertEquals(new Sort(new Level(LevelVariable.PVAR, 0, 1), ConstLevel.INFINITY), funDefinition.getResultType().toSort());
+    assertEquals(new Sort(new Level(LevelVariable.PVAR, BigInteger.ZERO, BigInteger.ONE), ConstLevel.INFINITY), funDefinition.getResultType().toSort());
   }
 
   @Test

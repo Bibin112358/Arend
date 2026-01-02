@@ -9,6 +9,8 @@ import org.arend.typechecking.TypeCheckingTestCase;
 import org.arend.typechecking.implicitargs.equations.DummyEquations;
 import org.junit.Test;
 
+import java.math.BigInteger;
+
 import static org.arend.Matchers.typeMismatchError;
 import static org.junit.Assert.assertTrue;
 
@@ -369,7 +371,7 @@ public class InferLevelTest extends TypeCheckingTestCase {
   @Test
   public void propTest() {
     FunctionDefinition def = (FunctionDefinition) typeCheckDef("\\func test => \\Pi (A : \\Set) (a : A) -> a = a");
-    assertTrue(Level.compare(new Level(0), ((SortExpression.Const) ((UniverseExpression) def.getResultType()).getSortExpression()).getSort().getPLevel(), CMP.EQ, DummyEquations.getInstance(), null));
+    assertTrue(Level.compare(new Level(BigInteger.ZERO), ((SortExpression.Const) ((UniverseExpression) def.getResultType()).getSortExpression()).getSort().getPLevel(), CMP.EQ, DummyEquations.getInstance(), null));
   }
 
   @Test

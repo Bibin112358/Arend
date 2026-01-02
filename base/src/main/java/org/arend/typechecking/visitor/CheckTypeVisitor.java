@@ -1883,7 +1883,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
 
     if (useMinAsDefault) {
-      result.add(new Level(0));
+      result.add(new Level(BigInteger.ZERO));
       return;
     }
 
@@ -2123,10 +2123,10 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
   @Override
   public Level visitNumber(Concrete.NumberLevelExpression expr, Void param) {
-    int level = expr.getNumber();
-    if (level < 0) {
+    BigInteger level = expr.getNumber();
+    if (level.compareTo(BigInteger.ZERO) < 0) {
       errorReporter.report(new TypecheckingError("Expected a positive number", expr));
-      level = 0;
+      level = BigInteger.ZERO;
     }
     return new Level(level);
   }
@@ -2148,7 +2148,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
   @Override
   public Level visitSuc(Concrete.SucLevelExpression expr, Void param) {
-    return expr.getExpression().accept(this, param).add(1);
+    return expr.getExpression().accept(this, param).add(BigInteger.ONE);
   }
 
   @Override

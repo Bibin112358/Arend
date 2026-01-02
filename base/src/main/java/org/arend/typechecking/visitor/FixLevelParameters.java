@@ -14,6 +14,7 @@ import org.arend.ext.core.ops.CMP;
 import org.arend.ext.util.Pair;
 import org.arend.typechecking.implicitargs.equations.DummyEquations;
 
+import java.math.BigInteger;
 import java.util.*;
 
 // TODO[sorts]: Delete this
@@ -122,9 +123,9 @@ public class FixLevelParameters extends VoidExpressionVisitor<Void> {
 
   private Level removeVars(Level level) {
     if (level.isClosed()) return level;
-    int result = level.getConstant();
-    for (Map.Entry<LevelVariable, Integer> entry : level.getVarPairs()) {
-      if (entry.getValue() > result) result = entry.getValue();
+    BigInteger result = level.getConstant();
+    for (Map.Entry<LevelVariable, BigInteger> entry : level.getVarPairs()) {
+      if (entry.getValue().compareTo(result) > 0) result = entry.getValue();
     }
     return new Level(result);
   }

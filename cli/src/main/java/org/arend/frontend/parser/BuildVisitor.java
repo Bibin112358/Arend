@@ -1347,7 +1347,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
     Concrete.LevelExpression lp;
 
     String text = ctx.UNIVERSE().getText().substring("\\Type".length());
-    lp = text.isEmpty() ? null : new Concrete.NumberLevelExpression(position, Integer.parseInt(text));
+    lp = text.isEmpty() ? null : new Concrete.NumberLevelExpression(position, new BigInteger(text, 10));
 
     MaybeLevelAtomContext maybeLevelAtomCtx = ctx.maybeLevelAtom();
     if (maybeLevelAtomCtx != null) {
@@ -1389,7 +1389,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
     if (maybeLevelAtomCtx instanceof WithLevelAtomContext) {
       myErrorReporter.report(new ParserError(tokenPosition(maybeLevelAtomCtx.start), "p-level is already specified"));
     }
-    return new Concrete.NumberLevelExpression(position, Integer.parseInt(text));
+    return new Concrete.NumberLevelExpression(position, new BigInteger(text, 10));
   }
 
   @Override
@@ -1397,7 +1397,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
     Position position = tokenPosition(ctx.start);
     String text = ctx.TRUNCATED_UNIVERSE().getText();
     text = text.substring(text.indexOf('T') + "Type".length());
-    Concrete.LevelExpression pLevel = text.isEmpty() ? null : new Concrete.NumberLevelExpression(position, Integer.parseInt(text));
+    Concrete.LevelExpression pLevel = text.isEmpty() ? null : new Concrete.NumberLevelExpression(position, new BigInteger(text, 10));
     return new Concrete.UniverseExpression(position, pLevel, parseTruncatedUniverse(ctx.TRUNCATED_UNIVERSE()), ConcreteUniverseExpression.Kind.TYPE);
   }
 
@@ -1405,7 +1405,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
   public Concrete.UniverseExpression visitUniUniverse(UniUniverseContext ctx) {
     Position position = tokenPosition(ctx.start);
     String text = ctx.UNIVERSE().getText().substring("\\Type".length());
-    Concrete.LevelExpression lp = text.isEmpty() ? null : new Concrete.NumberLevelExpression(position, Integer.parseInt(text));
+    Concrete.LevelExpression lp = text.isEmpty() ? null : new Concrete.NumberLevelExpression(position, new BigInteger(text, 10));
     return new Concrete.UniverseExpression(position, lp, null, ConcreteUniverseExpression.Kind.TYPE);
   }
 
@@ -1413,7 +1413,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
   public Concrete.UniverseExpression visitUniSetUniverse(UniSetUniverseContext ctx) {
     Position position = tokenPosition(ctx.start);
     String text = ctx.SET().getText().substring("\\Set".length());
-    Concrete.LevelExpression pLevel = text.isEmpty() ? null : new Concrete.NumberLevelExpression(position, Integer.parseInt(text));
+    Concrete.LevelExpression pLevel = text.isEmpty() ? null : new Concrete.NumberLevelExpression(position, new BigInteger(text, 10));
     return new Concrete.UniverseExpression(position, pLevel, 0, ConcreteUniverseExpression.Kind.TYPE);
   }
 
@@ -1421,14 +1421,14 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
   public Concrete.UniverseExpression visitUniCatUniverse(UniCatUniverseContext ctx) {
     Position position = tokenPosition(ctx.start);
     String text = ctx.CAT_UNIVERSE().getText().substring("\\Cat".length());
-    Concrete.LevelExpression pLevel = text.isEmpty() ? null : new Concrete.NumberLevelExpression(position, Integer.parseInt(text));
+    Concrete.LevelExpression pLevel = text.isEmpty() ? null : new Concrete.NumberLevelExpression(position, new BigInteger(text, 10));
     return new Concrete.UniverseExpression(position, pLevel, null, ConcreteUniverseExpression.Kind.CAT);
   }
 
   @Override
   public Concrete.UniverseExpression visitProp(PropContext ctx) {
     Position pos = tokenPosition(ctx.start);
-    return new Concrete.UniverseExpression(pos, new Concrete.NumberLevelExpression(pos, 0), -1, ConcreteUniverseExpression.Kind.TYPE);
+    return new Concrete.UniverseExpression(pos, new Concrete.NumberLevelExpression(pos, BigInteger.ZERO), -1, ConcreteUniverseExpression.Kind.TYPE);
   }
 
   @Override
@@ -1482,7 +1482,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
 
   @Override
   public Concrete.NumberLevelExpression visitNumLevel(NumLevelContext ctx) {
-    return new Concrete.NumberLevelExpression(tokenPosition(ctx.start), Integer.parseInt(ctx.NUMBER().getText()));
+    return new Concrete.NumberLevelExpression(tokenPosition(ctx.start), new BigInteger(ctx.NUMBER().getText(), 10));
   }
 
   @Override

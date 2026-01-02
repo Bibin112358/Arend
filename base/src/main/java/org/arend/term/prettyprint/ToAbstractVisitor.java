@@ -50,6 +50,7 @@ import org.arend.util.SingletonList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigInteger;
 import java.util.*;
 
 import static org.arend.term.concrete.ConcreteExpressionFactory.*;
@@ -765,7 +766,7 @@ public class ToAbstractVisitor extends BaseExpressionVisitor<Void, Concrete.Expr
     }
 
     Concrete.LevelExpression result = null;
-    for (Map.Entry<LevelVariable, Integer> entry : level.getVarPairs()) {
+    for (Map.Entry<LevelVariable, BigInteger> entry : level.getVarPairs()) {
       Concrete.LevelExpression levelExpr;
       if (entry.getKey() == LevelVariable.PVAR) {
         levelExpr = new Concrete.PLevelExpression(null);
@@ -776,14 +777,14 @@ public class ToAbstractVisitor extends BaseExpressionVisitor<Void, Concrete.Expr
         levelExpr = new Concrete.VarLevelExpression(null, new LocalReferable(entry.getKey().getName()), entry.getKey() instanceof InferenceLevelVariable);
       }
 
-      for (int i = 0; i < entry.getValue(); i++) {
+      for (BigInteger i = BigInteger.ZERO; i.compareTo(entry.getValue()) < 0; i = i.add(BigInteger.ONE)) {
         levelExpr = new Concrete.SucLevelExpression(null, levelExpr);
       }
 
       result = result == null ? levelExpr : new Concrete.MaxLevelExpression(null, result, levelExpr);
     }
 
-    if (level.getConstant() > 0) {
+    if (level.getConstant().compareTo(BigInteger.ZERO) > 0) {
       result = new Concrete.MaxLevelExpression(null, result, new Concrete.NumberLevelExpression(null, level.getConstant()));
     }
 

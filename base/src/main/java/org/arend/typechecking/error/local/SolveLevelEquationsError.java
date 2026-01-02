@@ -13,6 +13,7 @@ import org.arend.term.concrete.Concrete;
 import org.arend.term.prettyprint.PrettyPrintVisitor;
 import org.arend.typechecking.implicitargs.equations.LevelEquation;
 
+import java.math.BigInteger;
 import java.util.*;
 
 import static org.arend.ext.prettyprinting.doc.DocFactory.*;
@@ -62,7 +63,7 @@ public class SolveLevelEquationsError extends TypecheckingError {
           variables.add((InferenceLevelVariable) equation.getVariable2());
         }
 
-        printEqExpr(builder, ppv, equation.getVariable1(), -equation.getConstant(), null, refMap);
+        printEqExpr(builder, ppv, equation.getVariable1(), equation.getConstant().negate(), null, refMap);
         builder.append(" <= ");
         printEqExpr(builder, ppv, equation.getVariable2(), equation.getConstant(), equation.getMaxConstant(), refMap);
       }
@@ -109,17 +110,17 @@ public class SolveLevelEquationsError extends TypecheckingError {
     return vList(docs);
   }
 
-  private void printEqExpr(StringBuilder builder, PrettyPrintVisitor ppv, LevelVariable var, Integer constant, Integer maxConstant, Map<InferenceLevelVariable, Referable> refMap) {
+  private void printEqExpr(StringBuilder builder, PrettyPrintVisitor ppv, LevelVariable var, BigInteger constant, BigInteger maxConstant, Map<InferenceLevelVariable, Referable> refMap) {
     if (var != null) {
-      boolean withMax = maxConstant != null && maxConstant > 0;
+      boolean withMax = maxConstant != null && maxConstant.compareTo(BigInteger.ZERO) > 0;
       if (withMax) {
         builder.append("max ");
-        if (constant != null && constant > 0) {
+        if (constant != null && constant.compareTo(BigInteger.ZERO) > 0) {
           builder.append('(');
         }
       }
       builder.append(var instanceof InferenceLevelVariable ? getInferLevelVarText(ppv, (InferenceLevelVariable) var, refMap) : var);
-      if (constant != null && constant > 0) {
+      if (constant != null && constant.compareTo(BigInteger.ZERO) > 0) {
         builder.append(" + ").append(constant);
         if (withMax) {
           builder.append(')');
@@ -129,7 +130,7 @@ public class SolveLevelEquationsError extends TypecheckingError {
         builder.append(' ').append(maxConstant);
       }
     } else {
-      builder.append(constant > 0 ? constant : 0);
+      builder.append(constant.compareTo(BigInteger.ZERO) > 0 ? constant : 0);
     }
   }
 

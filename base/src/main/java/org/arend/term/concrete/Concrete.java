@@ -1648,14 +1648,14 @@ public final class Concrete {
   }
 
   public static class NumberLevelExpression extends LevelExpression {
-    private final int myNumber;
+    private final BigInteger myNumber;
 
-    public NumberLevelExpression(Object data, int number) {
+    public NumberLevelExpression(Object data, BigInteger number) {
       super(data);
       myNumber = number;
     }
 
-    public int getNumber() {
+    public BigInteger getNumber() {
       return myNumber;
     }
 

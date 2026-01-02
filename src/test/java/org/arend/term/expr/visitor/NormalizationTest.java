@@ -21,6 +21,7 @@ import org.arend.typechecking.result.TypecheckingResult;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -225,7 +226,7 @@ public class NormalizationTest extends TypeCheckingTestCase {
     Concrete.LetClause xClause = clet(x, cargs(cTele(cvars(y), cNat())), cUniverseInf(2), cUniverse(0));
     incModification();
     TypecheckingResult result = typeCheckExpr(cLet(clets(xClause), cApps(cVar(x), cZero())), null);
-    assertEquals(Universe(new Level(0), ConstLevel.INFINITY), result.expression.normalize(NormalizationMode.NF));
+    assertEquals(Universe(new Level(BigInteger.ZERO), ConstLevel.INFINITY), result.expression.normalize(NormalizationMode.NF));
   }
 
   @Test

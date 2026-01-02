@@ -59,6 +59,7 @@ import org.arend.typechecking.result.DefCallResult;
 import org.arend.typechecking.result.TypecheckingResult;
 import org.arend.ext.util.Pair;
 
+import java.math.BigInteger;
 import java.util.*;
 
 import static org.arend.core.expr.ExpressionFactory.*;
@@ -1929,7 +1930,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       }
 
       if (infLevel) {
-        inferredSortList.add(new SortExpression.Const(Sort.TypeOfLevel(0)));
+        inferredSortList.add(new SortExpression.Const(new Sort(new Level(BigInteger.ZERO), ConstLevel.INFINITY)));
       } else {
         loop:
         for (int i = 0; i < dataDefinition.getConstructors().size(); i++) {

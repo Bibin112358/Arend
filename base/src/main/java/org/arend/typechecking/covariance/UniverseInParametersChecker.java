@@ -8,6 +8,7 @@ import org.arend.core.subst.Levels;
 import org.arend.naming.reference.TCDefReferable;
 import org.arend.typechecking.visitor.CheckForUniversesVisitor;
 
+import java.math.BigInteger;
 import java.util.Map;
 import java.util.Set;
 
@@ -54,8 +55,8 @@ public class UniverseInParametersChecker extends CovarianceChecker {
       boolean ok = true;
       loop:
       for (Level level : levels.toList()) {
-        for (Map.Entry<LevelVariable, Integer> entry : level.getVarPairs()) {
-          if (entry.getValue() > 0) {
+        for (Map.Entry<LevelVariable, BigInteger> entry : level.getVarPairs()) {
+          if (entry.getValue().compareTo(BigInteger.ZERO) > 0) {
             ok = false;
             break loop;
           }

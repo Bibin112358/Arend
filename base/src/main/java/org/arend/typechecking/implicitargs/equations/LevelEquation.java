@@ -1,21 +1,25 @@
 package org.arend.typechecking.implicitargs.equations;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.math.BigInteger;
 import java.util.Objects;
 
 public class LevelEquation<Var> {
   private final Var myVar1;
   private final Var myVar2;
-  private final Integer myConstant;
-  private final Integer myMaxConstant;
+  private final BigInteger myConstant;
+  private final BigInteger myMaxConstant;
 
-  public LevelEquation(Var var1, Var var2, int constant, Integer maxConstant) {
+  public LevelEquation(Var var1, Var var2, @NotNull BigInteger constant, @Nullable BigInteger maxConstant) {
     myVar1 = var1;
     myVar2 = var2;
     myConstant = constant;
     myMaxConstant = maxConstant;
   }
 
-  public LevelEquation(Var var1, Var var2, int constant) {
+  public LevelEquation(Var var1, Var var2, @NotNull BigInteger constant) {
     myVar1 = var1;
     myVar2 = var2;
     myConstant = constant;
@@ -54,14 +58,14 @@ public class LevelEquation<Var> {
     return myVar2;
   }
 
-  public int getConstant() {
+  public @NotNull BigInteger getConstant() {
     if (myConstant == null) {
       throw new IllegalStateException();
     }
     return myConstant;
   }
 
-  public Integer getMaxConstant() {
+  public @Nullable BigInteger getMaxConstant() {
     if (myConstant == null) {
       throw new IllegalStateException();
     }

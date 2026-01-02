@@ -80,7 +80,7 @@ public class TruncationsTest extends TypeCheckingTestCase {
           | right => base
         }
       """);
-    assertTrue(Objects.requireNonNull(definition.getSort()).getPLevel().isClosed() && definition.getSort().getPLevel().getConstant() == 0);
+    assertTrue(Objects.requireNonNull(definition.getSort()).getPLevel().isZero());
     assertTrue(definition.getSort().getHLevel().isInfinity());
   }
 

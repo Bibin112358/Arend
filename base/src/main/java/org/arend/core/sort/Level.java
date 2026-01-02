@@ -14,45 +14,45 @@ import org.arend.typechecking.implicitargs.equations.Equations;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigInteger;
 import java.util.*;
 
 public class Level implements CoreLevel {
-  private final Map<LevelVariable,Integer> myVars;
-  private final int myConstant;
+  private final Map<LevelVariable,BigInteger> myVars;
+  private final BigInteger myConstant;
 
   public static final Level INFINITY = new Level();
 
-  public Level(Map<LevelVariable,Integer> vars, int maxConstant) {
+  public Level(Map<LevelVariable,BigInteger> vars, BigInteger maxConstant) {
     myVars = vars;
     myConstant = maxConstant;
   }
 
   private Level() {
     myVars = null;
-    myConstant = 0;
+    myConstant = BigInteger.ZERO;
   }
 
   // max(var + constant, maxConstant)
-  public Level(LevelVariable var, int constant, int maxConstant) {
-    assert constant >= 0;
+  public Level(LevelVariable var, BigInteger constant, BigInteger maxConstant) {
     if (var == null) {
       myVars = Collections.emptyMap();
-      myConstant = Math.max(constant, maxConstant);
+      myConstant = constant.max(maxConstant);
     } else {
       myVars = Collections.singletonMap(var, constant);
-      myConstant = maxConstant > constant ? maxConstant : 0;
+      myConstant = maxConstant.compareTo(constant) > 0 ? maxConstant : BigInteger.ZERO;
     }
   }
 
   public Level(LevelVariable var, int constant) {
-    this(var, constant, -1);
+    this(var, BigInteger.valueOf(constant), BigInteger.ZERO);
   }
 
   public Level(LevelVariable var) {
-    this(var, 0);
+    this(var, BigInteger.ZERO, BigInteger.ZERO);
   }
 
-  public Level(int constant) {
+  public Level(BigInteger constant) {
     this(Collections.emptyMap(), constant);
   }
 
@@ -65,11 +65,12 @@ public class Level implements CoreLevel {
   }
 
   @Override
-  public @NotNull Set<? extends Map.Entry<LevelVariable,Integer>> getVarPairs() {
+  public @NotNull Set<? extends Map.Entry<LevelVariable,BigInteger>> getVarPairs() {
     return myVars == null ? Collections.emptySet() : myVars.entrySet();
   }
 
-  public int getConstant() {
+  @Override
+  public @NotNull BigInteger getConstant() {
     return myConstant;
   }
 
@@ -83,12 +84,12 @@ public class Level implements CoreLevel {
     return myVars == null || myVars.isEmpty();
   }
 
-  public boolean isProp() {
-    return isClosed() && myConstant == -1;
+  public boolean isZero() {
+    return myVars != null && myVars.isEmpty() && myConstant.equals(BigInteger.ZERO);
   }
 
   public boolean withMaxConstant() {
-    return myVars != null && !myVars.isEmpty() && myConstant > 0;
+    return myVars != null && !myVars.isEmpty() && myConstant.compareTo(BigInteger.ZERO) > 0;
   }
 
   public boolean hasInferenceVariables() {
@@ -102,19 +103,18 @@ public class Level implements CoreLevel {
   public @Nullable LevelVariable getSingleVar() {
     if (myVars == null || myVars.size() != 1) return null;
     var entry = myVars.entrySet().iterator().next();
-    return entry.getValue() == 0 && myConstant == 0 ? entry.getKey() : null;
+    return entry.getValue().equals(BigInteger.ZERO) && myConstant.equals(BigInteger.ZERO) ? entry.getKey() : null;
   }
 
-  public Level add(int constant) {
-    assert constant >= 0;
-    if (constant == 0 || myVars == null) return this;
-    Map<LevelVariable,Integer> vars = new HashMap<>(myVars.size());
+  public Level add(BigInteger constant) {
+    if (myVars == null || constant.equals(BigInteger.ZERO)) return this;
+    Map<LevelVariable,BigInteger> vars = new HashMap<>(myVars.size());
     boolean keepConstant = false;
-    for (Map.Entry<LevelVariable, Integer> entry : myVars.entrySet()) {
-      if (myConstant <= entry.getValue()) keepConstant = true;
-      vars.put(entry.getKey(), entry.getValue() + constant);
+    for (Map.Entry<LevelVariable, BigInteger> entry : myVars.entrySet()) {
+      if (myConstant.compareTo(entry.getValue()) <= 0) keepConstant = true;
+      vars.put(entry.getKey(), entry.getValue().add(constant));
     }
-    return new Level(vars, keepConstant ? myConstant : myConstant + constant);
+    return new Level(vars, keepConstant ? myConstant : myConstant.add(constant));
   }
 
   public Level max(Level level) {
@@ -123,22 +123,22 @@ public class Level implements CoreLevel {
     }
 
     if (myVars.isEmpty() && level.myVars.isEmpty()) {
-      return new Level(Math.max(myConstant, level.myConstant));
+      return new Level(myConstant.max(level.myConstant));
     }
 
     if (myVars.isEmpty()) {
-      return new Level(level.myVars, Math.max(myConstant, level.myConstant));
+      return new Level(level.myVars, myConstant.max(level.myConstant));
     }
 
     if (level.myVars.isEmpty()) {
-      return new Level(myVars, Math.max(myConstant, level.myConstant));
+      return new Level(myVars, myConstant.max(level.myConstant));
     }
 
-    Map<LevelVariable,Integer> vars = new HashMap<>(myVars);
-    for (Map.Entry<LevelVariable, Integer> entry : level.myVars.entrySet()) {
-      vars.compute(entry.getKey(), (k,v) -> v == null ? entry.getValue() : Math.max(v, entry.getValue()));
+    Map<LevelVariable,BigInteger> vars = new HashMap<>(myVars);
+    for (Map.Entry<LevelVariable, BigInteger> entry : level.myVars.entrySet()) {
+      vars.compute(entry.getKey(), (k,v) -> v == null ? entry.getValue() : v.max(entry.getValue()));
     }
-    return new Level(vars, Math.max(myConstant, level.myConstant));
+    return new Level(vars, myConstant.max(level.myConstant));
   }
 
   public Level subst(LevelSubstitution subst) {
@@ -147,8 +147,8 @@ public class Level implements CoreLevel {
     }
 
     List<Level> substLevels = new ArrayList<>();
-    Map<LevelVariable,Integer> rest = new HashMap<>();
-    for (Map.Entry<LevelVariable, Integer> entry : myVars.entrySet()) {
+    Map<LevelVariable,BigInteger> rest = new HashMap<>();
+    for (Map.Entry<LevelVariable, BigInteger> entry : myVars.entrySet()) {
       Level level = (Level) subst.get(entry.getKey());
       if (level == null) {
         rest.put(entry.getKey(), entry.getValue());
@@ -192,11 +192,11 @@ public class Level implements CoreLevel {
       return level2.hasInferenceVariables() && (equations == null || equations.addEquation(INFINITY, level2, CMP.LE, sourceNode));
     }
 
-    if (level1.myConstant > level2.myConstant) {
+    if (level1.myConstant.compareTo(level2.myConstant) > 0) {
       boolean ok = false;
       boolean add = false;
-      for (Map.Entry<LevelVariable, Integer> entry : level2.myVars.entrySet()) {
-        if (level1.myConstant <= entry.getValue()) {
+      for (Map.Entry<LevelVariable, BigInteger> entry : level2.myVars.entrySet()) {
+        if (level1.myConstant.compareTo(entry.getValue()) <= 0) {
           ok = true;
           break;
         }
@@ -213,15 +213,15 @@ public class Level implements CoreLevel {
       }
     }
 
-    for (Map.Entry<LevelVariable, Integer> entry1 : level1.myVars.entrySet()) {
+    for (Map.Entry<LevelVariable, BigInteger> entry1 : level1.myVars.entrySet()) {
       boolean ok = false;
-      boolean add = entry1.getKey() instanceof InferenceLevelVariable && entry1.getValue() <= level2.myConstant;
-      for (Map.Entry<LevelVariable, Integer> entry2 : level2.myVars.entrySet()) {
-        if (entry1.getKey().compare(entry2.getKey(), CMP.LE) && entry1.getValue() <= entry2.getValue()) {
+      boolean add = entry1.getKey() instanceof InferenceLevelVariable && entry1.getValue().compareTo(level2.myConstant) <= 0;
+      for (Map.Entry<LevelVariable, BigInteger> entry2 : level2.myVars.entrySet()) {
+        if (entry1.getKey().compare(entry2.getKey(), CMP.LE) && entry1.getValue().compareTo(entry2.getValue()) <= 0) {
           ok = true;
           break;
         }
-        if (!add && (entry2.getKey() instanceof InferenceLevelVariable || entry1.getKey() instanceof InferenceLevelVariable && (entry1.getValue() <= entry2.getValue()))) {
+        if (!add && (entry2.getKey() instanceof InferenceLevelVariable || entry1.getKey() instanceof InferenceLevelVariable && entry1.getValue().compareTo(entry2.getValue()) <= 0)) {
           add = true;
         }
       }

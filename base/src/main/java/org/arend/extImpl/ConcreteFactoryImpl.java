@@ -882,7 +882,7 @@ public class ConcreteFactoryImpl implements ConcreteFactory {
 
   @NotNull
   @Override
-  public ConcreteLevel numLevel(int level) {
+  public ConcreteLevel numLevel(@NotNull BigInteger level) {
     return new Concrete.NumberLevelExpression(myData, level);
   }
 
