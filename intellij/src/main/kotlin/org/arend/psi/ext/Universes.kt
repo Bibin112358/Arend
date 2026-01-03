@@ -10,20 +10,23 @@ import org.arend.term.abs.AbstractExpressionVisitor
 import java.math.BigInteger
 
 
+private fun parseBigInteger(text: String): BigInteger? =
+    if (text.isEmpty()) null else BigInteger(text, 10)
+
 private fun <P, R> acceptSet(data: ArendCompositeElement, setElem: PsiElement, pLevel: Abstract.LevelExpression?, visitor: AbstractExpressionVisitor<in P, out R>, params: P?): R =
-    visitor.visitUniverse(data, BigInteger(setElem.text.substring("\\Set".length), 10), BigInteger.ZERO, pLevel, params)
+    visitor.visitUniverse(data, parseBigInteger(setElem.text.substring("\\Set".length)), BigInteger.ZERO, pLevel, params)
 
 private fun <P, R> acceptUniverse(data: ArendCompositeElement, universeElem: PsiElement, pLevel: Abstract.LevelExpression?, visitor: AbstractExpressionVisitor<in P, out R>, params: P?): R =
-    visitor.visitUniverse(data, BigInteger(universeElem.text.substring("\\Type".length), 10), null, pLevel, params)
+    visitor.visitUniverse(data, parseBigInteger(universeElem.text.substring("\\Type".length)), null, pLevel, params)
 
 private fun <P, R> acceptCatUniverse(data: ArendCompositeElement, catElem: PsiElement, pLevel: Abstract.LevelExpression?, visitor: AbstractExpressionVisitor<in P, out R>, params: P?): R =
-    visitor.visitCatUniverse(data, BigInteger(catElem.text.substring("\\Set".length), 10), pLevel, params)
+    visitor.visitCatUniverse(data, parseBigInteger(catElem.text.substring("\\Set".length)), pLevel, params)
 
 private fun <P, R> acceptTruncated(data: ArendCompositeElement, truncatedElem: PsiElement, pLevel: Abstract.LevelExpression?, visitor: AbstractExpressionVisitor<in P, out R>, params: P?): R {
     val uniText = truncatedElem.text
     val index = uniText.indexOf('T')
-    val hLevelNum = if (index > 0 && uniText[0] == '\\') BigInteger(uniText.substring(1, index - 1), 10) else null
-    val pLevelNum = if (hLevelNum != null) BigInteger(uniText.substring(index + "Type".length), 10) else null
+    val hLevelNum = if (index > 0 && uniText[0] == '\\') parseBigInteger(uniText.substring(1, index - 1)) else null
+    val pLevelNum = if (hLevelNum != null) parseBigInteger(uniText.substring(index + "Type".length)) else null
     return visitor.visitUniverse(data, pLevelNum, hLevelNum, pLevel, params)
 }
 

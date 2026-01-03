@@ -448,14 +448,6 @@ class ArendCompletionContributor : CompletionContributor() {
         basic(and(afterLeaf(ID), after(and(withParent(ArendDefIdentifier::class.java), withGrandParents(ArendDefData::class.java, ArendDefInstance::class.java,
                 ArendDefFunction::class.java, ArendDefClass::class.java)))), PH_LEVELS_KW_LIST)
 
-        val levelParamsPattern = withAncestors(ArendLevelIdentifier::class.java, ArendLevelParamsSeq::class.java)
-
-        basic(or(afterLeaf(PLEVELS_KW), after(levelParamsPattern)), HLEVELS_KW_LIST) { cP: CompletionParameters ->
-            val jointData = ArendCompletionParameters(cP)
-            val prevKeyword = jointData.prevElement?.parent?.parent?.findPrevSibling()
-            if (prevKeyword != null) prevKeyword.elementType == PLEVELS_KW else true
-        }
-
         basic(and(afterLeaf(LPAREN), or(withAncestors(ArendNameTele::class.java, ArendDefFunction::class.java),
                 withAncestors(ArendTypeTele::class.java, ArendConstructor::class.java),
                 withAncestors(*(DEF_IDENTIFIER_PREFIX + arrayOf(ArendDefFunction::class.java))),

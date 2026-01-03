@@ -173,7 +173,7 @@ class ExpectedConstructorQuickFix(val error: ExpectedConstructorError, val cause
                         typecheckedParameters = data.typecheckedParameters
 
                         val context = HashMap<Referable, Binding>()
-                        if (data.parameters != null) for (pair in data.parameters.map { it.referableList }.flatten().zip(DependentLink.Helper.toList(typecheckedParameters))) context[pair.first] = pair.second
+                        if (data.parameters != null) for (pair in data.parameters.flatMap { it.referableList }.zip(DependentLink.Helper.toList(typecheckedParameters))) context[pair.first] = pair.second
                         elimParams = if (data.eliminatedReferences != null)
                             ElimTypechecking.getEliminatedParameters(data.eliminatedReferences, data.clauses, typecheckedParameters, errorReporter, context) else emptyList()
 
@@ -762,7 +762,7 @@ class ExpectedConstructorQuickFix(val error: ExpectedConstructorError, val cause
 
                 val typecheckedParameters =
                     DependentLink.Helper.toList(typecheckedDefinition.parameters).filter { !it.isHidden }
-                val concreteParameters = concreteDefinition.parameters.map { p -> p.referableList }.flatten().toList()
+                val concreteParameters = concreteDefinition.parameters.flatMap { p -> p.referableList }.toList()
 
                 val isWithMode = oldEliminatedReferences.isEmpty()
 
@@ -811,14 +811,14 @@ class ExpectedConstructorQuickFix(val error: ExpectedConstructorError, val cause
                 when (concreteDefinition) {
                     is Concrete.Constructor -> return Concrete.Constructor(concreteDefinition.data, concreteDefinition.parameters, newEliminatedReferences, clauses, concreteDefinition.isCoerce)
                     is Concrete.DataDefinition -> {
-                        return Concrete.DataDefinition(concreteDefinition.data, concreteDefinition.pLevelParameters, concreteDefinition.hLevelParameters, concreteDefinition.parameters,
+                        return Concrete.DataDefinition(concreteDefinition.data, concreteDefinition.pLevelParameters, concreteDefinition.parameters,
                             newEliminatedReferences, concreteDefinition.isTruncated, concreteDefinition.universe, constructorClauses)
                     }
 
                     is Concrete.FunctionDefinition -> {
                         val oldBody = concreteDefinition.body as Concrete.ElimFunctionBody
                         val newBody = Concrete.ElimFunctionBody(oldBody.data, newEliminatedReferences, clauses)
-                        return Concrete.FunctionDefinition(concreteDefinition.kind, concreteDefinition.data, concreteDefinition.pLevelParameters, concreteDefinition.hLevelParameters,
+                        return Concrete.FunctionDefinition(concreteDefinition.kind, concreteDefinition.data, concreteDefinition.pLevelParameters,
                             concreteDefinition.parameters, concreteDefinition.resultType, concreteDefinition.resultTypeLevel, newBody)
                     }
                 }

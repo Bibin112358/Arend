@@ -584,14 +584,6 @@ class ArendKeywordCompletionTest : ArendCompletionTestBase() {
     fun `test no elim and no fixity completion 2`() = checkKeywordCompletionVariants(WHERE_KW_FULL + ALIAS_KW_LIST + PH_LEVELS_KW_LIST, CompletionCondition.SAME_KEYWORDS,
             "\\func lol {-caret-}") /* No elim if there are no arguments; No fixity */
 
-    fun `test hlevels`() = checkKeywordCompletionVariants(HLEVELS_KW_LIST, CompletionCondition.CONTAINS,
-            "\\func lol \\plevels x {-caret-}",
-            "\\func lol \\plevels {-caret-}")
-
-    fun `test no hlevels`() = checkKeywordCompletionVariants(WHERE_KW_FULL, CompletionCondition.SAME_KEYWORDS,
-            "\\func lol \\hlevels {-caret-}",
-            "\\func lol \\hlevels x {-caret-}")
-
     fun `test leveled application expression`() = checkKeywordCompletionVariants(LPH_KW_LIST + LEVELS_KW_LIST, CompletionCondition.CONTAINS,
             "\\func lol (a : Nat) => lol {-caret-} a",
             "\\func lol (a : Nat) => lol {-caret-} a 1 2")
