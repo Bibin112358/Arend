@@ -168,7 +168,7 @@ public class Level implements CoreLevel {
   public String toString() {
     StringBuilder builder = new StringBuilder();
     Concrete.LevelExpression level = ToAbstractVisitor.convert(this);
-    if (level == null) return "infinity";
+    if (level == null) return "∞";
     level.accept(new PrettyPrintVisitor(builder, 0), new Precedence(Concrete.Expression.PREC));
     return builder.toString();
   }

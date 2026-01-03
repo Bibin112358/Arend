@@ -48,25 +48,16 @@ public class SolveLevelEquationsError extends TypecheckingError {
     Set<InferenceLevelVariable> variables = new HashSet<>();
     for (LevelEquation<? extends LevelVariable> equation : equations) {
       builder.setLength(0);
-      if (equation.isInfinity()) {
-        if (equation.getVariable() instanceof InferenceLevelVariable) {
-          variables.add((InferenceLevelVariable) equation.getVariable());
-        }
-
-        printEqExpr(builder, ppv, equation.getVariable(), null, null, refMap);
-        builder.append(" = \\oo");
-      } else {
-        if (equation.getVariable1() instanceof InferenceLevelVariable) {
-          variables.add((InferenceLevelVariable) equation.getVariable1());
-        }
-        if (equation.getVariable2() instanceof InferenceLevelVariable) {
-          variables.add((InferenceLevelVariable) equation.getVariable2());
-        }
-
-        printEqExpr(builder, ppv, equation.getVariable1(), equation.getConstant().negate(), null, refMap);
-        builder.append(" <= ");
-        printEqExpr(builder, ppv, equation.getVariable2(), equation.getConstant(), equation.getMaxConstant(), refMap);
+      if (equation.getVariable1() instanceof InferenceLevelVariable) {
+        variables.add((InferenceLevelVariable) equation.getVariable1());
       }
+      if (equation.getVariable2() instanceof InferenceLevelVariable) {
+        variables.add((InferenceLevelVariable) equation.getVariable2());
+      }
+
+      printEqExpr(builder, ppv, equation.getVariable1(), equation.getConstant().negate(), null, refMap);
+      builder.append(" <= ");
+      printEqExpr(builder, ppv, equation.getVariable2(), equation.getConstant(), equation.getMaxConstant(), refMap);
       docs.add(text(builder.toString()));
     }
 

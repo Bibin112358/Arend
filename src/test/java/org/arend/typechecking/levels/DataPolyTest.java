@@ -127,14 +127,14 @@ public class DataPolyTest extends TypeCheckingTestCase {
   @Test
   public void recursiveDataWithClass() {
     typeCheckModule(
-      "\\record R (A : \\Type)\n" +
+      "\\record R (A : \\Sort)\n" +
       "\\data D | con (R D) | con2");
   }
 
   @Test
   public void recursiveDataWithLam() {
     typeCheckModule(
-      "\\record R (A : Nat -> \\Type)\n" +
+      "\\record R (A : Nat -> \\Sort)\n" +
       "\\data D | con (R (\\lam _ => D)) | con2");
   }
 
@@ -164,7 +164,7 @@ public class DataPolyTest extends TypeCheckingTestCase {
   @Test
   public void recursiveDataWithNew() {
     typeCheckModule("""
-      \\record C (X Y : \\Type)
+      \\record C (X Y : \\Sort)
       \\record R (A : C)
       \\data D | con1 (R (\\new C (\\Sigma) D)) | con2 (R (\\new C D (\\Sigma)))
       """);

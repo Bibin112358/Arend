@@ -38,12 +38,7 @@ public class LevelEquationsSolver {
     variables.clear();
 
     for (LevelEquation<LevelVariable> levelEquation : levelEquations) {
-      if (levelEquation.isInfinity()) {
-        //noinspection unchecked
-        addEquation((LevelEquation<InferenceLevelVariable>) (LevelEquation<?>) levelEquation, false);
-      } else {
-        addLevelEquation(levelEquation.getVariable1(), levelEquation.getVariable2(), levelEquation.getConstant(), levelEquation.getMaxConstant());
-      }
+      addLevelEquation(levelEquation.getVariable1(), levelEquation.getVariable2(), levelEquation.getConstant(), levelEquation.getMaxConstant());
     }
 
     myErrorReporter = errorReporter;
@@ -107,8 +102,8 @@ public class LevelEquationsSolver {
   }
 
   private void addEquation(LevelEquation<InferenceLevelVariable> equation, boolean based) {
-    InferenceLevelVariable var1 = equation.isInfinity() ? equation.getVariable() : equation.getVariable1();
-    InferenceLevelVariable var2 = equation.isInfinity() ? equation.getVariable() : equation.getVariable2();
+    InferenceLevelVariable var1 = equation.getVariable1();
+    InferenceLevelVariable var2 = equation.getVariable2();
 
     if (var1 != null || var2 != null) {
       if (based) {
@@ -165,8 +160,7 @@ public class LevelEquationsSolver {
     Set<InferenceLevelVariable> unBased = myPBased ? pUnBased : new HashSet<>(myPLevelEquations.getVariables());
     SimpleLevelSubstitution result = new SimpleLevelSubstitution();
     for (InferenceLevelVariable var : unBased) {
-      BigInteger sol = solution.get(var);
-      result.add(var, sol.equals(LevelEquations.INFINITY) ? Level.INFINITY : new Level(sol.negate()));
+      result.add(var, new Level(solution.get(var).negate()));
     }
 
     boolean useStd = true;
@@ -181,10 +175,9 @@ public class LevelEquationsSolver {
     }
 
     for (Map.Entry<InferenceLevelVariable, BigInteger> entry : basedSolution.entrySet()) {
-      assert !entry.getValue().equals(LevelEquations.INFINITY);
       if (!unBased.contains(entry.getKey())) {
         BigInteger sol = solution.get(entry.getKey());
-        result.add(entry.getKey(), sol.equals(LevelEquations.INFINITY) || entry.getValue().equals(LevelEquations.INFINITY) ? Level.INFINITY : new Level(useStd ? LevelVariable.PVAR : getLowerBound(entry.getKey()), entry.getValue().negate(), sol.negate()));
+        result.add(entry.getKey(), new Level(useStd ? LevelVariable.PVAR : getLowerBound(entry.getKey()), entry.getValue().negate(), sol.negate()));
       }
     }
 
@@ -196,7 +189,7 @@ public class LevelEquationsSolver {
         Map.Entry<LevelVariable,BigInteger> levelEntry = level.getVarPairs().isEmpty() ? null : level.getVarPairs().iterator().next();
         LevelVariable levelVar = levelEntry == null ? null : levelEntry.getKey();
         if (!Level.compare(level.withMaxConstant() ? new Level(levelVar, levelVar == null ? level.getConstant() : levelEntry.getValue(), BigInteger.ZERO) : level, entry.getValue(), CMP.LE, DummyEquations.getInstance(), null)) {
-          equations.add(level.isInfinity() ? new LevelEquation<>(entry.getKey()) : new LevelEquation<>(levelVar, entry.getKey(), levelEntry == null ? level.getConstant().negate() : levelEntry.getValue().negate()));
+          equations.add(new LevelEquation<>(levelVar, entry.getKey(), levelEntry == null ? level.getConstant().negate() : levelEntry.getValue().negate()));
         }
         if (level.withMaxConstant() && !Level.compare(new Level(level.getConstant()), entry.getValue(), CMP.LE, DummyEquations.getInstance(), null)) {
           equations.add(new LevelEquation<>(null, entry.getKey(), level.getConstant().negate()));
@@ -226,7 +219,7 @@ public class LevelEquationsSolver {
             unBasedSet.add(var);
           } else {
             BigInteger sol = basedSolution.get(var);
-            if (sol.equals(LevelEquations.INFINITY) || ub.getVarPairs().iterator().next().getValue().compareTo(sol) < 0) {
+            if (ub.getVarPairs().iterator().next().getValue().compareTo(sol) < 0) {
               unBasedSet.add(var);
             }
           }
@@ -281,7 +274,7 @@ public class LevelEquationsSolver {
   private void reportCycle(List<LevelEquation<InferenceLevelVariable>> cycle, Set<InferenceLevelVariable> unBased) {
     Set<LevelEquation<? extends LevelVariable>> basedCycle = new LinkedHashSet<>();
     for (LevelEquation<InferenceLevelVariable> equation : cycle) {
-      if (equation.isInfinity() || equation.getVariable1() != null) {
+      if (equation.getVariable1() != null) {
         basedCycle.add(new LevelEquation<>(equation));
       } else {
         basedCycle.add(new LevelEquation<>(equation.getVariable2() == null || unBased.contains(equation.getVariable2()) ? null : LevelVariable.PVAR, equation.getVariable2(), equation.getConstant()));

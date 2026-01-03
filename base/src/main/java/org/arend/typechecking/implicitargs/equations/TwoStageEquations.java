@@ -280,32 +280,6 @@ public class TwoStageEquations implements Equations {
     return true;
   }
 
-  private boolean addLevelEquation(Set<? extends LevelVariable> vars, Concrete.SourceNode sourceNode) {
-    List<InferenceLevelVariable> infVars = new ArrayList<>(vars.size());
-    for (LevelVariable var : vars) {
-      if (var instanceof InferenceLevelVariable infVar) {
-        infVars.add(infVar);
-      }
-    }
-
-    if (infVars.size() == 1) {
-      myLevelEquations.add(new LevelEquation<>(infVars.getFirst()));
-      return true;
-    }
-
-    if (infVars.size() > 1) {
-      Map<LevelVariable, BigInteger> varMap = new HashMap<>();
-      for (InferenceLevelVariable var : infVars) {
-        varMap.put(var, BigInteger.ZERO);
-      }
-      myDeferredMaxLevelEquations.add(new AbstractEquation<>(Level.INFINITY, new Level(varMap, BigInteger.ZERO), CMP.LE, sourceNode));
-      return true;
-    } else {
-      myVisitor.getErrorReporter().report(new SolveLevelEquationsError(Collections.singletonList(new LevelEquation<>(vars.isEmpty() ? null : vars.iterator().next())), sourceNode));
-      return false;
-    }
-  }
-
   @Override
   public boolean solve(Expression expr1, Expression expr2, Expression type, CMP cmp, Concrete.SourceNode sourceNode) {
     if (!CompareVisitor.compare(this, cmp, expr1, expr2, type, sourceNode)) {
@@ -339,11 +313,9 @@ public class TwoStageEquations implements Equations {
     if (level1.isInfinity() && level2.isInfinity() || level1.isInfinity() && cmp == CMP.GE || level2.isInfinity() && cmp == CMP.LE) {
       return true;
     }
-    if (level1.isInfinity()) {
-      return addLevelEquation(level2.getVars(), sourceNode);
-    }
-    if (level2.isInfinity()) {
-      return addLevelEquation(level1.getVars(), sourceNode);
+    if (level1.isInfinity() || level2.isInfinity()) {
+      myVisitor.getErrorReporter().report(new SolveLevelEquationsError(Collections.singletonList(new Pair<>(Level.INFINITY, level1.isInfinity() ? level2 : level1)), sourceNode));
+      return false;
     }
 
     if (cmp == CMP.LE || cmp == CMP.EQ) {
