@@ -23,8 +23,7 @@
   }
   \where {
     \lemma loop-comp {G : Group} (g g' : G) : path (loop g) *> path (loop g') = path (loop (g * g'))
-      => movePath2 $ transportInv (\lam X => X) (Cube2.equality (path (loop g)) (path (loop (g * g'))) idp (path (loop g'))) $
-                             path (\lam j => path (\lam i => relation g g' i j))
+      => movePath2 $ coe2 (Cube2.equality (path (loop g)) (path (loop (g * g'))) idp (path (loop g'))) right (path (\lam j => path (\lam i => relation g g' i j))) left
 
     \lemma loop-ide {G : Group} : path (loop (ide {G})) = idp
       => idp-lemma (path (loop ide)) (path (loop ide)) (loop-comp ide ide *> simplify)

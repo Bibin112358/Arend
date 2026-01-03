@@ -8,7 +8,7 @@
 \import Logic
 \import Paths
 
-\func Join (A B : \Type) => PushoutData {\Sigma A B} __.1 __.2
+\func Join (A B : \Sort) => PushoutData {\Sigma A B} __.1 __.2
   \where {
     \lemma levelProp {A B : \Prop} : isProp (Join A B) => isContr'=>isProp {Join A B} (\case __ \with {
       | pinl a => transport (Contr __) (QEquiv_= (Join-sym B A)) (Join_Contr B (isProp=>isContr prop-isProp a))
@@ -20,13 +20,13 @@
       | byRight b => jinr b
   }
 
-\cons jinl {A B : \Type} (a : A) : Join A B => pinl a
+\cons jinl {A B : \Sort} (a : A) : Join A B => pinl a
 
-\cons jinr {A B : \Type} (b : B) : Join A B => pinr b
+\cons jinr {A B : \Sort} (b : B) : Join A B => pinr b
 
-\func jglue {A B : \Type} (a : A) (b : B) : jinl a = jinr b => path (pglue (a,b))
+\func jglue {A B : \Sort} (a : A) (b : B) : jinl a = jinr b => path (pglue (a,b))
 
-\lemma Join_Contr (A : \Type) (B : Contr) : Contr (Join A B) \cowith
+\lemma Join_Contr (A : \Sort) (B : Contr) : Contr (Join A B) \cowith
   | center => jinr B.center
   | contraction x => \case \elim x \with {
     | jinl a => inv (jglue a B.center)

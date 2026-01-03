@@ -29,7 +29,7 @@
       => IsEquiv.ret_f p.pushout-univ
   }
 
-\data PushoutData {A B C : \Type} (f : A -> B) (g : A -> C)
+\data PushoutData {A B C : \Sort} (f : A -> B) (g : A -> C)
   | pinl B
   | pinr C
   | pglue (a : A) : pinl (f a) = pinr (g a)

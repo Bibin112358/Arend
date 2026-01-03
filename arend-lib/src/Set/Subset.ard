@@ -9,12 +9,12 @@
 \import Paths.Meta
 \import Topology.Locale
 
-\func Set (X : \Type) => X -> \Prop
+\func Set (X : \Sort) => X -> \Prop
   \where {
-    \func Union {X : \Type} (S : Set X -> \Type) : Set X
+    \func Union {X : \Sort} (S : Set X -> \Sort) : Set X
       => \lam a => ∃ (U : S) (U a)
 
-    \lemma Union-cond {X : \Type} {S : Set X -> \Type} {U : Set X} (SU : S U) : U ⊆ Union S
+    \lemma Union-cond {X : \Sort} {S : Set X -> \Sort} {U : Set X} (SU : S U) : U ⊆ Union S
       => \lam Ux => inP (U,SU,Ux)
 
     \func Total {X : \Sort} (U : Set X) => \Sigma (x : X) (\property U x)
@@ -22,7 +22,7 @@
     \func restrict {X : \Sort} {U : Set X} (V : Set X) : Set (Total U)
       => \lam s => V s.1
 
-    \func Prod {X Y : \Type} (U : Set X) (V : Set Y) : Set (\Sigma X Y)
+    \func Prod {X Y : \Sort} (U : Set X) (V : Set Y) : Set (\Sigma X Y)
       => \lam s => \Sigma (U s.1) (V s.2)
 
     \func CoverInter {X : \Type} (C : Set (Set X)) (D : Set (Set X)) : Set (Set X)
@@ -40,12 +40,12 @@
 \lemma single_<= {X : \Set} {a : X} {U : Set X} (Ua : U a) : single a ⊆ U
   => \lam p => rewriteI p Ua
 
-\func \infix 8 ^-1 {X Y : \Type} (f : X -> Y) (S : Set Y) : Set X
+\func \infix 8 ^-1 {X Y : \Sort} (f : X -> Y) (S : Set Y) : Set X
   => \lam a => S (f a)
 
-\type Subset \alias \infix 4 ⊆ {X : \Type} (U V : Set X) => \Pi {x : X} -> U x -> V x
+\type Subset \alias \infix 4 ⊆ {X : \Sort} (U V : Set X) => \Pi {x : X} -> U x -> V x
 
-\func Compl {X : \Type} (U : Set X) : Set X
+\func Compl {X : \Sort} (U : Set X) : Set X
   => \lam x => Not (U x)
 
 \instance SetLattice (A : \Type) : Locale (Set A)
@@ -112,22 +112,22 @@
       }, p *> pmap (U ∧) q),
       \lam (inP (Us,CsUs,p)) => inP (Us 0, CsUs 0, _, inP (\lam j => Us (suc j), \lam j => CsUs (suc j), idp), p))
 
-\func extend {X : \Sort} {U : Set X} (V : Set (Set.Total U)) : Set X
+\func extend {X : \Type} {U : Set X} (V : Set (Set.Total U)) : Set X
   => \lam x => \Sigma (Ux : U x) (V (x,Ux))
 
-\lemma extend-sub {X : \Sort} {U : Set X} {V : Set (Set.Total U)} : extend V ⊆ U
+\lemma extend-sub {X : \Type} {U : Set X} {V : Set (Set.Total U)} : extend V ⊆ U
   => __.1
 
-\lemma extend-mono {X : \Sort} {U : Set X} {V W : Set (Set.Total U)} (p : V ⊆ W) : extend V ⊆ extend W
+\lemma extend-mono {X : \Type} {U : Set X} {V W : Set (Set.Total U)} (p : V ⊆ W) : extend V ⊆ extend W
   => \lam {x} (Ux,Vx) => (Ux, p Vx)
 
-\lemma extend_meet {X : \Sort} {U : Set X} {V W : Set (Set.Total U)} : extend (V ∧ W) = extend V ∧ extend W
+\lemma extend_meet {X : \Type} {U : Set X} {V W : Set (Set.Total U)} : extend (V ∧ W) = extend V ∧ extend W
   => <=-antisymmetric (\lam e => ((e.1, e.2.1), (e.1, e.2.2))) (\lam e => (e.1.1, (e.1.2, transport W (ext idp) e.2.2)))
 
-\lemma restrict_extend {X : \Sort} {U : Set X} {V : Set (Set.Total U)} : Set.restrict (extend V) = V
+\lemma restrict_extend {X : \Type} {U : Set X} {V : Set (Set.Total U)} : Set.restrict (extend V) = V
   => <=-antisymmetric (\lam r => transport V (ext idp) r.2) (\lam {x} Vx => (x.2,Vx))
 
-\lemma extend_restrict {X : \Sort} {U : Set X} {V : Set X} : extend (Set.restrict {X} {U} V) ⊆ V
+\lemma extend_restrict {X : \Type} {U : Set X} {V : Set X} : extend (Set.restrict {X} {U} V) ⊆ V
   => __.2
 
 \lemma ^-1_<= {A B : \Type} (f : A -> B) {U V : Set B} (p : U ⊆ V) : f ^-1 U ⊆ f ^-1 V

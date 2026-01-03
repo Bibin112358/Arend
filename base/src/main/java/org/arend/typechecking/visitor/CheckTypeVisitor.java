@@ -2690,7 +2690,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       TypecheckingResult result = checkExpr(expr.getFields().get(i), null);
       if (result == null) return null;
       fields.add(result.expression);
-      SortExpression sort = result.type.getSortExpressionOfType(); // TODO[sorts]: Delete this. Instead, check this for every expression when expectedType == null
+      SortExpression sort = result.type.toSortExpression(); // TODO[sorts]: Delete this. Instead, check this for every expression when expectedType == null
       if (sort != null && sort.isInfinite()) {
         errorReporter.report(new TypecheckingError("Types of the infinite level are not allowed", expr.getFields().get(i)));
         return null;

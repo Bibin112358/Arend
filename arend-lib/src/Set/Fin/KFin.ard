@@ -68,5 +68,5 @@
       }
 }
 
-\lemma QuotientKFin {A : KFinSet} {R : A -> A -> \Sort} : KFinSet (Quotient R) A.finCard \cowith
+\lemma QuotientKFin {A : KFinSet} {R : A -> A -> \Type} : KFinSet (Quotient R) A.finCard \cowith
   | finSurj => TruncP.map A.finSurj \lam s => (\lam j => in~ (s.1 j), \lam (in~ x) => TruncP.map (s.2 x) \lam r => (r.1, pmap in~ r.2))

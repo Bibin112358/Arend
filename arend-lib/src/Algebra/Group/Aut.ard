@@ -4,7 +4,7 @@
 \import Paths
 \import Set
 
-\instance Aut {A : \Sort} (a : A) : Group (Trunc0 (a = a))
+\instance Aut {A : \Type} (a : A) : Group (Trunc0 (a = a))
   | ide => in0 idp
   | * (p q : Trunc0 (a = a)) : Trunc0 (a = a) \with {
     | in0 p', in0 q' => in0 (p' *> q')

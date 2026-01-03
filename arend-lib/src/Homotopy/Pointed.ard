@@ -11,7 +11,7 @@
   | base : E
   | isInh => inP base
   \where
-    \func make {E : \Sort} (e : E) => \new Pointed E e
+    \func make {E : \Type} (e : E) => \new Pointed E e
 
 \instance UnitPointed : Pointed (\Sigma)
   | base => ()

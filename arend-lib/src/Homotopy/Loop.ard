@@ -26,14 +26,14 @@
   : X ofHLevel_-1+ suc n
   => \lam x x' => hLevel-inh n (later rewriteI __ (p x))
 
-\lemma loop-level-iter {X : \Sort}
+\lemma loop-level-iter {X : \Type}
                        (n : Nat)
                        (c : \Pi (x0 : X) -> Contr (iterl Loop n (\new Pointed X x0)))
   : X ofHLevel_-1+ n \elim n
   | 0 => toProp (isContr'=>isProp c)
   | suc n => \lam x x' => loop-level-iter n (\lam x=x' => Jl (\lam x'' x=x'' => Contr (iterl Loop n (\new Pointed (x = x'') x=x''))) (c x) x=x')
 
-\lemma loop-level-iter-inv {X : \Sort} (n : Nat) (h : X ofHLevel_-1+ n) (x0 : X)
+\lemma loop-level-iter-inv {X : \Type} (n : Nat) (h : X ofHLevel_-1+ n) (x0 : X)
   : Contr (iterl Loop n (\new Pointed X x0)) \elim n
   | 0 => isProp=>isContr (ToProp.fromProp h) x0
   | suc n => loop-level-iter-inv n (h x0 x0) idp
