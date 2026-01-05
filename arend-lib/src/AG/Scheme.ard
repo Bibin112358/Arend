@@ -138,7 +138,7 @@
       => equality2 L L' `transQEquiv` sigma-left (IsEquiv.toQEquiv univalence) `transQEquiv` sigma-right (later (\lam e => IsEquiv.toQEquiv univalence))
   }
 
-\record RingedLocaleHom (Dom Cod : RingedLocale) (\coerce f : FrameHom Cod Dom) (f# : NatTrans (\suc \lp) Cod.R (VSheaf.direct_image_locale f Dom.R))
+\record RingedLocaleHom (Dom Cod : RingedLocale) (\coerce f : FrameHom Cod Dom) (f# : NatTrans.{\suc \lp} Cod.R (VSheaf.direct_image_locale f Dom.R))
   \where {
     \func fromHomEq {L M : Locale} {f g : FrameHom M L} (p : f = g) (a : M) : f a <= g a
       => transport (\lam (h : FrameHom M L) => f a <= h a) p <=-refl
@@ -146,7 +146,7 @@
     \lemma ext {L M : RingedLocale} (f g : RingedLocaleHom L M) (p : f.f = g.f) (q : \Pi (a : M) (x : M.R a) -> L.R.F.Func (fromHomEq p a) (g.f# a x) = f.f# a x) : f = g
       => aux f.f# g.f# p q
       \where {
-        \lemma aux {L M : RingedLocale} {f g : FrameHom M L} (f# : NatTrans (\suc \lp) M.R (VSheaf.direct_image_locale f L.R)) (g# : NatTrans (\suc \lp) M.R (VSheaf.direct_image_locale g L.R)) (p : f = g) (q : \Pi (a : M) (x : M.R a) -> L.R.F.Func (fromHomEq p a) (g# a x) = f# a x) : (\new RingedLocaleHom L M f f#) = (\new RingedLocaleHom L M g g#) \elim p
+        \lemma aux {L M : RingedLocale} {f g : FrameHom M L} (f# : NatTrans.{\suc \lp} M.R (VSheaf.direct_image_locale f L.R)) (g# : NatTrans.{\suc \lp} M.R (VSheaf.direct_image_locale g L.R)) (p : f = g) (q : \Pi (a : M) (x : M.R a) -> L.R.F.Func (fromHomEq p a) (g# a x) = f# a x) : (\new RingedLocaleHom L M f f#) = (\new RingedLocaleHom L M g g#) \elim p
           | idp => cong $ exts \lam a => exts (\lam x => inv (q a x) *> pmap (\lam (h : RingHom (L.R (f a)) (L.R (f a))) => h (g# a x)) (L.R.F.Func-id {f a}))
       }
   }
@@ -190,7 +190,7 @@
       | trans => homMap p
       | natural h => inv M.R.F.Func-o *> pmap M.R.F.Func prop-pi *> M.R.F.Func-o
 
-    \func natTrans-inv {L M : RingedLocale} {e : Iso {RingedLocalePrecat} {L} {M}} (f : NatTrans (\suc \lp) L.R (Comp M.R (Functor.op {FrameHom.functor {e.hinv}})))
+    \func natTrans-inv {L M : RingedLocale} {e : Iso {RingedLocalePrecat} {L} {M}} (f : NatTrans.{\suc \lp} L.R (Comp M.R (Functor.op {FrameHom.functor {e.hinv}})))
       : NatTrans (Comp L.R (Functor.op {FrameHom.functor {e.f}})) M.R \cowith
       | trans x => homMap e.f_hinv x Cat.∘ f (e.f x)
       | natural {a} {b} h =>

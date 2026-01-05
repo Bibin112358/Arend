@@ -27,7 +27,7 @@ data class ArendChangeInfo (
 ) : ChangeInfo {
 
     private val pLevelsKw = locatedReferable.childrenWithLeaves.firstOrNull {it.elementType == PLEVELS_KW}
-    private val pLevelParam = (locatedReferable as? ArendDefinition<*>)?.pLevelParameters
+    private val pLevelParam = (locatedReferable as? ArendDefinition<*>)?.levelParameters
     private val pLevelsText = if (pLevelsKw != null && pLevelParam is PsiElement) " ${pLevelsKw.text} ${pLevelParam.text}" else ""
     private val precText = (locatedReferable as? ReferableBase<*>)?.prec?.let { "${it.text} " } ?: ""
     private val aliasText = (locatedReferable as? ReferableBase<*>)?.alias?.let{ " ${it.text}" } ?: ""

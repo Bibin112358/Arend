@@ -600,12 +600,12 @@ public final class Concrete {
   public static class ReferenceExpression extends Expression implements Reference, ConcreteReferenceExpression {
     public static final byte PREC = 12;
     private Referable myReferent;
-    private List<LevelExpression> myPLevels;
+    private List<LevelExpression> myLevels;
 
-    public ReferenceExpression(Object data, @NotNull Referable referable, List<LevelExpression> pLevels) {
+    public ReferenceExpression(Object data, @NotNull Referable referable, List<LevelExpression> levels) {
       super(data);
       myReferent = referable;
-      myPLevels = pLevels;
+      myLevels = levels;
     }
 
     public ReferenceExpression(Object data, @NotNull Referable referable) {
@@ -623,12 +623,12 @@ public final class Concrete {
     }
 
     @Override
-    public List<LevelExpression> getPLevels() {
-      return myPLevels;
+    public List<LevelExpression> getLevels() {
+      return myLevels;
     }
 
-    public void setPLevels(List<LevelExpression> levels) {
-      myPLevels = levels;
+    public void setLevels(List<LevelExpression> levels) {
+      myLevels = levels;
     }
 
     @Override
@@ -701,8 +701,8 @@ public final class Concrete {
       this.fixity = fixity;
     }
 
-    public static ReferenceExpression make(Object data, Referable referable, Fixity fixity, List<LevelExpression> pLevels) {
-      return fixity == null ? new ReferenceExpression(data, referable, pLevels) : new FixityReferenceExpression(data, referable, fixity);
+    public static ReferenceExpression make(Object data, Referable referable, Fixity fixity, List<LevelExpression> levels) {
+      return fixity == null ? new ReferenceExpression(data, referable, levels) : new FixityReferenceExpression(data, referable, fixity);
     }
   }
 
@@ -1937,20 +1937,14 @@ public final class Concrete {
 
   public static class LevelsDefinition extends SourceNodeImpl {
     private final List<TCLevelReferable> myReferables;
-    private final boolean myIncreasing;
 
-    public LevelsDefinition(Object data, List<TCLevelReferable> referables, boolean isIncreasing) {
+    public LevelsDefinition(Object data, List<TCLevelReferable> referables) {
       super(data);
       myReferables = referables;
-      myIncreasing = isIncreasing;
     }
 
     public @NotNull List<? extends TCLevelReferable> getReferables() {
       return myReferables;
-    }
-
-    public boolean isIncreasing() {
-      return myIncreasing;
     }
 
     @Override

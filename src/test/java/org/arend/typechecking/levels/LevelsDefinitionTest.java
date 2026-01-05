@@ -15,8 +15,8 @@ public class LevelsDefinitionTest extends TypeCheckingTestCase {
   @Test
   public void defTest() {
     typeCheckModule(
-      "\\plevels p1 <= p2\n" +
-      "\\func test (A : \\Type p1) : \\Type p2 => A");
+      "\\plevels p1,p2\n" +
+      "\\func test (A : \\Type p2) : \\Type p1 => A");
   }
 
   @Test
@@ -30,17 +30,10 @@ public class LevelsDefinitionTest extends TypeCheckingTestCase {
   }
 
   @Test
-  public void alreadyWithVarsTest() {
-    typeCheckModule(
-      "\\plevels p1 <= p2\n" +
-      "\\func test (A : \\Type p1) : \\Type p2 => A");
-  }
-
-  @Test
   public void alreadyWithVarsError() {
     typeCheckModule(
-      "\\plevels p1 <= p2\n" +
-      "\\func test \\plevels p3 (A : \\Type p1) : \\Type p2 => A", 1);
+      "\\plevels p1,p2\n" +
+      "\\func test.{p3} (A : \\Type p2) : \\Type p1 => A", 1);
   }
 
   @Test
@@ -48,10 +41,10 @@ public class LevelsDefinitionTest extends TypeCheckingTestCase {
     typeCheckModule(
       """
         \\module M \\where {
-          \\plevels p1 <= p2
+          \\plevels p1,p2
         }
         \\open M
-        \\func test (A : \\Type p1) : \\Type p2 => A
+        \\func test (A : \\Type p2) : \\Type p1 => A
         """);
   }
 
@@ -60,10 +53,10 @@ public class LevelsDefinitionTest extends TypeCheckingTestCase {
     typeCheckModule(
       """
         \\module M \\where {
-          \\plevels p1 <= p2
+          \\plevels p1,p2
         }
         \\open M (\\plevel p1, \\plevel p2)
-        \\func test (A : \\Type p1) : \\Type p2 => A
+        \\func test (A : \\Type p2) : \\Type p1 => A
         """);
   }
 
@@ -71,7 +64,7 @@ public class LevelsDefinitionTest extends TypeCheckingTestCase {
   public void derivedTest() {
     typeCheckModule(
       """
-        \\plevels p1 <= p2
+        \\plevels p1,p2
         \\record R (A : \\Type p2)
         \\func test (r : R) => 0
         """);
@@ -85,7 +78,7 @@ public class LevelsDefinitionTest extends TypeCheckingTestCase {
   public void derivedTest2() {
     typeCheckModule(
       """
-        \\plevels p1 <= p2
+        \\plevels p1,p2
         \\record R (A : \\Type p2)
         \\func test (r : R) (B : \\Type p2) => 0
         """);
@@ -99,7 +92,7 @@ public class LevelsDefinitionTest extends TypeCheckingTestCase {
   public void derivedTest3() {
     typeCheckModule(
       """
-        \\plevels p1 <= p2
+        \\plevels p1,p2
         \\record R (A : \\Type p1)
         \\record S (A : \\Type p2)
         \\func test (r : R) (s : S) => 0

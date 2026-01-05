@@ -108,7 +108,7 @@ public class DefaultMetaDefinition implements MetaDefinition {
     if (!(refExpr instanceof Concrete.ReferenceExpression)) {
       throw new IllegalStateException();
     }
-    ConcreteExpression result = getConcreteRepresentation(refExpr.getData(), ((Concrete.ReferenceExpression) refExpr).getPLevels(), contextData.getArguments(), contextData.getCoclauses());
+    ConcreteExpression result = getConcreteRepresentation(refExpr.getData(), ((Concrete.ReferenceExpression) refExpr).getLevels(), contextData.getArguments(), contextData.getCoclauses());
     if (result == null) {
       typechecker.getErrorReporter().report(new TypecheckingError("Meta '" + myDefinition.getData().getRefName() + "' is not defined", contextData.getMarker()));
       return null;

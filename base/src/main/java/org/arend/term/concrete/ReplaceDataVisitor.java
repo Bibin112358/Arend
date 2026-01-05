@@ -44,7 +44,7 @@ public class ReplaceDataVisitor implements ConcreteExpressionVisitor<Void,Concre
 
   @Override
   public Concrete.ReferenceExpression visitReference(Concrete.ReferenceExpression expr, Void params) {
-    return expr instanceof Concrete.FixityReferenceExpression fixRef ? new Concrete.FixityReferenceExpression(getData(expr), copyRef(expr.getReferent()), fixRef.fixity) : new Concrete.ReferenceExpression(getData(expr), copyRef(expr.getReferent()), visitLevels(expr.getPLevels()));
+    return expr instanceof Concrete.FixityReferenceExpression fixRef ? new Concrete.FixityReferenceExpression(getData(expr), copyRef(expr.getReferent()), fixRef.fixity) : new Concrete.ReferenceExpression(getData(expr), copyRef(expr.getReferent()), visitLevels(expr.getLevels()));
   }
 
   @Override

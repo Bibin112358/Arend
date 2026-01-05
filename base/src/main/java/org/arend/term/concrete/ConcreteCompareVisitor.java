@@ -78,7 +78,7 @@ public class ConcreteCompareVisitor implements ConcreteExpressionVisitor<Concret
     } else {
       if (!expr1.getReferent().equals(refExpr2.getReferent())) return false;
     }
-    return compareLevels(expr1.getPLevels(), refExpr2.getPLevels());
+    return compareLevels(expr1.getLevels(), refExpr2.getLevels());
   }
 
   @Override

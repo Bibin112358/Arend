@@ -14,8 +14,8 @@ public class FindLevelVariablesVisitor extends VoidConcreteVisitor<Void> {
 
   @Override
   public Void visitReference(Concrete.ReferenceExpression expr, Void params) {
-    if (expr.getPLevels() != null) {
-      for (Concrete.LevelExpression level : expr.getPLevels()) {
+    if (expr.getLevels() != null) {
+      for (Concrete.LevelExpression level : expr.getLevels()) {
         level.accept(this, null);
       }
     }

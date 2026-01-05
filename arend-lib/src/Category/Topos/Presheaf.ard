@@ -14,11 +14,11 @@
 \import Paths.Meta
 \import Set.SetCategory
 
-\instance VPresheafComplete (C : SmallPrecat) (D : CompleteCat (\suc \lp)) : CompleteCat
+\instance VPresheafComplete (C : SmallPrecat) (D : CompleteCat.{\suc \lp}) : CompleteCat
   | Cat => VPresheafCat D C
   | limit => limit'
   \where {
-    \func limit' {J : Precat \levels (\lp,\lp)} (G : Functor J (VPresheafCat D C))
+    \func limit' {J : Precat.{\lp,\lp}} (G : Functor J (VPresheafCat D C))
       : Limit G => \new Limit {
       | apex => apex
       | coneMap => cone-nat-map
@@ -87,10 +87,10 @@
 -- the proof of this should be completely analogues to the CompleteCat (VPresheafCat) instance.
 -- For example, it could be proven with a transport along the equality [C, D]^op = [C^op, D^op].
 
-\instance VPresheafCocomplete (C : SmallPrecat) (D : Cat (\suc \lp)) : CocompleteCat (VPresheafCat D C)
+\instance VPresheafCocomplete (C : SmallPrecat) (D : Cat.{\suc \lp}) : CocompleteCat (VPresheafCat D C)
  => {?}
 
-\instance VPresheafCatBicomplete (C : SmallPrecat) (D : BicompleteCat (\suc \lp)) : BicompleteCat (VPresheafCat D C)
+\instance VPresheafCatBicomplete (C : SmallPrecat) (D : BicompleteCat.{\suc \lp}) : BicompleteCat (VPresheafCat D C)
   | Cat => VPresheafCat D C
   | limit => limit {VPresheafComplete C D}
   | colimit => colimit {VPresheafCocomplete C D}

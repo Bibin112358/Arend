@@ -200,7 +200,7 @@ public class OverrideTest extends TypeCheckingTestCase {
       \\record S \\extends R {
         \\override X : \\Set \\lp
       }
-      \\func test (A : \\Set \\lp) : \\Set \\lp => S \\lp A
+      \\func test (A : \\Set \\lp) : \\Set \\lp => S.{\\lp} A
       """);
   }
 
@@ -211,7 +211,7 @@ public class OverrideTest extends TypeCheckingTestCase {
       \\record S \\extends R {
         \\override X : \\Set \\lp
       }
-      \\func test (A : \\Set \\lp) : \\Set \\lp => S \\lp A
+      \\func test (A : \\Set \\lp) : \\Set \\lp => S.{\\lp} A
       """);
   }
 
@@ -326,8 +326,8 @@ public class OverrideTest extends TypeCheckingTestCase {
         \\override X : \\Type \\lp
       }
       \\func f (X : \\Type (\\suc \\lp)) : C X \\cowith
-      \\func g (X : \\Type (\\suc \\lp)) : S \\lp \\cowith
-        | C => f \\lp X
+      \\func g (X : \\Type (\\suc \\lp)) : S.{\\lp} \\cowith
+        | C => f.{\\lp} X
       """, 1);
     assertThatErrorsAre(Matchers.typeMismatchError());
   }
@@ -340,8 +340,8 @@ public class OverrideTest extends TypeCheckingTestCase {
         \\override X : \\Type \\lp
       }
       \\func f (X : \\Type (\\suc \\lp)) : C X \\cowith
-      \\func g (X : \\Type) : S \\lp \\cowith
-        | C => f \\lp X
+      \\func g (X : \\Type) : S.{\\lp} \\cowith
+        | C => f.{\\lp} X
       """);
   }
 

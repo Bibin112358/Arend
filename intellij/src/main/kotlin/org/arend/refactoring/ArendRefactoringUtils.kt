@@ -854,7 +854,7 @@ private object PrecVisitor : AbstractExpressionVisitor<Void?, Int> {
     override fun visitSigma(data: Any?, parameters: Collection<Abstract.Parameter>, params: Void?) = MIN_PREC
     override fun visitBinOpSequence(data: Any?, left: Abstract.Expression, sequence: Collection<Abstract.BinOpSequenceElem>, params: Void?) = APP_PREC
     override fun visitCase(data: Any?, isSFunc: Boolean, evalKind: Abstract.EvalKind?, arguments: Collection<Abstract.CaseArgument>, resultType: Abstract.Expression?, resultTypeLevel: Abstract.Expression?, clauses: Collection<Abstract.FunctionClause>, params: Void?) = MIN_PREC
-    override fun visitFieldAccs(data: Any?, expression: Abstract.Expression, fieldAccs: List<Abstract.FieldAcc>, infixReference: AbstractReference?, infixName: String?, fixity: Fixity?, params: Void?) = MAX_PREC
+    override fun visitFieldAccs(data: Any?, expression: Abstract.Expression, pLevels: Collection<Abstract.LevelExpression>?, fieldAccs: List<Abstract.FieldAcc>, infixReference: AbstractReference?, infixName: String?, fixity: Fixity?, params: Void?) = MAX_PREC
     override fun visitClassExt(data: Any?, isNew: Boolean, evalKind: Abstract.EvalKind?, baseClass: Abstract.Expression?, coclausesData: Any?, implementations: MutableCollection<out Abstract.ClassFieldImpl>?, sequence: MutableCollection<out Abstract.BinOpSequenceElem>, clauses: Abstract.FunctionClauses?, params: Void?) = MIN_PREC
     override fun visitLet(data: Any?, isHave: Boolean, isStrict: Boolean, clauses: Collection<Abstract.LetClause>, expression: Abstract.Expression?, params: Void?) = MIN_PREC
     override fun visitNumericLiteral(data: Any?, number: BigInteger, params: Void?) = MAX_PREC
@@ -864,7 +864,7 @@ private object PrecVisitor : AbstractExpressionVisitor<Void?, Int> {
 
 private object ConcretePrecVisitor : ConcreteExpressionVisitor<Void?, Int> {
     override fun visitReference(expr: Concrete.ReferenceExpression, params: Void?) =
-        if (expr.pLevels != null) APP_PREC else MAX_PREC
+        if (expr.levels != null) APP_PREC else MAX_PREC
 
     override fun visitUniverse(expr: Concrete.UniverseExpression, params: Void?) =
         if (expr.pLevel == null || expr.pLevel is Concrete.NumberLevelExpression) MAX_PREC else APP_PREC

@@ -212,7 +212,7 @@ public class RecursiveTest extends TypeCheckingTestCase {
     typeCheckModule("""
       \\func test (n : Nat) : Nat
         | 0 => 0
-        | suc n => test \\lp n
+        | suc n => test.{\\lp} n
       """);
   }
 
@@ -221,27 +221,27 @@ public class RecursiveTest extends TypeCheckingTestCase {
     typeCheckModule("""
       \\func test (n : Nat) : Nat
         | 0 => 0
-        | suc n => test (\\suc \\lp) n
+        | suc n => test.{\\suc \\lp} n
       """, 1);
   }
 
   @Test
   public void recursiveLevels() {
-    typeCheckDef("\\func test \\plevels lvl (n : Nat) : Nat | 0 => 0 | suc n => test \\levels (\\suc lvl) n", 1);
+    typeCheckDef("\\func test.{lvl} (n : Nat) : Nat | 0 => 0 | suc n => test.{\\suc lvl} n", 1);
   }
 
   @Test
   public void recursiveLevels2() {
     typeCheckModule(
-      "\\func f \\plevels lvl (n : Nat) : Nat | 0 => 0 | suc n => g \\levels lvl n\n" +
-      "\\func g \\plevels lvl (n : Nat) : Nat | 0 => 0 | suc n => f \\levels (\\suc lvl) n", 1);
+      "\\func f.{lvl} (n : Nat) : Nat | 0 => 0 | suc n => g.{lvl} n\n" +
+      "\\func g.{lvl} (n : Nat) : Nat | 0 => 0 | suc n => f.{\\suc lvl} n", 1);
   }
 
   @Test
   public void recursiveLevels3() {
     typeCheckModule(
-      "\\data D \\plevels lvl : \\Set | con (d : D) (E \\levels lvl () d)\n" +
-      "\\func E \\plevels lvl (d : D \\levels (\\suc lvl) ()) : \\Set | con _ _ => Nat", 2);
+      "\\data D.{lvl} : \\Set | con (d : D) (E.{lvl} d)\n" +
+      "\\func E.{lvl} (d : D.{\\suc lvl}) : \\Set | con _ _ => Nat", 2);
   }
 
   @Test

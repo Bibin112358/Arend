@@ -239,8 +239,8 @@ public class ExpressionResolveNameVisitor extends BaseConcreteExpressionVisitor<
   }
 
   private void resolveLevels(Concrete.ReferenceExpression expr) {
-    if (expr.getPLevels() != null) {
-      expr.getPLevels().replaceAll(levelExpression -> levelExpression.accept(this, null));
+    if (expr.getLevels() != null) {
+      expr.getLevels().replaceAll(levelExpression -> levelExpression.accept(this, null));
     }
   }
 

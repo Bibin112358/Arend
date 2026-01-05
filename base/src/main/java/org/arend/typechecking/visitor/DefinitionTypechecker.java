@@ -857,7 +857,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
         cdef.setPLevelParameters(levelVariablesToParameters(cdef.getData(), levelParams));
         if (cdef.getPLevelParameters() != null) {
           for (Concrete.ReferenceExpression ref : refs) {
-            ref.setPLevels(levelParametersToExpressions(ref.getData(), cdef.getPLevelParameters()));
+            ref.setLevels(levelParametersToExpressions(ref.getData(), cdef.getPLevelParameters()));
           }
         }
       }
@@ -875,7 +875,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       for (int i = 0; i < refs.size(); i++) {
         Concrete.ReferenceExpression ref = refs.get(i);
         Definition def = ((TCDefReferable) ref.getReferent()).getTypechecked();
-        if (searchPLevels && def.getLevelsParent() != null && (i < setLevelsParentsUpTo || !def.areLevelsDerived()) && ref.getPLevels() == null) {
+        if (searchPLevels && def.getLevelsParent() != null && (i < setLevelsParentsUpTo || !def.areLevelsDerived()) && ref.getLevels() == null) {
           if (pLevelsParent == null) {
             pLevelsParent = def.getLevelsParent();
             if (i < setLevelsParentsUpTo) {
@@ -907,8 +907,8 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
 
     for (Concrete.ReferenceExpression ref : refs) {
       Definition def = ((TCDefReferable) ref.getReferent()).getTypechecked();
-      if (def.getLevelsParent() == pLevelsParent && ref.getPLevels() == null) {
-        ref.setPLevels(pLevelExprs);
+      if (def.getLevelsParent() == pLevelsParent && ref.getLevels() == null) {
+        ref.setLevels(pLevelExprs);
       }
     }
   }
@@ -975,7 +975,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
               type = ((Concrete.ClassExtExpression) type).getBaseClassExpression();
             }
             if (type instanceof Concrete.ReferenceExpression refExpr) {
-              refExpr.setPLevels(levelParametersToExpressions(refExpr.getData(), pLevelParams));
+              refExpr.setLevels(levelParametersToExpressions(refExpr.getData(), pLevelParams));
             }
           }
           typedDef.setLevelParameters(typecheckLevelParameters(def));
@@ -1308,7 +1308,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
         if (typedDef != null) {
           List<? extends LevelVariable> pVars = typedDef.getLevelParameters();
           if ((cEnclosingDef.getPLevelParameters() != null || pVars.size() == 1 && pVars.getFirst() == LevelVariable.PVAR) && LevelVariable.compare(enclosingDef.getLevelParameters(), pVars, CMP.EQ)) {
-            refExpr.setPLevels(cEnclosingDef.getPLevelParameters() != null ? levelParametersToExpressions(refExpr.getData(), cEnclosingDef.getPLevelParameters()) : Collections.singletonList(new Concrete.PLevelExpression(refExpr.getData())));
+            refExpr.setLevels(cEnclosingDef.getPLevelParameters() != null ? levelParametersToExpressions(refExpr.getData(), cEnclosingDef.getPLevelParameters()) : Collections.singletonList(new Concrete.PLevelExpression(refExpr.getData())));
           }
         }
       }

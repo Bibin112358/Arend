@@ -120,50 +120,50 @@ public class DefinableMetaTest extends TypeCheckingTestCase {
   @Test
   public void levelsTest() {
     typeCheckModule(
-      "\\meta f \\plevels p1 >= p2, x => x\n" +
-      "\\func test => f \\levels 3 100");
+      "\\meta f.{p1,p2} x => x\n" +
+      "\\func test => f.{3} 100");
   }
 
   @Test
   public void levelsTest2() {
     typeCheckModule(
-      "\\meta f \\plevels p, (A : \\Type p) => A\n" +
-      "\\func test => f \\levels 3 \\Type2");
+      "\\meta f.{p} (A : \\Type p) => A\n" +
+      "\\func test => f.{3} \\Type2");
   }
 
   @Test
   public void levelsTest3() {
     typeCheckModule(
-      "\\meta f \\plevels p => \\Type p\n" +
-      "\\func test : f \\levels 3 = \\Type3 => idp");
+      "\\meta f.{p} => \\Type p\n" +
+      "\\func test : f.{3} = \\Type3 => idp");
   }
 
   @Test
   public void levelsTest4() {
     typeCheckModule(
       "\\meta f (A : \\Type) => A\n" +
-      "\\func test => f \\levels 3 \\Type2");
+      "\\func test => f.{3} \\Type2");
   }
 
   @Test
   public void levelsTest5() {
     typeCheckModule(
       "\\meta f => \\Type\n" +
-      "\\func test : f \\levels 3 = \\Type3 => idp");
+      "\\func test : f.{3} = \\Type3 => idp");
   }
 
   @Test
   public void levelsError() {
     typeCheckModule(
-      "\\meta f \\plevels p1 <= p2, x => x\n" +
-      "\\func test => f \\levels (3,2) 100", 1);
+      "\\meta f.{p1,p2} x => x\n" +
+      "\\func test => f.{2,3} 100", 1);
   }
 
   @Test
   public void levelsError2() {
     typeCheckModule(
-      "\\meta f \\plevels p, (A : \\Type p) => A\n" +
-      "\\func test => f \\levels 3 \\Type3", 1);
+      "\\meta f.{p} (A : \\Type p) => A\n" +
+      "\\func test => f.{3} \\Type3", 1);
     assertThatErrorsAre(Matchers.typeMismatchError());
   }
 
@@ -171,7 +171,7 @@ public class DefinableMetaTest extends TypeCheckingTestCase {
   public void levelsError3() {
     typeCheckModule(
       "\\meta f (A : \\Type) => A\n" +
-      "\\func test => f \\levels 3 \\Type3", 1);
+      "\\func test => f.{3} \\Type3", 1);
     assertThatErrorsAre(Matchers.typeMismatchError());
   }
 

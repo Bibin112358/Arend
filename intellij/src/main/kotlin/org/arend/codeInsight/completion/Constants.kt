@@ -42,7 +42,6 @@ val NO_CLASSIFYING_KW_LIST = listOf(NO_CLASSIFYING_KW.toString())
 val TRUNCATED_DATA_KW_LIST = listOf(TRUNCATED_DATA_KW)
 val TRUNCATED_KW_LIST = listOf(TRUNCATED_KW.toString())
 val ALIAS_KW_LIST = listOf(ALIAS_KW.toString())
-val LEVELS_KW_LIST = listOf(LEVELS_KW.toString())
 val PARAM_ATTR_LIST = listOf(STRICT_KW.toString(), PROPERTY_KW.toString())
 val THIS_KW_LIST = listOf(THIS_KW.toString())
 

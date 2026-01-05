@@ -8,7 +8,7 @@
 \import Paths.Meta
 \import Set
 
-\plevels obj >= hom
+\plevels obj,hom
 
 \class Precat (Ob : \Type obj) {
   | Hom : Ob -> Ob -> \Set hom
@@ -33,7 +33,7 @@
     | idp => idIso
 }
 
-\meta SmallPrecat => Precat \lp
+\meta SmallPrecat => Precat.{\lp}
 
 \open Precat (>>)
 
@@ -182,7 +182,7 @@
     })
 }
 
-\meta SmallCat => Cat \lp
+\meta SmallCat => Cat.{\lp}
 
 \func DiscretePrecat (X : \Type) : Precat X \cowith
   | Hom x y => Trunc0 (x = y)

@@ -103,7 +103,7 @@
       : coe (\lam i => p @ i = r @ i) (p *> q *> inv r) right = q
       | idp, idp, idp => idp
 
-\func path-sym \plevels p {A : \Type p} (a a' : A) : (a = a') = (a' = a) => path (iso inv inv inv_inv inv_inv)
+\func path-sym.{p} {A : \Type p} (a a' : A) : (a = a') = (a' = a) => path (iso inv inv inv_inv inv_inv)
 
 \func rotatePathLeft {A : \Sort} {a a' a'' : A} {p : a' = a} {q : a' = a''} {r : a = a''} (t : q = p *> r)
   : inv p *> q = r \elim p, r, t

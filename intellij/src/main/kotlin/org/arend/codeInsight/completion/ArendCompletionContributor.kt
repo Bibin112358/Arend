@@ -195,8 +195,8 @@ class ArendCompletionContributor : CompletionContributor() {
         basic(LPH_CONTEXT, LPH_KW_LIST) { parameters ->
             when (val pp = parameters.position.parent.parent) {
                 is ArendSetUniverseAppExpr, is ArendCatUniverseAppExpr, is ArendTruncatedUniverseAppExpr ->
-                    pp.children.filterIsInstance<ArendMaybeAtomLevelExpr>().isEmpty()
-                else -> pp.children.filterIsInstance<ArendMaybeAtomLevelExpr>().size <= 1
+                    pp.children.filterIsInstance<ArendAtomLevelExpr>().isEmpty()
+                else -> pp.children.filterIsInstance<ArendAtomLevelExpr>().size <= 1
             }
         }
 
@@ -344,11 +344,10 @@ class ArendCompletionContributor : CompletionContributor() {
                         withAncestors(*(NEW_EXPR_PREFIX + arrayOf(ArendCaseArg::class.java, ArendCaseExpr::class.java))))), ELIM_KW_LIST)
 
         val isLiteralApp = { argumentAppExpr: ArendArgumentAppExpr ->
-            argumentAppExpr.longNameExpr != null ||
-                    ((argumentAppExpr.children[0] as? ArendAtomFieldsAcc)?.atom?.literal?.refIdentifier != null)
+            ((argumentAppExpr.children[0] as? ArendAtomFieldsAcc)?.atom?.literal?.refIdentifier != null)
         }
 
-        val unifiedLevelCondition = { atomIndex: Int?, forbidLevelExprs: Boolean, threshold: Int ->
+        val unifiedLevelCondition = { atomIndex: Int?, threshold: Int ->
             { cP: CompletionParameters ->
                 var anchor: PsiElement? = if (atomIndex != null) cP.position.ancestors.filterIsInstance<ArendAtomFieldsAcc>().elementAtOrNull(atomIndex) else null
                 var argumentAppExpr: ArendArgumentAppExpr? =
@@ -367,25 +366,18 @@ class ArendCompletionContributor : CompletionContributor() {
                 }
 
                 if (argumentAppExpr != null && anchor != null && isLiteralApp(argumentAppExpr)) {
-                    val longNameExpr = argumentAppExpr.longNameExpr
                     var counter = 0
-                    if (longNameExpr?.pLevelExpr != null) counter++
                     var forbidden = false
-                    val levelsExpr = argumentAppExpr.longNameExpr?.levelsExpr
-                    if (levelsExpr != null) {
-                        if (levelsExpr.pLevelExprs != null) counter++
-                        if (forbidLevelExprs) forbidden = true
-                    }
                     for (ch in argumentAppExpr.children) {
                         if (ch == anchor || ch == anchor.parent) break
                         if (ch is ArendAtomArgument) forbidden = true
                     }
                     counter < threshold && !forbidden
-                } else (argumentAppExpr?.longNameExpr?.levelsExpr?.levelsKw != null && isLiteralApp(argumentAppExpr)) || (ATOM_LEVEL_CONTEXT.accepts(cP.position))
+                } else ATOM_LEVEL_CONTEXT.accepts(cP.position)
             }
         }
 
-        basic(or(ARGUMENT_EXPRESSION, ATOM_LEVEL_CONTEXT), LPH_KW_LIST, unifiedLevelCondition.invoke(0, false, 2))
+        basic(or(ARGUMENT_EXPRESSION, ATOM_LEVEL_CONTEXT), LPH_KW_LIST, unifiedLevelCondition.invoke(0, 2))
 
         fun trueForPsiOrFragmentContext (condition: (PsiElement) -> Boolean, psi : PsiElement) : Boolean =
             condition(psi) || psi.ancestor<ArendExpressionCodeFragment>()?.context?.let{ condition(it) } == true
@@ -396,15 +388,9 @@ class ArendCompletionContributor : CompletionContributor() {
             trueForPsiOrFragmentContext({psi -> ((psi.parent?.parent as? ArendNewExpr)?.let { it.lbrace != null } ?: true) && (isInDynamicPart(psi) != null)}, cP.position)
         }
 
-        basic(ARGUMENT_EXPRESSION, LEVELS_KW_LIST, unifiedLevelCondition.invoke(0, true, 1))
-        basic(or(ARGUMENT_EXPRESSION_IN_BRACKETS, ATOM_LEVEL_CONTEXT), LPH_LEVEL_KWS, unifiedLevelCondition.invoke(1, false, 2))
+        basic(or(ARGUMENT_EXPRESSION_IN_BRACKETS, ATOM_LEVEL_CONTEXT), LPH_LEVEL_KWS, unifiedLevelCondition.invoke(1, 2))
 
-        basic(withAncestors(PsiErrorElement::class.java, ArendArgumentAppExpr::class.java), LPH_LEVEL_KWS, unifiedLevelCondition.invoke(null, false, 2))
-
-        basic(withParent(ArendArgumentAppExpr::class.java), LPH_LEVEL_KWS) { parameters ->
-            val argumentAppExpr: ArendArgumentAppExpr = parameters.position.parent as ArendArgumentAppExpr
-            argumentAppExpr.longNameExpr?.levelsExpr?.levelsKw != null && isLiteralApp(argumentAppExpr)
-        }
+        basic(withAncestors(PsiErrorElement::class.java, ArendArgumentAppExpr::class.java), LPH_LEVEL_KWS, unifiedLevelCondition.invoke(null, 2))
 
         basic(afterLeaf(NEW_KW), listOf(EVAL_KW.toString()))
         basic(afterLeaves(EVAL_KW, PEVAL_KW, SCASE_KW), listOf(SCASE_KW.toString()))
@@ -463,7 +449,7 @@ class ArendCompletionContributor : CompletionContributor() {
                 and(withAncestors(PsiErrorElement::class.java, ArendArgumentAppExpr::class.java, ArendNewExpr::class.java), after(withParent(ArendAtomLevelExpr::class.java))),
                 after(and(ofType(RBRACE), withParent(ArendNewExpr::class.java)))),
                 elementPattern { o -> o.parentOfType<ArendNewExpr>().let {
-                    it != null && it.withBody == null && (it.argumentAppExpr?.atomFieldsAcc?.atom?.literal?.refIdentifier != null || it.argumentAppExpr?.longNameExpr != null)
+                    it != null && it.withBody == null && (it.argumentAppExpr?.atomFieldsAcc?.atom?.literal?.refIdentifier != null)
                 }}), WITH_KW_LIST, KeywordCompletionBehavior.ADD_BRACES)
 
         basic(after(elementPattern { it.parentOfType<ArendPattern>() != null }), AS_KW_LIST)
@@ -522,7 +508,7 @@ class ArendCompletionContributor : CompletionContributor() {
         private val INSIDE_RETURN_EXPR_CONTEXT = or(withAncestors(*RETURN_EXPR_PREFIX), withAncestors(PsiErrorElement::class.java, ArendAtomFieldsAcc::class.java, ArendReturnExpr::class.java))
 
         private val WHERE_CONTEXT = and(
-                or(STATEMENT_END_CONTEXT, withAncestors(*DEF_IDENTIFIER_PREFIX), withAncestors(ArendLevelIdentifier::class.java, ArendLevelParamsSeq::class.java)),
+                or(STATEMENT_END_CONTEXT, withAncestors(*DEF_IDENTIFIER_PREFIX), withAncestors(ArendLevelIdentifier::class.java)),
                 not(PREC_CONTEXT),
                 not(INSIDE_RETURN_EXPR_CONTEXT),
                 not(afterLeaves(COLON, TRUNCATED_KW, FAT_ARROW, WITH_KW, ARROW, IN_KW, INSTANCE_KW, EXTENDS_KW, DOT, NEW_KW, EVAL_KW, PEVAL_KW, CASE_KW, SCASE_KW, HAVE_KW, LET_KW, HAVES_KW, LETS_KW, WHERE_KW, USE_KW, PIPE, LEVEL_KW, COERCE_KW, PRIVATE_KW, PROTECTED_KW)),
@@ -563,10 +549,7 @@ class ArendCompletionContributor : CompletionContributor() {
                 withAncestors(*(NEW_EXPR_PREFIX + listOf(ArendTupleExpr::class.java, ArendImplicitArgument::class.java, ArendArgumentAppExpr::class.java))))
 
         private val ATOM_LEVEL_CONTEXT =
-               or(withAncestors(*(ATOM_LEVEL_PREFIX + arrayOf(ArendLevelExpr::class.java))),
-                  withAncestors(*(ATOM_LEVEL_PREFIX + arrayOf(ArendMaybeAtomLevelExpr::class.java, ArendExpr::class.java))),
-                  withAncestors(*(ATOM_LEVEL_PREFIX + arrayOf(ArendMaybeAtomLevelExpr::class.java, ArendMaybeAtomLevelExprs::class.java, ArendLevelsExpr::class.java))),
-                  withAncestors(*(ATOM_LEVEL_PREFIX + arrayOf(ArendMaybeAtomLevelExprs::class.java, ArendLevelsExpr::class.java))))
+               withAncestors(*(ATOM_LEVEL_PREFIX + arrayOf(ArendLevelExpr::class.java)))
 
         private val LPH_CONTEXT = and(withParent(PsiErrorElement::class.java), withGrandParents(ArendSetUniverseAppExpr::class.java, ArendCatUniverseAppExpr::class.java, ArendUniverseAppExpr::class.java, ArendTruncatedUniverseAppExpr::class.java))
 

@@ -13,5 +13,5 @@ class ArendSuperClass(node: ASTNode) : ArendSourceNodeImpl(node), Abstract.Refer
 
     override fun getReferent() = longName.referent
 
-    override fun getPLevels(): List<ArendLevelExpr>? = childOfType<ArendMaybeAtomLevelExprs>()?.levelExprList
+    override fun getLevels(): List<ArendLevelExpr>? = childOfType<ArendLevelArgs>()?.levelExprList
 }

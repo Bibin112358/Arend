@@ -17,7 +17,7 @@
 \import Paths.Meta
 \import Set.Fin
 
-\class MeetSemilattice \extends Poset, PrecatWithBprod (\lp, \lp) {
+\class MeetSemilattice \extends Poset, PrecatWithBprod.{\lp,\lp} {
   | meet \alias \infixl 7 ∧ : E -> E -> E
   | meet-left {x y : E} : x ∧ y <= x
   | meet-right {x y : E} : x ∧ y <= y
@@ -180,7 +180,7 @@
     inv join-assoc *> pmap2 (∨) (join-comm *> join_<= meet-right) meet-comm
 }
 
-\class TopMeetSemilattice \extends MeetSemilattice, CartesianPrecat (\lp,\lp) {
+\class TopMeetSemilattice \extends MeetSemilattice, CartesianPrecat.{\lp,\lp} {
   | top : E
   | top-univ {x : E} : x <= top
   | terminal => \new Product {
@@ -328,7 +328,7 @@
       | *-comm => L.meet-comm
   }
 
-\class CompleteLattice \extends BoundedLattice, CompleteCat (\lp,\lp) {
+\class CompleteLattice \extends BoundedLattice, CompleteCat.{\lp,\lp} {
   | Join {J : \Set} : (J -> E) -> E
   | Join-cond {J : \Set} (j : J) {f : J -> E} : f j <= Join f
   | Join-univ {J : \Set} {f : J -> E} {e : E} : (\Pi (j : J) -> f j <= e) -> Join f <= e

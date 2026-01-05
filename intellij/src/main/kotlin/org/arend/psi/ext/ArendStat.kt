@@ -1,7 +1,6 @@
 package org.arend.psi.ext
 
 import com.intellij.lang.ASTNode
-import com.intellij.psi.util.elementType
 import org.arend.psi.*
 
 class ArendStat(node: ASTNode) : ArendSourceNodeImpl(node), ArendStatement {
@@ -15,7 +14,7 @@ class ArendStat(node: ASTNode) : ArendSourceNodeImpl(node), ArendStatement {
 
     override fun getNamespaceCommand(): ArendStatCmd? = childOfType()
 
-    override fun getPLevelsDefinition(): ArendLevelParamsSeq? = getChild { it.elementType == ArendElementTypes.P_LEVEL_PARAMS_SEQ }
+    override fun getLevelsDefinition(): ArendLevelsDef? = childOfType()
 
     companion object {
         fun flatStatements(l: List<ArendStat>?): List<ArendStat> = l?.flatMap {

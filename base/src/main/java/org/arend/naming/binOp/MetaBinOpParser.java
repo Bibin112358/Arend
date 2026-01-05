@@ -194,7 +194,7 @@ public class MetaBinOpParser {
   public void resetReference(Concrete.BinOpSequenceElem<Concrete.Expression> elem, MetaBinOpParser.ResolvedReference resolvedReference) {
     if (resolvedReference != null && resolvedReference.originalReference != null) {
       resolvedReference.originalReference.reset();
-      elem.setComponent(new Concrete.ReferenceExpression(resolvedReference.refExpr.getData(), resolvedReference.originalReference, resolvedReference.refExpr.getPLevels()));
+      elem.setComponent(new Concrete.ReferenceExpression(resolvedReference.refExpr.getData(), resolvedReference.originalReference, resolvedReference.refExpr.getLevels()));
     }
   }
 }

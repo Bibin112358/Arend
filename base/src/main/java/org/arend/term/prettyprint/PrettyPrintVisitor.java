@@ -127,11 +127,10 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
   }
 
   private void printLevelsDefinition(Concrete.LevelsDefinition levelsDef) {
-    String op = levelsDef.isIncreasing() ? " <= " : " >= ";
     boolean first = true;
     for (Referable referable : levelsDef.getReferables()) {
       if (first) first = false;
-      else myBuilder.append(op);
+      else myBuilder.append(", ");
       myBuilder.append(referable.getRefName());
     }
   }
@@ -329,41 +328,30 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
   }
 
   private void printLevels(List<Concrete.LevelExpression> levels) {
-    if (levels != null) {
-      if (levels.size() == 1) {
-        levels.getFirst().accept(this, new Precedence((byte) (Concrete.AppExpression.PREC + 1)));
+    if (levels == null) return;
+
+    myBuilder.append(".{");
+    boolean first = true;
+    for (Concrete.LevelExpression level : levels) {
+      if (first) {
+        first = false;
       } else {
-        myBuilder.append('(');
-        boolean first = true;
-        for (Concrete.LevelExpression level : levels) {
-          if (first) {
-            first = false;
-          } else {
-            myBuilder.append(", ");
-          }
-          if (level == null) {
-            myBuilder.append('_');
-          } else {
-            level.accept(this, new Precedence(Expression.PREC));
-          }
-        }
-        myBuilder.append(')');
+        myBuilder.append(", ");
       }
-    } else {
-      myBuilder.append('_');
+      level.accept(this, new Precedence(Expression.PREC));
     }
+    myBuilder.append(".}");
   }
 
-  private void visitReference(Concrete.ReferenceExpression expr, Precedence prec, boolean printLevelsKeyword) {
-    boolean parens = expr.getReferent() instanceof GlobalReferable && ((GlobalReferable) expr.getReferent()).getRepresentablePrecedence().isInfix || expr.getPLevels() != null && prec.priority > Concrete.AppExpression.PREC;
+  private void printReference(Concrete.ReferenceExpression expr, Precedence prec) {
+    boolean parens = expr.getReferent() instanceof GlobalReferable && ((GlobalReferable) expr.getReferent()).getRepresentablePrecedence().isInfix || expr.getLevels() != null && prec.priority > Concrete.AppExpression.PREC;
     if (parens) {
       myBuilder.append('(');
     }
     printReferenceName(expr, prec);
 
-    if (expr.getPLevels() != null) {
-      myBuilder.append(printLevelsKeyword ? " \\levels " : " ");
-      printLevels(expr.getPLevels());
+    if (expr.getLevels() != null) {
+      printLevels(expr.getLevels());
     }
     if (parens) {
       myBuilder.append(')');
@@ -372,7 +360,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
 
   @Override
   public Void visitReference(Concrete.ReferenceExpression expr, Precedence prec) {
-    visitReference(expr, prec, true);
+    printReference(expr, prec);
     return null;
   }
 
@@ -1497,7 +1485,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
         } else {
           myBuilder.append(", ");
         }
-        visitReference(superClass, new Precedence(Concrete.Expression.PREC), false);
+        printReference(superClass, new Precedence(Concrete.Expression.PREC));
       }
     }
   }
@@ -1619,24 +1607,27 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
     return null;
   }
 
-  private void prettyPrintLevelParameters(List<? extends Referable> referables, boolean isIncreasing, boolean printHeader) {
+  private void prettyPrintLevelParameters(List<? extends Referable> referables, boolean printHeader) {
     if (printHeader) {
-      myBuilder.append("\\plevels ");
+      myBuilder.append(".{");
     }
     for (int i = 0; i < referables.size(); i++) {
       if (i > 0) {
-        myBuilder.append(isIncreasing ? " <= " : " >= ");
+        myBuilder.append(", ");
       }
       myBuilder.append(referables.get(i).getRefName());
+    }
+    if (printHeader) {
+      myBuilder.append("}");
     }
   }
 
   public void prettyPrintLevelParameters(Concrete.LevelParameters parameters, boolean printHeader) {
-    prettyPrintLevelParameters(parameters.getReferables(), parameters.isIncreasing, printHeader);
+    prettyPrintLevelParameters(parameters.getReferables(), printHeader);
   }
 
   public void prettyPrintLevelsDefinition(Concrete.LevelsDefinition def) {
-    prettyPrintLevelParameters(def.getReferables(), def.isIncreasing(), true);
+    prettyPrintLevelParameters(def.getReferables(), true);
   }
 
   static public void printArguments(PrettyPrintVisitor pp, List<Concrete.Argument> args, boolean noIndent) {

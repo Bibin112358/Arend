@@ -17,13 +17,13 @@
 \import Topology.Locale
 
 -- | Presheaves valued in {D}
-\record VPresheaf (D : Cat (\suc \lp)) (C : SmallPrecat) (\coerce F : Functor C.op D)
+\record VPresheaf (D : Cat.{\suc \lp}) (C : SmallPrecat) (\coerce F : Functor C.op D)
 
 -- | Presheaves valued in sets
 \record Presheaf \extends VPresheaf
   | D => SetCat
 
-\instance VPresheafCat (D : Cat (\suc \lp)) (C : Precat) : Cat
+\instance VPresheafCat (D : Cat.{\suc \lp}) (C : Precat) : Cat
   => subCat {FunctorCat {C.op} {D}} {VPresheaf D C} (\new Embedding {
     | f P => P
     | isEmb _ _ => \new Retraction {
@@ -105,7 +105,7 @@
       }
     }) S
     \where {
-      \func map {L L' : Locale} {D : Cat (\suc \lp)} (f : FrameHom L' L) {S S' : VSheaf D L} (a : NatTrans (\suc \lp) S S') : NatTrans (direct_image_locale f S) (direct_image_locale f S') \cowith
+      \func map {L L' : Locale} {D : Cat.{\suc \lp}} (f : FrameHom L' L) {S S' : VSheaf D L} (a : NatTrans.{\suc \lp} S S') : NatTrans (direct_image_locale f S) (direct_image_locale f S') \cowith
         | trans x => a (f x)
         | natural g => a.natural (f.functor.Func g)
     }
@@ -123,7 +123,7 @@
 -- | Sheaves valued in sets
 \class Sheaf \extends Presheaf, VSheaf
 
-\instance VSheafCat (D : Cat (\suc \lp)) (C : Site) : Cat
+\instance VSheafCat (D : Cat.{\suc \lp}) (C : Site) : Cat
   => subCat {VPresheafCat D C} {VSheaf D C} (\new Embedding {
     | f P => P
     | isEmb _ _ => \new Retraction {
@@ -135,15 +135,15 @@
 \instance SheafCat (C : Site) : Cat
   => VSheafCat SetCat C
 
-\lemma sheaf-preserve {C : Site} {D E : Cat (\suc \lp)} (G : Functor D E)
+\lemma sheaf-preserve {C : Site} {D E : Cat.{\suc \lp}} (G : Functor D E)
   (G-lim : \Pi {J : Precat} (H : Functor J D) -> PreservesLimit G H) (F : VSheaf D C) : VSheaf E C (Comp G F) \cowith
   | isSheaf {x} {s : Sieve x} c => G-lim (Comp F s.diagram.op) (F.isSheaf c)
 
-\lemma sheaf-reflect {C : Site} {D E : Cat (\suc \lp)} (G : Functor D E)
+\lemma sheaf-reflect {C : Site} {D E : Cat.{\suc \lp}} (G : Functor D E)
   (G-lim : \Pi {J : Precat} (H : Functor J D) -> ReflectsLimit G H) (F : Functor C.op D) (S : VSheaf E C (Comp G F)) : VSheaf D C F \cowith
   | isSheaf {x} {s : Sieve x} c => G-lim (Comp F s.diagram.op) (Cone.map F s.cone) (S.isSheaf c)
 
-\lemma vsheafOnSiteWithBasis {C : SiteWithBasis} {D : Cat (\suc \lp)} (F : Functor C.op D)
+\lemma vsheafOnSiteWithBasis {C : SiteWithBasis} {D : Cat.{\suc \lp}} (F : Functor C.op D)
   (p : \Pi (x : C) {J : \Set} (g : J -> SlicePrecat x) (c : isBasicCover x g) (z : D) -> IsEquiv (matchingFamily x g z))
   : VSheaf D C F \cowith
   | isSheaf {x} {s : Sieve} (inP (J,g,c,d)) => \new Limit {
@@ -177,7 +177,7 @@
 
 \open vsheafOnSiteWithBasis
 
-\lemma vsheafMatchingFamily {C : SiteWithBasis} {D : Cat (\suc \lp)} (F : VSheaf D C) (x : C) {J : \Set} (g : J -> SlicePrecat x) (c : isBasicCover x g) (z : D) : IsEquiv (matchingFamily x g z)
+\lemma vsheafMatchingFamily {C : SiteWithBasis} {D : Cat.{\suc \lp}} (F : VSheaf D C) (x : C) {J : \Set} (g : J -> SlicePrecat x) (c : isBasicCover x g) (z : D) : IsEquiv (matchingFamily x g z)
   => \have lim : Limit => F.isSheaf {x} {\new Sieve {
                                           | S {y} k => ∃ (j : J) (h : Hom y (g j).1) (k = (g j).2 ∘ h)
                                           | isSieve {z} {y} z->y {y->x} (inP (j,h,p)) => inP (j, h ∘ z->y, rewrite p o-assoc)
@@ -197,7 +197,7 @@
                                 | coneCoh {(y, inP s)} {(y', inP s')} h => pmap {st y} (F.F.Func h.1 ∘ __.1) TruncP.rec-eval *> inv o-assoc *> pmap (`∘ _) (inv Func-o) *> mapUnique (s.2 ∘ h.1, inv o-assoc *> pmap (`∘ h.1) (inv s.3) *> h.2) (s'.2, inv s'.3) *> pmap {st y'} __.1 (inv TruncP.rec-eval)
                               }, exts \lam j => lim.limBeta _ (g j, inP (j, id _, inv id-right)) *> pmap {st (g j)} __.1 TruncP.rec-eval *> rewrite F.F.Func-id id-left))
 
-\lemma vsheafOnSiteWithBasis-equalizer {C : SiteWithBasis} {D : CompleteCat (\suc \lp)} (F : Functor C.op D)
+\lemma vsheafOnSiteWithBasis-equalizer {C : SiteWithBasis} {D : CompleteCat.{\suc \lp}} (F : Functor C.op D)
   (p : \Pi (x : C) {J : \Set} (g : J -> SlicePrecat x) (c : isBasicCover x g) -> Equalizer (leftMap x g) (rightMap x g) (F x) (eqMap x g))
   : VSheaf D C F
   => vsheafOnSiteWithBasis F \lam x {J} g c z =>
@@ -305,7 +305,7 @@
 }
 -}
 
-\lemma sheafOnPresentedFrame {P : FramePres} {D : CompleteCat (\suc \lp)} (F : VSheaf D (framePresSite P)) : VSheaf D (PresentedFrame P) extend \cowith
+\lemma sheafOnPresentedFrame {P : FramePres} {D : CompleteCat.{\suc \lp}} (F : VSheaf D (framePresSite P)) : VSheaf D (PresentedFrame P) extend \cowith
   | isSheaf {U} {s : Sieve} (inP (J, g, U<=g, g<=s)) =>
   \new Limit {
     | isLimit z =>

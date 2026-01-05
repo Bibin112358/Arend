@@ -139,7 +139,7 @@ public final class Abstract {
   public interface Statement {
     @Nullable Group getGroup();
     @Nullable NamespaceCommand getNamespaceCommand();
-    @Nullable LevelParameters getPLevelsDefinition();
+    @Nullable LevelParameters getLevelsDefinition();
   }
 
   public interface AbstractReferable {
@@ -183,7 +183,7 @@ public final class Abstract {
   public interface ReferenceExpression extends SourceNode {
     @Nullable Object getData();
     @NotNull UnresolvedReference getReferent();
-    @Nullable Collection<? extends LevelExpression> getPLevels();
+    @Nullable Collection<? extends LevelExpression> getLevels();
   }
 
   public interface CaseArgument extends SourceNode {
@@ -248,19 +248,15 @@ public final class Abstract {
     /* @NotNull */ @Nullable Abstract.AbstractLocatedReferable getReferable();
   }
 
-  public enum Comparison { LESS_OR_EQUALS, GREATER_OR_EQUALS }
-
   public interface LevelParameters {
     @Nullable Object getData();
     @NotNull Collection<? extends AbstractReferable> getReferables();
-    @NotNull Collection<Comparison> getComparisonList();
-    boolean isIncreasing();
   }
 
   public interface Definition extends ReferableDefinition {
     @Override @NotNull Abstract.AbstractLocatedReferable getReferable();
     <R> R accept(AbstractDefinitionVisitor<? extends R> visitor);
-    @Nullable LevelParameters getPLevelParameters();
+    @Nullable LevelParameters getLevelParameters();
     boolean withUse();
   }
 

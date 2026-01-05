@@ -314,12 +314,12 @@ public class DefinitionTest extends TypeCheckingTestCase {
   @Test
   public void extensionLevelsTest() {
     typeCheckModule("""
-      \\record A \\plevels p1 <= p2 <= p3
+      \\record A.{p3,p2,p1}
         | f : \\Sigma (\\Type p1) (\\Type p2)
-      \\record B \\plevels q1 <= q2 \\extends A (0, q1, \\suc q2)
-      \\record C \\plevels q1 <= q2 \\extends A (q1, q2, \\suc q2)
-      \\record D \\plevels q1 <= q2 \\extends A (1, 2, \\suc (\\suc q2))
-      \\record E \\plevels q1 <= q2 \\extends A (q1, \\suc q2, \\suc q2)
+      \\record B.{q2,q1} \\extends A.{\\suc q2, q1, 0}
+      \\record C.{q2,q1} \\extends A.{\\suc q2, q2, q1}
+      \\record D.{q2,q1} \\extends A.{\\suc (\\suc q2), 2, 1}
+      \\record E.{q2,q1} \\extends A.{\\suc q2, \\suc q2, q1}
       """);
 
     ClassField field = (ClassField) getDefinition("A.f");

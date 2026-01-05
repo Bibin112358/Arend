@@ -225,7 +225,7 @@ public class InferLevelTest extends TypeCheckingTestCase {
       \\class A {
         | X : \\Type
       }
-      \\func f : A \\levels 0 => \\new A { | X => \\Type0 }
+      \\func f : A.{0} => \\new A { | X => \\Type0 }
       """, 1);
   }
 
@@ -241,10 +241,9 @@ public class InferLevelTest extends TypeCheckingTestCase {
     typeCheckModule("""
       \\class Functor (F : \\Type -> \\Type)
         | fmap {A B : \\Type} : (A -> B) -> F A -> F B
-
       \\data Maybe (A : \\Type) | nothing | just A
       \\func id' {A : \\Type} (a : A) => a
-      \\func idTest : \\Type1 => id' (\\suc \\lp) (Functor Maybe)
+      \\func idTest : \\Type1 => id'.{\\suc \\lp} (Functor Maybe)
       """, 1);
   }
 
@@ -253,10 +252,9 @@ public class InferLevelTest extends TypeCheckingTestCase {
     typeCheckModule("""
       \\class Functor (F : \\Type -> \\Type)
         | fmap {A B : \\Type} : (A -> B) -> F A -> F B
-
       \\data Maybe (A : \\Type) | nothing | just A
       \\func id' {A : \\Type} (a : A) => a
-      \\func idTest : \\Type1 => id' (\\suc (\\suc \\lp)) (Functor Maybe)
+      \\func idTest : \\Type1 => id'.{\\suc (\\suc \\lp)} (Functor Maybe)
       """);
   }
 
@@ -265,10 +263,9 @@ public class InferLevelTest extends TypeCheckingTestCase {
     typeCheckModule("""
       \\class Functor (F : \\Type -> \\Type)
         | fmap {A B : \\Type} : (A -> B) -> F A -> F B
-
       \\data Maybe (A : \\Type) | nothing | just A
       \\func id' {A : \\Type} (a : A) => a
-      \\func idTest => id' (\\suc (\\suc \\lp)) (Functor Maybe)
+      \\func idTest => id'.{\\suc (\\suc \\lp)} (Functor Maybe)
       """);
   }
 
@@ -276,7 +273,7 @@ public class InferLevelTest extends TypeCheckingTestCase {
   public void dataLevelsTest1() {
     typeCheckModule(
       "\\data D | con \\Type\n" +
-      "\\func f (d : D \\levels 1) : D \\levels 0 => d", 1);
+      "\\func f (d : D.{1}) : D.{0} => d", 1);
   }
 
   @Test
@@ -292,7 +289,7 @@ public class InferLevelTest extends TypeCheckingTestCase {
   public void funcLevelsTest() {
     typeCheckModule(
       "\\func F => \\Type\n" +
-      "\\func f (d : F \\levels 1) : F \\levels 0 => d", 1);
+      "\\func f (d : F.{1}) : F.{0} => d", 1);
   }
 
   @Test
@@ -398,7 +395,7 @@ public class InferLevelTest extends TypeCheckingTestCase {
       \\class C (A : \\Type) (a : A)
       \\data Wrap (A : \\Type) | wrap A
       \\func foo {A : \\Type} (c : C (Wrap A)) => c.a
-      \\func test {A : \\Type} (c : C (Wrap (\\suc \\lp) A)) => foo c
+      \\func test {A : \\Type} (c : C (Wrap.{\\suc \\lp} A)) => foo c
       """);
   }
 
@@ -410,7 +407,7 @@ public class InferLevelTest extends TypeCheckingTestCase {
       \\class D (B : \\Type) \\extends C
         | A => Wrap B
       \\func foo (d : D) => d.a
-      \\func test {B : \\Type} (d : D (\\suc \\lp) { | B => B }) => foo d
+      \\func test {B : \\Type} (d : D.{\\suc \\lp} { | B => B }) => foo d
       """);
   }
 
@@ -419,9 +416,9 @@ public class InferLevelTest extends TypeCheckingTestCase {
     typeCheckModule("""
       \\class C (A : \\Type) (a : A)
       \\data Wrap (A : \\Type) | wrap A
-      \\func test1 {A : \\Type} (c : C (Wrap (\\suc \\lp) A)) : C (Wrap \\lp A) => c
-      \\func test2 {A : \\Type} (c : C (Wrap \\lp A)) : C \\lp => c
-      \\func test {A : \\Type} (c : C (Wrap (\\suc \\lp) A)) : C \\lp => c
+      \\func test1 {A : \\Type} (c : C (Wrap.{\\suc \\lp} A)) : C (Wrap.{\\lp} A) => c
+      \\func test2 {A : \\Type} (c : C (Wrap.{\\lp} A)) : C.{\\lp} => c
+      \\func test {A : \\Type} (c : C (Wrap.{\\suc \\lp} A)) : C.{\\lp} => c
       """);
   }
 
@@ -432,7 +429,7 @@ public class InferLevelTest extends TypeCheckingTestCase {
       \\class D \\extends C
         | A => Nat
       \\class E (B : \\Type) \\extends D
-      \\func test1 (e : E (\\suc \\lp)) : D \\lp => e
+      \\func test1 (e : E.{\\suc \\lp}) : D.{\\lp} => e
       """, 1);
     assertThatErrorsAre(typeMismatchError());
   }
@@ -441,7 +438,7 @@ public class InferLevelTest extends TypeCheckingTestCase {
   public void classLevelsTest() {
     typeCheckModule("""
       \\record R (A : \\Type) (a : A)
-      \\func test => R \\levels 1
+      \\func test => R.{1}
       """);
   }
 

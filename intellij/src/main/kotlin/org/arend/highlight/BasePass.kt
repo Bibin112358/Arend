@@ -192,12 +192,9 @@ abstract class BasePass(protected open val file: IArendFile, editor: Editor, nam
 
                 if (error.errors.all { it.level != GeneralError.Level.ERROR }) when {
                     error.goalSolver != null -> cause.ancestor<ArendExpr>()?.let {
-                        val expr = when (it) {
-                            is ArendLongNameExpr -> it.parent as? ArendArgumentAppExpr ?: it
-                            is ArendLiteral -> (it.topmostEquivalentSourceNode as? ArendAtomFieldsAcc)?.parent as? ArendArgumentAppExpr
-                                ?: it
-                            else -> it
-                        }
+                        val expr = if (it is ArendLiteral) {
+                            (it.topmostEquivalentSourceNode as? ArendAtomFieldsAcc)?.parent as? ArendArgumentAppExpr ?: it
+                        } else it
                         val action: (Editor, Concrete.Expression, String) -> Unit = { editor, concrete, text ->
                             if (incomplete) {
                                 var offset = cause.textRange.endOffset

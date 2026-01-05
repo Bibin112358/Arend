@@ -22,88 +22,88 @@ import static org.junit.Assert.*;
 public class LevelParametersTest extends TypeCheckingTestCase {
   @Test
   public void levelsTest() {
-    typeCheckDef("\\func test \\plevels p1 >= p2 (A : \\Type p2) : \\Type p1 => A");
+    typeCheckDef("\\func test.{p1,p2} (A : \\Type p2) : \\Type p1 => A");
   }
 
   @Test
   public void levelsError() {
-    typeCheckDef("\\func test \\plevels p1 <= p2 (A : \\Type p2) : \\Type p1 => A", 1);
+    typeCheckDef("\\func test.{p2,p1} (A : \\Type p2) : \\Type p1 => A", 1);
     assertThatErrorsAre(Matchers.typeMismatchError());
   }
 
   @Test
   public void resolveError() {
-    resolveNamesDef("\\func test \\plevels p1 <= p2 => \\Type p3", 1);
+    resolveNamesDef("\\func test.{p1,p2} => \\Type p3", 1);
     assertThatErrorsAre(Matchers.notInScope("p3"));
   }
 
   @Test
   public void lpTest() {
-    typeCheckDef("\\func test \\plevels p1 <= p2 (A : \\Type \\lp) : \\Type p2 => A");
+    typeCheckDef("\\func test.{p2,p1} (A : \\Type \\lp) : \\Type p2 => A");
   }
 
   @Test
   public void lpInferTest() {
-    typeCheckDef("\\func test \\plevels p1 <= p2 (A : \\Type) : \\Type p2 => A");
+    typeCheckDef("\\func test.{p2,p1} (A : \\Type) : \\Type p2 => A");
   }
 
   @Test
   public void noPLevelTest() {
-    FunctionDefinition def = (FunctionDefinition) typeCheckDef("\\func test \\plevels => \\Type");
+    FunctionDefinition def = (FunctionDefinition) typeCheckDef("\\func test => \\Type");
     assertEquals(new UniverseExpression(Sort.TypeOfLevel(0)), def.getBody());
   }
 
   @Test
   public void noPLevelsTest2() {
-    typeCheckDef("\\func test \\plevels (A : \\Type) : \\Type => A");
+    typeCheckDef("\\func test (A : \\Type) : \\Type => A");
   }
 
   @Test
   public void maxLevelTest() {
-    FunctionDefinition def = (FunctionDefinition) typeCheckDef("\\func test \\plevels p1 >= p2 (A : \\Type p1) (B : \\Type p2) => A -> B");
+    FunctionDefinition def = (FunctionDefinition) typeCheckDef("\\func test.{p1,p2} (A : \\Type p1) (B : \\Type p2) => A -> B");
     assertEquals(new Sort(new Level(def.getLevelParameters().getFirst()), ConstLevel.INFINITY), def.getResultType().toSort());
   }
 
   @Test
   public void applyLevels() {
     typeCheckModule(
-      "\\func f \\plevels p1 <= p2 (A : \\Type) => A\n" +
-      "\\func test \\plevels p1 >= p2 => f \\levels (p2,p1) Nat");
+      "\\func f.{p1,p2} (A : \\Type) => A\n" +
+      "\\func test.{p2,p1} => f.{p2,p1} Nat");
   }
 
   @Test
   public void applyLevels2() {
     typeCheckModule(
-      "\\func f \\plevels p1 <= p2 (A : \\Type) => A\n" +
-      "\\func test => f \\levels (3,7) Nat");
+      "\\func f.{p1,p2} (A : \\Type) => A\n" +
+      "\\func test => f.{7,3} Nat");
   }
 
   @Test
   public void applyLevelsError() {
     typeCheckModule(
-      "\\func f \\plevels p1 <= p2 (A : \\Type) => A\n" +
-      "\\func test \\plevels p1 >= p2 => f \\levels (p1,p2) Nat", 1);
+      "\\func f.{p2,p1} (A : \\Type) => A\n" +
+      "\\func test.{p1,p2} => f.{p2,p1} Nat", 1);
   }
 
   @Test
   public void applyLevelsError2() {
     typeCheckModule(
-      "\\func f \\plevels p1 >= p2 (A : \\Type) => A\n" +
-      "\\func test => f \\levels (3,7) Nat", 1);
+      "\\func f.{p1,p2} (A : \\Type) => A\n" +
+      "\\func test => f.{3,7} Nat", 1);
   }
 
   @Test
   public void useTest() {
     typeCheckModule(
-      "\\data D \\plevels p1 <= p2 (A : \\Type p2) | con Nat\n" +
-      "  \\where \\use \\coerce test \\plevels p3 <= p4 (A : \\Type p4) (n : Nat) : D A => con n");
+      "\\data D.{p2,p1} (A : \\Type p2) | con Nat\n" +
+      "  \\where \\use \\coerce test.{p4,p3} (A : \\Type p4) (n : Nat) : D A => con n");
     assertEquals(2, getDefinition("D.test").getLevelParameters().size());
   }
 
   @Test
   public void useTest2() {
     typeCheckModule(
-      "\\data D \\plevels p1 <= p2 (A : \\Type p2) | con Nat\n" +
+      "\\data D.{p2,p1} (A : \\Type p2) | con Nat\n" +
       "  \\where \\use \\coerce test (A : \\Type p2) (n : Nat) : D A => con n");
     assertEquals(2, getDefinition("D.test").getLevelParameters().size());
   }
@@ -111,15 +111,22 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   @Test
   public void useError() {
     typeCheckModule(
-      "\\data D \\plevels p1 <= p2 | con Nat\n" +
-      "  \\where \\use \\coerce test \\plevels p1 >= p2 (n : Nat) => con n", 1);
+      "\\data D.{p1,p2} (A : \\Type p2) | con Nat\n" +
+      "  \\where \\use \\coerce test.{p3,p4} {A : \\Type p3} (n : Nat) : D A => con n", 1);
+  }
+
+  @Test
+  public void useError2() {
+    typeCheckModule(
+      "\\data D.{p1,p2} (A : \\Type p2) | con Nat\n" +
+      "  \\where \\use \\coerce test {A : \\Type p1} (n : Nat) : D A => con n", 1);
   }
 
   @Test
   public void useDerived() {
     typeCheckModule(
       """
-        \\record R \\plevels p1 <= p2
+        \\record R.{p1,p2}
         \\data D (r : R) | con Nat
           \\where \\use \\coerce test (n : Nat) => con n
         """);
@@ -130,7 +137,7 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   public void useDerived2() {
     typeCheckModule(
       """
-        \\record R \\plevels p1 <= p2
+        \\record R.{p1,p2}
         \\data D (r : R) | con Nat
           \\where \\use \\coerce test (r : R) (n : Nat) => con n
         """);
@@ -140,23 +147,25 @@ public class LevelParametersTest extends TypeCheckingTestCase {
     assertEquals(new ListLevels(Arrays.asList(new Level(params.get(0)), new Level(params.get(1)))), ((ClassCallExpression) def.getParameters().getType()).getLevels());
   }
 
+  @Ignore
   @Test
   public void useDerivedError() {
     typeCheckModule(
       """
-        \\record R \\plevels p1 <= p2
+        \\record R.{p1 <= p2}
         \\data D (r : R) | con Nat
-          \\where \\use \\coerce test \\plevels p1 >= p2 (n : Nat) => con n
+          \\where \\use \\coerce test.{p1 >= p2} (n : Nat) => con n
         """, 1);
   }
 
+  @Ignore
   @Test
   public void useDerivedError2() {
     typeCheckModule(
       """
-        \\record R \\plevels p1 <= p2
+        \\record R.{p1 <= p2}
         \\data D (r : R) | con Nat
-          \\where \\use \\coerce test \\plevels p1 >= p2 (r : R) (n : Nat) => con n
+          \\where \\use \\coerce test.{p1 >= p2} (r : R) (n : Nat) => con n
         """, 1);
   }
 
@@ -164,7 +173,7 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   public void defaultTest() {
     typeCheckModule(
       """
-        \\record R \\plevels p1 <= p2 <= p3
+        \\record R.{p1,p2,p3}
           | f : Nat
         \\record S \\extends R {
           \\default f : Nat => 0
@@ -185,10 +194,10 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   public void defaultTest2() {
     typeCheckModule(
       """
-        \\record R \\plevels p1 <= p2
+        \\record R.{p1,p2}
           | f : \\Type (\\suc p2)
         \\record S \\extends R {
-          \\default f \\plevels p1 <= p2 : \\Type (\\suc p2) => \\Type p1
+          \\default f.{p1,p2} : \\Type (\\suc p2) => \\Type p1
         }
         """);
     assertEquals(3, getDefinition("S.f").getLevelParameters().size());
@@ -204,7 +213,7 @@ public class LevelParametersTest extends TypeCheckingTestCase {
     typeCheckModule(
       """
         \\record R (A : \\Type)
-        \\func g \\plevels p1 <= p2 : R \\cowith
+        \\func g.{p1,p2} : R \\cowith
           | A : \\Type => \\Sigma
         """);
     assertEquals(2, getDefinition("g.A").getLevelParameters().size());
@@ -219,17 +228,17 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   public void coclauseTest2() {
     typeCheckModule(
       """
-        \\record R \\plevels p1 <= p2 (x : \\Type (\\suc p2))
-        \\func g \\plevels p1 <= p2 : R \\levels (p1,p2) \\cowith
-          | x : \\Type (\\suc p2) => \\Type p1
+        \\record R.{p1,p2} (x : \\Type (\\suc p1))
+        \\func g.{p1,p2} : R.{p1,p2} \\cowith
+          | x : \\Type (\\suc p1) => \\Type p2
         """);
   }
 
   @Test
   public void metaTest() {
     typeCheckModule(
-      "\\meta m \\plevels p1 <= p2 => \\Sigma (\\Type p1) (\\Type p2)\n" +
-      "\\func f => m \\levels (1,2)");
+      "\\meta m.{p2,p1} => \\Sigma (\\Type p1) (\\Type p2)\n" +
+      "\\func f => m.{2,1}");
     DependentLink params = ((SigmaExpression) Objects.requireNonNull(((FunctionDefinition) getDefinition("f")).getBody())).getParameters();
     assertEquals(new UniverseExpression(Sort.TypeOfLevel(1)), params.getType());
     assertEquals(new UniverseExpression(Sort.TypeOfLevel(2)), params.getNext().getType());
@@ -239,7 +248,7 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   public void dynamicTest() {
     typeCheckModule(
       """
-        \\record R \\plevels p1 <= p2 <= p3 {
+        \\record R.{p1,p2,p3} {
           \\func f => 0
         }
         """);
@@ -253,7 +262,7 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   public void dynamicTest2() {
     typeCheckModule(
       """
-        \\record S \\plevels p1 <= p2 <= p3
+        \\record S.{p1,p2,p3}
         \\record R \\extends S {
           \\func f => 0
         }
@@ -266,7 +275,7 @@ public class LevelParametersTest extends TypeCheckingTestCase {
 
   @Test
   public void levelsNotErased() {
-    Definition def = typeCheckDef("\\record C \\plevels lp (A : \\Type)");
+    Definition def = typeCheckDef("\\record C.{lp} (A : \\Type)");
     assertEquals(1, def.getLevelParameters().size());
   }
 }

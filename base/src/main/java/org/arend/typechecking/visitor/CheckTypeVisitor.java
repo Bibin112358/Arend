@@ -1696,7 +1696,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
         if (baseExpr instanceof Concrete.ReferenceExpression baseRefExpr) {
           ClassDefinition actualClass = (ClassDefinition) actualDef;
           boolean ok = actualClass.isSubClassOf(expectedClassCall.getDefinition());
-          if (ok && (actualDef != expectedClassCall.getDefinition() || baseRefExpr.getPLevels() != null)) {
+          if (ok && (actualDef != expectedClassCall.getDefinition() || baseRefExpr.getLevels() != null)) {
             boolean fieldsOK = true;
             for (ClassField implField : expectedClassCall.getImplementedHere().keySet()) {
               if (actualClass.isImplemented(implField)) {
@@ -1919,7 +1919,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   }
 
   public Levels typecheckLevels(Definition def, Concrete.ReferenceExpression expr, Levels defaultLevels, boolean useMinAsDefault) {
-    List<Concrete.LevelExpression> pLevels = expr.getPLevels();
+    List<Concrete.LevelExpression> pLevels = expr.getLevels();
     boolean isUniverseLike = def == myDefinition || def.getUniverseKind() != UniverseKind.NO_UNIVERSES;
     if (pLevels == null) {
       return defaultLevels != null ? defaultLevels : useMinAsDefault ? def.makeMinLevels() : def.generateInferVars(myEquations, isUniverseLike, expr);
@@ -1942,13 +1942,13 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
     Levels levels;
     boolean isMin = definition instanceof DataDefinition && !definition.getParameters().hasNext() && definition.getUniverseKind() == UniverseKind.NO_UNIVERSES;
-    if (definition == myDefinition || myRecursiveDefinitions.contains(definition.getRef()) && expr.getPLevels() == null) {
+    if (definition == myDefinition || myRecursiveDefinitions.contains(definition.getRef()) && expr.getLevels() == null) {
       levels = definition.makeIdLevels();
       Levels levels1 = typecheckLevels(definition, expr, null, false);
       if (!levels.compare(levels1, CMP.EQ, myEquations, expr)) {
         errorReporter.report(new TypecheckingError("Recursive call must have the same levels as the definition", expr));
       }
-    } else if (expr.getPLevels() == null) {
+    } else if (expr.getLevels() == null) {
       levels = isMin ? definition.makeMinLevels() : definition.generateInferVars(getEquations(), !withoutUniverses && (definition == myDefinition || definition.getUniverseKind() != UniverseKind.NO_UNIVERSES), expr);
     } else {
       levels = typecheckLevels(definition, expr, null, isMin);
@@ -1999,7 +1999,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       return core == null ? null : new TypecheckingResult(core, core.getType());
     }
 
-    if (!(ref instanceof GlobalReferable) && expr.getPLevels() != null) {
+    if (!(ref instanceof GlobalReferable) && expr.getLevels() != null) {
       errorReporter.report(new IgnoredLevelsError(expr));
     }
     return ref instanceof TCDefReferable ? typeCheckDefCall((TCDefReferable) ref, expr, withoutUniverses) : getLocalVar(expr.getReferent(), expr);

@@ -89,11 +89,8 @@
         LP_KW               = '\lp'
         SUC_KW              = '\suc'
         LEVEL_KW            = '\level'
-        LEVELS_KW           = '\levels'
         PLEVEL_KW           = '\plevel'
         PLEVELS_KW          = '\plevels'
-        LESS_OR_EQUALS      = '<='
-        GREATER_OR_EQUALS   = '>='
         MAX_KW              = '\max'
         INVALID_KW          = '\invalid'
 
@@ -124,7 +121,7 @@ private statement_recover ::= !(WHERE_KW | RBRACE) & topStatement_recover
 
 accessMod ::= PRIVATE_KW | PROTECTED_KW
 
-stat ::= statCmd | accessMod? USE_KW? definition | defModule | statAccessMod | pLevelParams | stat_recovery
+stat ::= statCmd | accessMod? USE_KW? definition | defModule | statAccessMod | levelsDef | stat_recovery
 
 statAccessMod ::= accessMod statAccessModInternal { pin = 1 }
 
@@ -237,12 +234,12 @@ defModule ::= MODULE_KW defIdentifier_module where? {
     elementTypeFactory = "org.arend.psi.stubs.StubImplementationsKt.factory"
 }
 
-defMeta ::= META_KW prec? defIdentifier_func pLevelParams? alias? [nameTeleUntyped* functionTermBody] where? {
+defMeta ::= META_KW prec? defIdentifier_func levelParams? alias? [nameTeleUntyped* functionTermBody] where? {
     pin = 1
     elementTypeFactory = "org.arend.psi.stubs.StubImplementationsKt.factory"
 }
 
-pLevelIdentifier ::= ID
+levelIdentifier ::= ID
 
 private defIdentifier_module ::= defIdentifier {
     recoverWhile = defIdentifier_module_recover
@@ -250,18 +247,18 @@ private defIdentifier_module ::= defIdentifier {
 
 private defIdentifier_module_recover ::= !ALIAS_KW & statement_recover
 
-defFunction ::= functionKw prec? defIdentifier_func pLevelParams? alias? nameTele* functionType? functionBody? where? {
+defFunction ::= functionKw prec? defIdentifier_func levelParams? alias? nameTele* functionType? functionBody? where? {
     pin = 1
     elementTypeFactory = "org.arend.psi.stubs.StubImplementationsKt.factory"
 }
 
-private pLevelParams ::= PLEVELS_KW pLevelParamsSeq { pin = 1 }
+levelIdentifiers ::= levelIdentifier (COMMA levelIdentifier)*
 
-pLevelParamsSeq ::= [pLevelIdentifier (levelCmp pLevelIdentifier)*]
+private levelsDef ::= PLEVELS_KW levelIdentifiers { pin = 1 }
+
+private levelParams ::= DOT LBRACE levelIdentifiers RBRACE { pin = 2 }
 
 functionKw ::= FUNC_KW | SFUNC_KW | LEMMA_KW | TYPE_KW | AXIOM_KW | COERCE_KW | LEVEL_KW
-
-levelCmp ::= LESS_OR_EQUALS | GREATER_OR_EQUALS
 
 private functionType ::= COLON returnExprWOB { pin = 1 }
 
@@ -276,16 +273,16 @@ private defIdentifier_func ::= defIdentifier {
     recoverWhile = defIdentifier_func_recover
 }
 
-private defIdentifier_func_recover ::= !(COLON | FAT_ARROW | COWITH_KW | WITH_KW | ELIM_KW | PIPE | ALIAS_KW | PLEVELS_KW) & nameTele_first & statement_recover
+private defIdentifier_func_recover ::= !(COLON | FAT_ARROW | COWITH_KW | WITH_KW | ELIM_KW | PIPE | ALIAS_KW | PLEVELS_KW | DOT) & nameTele_first & statement_recover
 
-defInstance ::= instanceOrCons prec? defIdentifier_func pLevelParams? alias? nameTele* functionType? instanceBody? where? {
+defInstance ::= instanceOrCons prec? defIdentifier_func levelParams? alias? nameTele* functionType? instanceBody? where? {
     pin = 1
     elementTypeFactory = "org.arend.psi.stubs.StubImplementationsKt.factory"
 }
 
 private instanceOrCons ::= INSTANCE_KW | CONS_KW
 
-defData ::= dataKw prec? defIdentifier_top pLevelParams? alias? typeTele* dataUniverse? dataBody? where? {
+defData ::= dataKw prec? defIdentifier_top levelParams? alias? typeTele* dataUniverse? dataBody? where? {
     pin = 1
     elementTypeFactory = "org.arend.psi.stubs.StubImplementationsKt.factory"
 }
@@ -319,9 +316,9 @@ private defClassClass ::= CLASS_KW defClassHeader classStats { pin = 1 }
 
 private defClassRecord ::= RECORD_KW defClassHeader classStats { pin = 1 }
 
-private defClassHeader ::= prec? defIdentifier pLevelParams? alias? NO_CLASSIFYING_KW? fieldTele* [EXTENDS_KW <<comma_separated_sequence superClass>>]
+private defClassHeader ::= prec? defIdentifier levelParams? alias? NO_CLASSIFYING_KW? fieldTele* [EXTENDS_KW <<comma_separated_sequence superClass>>]
 
-superClass ::= longName maybeAtomLevelExprs? {
+superClass ::= longName levelArgs? {
     pin = 1
 }
 
@@ -670,47 +667,24 @@ atomLevelExpr ::= LP_KW
     extends = levelExpr
 }
 
-universeAppExpr ::= UNIVERSE maybeAtomLevelExpr? {
+universeAppExpr ::= UNIVERSE atomLevelExpr? {
     pin = 1
 }
 
-setUniverseAppExpr ::= SET maybeAtomLevelExpr? {
+setUniverseAppExpr ::= SET atomLevelExpr? {
     pin = 1
 }
 
-truncatedUniverseAppExpr ::= TRUNCATED_UNIVERSE maybeAtomLevelExpr? {
+truncatedUniverseAppExpr ::= TRUNCATED_UNIVERSE atomLevelExpr? {
     pin = 1
 }
 
-catUniverseAppExpr ::= CAT_UNIVERSE maybeAtomLevelExpr? {
+catUniverseAppExpr ::= CAT_UNIVERSE atomLevelExpr? {
     pin = 1
 }
 
-onlyLevelExpr ::= atomOnlyLevelExpr
-    | MAX_KW atomLevelExpr atomLevelExpr
-    | SUC_KW atomLevelExpr {
-    pin(".*") = 1
-    implements = [ "org.arend.psi.ext.ArendSourceNode"
-                   "org.arend.term.abs.Abstract.LevelExpression" ]
-}
-
-levelsExpr ::= levelsLevels | LPAREN levelsExpr RPAREN
-
-maybeAtomLevelExpr ::= atomLevelExpr | UNDERSCORE
-
-maybeAtomLevelExprs ::= LPAREN <<comma_separated_sequence levelExpr>>? RPAREN | maybeAtomLevelExpr
-
-private levelsLevels ::= LEVELS_KW maybeAtomLevelExprs { pin = 1 }
-
-atomOnlyLevelExpr ::= LP_KW
-    | LPAREN onlyLevelExpr RPAREN
-
-argumentAppExpr ::= (longNameExpr | atomFieldsAcc) (argument | argumentRecovery)* {
+argumentAppExpr ::= atomFieldsAcc (argument | argumentRecovery)* {
     name = "defCall"
-}
-
-longNameExpr ::= longName (levelsExpr | atomOnlyLevelExpr) {
-    pin = 2
 }
 
 fieldAcc ::= NUMBER | refIdentifier
@@ -732,7 +706,9 @@ tupleExpr ::= expr [COLON expr] {
 
 private tupleExpr_recover ::= !(RPAREN | RBRACE | COMMA) & statement_recover
 
-atomFieldsAcc ::= atom fieldAccDot* [DOT IPName] {
+levelArgs ::= DOT LBRACE <<comma_separated_sequence levelExpr>> RBRACE { pin = 2 }
+
+atomFieldsAcc ::= atom levelArgs? fieldAccDot* [DOT IPName] {
     pin = 1
     recoverWhile = argument_recover
 }

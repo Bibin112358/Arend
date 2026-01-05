@@ -30,7 +30,7 @@ import static org.arend.psi.ArendElementTypes.*;
     private int originalState = YYINITIAL;
 %}
 
-%state BLOCK_COMMENT_INNER, LEVEL_PARAMETERS
+%state BLOCK_COMMENT_INNER
 
 EOL                 = \R
 WHITE_SPACE         = [ \t\r\n]+
@@ -67,7 +67,7 @@ OCT_DIGIT           = [0-8]
 
 %%
 
-<YYINITIAL,LEVEL_PARAMETERS> {
+<YYINITIAL> {
     {WHITE_SPACE}           { return WHITE_SPACE; }
 
     {LINE_COMMENT}          { return LINE_COMMENT; }
@@ -86,9 +86,7 @@ OCT_DIGIT           = [0-8]
                                 commentStart = getTokenStart();
                             }
     {LINE_DOC}              { return DOC_COMMENT; }
-}
 
-<YYINITIAL> {
     "{"                     { return LBRACE; }
     "}"                     { return RBRACE; }
     "{?}"                   { return TGOAL; }
@@ -166,9 +164,8 @@ OCT_DIGIT           = [0-8]
     "\\lp"                  { return LP_KW; }
     "\\suc"                 { return SUC_KW; }
     "\\level"               { return LEVEL_KW; }
-    "\\levels"              { return LEVELS_KW; }
     "\\plevel"              { return PLEVEL_KW; }
-    "\\plevels"             { yybegin(LEVEL_PARAMETERS); return PLEVELS_KW; }
+    "\\plevels"             { return PLEVELS_KW; }
     "\\max"                 { return MAX_KW; }
 
     {STRING}                { return STRING; }
@@ -190,16 +187,6 @@ OCT_DIGIT           = [0-8]
     {ID}                    { return ID; }
 
     [^]                     { return BAD_CHARACTER; }
-}
-
-<LEVEL_PARAMETERS> {
-    "<="                    { return LESS_OR_EQUALS; }
-    ">="                    { return GREATER_OR_EQUALS; }
-    ","                     { return COMMA; }
-    "|" | ":" | "_"         { yypushback(1); yybegin(YYINITIAL); }
-    "=>" | "->" | "__"      { yypushback(2); yybegin(YYINITIAL); }
-    {ID}                    { return ID; }
-    [^]                     { yypushback(1); yybegin(YYINITIAL); }
 }
 
 <BLOCK_COMMENT_INNER> {
