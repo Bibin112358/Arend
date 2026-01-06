@@ -342,7 +342,9 @@
         <runLineMarkerContributor language="Arend"
                                   implementationClass="org.arend.typechecking.execution.TypeCheckRunLineMarkerContributor"/>
 
+        <!-- TODO
         <codeInsight.lineMarkerProvider language="Arend" implementationClass="org.arend.codeInsight.ArendLineMarkerProvider"/>
+        -->
 
         <!-- Color Settings -->
 
