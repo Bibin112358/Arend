@@ -340,7 +340,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
       }
       level.accept(this, new Precedence(Expression.PREC));
     }
-    myBuilder.append(".}");
+    myBuilder.append("}");
   }
 
   private void printReference(Concrete.ReferenceExpression expr, Precedence prec) {
