@@ -51,21 +51,21 @@ public class DesugarVisitor extends BaseConcreteExpressionVisitor<Void> {
       return;
     }
 
-    if (def.getPLevelParameters() != null) {
+    if (def.getLevelParameters() != null) {
       errorReporter.report(new TypecheckingError("Definition already has p-levels, but refers to different ones", def));
     }
     LevelDefinition firstDef = defs.iterator().next();
-    if (defs.size() == 1 && def.getPLevelParameters() == null) {
-      def.setPLevelParameters(new Concrete.LevelParameters(def.getData(), firstDef.getReferables(), firstDef.isIncreasing()));
+    if (defs.size() == 1 && def.getLevelParameters() == null) {
+      def.setLevelParameters(new Concrete.LevelParameters(def.getData(), firstDef.getReferables(), firstDef.isIncreasing()));
     } else {
       List<LevelReferable> refs = new ArrayList<>();
-      if (def.getPLevelParameters() != null) {
-        refs.addAll(def.getPLevelParameters().referables);
+      if (def.getLevelParameters() != null) {
+        refs.addAll(def.getLevelParameters().referables);
       }
       for (LevelDefinition pDef : defs) {
         refs.addAll(pDef.getReferables());
       }
-      def.setPLevelParameters(new Concrete.LevelParameters(def.getData(), refs, def.getPLevelParameters() != null ? def.getPLevelParameters().isIncreasing : firstDef.isIncreasing()));
+      def.setLevelParameters(new Concrete.LevelParameters(def.getData(), refs, def.getLevelParameters() != null ? def.getLevelParameters().isIncreasing : firstDef.isIncreasing()));
     }
   }
 
@@ -97,8 +97,14 @@ public class DesugarVisitor extends BaseConcreteExpressionVisitor<Void> {
     }
   }
 
-  private static Concrete.Expression makeThisClassCall(Object data, Referable classRef) {
-    return Concrete.ClassExtExpression.make(data, new Concrete.ReferenceExpression(data, classRef), new Concrete.Coclauses(data, Collections.emptyList()));
+  private static Concrete.Expression makeThisClassCall(Object data, Referable classRef, Concrete.LevelParameters levelParams) {
+    List<Concrete.LevelExpression> levelArgs = levelParams == null ? Collections.emptyList() : new ArrayList<>(levelParams.referables.size());
+    if (levelParams != null) {
+      for (LevelReferable referable : levelParams.referables) {
+        levelArgs.add(new Concrete.VarLevelExpression(data, referable));
+      }
+    }
+    return Concrete.ClassExtExpression.make(data, new Concrete.ReferenceExpression(data, classRef, levelArgs), new Concrete.Coclauses(data, Collections.emptyList()));
   }
 
   @Override
@@ -108,7 +114,7 @@ public class DesugarVisitor extends BaseConcreteExpressionVisitor<Void> {
 
     if (def instanceof Concrete.CoClauseFunctionDefinition function) {
       if (myConcreteProvider.getConcrete(function.getUseParent()) instanceof Concrete.ResolvableDefinition parent) {
-        def.setPLevelParameters(parent.getPLevelParameters());
+        def.setLevelParameters(parent.getLevelParameters());
       }
     }
 
@@ -118,7 +124,7 @@ public class DesugarVisitor extends BaseConcreteExpressionVisitor<Void> {
       if (def instanceof Concrete.CoClauseFunctionDefinition && def.getKind() == FunctionKind.FUNC_COCLAUSE) {
         ((Concrete.CoClauseFunctionDefinition) def).setNumberOfExternalParameters(((Concrete.CoClauseFunctionDefinition) def).getNumberOfExternalParameters() + 1);
       }
-      def.getParameters().addFirst(new Concrete.TelescopeParameter(def.getData(), false, Collections.singletonList(thisParameter), makeThisClassCall(def.getData(), def.enclosingClass), false));
+      def.getParameters().addFirst(new Concrete.TelescopeParameter(def.getData(), false, Collections.singletonList(thisParameter), makeThisClassCall(def.getData(), def.enclosingClass, def.getLevelParameters()), false));
       if (def.getBody().getEliminatedReferences().isEmpty()) {
         for (Concrete.FunctionClause clause : def.getBody().getClauses()) {
           clause.getPatterns().addFirst(new Concrete.NamePattern(clause.getData(), false, thisParameter, null));
@@ -136,7 +142,7 @@ public class DesugarVisitor extends BaseConcreteExpressionVisitor<Void> {
     // Add this parameter
     Referable thisParameter = checkDefinition(def);
     if (thisParameter != null) {
-      def.getParameters().addFirst(new Concrete.TelescopeParameter(def.getData(), false, Collections.singletonList(thisParameter), makeThisClassCall(def.getData(), def.enclosingClass), false));
+      def.getParameters().addFirst(new Concrete.TelescopeParameter(def.getData(), false, Collections.singletonList(thisParameter), makeThisClassCall(def.getData(), def.enclosingClass, def.getLevelParameters()), false));
       if (def.getEliminatedReferences() != null && def.getEliminatedReferences().isEmpty()) {
         for (Concrete.ConstructorClause clause : def.getConstructorClauses()) {
           clause.getPatterns().addFirst(new Concrete.NamePattern(clause.getData(), false, thisParameter, null));
@@ -198,7 +204,7 @@ public class DesugarVisitor extends BaseConcreteExpressionVisitor<Void> {
       } else {
         previousType = classField.getParameters().isEmpty() ? fieldType : null;
         checker.visitParameters(classField.getParameters(), null);
-        classField.getParameters().addFirst(new Concrete.TelescopeParameter(classField.getParameters().isEmpty() ? fieldType.getData() : classField.getParameters().getFirst().getData(), false, Collections.singletonList(thisParameter), makeThisClassCall(fieldType.getData(), def.getData()), false));
+        classField.getParameters().addFirst(new Concrete.TelescopeParameter(classField.getParameters().isEmpty() ? fieldType.getData() : classField.getParameters().getFirst().getData(), false, Collections.singletonList(thisParameter), makeThisClassCall(fieldType.getData(), def.getData(), def.getLevelParameters()), false));
         classField.setResultType(fieldType.accept(checker, null));
         if (classField.getResultTypeLevel() != null) {
           classField.setResultTypeLevel(classField.getResultTypeLevel().accept(checker, null));
@@ -216,12 +222,12 @@ public class DesugarVisitor extends BaseConcreteExpressionVisitor<Void> {
         Concrete.Expression impl = ((Concrete.ClassFieldImpl) element).implementation;
         Referable thisParameter = new HiddenLocalReferable("this");
         classFieldChecker.setThisParameter(thisParameter);
-        ((Concrete.ClassFieldImpl) element).implementation = new Concrete.LamExpression(impl.getData(), Collections.singletonList(new Concrete.TelescopeParameter(impl.getData(), false, Collections.singletonList(thisParameter), makeThisClassCall(impl.getData(), def.getData()), false)), impl.accept(classFieldChecker, null));
+        ((Concrete.ClassFieldImpl) element).implementation = new Concrete.LamExpression(impl.getData(), Collections.singletonList(new Concrete.TelescopeParameter(impl.getData(), false, Collections.singletonList(thisParameter), makeThisClassCall(impl.getData(), def.getData(), def.getLevelParameters()), false)), impl.accept(classFieldChecker, null));
       } else if (element instanceof Concrete.OverriddenField field) {
         Referable thisParameter = new HiddenLocalReferable("this");
         classFieldChecker.setThisParameter(thisParameter);
         classFieldChecker.visitParameters(field.getParameters(), null);
-        field.getParameters().addFirst(new Concrete.TelescopeParameter(field.getResultType().getData(), false, Collections.singletonList(thisParameter), makeThisClassCall(field.getResultType().getData(), def.getData()), false));
+        field.getParameters().addFirst(new Concrete.TelescopeParameter(field.getResultType().getData(), false, Collections.singletonList(thisParameter), makeThisClassCall(field.getResultType().getData(), def.getData(), def.getLevelParameters()), false));
         field.setResultType(field.getResultType().accept(classFieldChecker, null));
         if (field.getResultTypeLevel() != null) {
           field.setResultTypeLevel(field.getResultTypeLevel().accept(classFieldChecker, null));

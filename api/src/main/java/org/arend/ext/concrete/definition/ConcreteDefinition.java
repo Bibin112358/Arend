@@ -7,6 +7,5 @@ import org.jetbrains.annotations.Nullable;
 
 public interface ConcreteDefinition extends ConcreteSourceNode {
   @NotNull ArendRef getRef();
-  @Nullable ConcreteLevelParameters getPLevelParameters();
-  void setPLevelParameters(@Nullable ConcreteLevelParameters parameters);
+  @Nullable ConcreteLevelParameters getLevelParameters();
 }

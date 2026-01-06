@@ -273,7 +273,7 @@ private defIdentifier_func ::= defIdentifier {
     recoverWhile = defIdentifier_func_recover
 }
 
-private defIdentifier_func_recover ::= !(COLON | FAT_ARROW | COWITH_KW | WITH_KW | ELIM_KW | PIPE | ALIAS_KW | PLEVELS_KW | DOT) & nameTele_first & statement_recover
+private defIdentifier_func_recover ::= !(COLON | FAT_ARROW | COWITH_KW | WITH_KW | ELIM_KW | PIPE | ALIAS_KW | DOT) & nameTele_first & statement_recover
 
 defInstance ::= instanceOrCons prec? defIdentifier_func levelParams? alias? nameTele* functionType? instanceBody? where? {
     pin = 1
@@ -291,7 +291,7 @@ private defIdentifier_top ::= defIdentifier {
     recoverWhile = defIdentifier_top_recover
 }
 
-private defIdentifier_top_recover ::= !PLEVELS_KW & typeTele_recover
+private defIdentifier_top_recover ::= !DOT & typeTele_recover
 
 private dataUniverse ::= COLON universeExpr {
     pin = 1

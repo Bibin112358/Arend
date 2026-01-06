@@ -1797,17 +1797,14 @@ public final class Concrete {
 
   public static abstract class ResolvableDefinition implements GeneralDefinition {
     private Status myStatus = Status.NO_ERRORS;
-    protected LevelParameters pLevelParameters;
+    protected LevelParameters levelParameters;
 
-    public LevelParameters getPLevelParameters() {
-      return pLevelParameters;
+    public LevelParameters getLevelParameters() {
+      return levelParameters;
     }
 
-    public void setPLevelParameters(ConcreteLevelParameters parameters) {
-      if (!(parameters instanceof LevelParameters || parameters == null)) {
-        throw new IllegalArgumentException();
-      }
-      pLevelParameters = (LevelParameters) parameters;
+    public void setLevelParameters(LevelParameters parameters) {
+      levelParameters = parameters;
     }
 
     @Override
@@ -1854,7 +1851,7 @@ public final class Concrete {
 
     public MetaDefinition(MetaReferable referable, Concrete.LevelParameters pLevelParameters, List<Concrete.Parameter> parameters, Concrete.@Nullable Expression body) {
       myReferable = referable;
-      this.pLevelParameters = pLevelParameters;
+      this.levelParameters = pLevelParameters;
       myParameters = parameters;
       this.body = body;
     }
@@ -1966,17 +1963,17 @@ public final class Concrete {
 
     public Definition(TCDefReferable referable, LevelParameters pParams) {
       myReferable = referable;
-      pLevelParameters = pParams;
+      levelParameters = pParams;
     }
 
     public Definition(TCDefReferable referable) {
       myReferable = referable;
-      pLevelParameters = null;
+      levelParameters = null;
     }
 
     public void copyData(Concrete.Definition newDef) {
       newDef.setStatus(getStatus());
-      newDef.pLevelParameters = pLevelParameters;
+      newDef.levelParameters = levelParameters;
       newDef.myUseParent = myUseParent;
       newDef.enclosingClass = enclosingClass;
       newDef.myRecursiveDefinitions = myRecursiveDefinitions;
@@ -2559,7 +2556,7 @@ public final class Concrete {
 
     @Override
     public FunctionDefinition copy(List<Parameter> parameters, FunctionBody body) {
-      FunctionDefinition result = new FunctionDefinition(myKind, getData(), pLevelParameters, parameters, getResultType(), getResultTypeLevel(), body);
+      FunctionDefinition result = new FunctionDefinition(myKind, getData(), levelParameters, parameters, getResultType(), getResultTypeLevel(), body);
       result.enclosingClass = enclosingClass;
       result.setUseParent(getUseParent());
       result.setUsedDefinitions(getUsedDefinitions());

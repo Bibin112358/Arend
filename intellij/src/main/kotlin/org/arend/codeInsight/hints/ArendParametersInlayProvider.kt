@@ -42,9 +42,12 @@ class ArendParametersInlayProvider : InlayHintsProvider {
                 val builder = StringBuilder()
 
                 if (levelParams != null && levelParams.isNotEmpty() && levelParams[0] is ParamLevelVariable && arendDef.levelParameters == null) {
-                    builder.append(" ")
-                    val ppv = PrettyPrintVisitor(builder, 0)
-                    ppv.prettyPrintLevelParameters(ToAbstractVisitor.visitLevelParameters(levelParams), true)
+                    val cLevelParams = ToAbstractVisitor.visitLevelParameters(levelParams)
+                    if (cLevelParams != null) {
+                        builder.append(" ")
+                        val ppv = PrettyPrintVisitor(builder, 0)
+                        ppv.prettyPrintLevelParameters(cLevelParams, true)
+                    }
                 }
 
                 if (def.parametersOriginalDefinitions.isNotEmpty()) {

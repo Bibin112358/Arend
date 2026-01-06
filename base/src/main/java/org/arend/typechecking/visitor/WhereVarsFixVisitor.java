@@ -177,9 +177,9 @@ public class WhereVarsFixVisitor extends BaseConcreteExpressionVisitor<Void> {
               }
             }
           }
-          checkLevels(pLevelsDefs, definition.getPLevelParameters(), new LocalErrorReporter(definition.getData(), errorReporter), definition);
-          if (pLevels != null && definition.getPLevelParameters() == null) {
-            definition.setPLevelParameters(pLevels);
+          checkLevels(pLevelsDefs, definition.getLevelParameters(), new LocalErrorReporter(definition.getData(), errorReporter), definition);
+          if (pLevels != null && definition.getLevelParameters() == null) {
+            definition.setLevelParameters(pLevels);
           }
         }
       }

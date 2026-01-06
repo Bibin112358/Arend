@@ -1161,9 +1161,9 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
 
     prettyPrintNameWithPrecedence(def.getData());
 
-    if (def.getPLevelParameters() != null) {
+    if (def.getLevelParameters() != null) {
       myBuilder.append(" ");
-      prettyPrintLevelParameters(def.getPLevelParameters(), true);
+      prettyPrintLevelParameters(def.getLevelParameters(), true);
     }
 
     myBuilder.append(" ");
@@ -1224,9 +1224,9 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
     myBuilder.append("\\data ");
     prettyPrintNameWithPrecedence(def.getData());
 
-    if (def.getPLevelParameters() != null) {
+    if (def.getLevelParameters() != null) {
       myBuilder.append(" ");
-      prettyPrintLevelParameters(def.getPLevelParameters(), true);
+      prettyPrintLevelParameters(def.getLevelParameters(), true);
     }
 
     List<? extends Concrete.TypeParameter> parameters = def.getParameters();
@@ -1519,9 +1519,9 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
   public Void visitClass(Concrete.ClassDefinition def, Void ignored) {
     prettyPrintClassDefinitionHeader(def, def.getSuperClasses());
 
-    if (def.getPLevelParameters() != null) {
+    if (def.getLevelParameters() != null) {
       myBuilder.append(" ");
-      prettyPrintLevelParameters(def.getPLevelParameters(), true);
+      prettyPrintLevelParameters(def.getLevelParameters(), true);
     }
 
     if (!def.getElements().isEmpty()) {

@@ -79,7 +79,7 @@ public class DefaultMetaDefinition implements MetaDefinition {
       }
     }
 
-    binLevelParameters(subst, pLevels, myDefinition.getPLevelParameters());
+    binLevelParameters(subst, pLevels, myDefinition.getLevelParameters());
     Concrete.Expression result = myDefinition.body.accept(subst, null);
     if (result == null) return null;
     if (arguments.size() > refs.size()) {

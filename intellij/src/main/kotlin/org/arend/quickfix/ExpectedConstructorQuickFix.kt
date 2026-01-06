@@ -811,14 +811,14 @@ class ExpectedConstructorQuickFix(val error: ExpectedConstructorError, val cause
                 when (concreteDefinition) {
                     is Concrete.Constructor -> return Concrete.Constructor(concreteDefinition.data, concreteDefinition.parameters, newEliminatedReferences, clauses, concreteDefinition.isCoerce)
                     is Concrete.DataDefinition -> {
-                        return Concrete.DataDefinition(concreteDefinition.data, concreteDefinition.pLevelParameters, concreteDefinition.parameters,
+                        return Concrete.DataDefinition(concreteDefinition.data, concreteDefinition.levelParameters, concreteDefinition.parameters,
                             newEliminatedReferences, concreteDefinition.isTruncated, concreteDefinition.universe, constructorClauses)
                     }
 
                     is Concrete.FunctionDefinition -> {
                         val oldBody = concreteDefinition.body as Concrete.ElimFunctionBody
                         val newBody = Concrete.ElimFunctionBody(oldBody.data, newEliminatedReferences, clauses)
-                        return Concrete.FunctionDefinition(concreteDefinition.kind, concreteDefinition.data, concreteDefinition.pLevelParameters,
+                        return Concrete.FunctionDefinition(concreteDefinition.kind, concreteDefinition.data, concreteDefinition.levelParameters,
                             concreteDefinition.parameters, concreteDefinition.resultType, concreteDefinition.resultTypeLevel, newBody)
                     }
                 }
