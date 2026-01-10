@@ -140,11 +140,27 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     mySuperLevels = superLevels;
   }
 
+  public @NotNull Levels getSuperLevels(ClassDefinition superClass) {
+    Levels levels = mySuperLevels.get(superClass);
+    return levels == null ? makeIdLevels() : levels;
+  }
+
   public Levels castLevels(ClassDefinition superClass, Levels levels) {
     if (superClass == this) return levels;
     if (superClass.getLevelParameters() != null && superClass.getLevelParameters().isEmpty()) return Levels.EMPTY;
     Levels result = mySuperLevels.get(superClass);
     return result == null ? levels : result.subst(levels.makeSubstitution(this));
+  }
+
+  public LevelSubstitution levelSubstitutionFor(ClassDefinition superClass, Levels levels) {
+    return castLevels(superClass, levels).makeSubstitution(superClass);
+  }
+
+  public LevelSubstitution levelSubstitutionFor(ClassDefinition superClass) {
+    if (superClass == this) return LevelSubstitution.EMPTY;
+    if (superClass.getLevelParameters() != null && superClass.getLevelParameters().isEmpty()) return LevelSubstitution.EMPTY;
+    Levels result = mySuperLevels.get(superClass);
+    return result == null ? LevelSubstitution.EMPTY : result.makeSubstitution(superClass);
   }
 
   public BigInteger getUseLevel(Map<ClassField,Expression> implemented, Binding thisBinding, boolean isStrict) {
@@ -188,11 +204,11 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     List<SortExpression> sorts = new ArrayList<>();
     for (ClassField field : myNotImplementedFields) {
       if (implemented.containsKey(field)) continue;
-      Expression fieldType = getFieldType(field, castLevels(field.getParentClass(), idLevels), thisExpr1).normalize(NormalizationMode.WHNF);
+      Expression fieldType = getFieldType(field, idLevels, thisExpr1).normalize(NormalizationMode.WHNF);
       if (!fieldType.isInstance(ErrorExpression.class)) {
         SortExpression fieldSort = fieldType.getSortExpressionOfType();
         if (fieldSort == null || fieldSort instanceof SortExpression.Const(Sort sort) && sort.isOmega()) {
-          fieldSort = getFieldType(field, castLevels(field.getParentClass(), idLevels), thisExpr2).normalize(NormalizationMode.WHNF).getSortExpressionOfType();
+          fieldSort = getFieldType(field, idLevels, thisExpr2).normalize(NormalizationMode.WHNF).getSortExpressionOfType();
           if (!ignoreErrors && fieldSort == null) {
             return null;
           }
@@ -444,7 +460,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
 
   public PiExpression getOverriddenType(ClassField field, Levels levels) {
     Pair<PiExpression, ClassDefinition> pair = myOverridden.get(field);
-    return pair == null ? null : (PiExpression) new SubstVisitor(new ExprSubstitution(), castLevels(field.getParentClass(), levels).makeSubstitution(field)).visitPi(pair.proj1, null);
+    return pair == null ? null : (PiExpression) new SubstVisitor(new ExprSubstitution(), castLevels(pair.proj2, levels).makeSubstitution(pair.proj2)).visitPi(pair.proj1, null);
   }
 
   public PiExpression getFieldType(ClassField field) {
@@ -454,17 +470,13 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
 
   public PiExpression getFieldType(ClassField field, Levels levels) {
     Pair<PiExpression, ClassDefinition> pair = myOverridden.get(field);
-    return pair == null ? field.getType(levels) : (PiExpression) new SubstVisitor(new ExprSubstitution(), levels.makeSubstitution(field)).visitPi(pair.proj1, null);
-  }
-
-  public Expression getFieldType(ClassField field, LevelSubstitution levels, Expression thisExpr) {
-    Pair<PiExpression, ClassDefinition> pair = myOverridden.get(field);
-    PiExpression type = pair == null ? field.getType() : pair.proj1;
-    return type.getCodomain().subst(new ExprSubstitution(type.getParameters(), thisExpr), levels);
+    return pair == null ? field.getType(castLevels(field.getParentClass(), levels)) : (PiExpression) new SubstVisitor(new ExprSubstitution(), levels.makeSubstitution(pair.proj2)).visitPi(pair.proj1, null);
   }
 
   public Expression getFieldType(ClassField field, Levels levels, Expression thisExpr) {
-    return getFieldType(field, levels.makeSubstitution(field), thisExpr);
+    Pair<PiExpression, ClassDefinition> pair = myOverridden.get(field);
+    PiExpression type = pair == null ? field.getType() : pair.proj1;
+    return type.getCodomain().subst(new ExprSubstitution(type.getParameters(), thisExpr), levelSubstitutionFor(pair == null ? field.getParentClass() : pair.proj2, levels));
   }
 
   @Nullable

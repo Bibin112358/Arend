@@ -2,7 +2,6 @@ package org.arend.term.prettyprint;
 
 import org.arend.core.context.binding.Binding;
 import org.arend.core.context.binding.LevelVariable;
-import org.arend.core.context.binding.ParamLevelVariable;
 import org.arend.core.context.binding.PersistentEvaluatingBinding;
 import org.arend.core.context.binding.inference.InferenceLevelVariable;
 import org.arend.core.context.param.DependentLink;
@@ -1090,7 +1089,7 @@ public class ToAbstractVisitor extends BaseExpressionVisitor<Void, Concrete.Expr
     for (LevelVariable var : parameters) {
       refs.add(new DataLevelReferable(null, var.toString()));
     }
-    return new Concrete.LevelParameters(null, refs, !(parameters.size() > 1 && parameters.get(0) instanceof ParamLevelVariable && parameters.get(1) instanceof ParamLevelVariable && ((ParamLevelVariable) parameters.get(0)).getSize() > ((ParamLevelVariable) parameters.get(1)).getSize()));
+    return new Concrete.LevelParameters(null, refs);
   }
 
   private List<Concrete.FunctionClause> visitIntervalElim(DependentLink parameters, Body body) {

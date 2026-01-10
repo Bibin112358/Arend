@@ -145,7 +145,7 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
       }
     }
 
-    if (concrete instanceof Concrete.Definition def && enclosingClass != null) {
+    if (concrete instanceof Concrete.Definition def && enclosingClass != null && !(concrete instanceof Concrete.ClassDefinition)) {
       def.enclosingClass = enclosingClass;
     }
 
@@ -173,7 +173,7 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
   private static Concrete.LevelsDefinition buildLevelsDefinition(Abstract.LevelParameters parameters, LocatedReferable parent) {
     if (parameters == null) return null;
     List<TCLevelReferable> referables = new ArrayList<>();
-    LevelDefinition levelDefinition = new LevelDefinition(false, referables, parent);
+    LevelDefinition levelDefinition = new LevelDefinition(referables, parent);
     for (Abstract.AbstractReferable referable : parameters.getReferables()) {
       referables.add(new TCLevelReferable(referable, referable.getRefName(), levelDefinition));
     }
@@ -219,7 +219,7 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
   }
 
   private Concrete.LevelParameters visitLevelParameters(Abstract.LevelParameters params) {
-    return params == null ? null : new Concrete.LevelParameters(params.getData(), getLevelParametersRefs(params), false);
+    return params == null ? null : new Concrete.LevelParameters(params.getData(), getLevelParametersRefs(params));
   }
 
   @Override

@@ -101,9 +101,6 @@ public class DefinitionSerialization implements ArendSerializer {
     if (parameter instanceof ParamLevelVariable) {
       builder.setName(parameter.getName());
       builder.setIndex(((ParamLevelVariable) parameter).getIndex());
-      builder.setSize(((ParamLevelVariable) parameter).getSize());
-    } else {
-      builder.setSize(-1);
     }
     return builder.build();
   }

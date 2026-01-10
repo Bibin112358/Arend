@@ -1,13 +1,11 @@
 package org.arend.core.context.binding;
 
-import org.arend.core.context.binding.inference.InferenceLevelVariable;
 import org.arend.ext.core.ops.CMP;
 import org.arend.ext.variable.Variable;
 
 import java.util.List;
 
 public interface LevelVariable extends Variable {
-  LevelVariable max(LevelVariable other);
   LevelVariable min(LevelVariable other);
   boolean compare(LevelVariable other, CMP cmp);
 
@@ -30,18 +28,13 @@ public interface LevelVariable extends Variable {
 
   LevelVariable PVAR = new LevelVariable() {
     @Override
-    public LevelVariable max(LevelVariable other) {
-      return other instanceof InferenceLevelVariable ? null : other;
-    }
-
-    @Override
     public LevelVariable min(LevelVariable other) {
-      return other instanceof InferenceLevelVariable ? null : this;
+      return this == other ? this : null;
     }
 
     @Override
     public boolean compare(LevelVariable other, CMP cmp) {
-      return this == other || other instanceof ParamLevelVariable && (cmp == CMP.LE || ((ParamLevelVariable) other).getSize() == 0);
+      return this == other;
     }
 
     @Override

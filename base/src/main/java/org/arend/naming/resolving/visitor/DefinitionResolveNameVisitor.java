@@ -194,10 +194,14 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
 
   private void copyClassLevelParameters(Concrete.ResolvableDefinition definition) {
     if (definition.getEnclosingClass() == null || !(myConcreteProvider.getConcrete(definition.getEnclosingClass()) instanceof Concrete.ResolvableDefinition enclosingClass) || enclosingClass.getLevelParameters() == null) return;
-    if (definition.getLevelParameters() != null) {
-      myLocalErrorReporter.report(new NameResolverError(GeneralError.Level.WARNING_UNUSED, "Levels are derived from enclosing class", definition.getLevelParameters()));
+    if (definition.getLevelParameters() == null) {
+      definition.setLevelParameters(Concrete.LevelParameters.copyLevelParameters(definition.getData(), enclosingClass.getLevelParameters()));
+    } else {
+      List<LevelReferable> newLevels = new ArrayList<>();
+      newLevels.addAll(enclosingClass.getLevelParameters().referables);
+      newLevels.addAll(definition.getLevelParameters().referables);
+      definition.setLevelParameters(new Concrete.LevelParameters(definition.getLevelParameters().getData(), newLevels));
     }
-    definition.setLevelParameters(enclosingClass.getLevelParameters());
   }
 
   private ExpressionResolveNameVisitor resolveFunctionHeader(Concrete.BaseFunctionDefinition def, Scope scope) {
@@ -208,22 +212,19 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
       if (def.getUseParent() == null) {
         myErrorReporter.report(new NameResolverError("This function must be declared with \\use", def));
         funDef.setKind(FunctionKind.FUNC);
-      } else {
+      } else if (def instanceof Concrete.CoClauseFunctionDefinition function) {
         Concrete.GeneralDefinition enclosingDef = myConcreteProvider.getConcrete(def.getUseParent());
         if (enclosingDef instanceof Concrete.Definition && def.getLevelParameters() == null && ((Concrete.Definition) enclosingDef).getLevelParameters() != null) {
-          def.setLevelParameters(((Concrete.Definition) enclosingDef).getLevelParameters());
+          def.setLevelParameters(Concrete.LevelParameters.copyLevelParameters(def.getData(), ((Concrete.Definition) enclosingDef).getLevelParameters()));
         }
-
-        if (def instanceof Concrete.CoClauseFunctionDefinition function) {
-          resolveCoclauseImplementedField(function, scope);
-          if (function.getNumberOfExternalParameters() == 0 && enclosingDef instanceof Concrete.BaseFunctionDefinition) {
-            List<Concrete.Parameter> parameters = new SubstConcreteVisitor(def.getData()).visitParameters(((Concrete.BaseFunctionDefinition) enclosingDef).getParameters());
-            for (Concrete.Parameter parameter : parameters) {
-              parameter.setExplicit(false);
-            }
-            def.getParameters().addAll(0, parameters);
-            function.setNumberOfExternalParameters(parameters.size());
+        resolveCoclauseImplementedField(function, scope);
+        if (function.getNumberOfExternalParameters() == 0 && enclosingDef instanceof Concrete.BaseFunctionDefinition) {
+          List<Concrete.Parameter> parameters = new SubstConcreteVisitor(def.getData()).visitParameters(((Concrete.BaseFunctionDefinition) enclosingDef).getParameters());
+          for (Concrete.Parameter parameter : parameters) {
+            parameter.setExplicit(false);
           }
+          def.getParameters().addAll(0, parameters);
+          function.setNumberOfExternalParameters(parameters.size());
         }
       }
     }

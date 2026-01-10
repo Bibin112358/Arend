@@ -32,7 +32,6 @@ message Definition {
     }
     message LevelParameter {
         string name = 2;
-        int32 size = 3;
         int32 index = 4;
     }
     message ParameterOriginalDef {

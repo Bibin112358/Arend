@@ -7,7 +7,6 @@ import org.arend.core.subst.ExprSubstitution;
 import org.arend.core.subst.Levels;
 import org.arend.ext.core.definition.CoreCoerceData;
 import org.arend.ext.core.definition.CoreDefinition;
-import org.arend.ext.core.level.LevelSubstitution;
 import org.arend.ext.core.ops.NormalizationMode;
 import org.arend.ext.error.ErrorReporter;
 import org.arend.ext.util.Pair;
@@ -193,7 +192,7 @@ public class CoerceData implements CoreCoerceData {
   private static Expression getClassifyingFieldType(ClassCallExpression classCall) {
     ClassField field = classCall.getDefinition().getClassifyingField();
     assert field != null;
-    return classCall.getDefinition().getFieldType(field, LevelSubstitution.EMPTY, new ReferenceExpression(classCall.getThisBinding())).normalize(NormalizationMode.WHNF);
+    return classCall.getFieldType(field).normalize(NormalizationMode.WHNF);
   }
 
   private static TypecheckingResult coerceResult(TypecheckingResult result, Collection<? extends Definition> defs, Expression expectedType, Concrete.SourceNode sourceNode, CheckTypeVisitor visitor, boolean argStrict, boolean resultStrict) {

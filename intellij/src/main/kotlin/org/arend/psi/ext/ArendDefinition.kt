@@ -37,4 +37,7 @@ where StubT : ArendNamedStub, StubT : StubElement<*> {
 
     override val where: ArendWhere?
         get() = childOfType()
+
+    val isDynamic: Boolean
+        get() = parentGroup?.dynamicSubgroups?.contains(this) == true
 }

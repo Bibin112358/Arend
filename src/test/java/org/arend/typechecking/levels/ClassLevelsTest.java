@@ -6,7 +6,7 @@ import org.arend.core.definition.ClassDefinition;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.subst.Levels;
-import org.arend.core.subst.ListLevels;
+import org.arend.core.subst.SingleLevel;
 import org.arend.ext.core.level.ConstLevel;
 import org.arend.typechecking.TypeCheckingTestCase;
 import org.arend.typechecking.error.local.SuperLevelsMismatchError;
@@ -113,7 +113,7 @@ public class ClassLevelsTest extends TypeCheckingTestCase {
         \\record T \\extends R, S
         """);
     Levels levels = ((ClassDefinition) getDefinition("T")).getSuperLevels().get((ClassDefinition) getDefinition("Base"));
-    assertEquals(new ListLevels(new Level(LevelVariable.PVAR, 1)), levels);
+    assertEquals(new SingleLevel(new Level(LevelVariable.PVAR, 1)), levels);
   }
 
   @Test
@@ -126,7 +126,7 @@ public class ClassLevelsTest extends TypeCheckingTestCase {
         \\record T \\extends R, S.{\\suc \\lp}
         """);
     Levels levels = ((ClassDefinition) getDefinition("T")).getSuperLevels().get((ClassDefinition) getDefinition("Base"));
-    assertEquals(new ListLevels(new Level(LevelVariable.PVAR, 1)), levels);
+    assertEquals(new SingleLevel(new Level(LevelVariable.PVAR, 1)), levels);
   }
 
   @Test
@@ -214,7 +214,7 @@ public class ClassLevelsTest extends TypeCheckingTestCase {
   public void lpError() {
     typeCheckModule(
       "\\record R.{p1,p2}\n" +
-      "\\record S \\extends R.{\\lp, \\suc \\lp}", 1);
+      "\\record S \\extends R.{\\lp, \\suc \\lp}");
   }
 
   @Test
@@ -236,8 +236,8 @@ public class ClassLevelsTest extends TypeCheckingTestCase {
         \\record T.{p1,p2} \\extends S
         """);
     ClassDefinition tClass = ((ClassDefinition) getDefinition("T"));
-    assertEquals(new ListLevels(new Level(LevelVariable.PVAR)), tClass.getSuperLevels().get((ClassDefinition) getDefinition("S")));
-    assertEquals(new ListLevels(new Level(LevelVariable.PVAR)), tClass.getSuperLevels().get((ClassDefinition) getDefinition("R")));
+    assertEquals(new SingleLevel(new Level(LevelVariable.PVAR)), tClass.getSuperLevels().get((ClassDefinition) getDefinition("S")));
+    assertEquals(new SingleLevel(new Level(LevelVariable.PVAR)), tClass.getSuperLevels().get((ClassDefinition) getDefinition("R")));
   }
 
   @Test

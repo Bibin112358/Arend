@@ -5,7 +5,7 @@ import org.arend.core.expr.Expression;
 import org.arend.core.expr.NewExpression;
 import org.arend.core.expr.TupleExpression;
 import org.arend.core.sort.Level;
-import org.arend.core.subst.ListLevels;
+import org.arend.core.subst.SingleLevel;
 import org.arend.typechecking.TypeCheckingTestCase;
 import org.junit.Test;
 
@@ -79,7 +79,7 @@ public class NewInstanceExtensionTest extends TypeCheckingTestCase {
     typeCheckModule(
       "\\record C (A : \\Type) (a : A)\n" +
       "\\func f : \\Sigma C Nat => (\\new C.{1} Nat 0, 0)");
-    assertEquals(new ListLevels(new Level(BigInteger.ONE)), ((Expression) Objects.requireNonNull(((FunctionDefinition) getDefinition("f")).getBody())).cast(TupleExpression.class).getFields().getFirst().cast(NewExpression.class).getClassCall().getLevels());
+    assertEquals(new SingleLevel(new Level(BigInteger.ONE)), ((Expression) Objects.requireNonNull(((FunctionDefinition) getDefinition("f")).getBody())).cast(TupleExpression.class).getFields().getFirst().cast(NewExpression.class).getClassCall().getLevels());
   }
 
   @Test

@@ -116,10 +116,10 @@
       | Func-id => idp
       | Func-o => idp
       \where {
-        \func reflectsLimit {J : SmallPrecat} (H : Functor J CRingCat) : ReflectsLimit forget H
+        \func reflectsLimit {J : Precat} (H : Functor J CRingCat) : ReflectsLimit forget H
           => (CRingBicat.createsLimits H (SetBicat.limit (Comp CRingCat.forget H))).3
 
-        \func preservesLimit {J : SmallPrecat} (H : Functor J CRingCat) : PreservesLimit forget H
+        \func preservesLimit {J : Precat} (H : Functor J CRingCat) : PreservesLimit forget H
           => (CRingBicat.createsLimits H (SetBicat.limit (Comp CRingCat.forget H))).2
       }
 
@@ -258,6 +258,6 @@
           | Func-o => idp
       }
 
-    \sfunc createsLimits {J : SmallPrecat} (F : Functor J CRingCat) : CreatesLimit CRingCat.forget F
+    \sfunc createsLimits {J : Precat} (F : Functor J CRingCat) : CreatesLimit CRingCat.forget F
       => {?}
   }

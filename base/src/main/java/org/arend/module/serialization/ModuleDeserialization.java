@@ -259,12 +259,7 @@ public class ModuleDeserialization {
     if (isStd) return null;
     List<LevelVariable> result = new ArrayList<>(parameters.size());
     for (DefinitionProtos.Definition.LevelParameter parameter : parameters) {
-      int size = parameter.getSize();
-      if (size == -1) {
-        result.add(LevelVariable.PVAR);
-      } else {
-        result.add(new ParamLevelVariable(parameter.getName(), parameter.getIndex(), size));
-      }
+      result.add(new ParamLevelVariable(parameter.getName(), parameter.getIndex()));
     }
     return result;
   }

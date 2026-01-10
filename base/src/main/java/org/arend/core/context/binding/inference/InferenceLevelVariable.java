@@ -14,11 +14,6 @@ public class InferenceLevelVariable implements LevelVariable {
   }
 
   @Override
-  public LevelVariable max(LevelVariable other) {
-    return this == other ? this : null;
-  }
-
-  @Override
   public LevelVariable min(LevelVariable other) {
     return this == other ? this : null;
   }

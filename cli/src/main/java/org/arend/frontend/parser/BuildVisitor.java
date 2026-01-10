@@ -447,7 +447,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
     for (TerminalNode id : ctx.ID()) {
       refs.add(new DataLevelReferable(tokenPosition(id.getSymbol()), id.getText()));
     }
-    return new Concrete.LevelParameters(tokenPosition(ctx.start), refs, false);
+    return new Concrete.LevelParameters(tokenPosition(ctx.start), refs);
   }
 
   private List<ParameterReferable> makeParameterReferableList(Concrete.ResolvableDefinition parentDef) {
@@ -620,8 +620,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
 
   private Concrete.LevelsDefinition visitStatLevels(StatLevelsContext ctx, LocatedReferable parent) {
     List<TCLevelReferable> refs = new ArrayList<>();
-    LevelDefinition defParent = new LevelDefinition(false, refs, parent);
-    defParent.setIsIncreasing(false);
+    LevelDefinition defParent = new LevelDefinition(refs, parent);
     for (TerminalNode id : ctx.ID()) {
       refs.add(new TCLevelReferable(tokenPosition(id.getSymbol()), id.getText(), defParent));
     }

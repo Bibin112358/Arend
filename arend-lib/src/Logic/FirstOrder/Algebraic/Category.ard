@@ -85,7 +85,7 @@
       | id-right => idp
       | o-assoc => idp
 
-    \class ColimitData \noclassifying {J : SmallPrecat} {T : Theory} (G : Functor J (ModelPrecat T)) {
+    \class ColimitData.{s} \noclassifying {J : Precat.{s,s}} {T : Theory.{s}} (G : Functor J (ModelPrecat T)) {
       \func sigExt : Signature \cowith
         | Sort => T.Sort
         | Symb s => Or (T.Symb s) (Trunc0 (\Sigma (j : J) (G j s)))
@@ -96,11 +96,11 @@
         | PredSymb => T.PredSymb
         | predDomain => T.predDomain
 
-      \func liftTerm {V : Sort -> \Set} {s : Sort} (t : Term V s) : Term {sigExt} V s \elim t
+      \func liftTerm {V : Sort -> \Set s} {s : Sort} (t : Term V s) : Term {sigExt} V s \elim t
         | var v => var v
         | apply f d => apply (inl f) (\new DArray { | at j => liftTerm (d j) })
 
-      \func liftFormula {V : Sort -> \Set} (phi : Formula V) : Formula {sigExt} V \elim phi
+      \func liftFormula {V : Sort -> \Set s} (phi : Formula V) : Formula {sigExt} V \elim phi
         | equality t t' => equality (liftTerm t) (liftTerm t')
         | predicate P d => predicate P (\new DArray { | at j => liftTerm (d j) })
 
@@ -121,12 +121,12 @@
                                (isTheorem nil (predicate P args'))
                                (\Pi (i : Fin (DArray.len {predDomain P})) -> qinj (args' i) = args i)
 
-      \lemma substInterpF {V : Sort -> \Set} (rho : \Pi {s : Sort} -> V s -> Term (\lam _ => Empty) s) (phi : Formula {T} V)
+      \lemma substInterpF {V : Sort -> \Set s} (rho : \Pi {s : Sort} -> V s -> Term (\lam _ => Empty) s) (phi : Formula {T} V)
         : isFormulaTrue (\lam v => qinj (rho v)) phi = isTheorem nil (substF (liftFormula phi) (\lam {s} v => rho {s} v)) \elim phi
         | equality t t' => pmap2 (=) (substInterpT _ t) (substInterpT _ t') *> qinj-equality
         | predicate P d => propExt (\lam (inP (d',q,e)) => congruenceF (\lam j => propExt.dir qinj-equality (e j *> substInterpT rho (d j))) q) (\lam q => inP (\new DArray { | at j => subst (liftTerm (d j)) (\lam {s} => rho) }, q, \lam i => inv (substInterpT rho (d i))))
 
-      \lemma substInterpT {V : Sort -> \Set} (rho : \Pi {s : Sort} -> V s -> Term (\lam _ => Empty) s) {s : Sort} (t : Term {T} V s)
+      \lemma substInterpT {V : Sort -> \Set s} (rho : \Pi {s : Sort} -> V s -> Term (\lam _ => Empty) s) {s : Sort} (t : Term {T} V s)
         : ColimitStr.interpret (\lam v => qinj (rho v)) t = qinj (subst (liftTerm t) rho) \elim t
         | var v => idp
         | apply f d => unfold $ cong (ext (\lam j => substInterpT rho (d j))) *> inv (path (qmerge _))
@@ -160,12 +160,12 @@
         }
         | relation => relation
 
-      \lemma strExtT {V : Sort -> \Set} (C : Cone G.op) {rho : Env {C} V} {s : Sort} (t : Term {T} V s)
+      \lemma strExtT {V : Sort -> \Set s} (C : Cone G.op) {rho : Env {C} V} {s : Sort} (t : Term {T} V s)
         : interpret {strExt C} rho (liftTerm t) = interpret {C} rho t \elim t
         | var v => idp
         | apply f d => unfold $ cong $ ext (\lam j => strExtT C (d j))
 
-      \lemma strExtF {V : Sort -> \Set} (C : Cone G.op) {rho : Env {C} V} (phi : Formula {T} V)
+      \lemma strExtF {V : Sort -> \Set s} (C : Cone G.op) {rho : Env {C} V} (phi : Formula {T} V)
         : isFormulaTrue {strExt C} rho (liftFormula phi) = isFormulaTrue {C} rho phi \elim phi
         | equality t t' => pmap2 (=) (strExtT C t) (strExtT C t')
         | predicate P d => cong (ext (\lam j => strExtT C (d j)))
@@ -202,17 +202,17 @@
       }
     }
 
-    \func limitStructure (T : Theory) {J : SmallPrecat} (G : Functor J (ModelPrecat T)) : Structure T \cowith
+    \func limitStructure (T : Theory) {J : Precat} (G : Functor J (ModelPrecat T)) : Structure T \cowith
       | E s => \Sigma (P : \Pi (j : J) -> G j s) (\Pi {j j' : J} (h : Hom j j') -> G.Func h (P j) = P j')
       | operation h d => (\lam j => operation h (\lam k => (d k).1 j), \lam {j} {j'} f => func-op {G.Func f} h (\lam k => (d k).1 j) *> cong (ext (\lam k => (d k).2 f)))
       | relation P d => \Pi (j : J) -> relation P (\lam k => (d k).1 j)
 
-    \lemma limitStructureInterp {T : Theory} {J : SmallPrecat} {G : Functor J (ModelPrecat T)} {V : Sort -> \Set} {rho : Env {limitStructure T G} V} {s : Sort} (t : Term V s) {j : J}
+    \lemma limitStructureInterp {T : Theory} {J : Precat} {G : Functor J (ModelPrecat T)} {V : Sort -> \Set} {rho : Env {limitStructure T G} V} {s : Sort} (t : Term V s) {j : J}
       : (interpret rho t).1 j = interpret (\lam v => (rho v).1 j) t \elim t
       | var v => idp
       | apply f d => unfold $ cong $ ext (\lam k => limitStructureInterp (d k))
 
-    \lemma limitStructureTruth {T : Theory} {J : SmallPrecat} {G : Functor J (ModelPrecat T)} {V : Sort -> \Set} {rho : Env {limitStructure T G} V} (phi : Formula V)
+    \lemma limitStructureTruth {T : Theory} {J : Precat} {G : Functor J (ModelPrecat T)} {V : Sort -> \Set} {rho : Env {limitStructure T G} V} (phi : Formula V)
       : isFormulaTrue rho phi = (\Pi (j : J) -> isFormulaTrue (\lam v => (rho v).1 j) phi) \elim phi
       | equality t t' => ext (\lam ft j => inv (limitStructureInterp t) *> rewrite ft idp *> limitStructureInterp t', \lam ft => exts (\lam j => limitStructureInterp t *> ft j *> inv (limitStructureInterp t')))
       | predicate P d => ext (\lam ft j => transport (relation P) (exts (\lam k => limitStructureInterp (d k))) (ft j), \lam ft j => transport (relation P) (exts (\lam k => inv $ limitStructureInterp (d k))) (ft j))

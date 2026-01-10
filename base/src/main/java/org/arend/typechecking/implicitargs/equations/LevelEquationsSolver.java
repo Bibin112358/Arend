@@ -9,7 +9,6 @@ import org.arend.ext.core.ops.CMP;
 import org.arend.ext.error.ErrorReporter;
 import org.arend.typechecking.error.local.ConstantSolveLevelEquationError;
 import org.arend.typechecking.error.local.SolveLevelEquationsError;
-import org.arend.typechecking.dfs.DFS;
 import org.arend.typechecking.dfs.MapDFS;
 import org.arend.ext.util.Pair;
 
@@ -116,27 +115,6 @@ public class LevelEquationsSolver {
     }
   }
 
-  private LevelVariable getLowerBound(InferenceLevelVariable var) {
-    return new DFS<InferenceLevelVariable,LevelVariable>() {
-      @Override
-      protected LevelVariable forDependencies(InferenceLevelVariable unit) {
-        Set<LevelVariable> bounds = myLowerBounds.get(unit);
-        LevelVariable result = LevelVariable.PVAR;
-        if (bounds != null) {
-          for (LevelVariable bound : bounds) {
-            result = result.max(bound instanceof InferenceLevelVariable ? visit((InferenceLevelVariable) bound) : bound);
-          }
-        }
-        return result;
-      }
-
-      @Override
-      protected LevelVariable getVisitedValue(InferenceLevelVariable unit, boolean cycle) {
-        return LevelVariable.PVAR;
-      }
-    }.visit(var);
-  }
-
   public LevelSubstitution solveLevels() {
     List<LevelEquation<InferenceLevelVariable>> cycle = null;
     Map<InferenceLevelVariable, BigInteger> basedSolution = new HashMap<>();
@@ -177,7 +155,19 @@ public class LevelEquationsSolver {
     for (Map.Entry<InferenceLevelVariable, BigInteger> entry : basedSolution.entrySet()) {
       if (!unBased.contains(entry.getKey())) {
         BigInteger sol = solution.get(entry.getKey());
-        result.add(entry.getKey(), new Level(useStd ? LevelVariable.PVAR : getLowerBound(entry.getKey()), entry.getValue().negate(), sol.negate()));
+        if (useStd) {
+          result.add(entry.getKey(), new Level(LevelVariable.PVAR, entry.getValue().negate(), sol.negate()));
+        } else {
+          MapDFS<LevelVariable> dfs = new MapDFS<>(myLowerBounds);
+          dfs.visit(entry.getKey());
+          Map<LevelVariable, BigInteger> vars = new HashMap<>();
+          for (LevelVariable variable : dfs.getVisited()) {
+            if (!(variable instanceof InferenceLevelVariable)) {
+              vars.put(variable, entry.getValue().negate());
+            }
+          }
+          result.add(entry.getKey(), new Level(vars, sol.negate()));
+        }
       }
     }
 

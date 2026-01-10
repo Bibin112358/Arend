@@ -1372,11 +1372,9 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     for (Map.Entry<ClassField, Expression> entry : from.getImplementedHere().entrySet()) {
       if (to.getDefinition() != from.getDefinition()) {
         ClassDefinition toOriginalClass = to.getDefinition().getOverriddenOriginalClass(entry.getKey());
-        if (toOriginalClass != null && toOriginalClass != from.getDefinition().getOverriddenOriginalClass(entry.getKey())) {
-          Expression fieldType = to.getDefinition().getFieldType(entry.getKey(), to.getLevels(entry.getKey().getParentClass()), new ReferenceExpression(to.getThisBinding()));
-          if (!CompareVisitor.compare(myEquations, CMP.LE, entry.getValue().getType(), fieldType, UniverseExpression.OMEGA, sourceNode)) {
-            break;
-          }
+        if (toOriginalClass != null && toOriginalClass != from.getDefinition().getOverriddenOriginalClass(entry.getKey()) &&
+            !CompareVisitor.compare(myEquations, CMP.LE, entry.getValue().getType(), to.getFieldType(entry.getKey()), UniverseExpression.OMEGA, sourceNode)) {
+          break;
         }
       }
       to.getImplementedHere().put(entry.getKey(), entry.getValue().subst(from.getThisBinding(), thisExpr));
@@ -1538,11 +1536,10 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
                     return null;
                   }
                   for (ClassField field : classDef.getNotImplementedFields()) {
-                    Levels fieldLevels = classCall.getLevels(field.getParentClass());
                     Expression impl = FieldCallExpression.make(field, result.expression).normalize(NormalizationMode.WHNF);
                     boolean isImplemented = resultClassCall.isImplemented(field);
                     if (isImplemented && !field.isProperty()) {
-                      if (!CompareVisitor.compare(myEquations, CMP.EQ, impl, resultClassCall.getImplementation(field, new ReferenceExpression(resultClassCall.getThisBinding())), classCall.getDefinition().getFieldType(field, fieldLevels, result.expression), pair.proj2.implementation)) {
+                      if (!CompareVisitor.compare(myEquations, CMP.EQ, impl, resultClassCall.getImplementation(field, new ReferenceExpression(resultClassCall.getThisBinding())), classCall.getFieldType(field, result.expression), pair.proj2.implementation)) {
                         errorReporter.report(new FieldsImplementationError(true, baseClass.getReferable(), Collections.singletonList(field.getReferable()), pair.proj2));
                       }
                     } else {
@@ -1600,7 +1597,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   }
 
   private TypecheckingResult typecheckImplementation(ClassField field, Concrete.Expression implBody, ClassCallExpression fieldSetClass, boolean addImplicitLambdas) {
-    Expression type = fieldSetClass.getDefinition().getFieldType(field, fieldSetClass.getLevels(field.getParentClass()), new ReferenceExpression(fieldSetClass.getThisBinding()));
+    Expression type = fieldSetClass.getFieldType(field);
 
     // Expression type = FieldCallExpression.make(field, fieldSetClass.getLevels(), new ReferenceExpression(fieldSetClass.getThisBinding())).getType();
     if (implBody instanceof Concrete.HoleExpression && field.getReferable().isParameterField() && !field.getReferable().isExplicitField() && field.isTypeClass() && type instanceof ClassCallExpression && !((ClassCallExpression) type).getDefinition().isRecord()) {
@@ -1893,7 +1890,6 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   }
 
   private void typecheckLevels(List<Concrete.LevelExpression> levels, List<? extends LevelVariable> params, LevelSubstitution defaultLevels, boolean useMinAsDefault, boolean isUniverseLike, Concrete.SourceNode sourceNode, List<Level> result) {
-    int s = result.size();
     if (levels == null) {
       for (LevelVariable param : params) {
         generateLevel(param, defaultLevels, useMinAsDefault, isUniverseLike, sourceNode, result);
@@ -1911,10 +1907,6 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
           result.add(level.accept(this, null));
         }
       }
-    }
-
-    for (int i = 0; i < params.size() - 1; i++) {
-      myEquations.addEquation(result.get(s + i + 1), result.get(s + i), params.get(i + 1).compare(params.get(i), CMP.LE) ? CMP.LE : CMP.GE, sourceNode);
     }
   }
 
@@ -2361,7 +2353,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
               ClassCallExpression classCall = (ClassCallExpression) defCallParamType;
               for (Map.Entry<ClassField, Expression> entry : classCall.getImplementedHere().entrySet()) {
                 Expression type = entry.getValue().getType();
-                if (type == null || !CompareVisitor.compare(myEquations, CMP.LE, type, classCall.getDefinition().getFieldType(entry.getKey(), classCall.getDefinition().castLevels(entry.getKey().getParentClass(), levels), new ReferenceExpression(classCall.getThisBinding())), UniverseExpression.OMEGA, param)) {
+                if (type == null || !CompareVisitor.compare(myEquations, CMP.LE, type, classCall.getDefinition().getFieldType(entry.getKey(), levels, new ReferenceExpression(classCall.getThisBinding())), UniverseExpression.OMEGA, param)) {
                   levels = null;
                   break;
                 }
@@ -2906,7 +2898,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
         newType = link.getType().subst(substitution);
       } else {
         field = notImplementedFields.get(i);
-        newType = classCall.getDefinition().getFieldType(field, classCall.getLevels(field.getParentClass()), tcResult.expression);
+        newType = classCall.getFieldType(field, tcResult.expression);
       }
       Pair<LetClausePattern, LocalExpressionPrettifier.Accessor> pair = typecheckLetClausePattern(subPattern, new TypecheckingResult(link != null ? ProjExpression.make(tcResult.expression, i, link.isProperty()) : FieldCallExpression.make(notImplementedFields.get(i), tcResult.expression), newType), bindings);
       if (pair == null) {

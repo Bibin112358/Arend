@@ -145,13 +145,10 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
     boolean ok = true;
     Map<LevelVariable, Level> levelMap = new HashMap<>();
     if (defCall instanceof ClassCallExpression classCall) {
-      Levels idLevels = classCall.getDefinition().makeIdLevels();
       for (Map.Entry<ClassField, Expression> entry : classCall.getImplementedHere().entrySet()) {
         ClassField field = entry.getKey();
         if (classCall.getDefinition().isOmegaField(field)) {
-          Levels superLevels = classCall.getDefinition().getSuperLevels().get(field.getParentClass());
-          if (superLevels == null) superLevels = idLevels;
-          ok = matchArguments(field.getResultType().subst(superLevels.makeSubstitution(field)), entry.getValue().accept(this, null), levelMap);
+          ok = matchArguments(field.getResultType().subst(classCall.getDefinition().levelSubstitutionFor(field.getParentClass())), entry.getValue().getType(), levelMap);
           if (!ok) break;
         }
       }

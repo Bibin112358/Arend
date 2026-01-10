@@ -571,21 +571,36 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
     return true;
   }
 
-  private boolean compareDef(LeveledDefCallExpression expr1, LeveledDefCallExpression expr2, Expression origExpr2) {
-    if (expr2 == null || expr1.getDefinition() != expr2.getDefinition()) {
-      initResult(expr1, origExpr2);
-      return false;
-    }
+  public boolean compareLevels(LeveledDefCallExpression expr1, LeveledDefCallExpression expr2) {
     UniverseKind universeKind = expr1.getUniverseKind();
     if (universeKind == UniverseKind.NO_UNIVERSES) {
       return true;
     }
+
     CMP cmp = universeKind == UniverseKind.ONLY_COVARIANT ? myCMP : CMP.EQ;
+    if (expr1 instanceof ClassCallExpression classCall1 && expr2 instanceof ClassCallExpression classCall2 && classCall1.getDefinition() != classCall2.getDefinition()) {
+      ClassCallExpression superClassCall = myCMP == CMP.LE ? classCall2 : classCall1;
+      ClassCallExpression subClassCall = myCMP == CMP.LE ? classCall1 : classCall2;
+      if (!subClassCall.getLevels(superClassCall.getDefinition()).compare(superClassCall.getLevels(), cmp == CMP.EQ ? CMP.EQ : CMP.LE, myNormalCompare ? myEquations : DummyEquations.getInstance(), mySourceNode)) {
+        initResult(expr1, expr2, expr1.getLevels(), expr2.getLevels());
+        return false;
+      }
+      return true;
+    }
+
     if (!expr1.getLevels().compare(expr2.getLevels(), cmp, myNormalCompare ? myEquations : DummyEquations.getInstance(), mySourceNode)) {
       initResult(expr1, expr2, expr1.getLevels(), expr2.getLevels());
       return false;
     }
     return true;
+  }
+
+  private boolean compareDef(LeveledDefCallExpression expr1, LeveledDefCallExpression expr2, Expression origExpr2) {
+    if (expr2 == null || expr1.getDefinition() != expr2.getDefinition()) {
+      initResult(expr1, origExpr2);
+      return false;
+    }
+    return compareLevels(expr1, expr2);
   }
 
   private Boolean visitDefCall(LeveledDefCallExpression expr1, Expression expr2) {
@@ -1225,7 +1240,7 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
             implementations.put(field, classCall1.getImplementationHere(field, new ReferenceExpression(classCall.getThisBinding())));
             i++;
           } else {
-            PiExpression piType = classCall1.getDefinition().getFieldType(field, classCall1.getLevels(field.getParentClass()));
+            PiExpression piType = classCall1.getDefinition().getFieldType(field, classCall1.getLevels());
             Expression type = piType.getCodomain();
             TypedSingleDependentLink link = new TypedSingleDependentLink(field.getReferable().isExplicitField(), field.getName(), type);
             params.add(link);
@@ -1339,7 +1354,7 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
     }
     CMP origCmp = myCMP;
     myCMP = CMP.LE;
-    boolean ok = compare(type, classCall1.getDefinition().getFieldType(field, classCall2.getLevels(field.getParentClass()), new ReferenceExpression(classCall1.getThisBinding())), UniverseExpression.OMEGA, false);
+    boolean ok = compare(type, classCall2.getFieldType(field, new ReferenceExpression(classCall1.getThisBinding())), UniverseExpression.OMEGA, false);
     myCMP = origCmp;
     return ok;
   }
@@ -1406,7 +1421,7 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
       return false;
     }
 
-    if (!compareClassCallLevels(expr1, classCall2)) {
+    if (!compareClassCallLevels(expr1, classCall2)) { // TODO[sorts]: Replace with compareLevels
       if (myNormalCompare) {
         myResult = null;
         initResult(expr1, expr2, expr1.getLevels(), classCall2.getLevels());

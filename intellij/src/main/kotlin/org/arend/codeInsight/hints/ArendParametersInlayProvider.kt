@@ -37,14 +37,13 @@ class ArendParametersInlayProvider : InlayHintsProvider {
                 if (element !is ArendDefIdentifier) return
                 val arendDef = element.parent as? ArendDefinition<*> ?: return
                 val def = arendDef.tcReferable?.typechecked ?: return
-                val levelParams = def.levelParameters
-                if ((levelParams == null || levelParams.isEmpty()) && def.parametersOriginalDefinitions.isEmpty()) return
+                val levelParams = if (arendDef.isDynamic) null else def.levelParameters
+                if (levelParams.isNullOrEmpty() && def.parametersOriginalDefinitions.isEmpty()) return
                 val builder = StringBuilder()
 
-                if (levelParams != null && levelParams.isNotEmpty() && levelParams[0] is ParamLevelVariable && arendDef.levelParameters == null) {
+                if (!levelParams.isNullOrEmpty() && levelParams[0] is ParamLevelVariable && arendDef.levelParameters == null) {
                     val cLevelParams = ToAbstractVisitor.visitLevelParameters(levelParams)
                     if (cLevelParams != null) {
-                        builder.append(" ")
                         val ppv = PrettyPrintVisitor(builder, 0)
                         ppv.prettyPrintLevelParameters(cLevelParams, true)
                     }

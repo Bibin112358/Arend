@@ -156,7 +156,7 @@ public class DefinableMetaTest extends TypeCheckingTestCase {
   public void levelsError() {
     typeCheckModule(
       "\\meta f.{p1,p2} x => x\n" +
-      "\\func test => f.{2,3} 100", 1);
+      "\\func test => f.{2,3} 100");
   }
 
   @Test

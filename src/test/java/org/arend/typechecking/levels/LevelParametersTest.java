@@ -245,6 +245,14 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   }
 
   @Test
+  public void metaTest2() {
+    typeCheckModule("""
+      \\meta T.{p} => \\Type p
+      \\func test => T
+      """);
+  }
+
+  @Test
   public void dynamicTest() {
     typeCheckModule(
       """
@@ -277,5 +285,29 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   public void levelsNotErased() {
     Definition def = typeCheckDef("\\record C.{lp} (A : \\Type)");
     assertEquals(1, def.getLevelParameters().size());
+  }
+
+  @Test
+  public void dynamicClassTest() {
+    typeCheckModule("""
+      \\record T.{q} (B : \\Type q)
+      \\record R.{p} (A : \\Type p) {
+        \\record S.{p} \\extends T.{p}
+      }
+      """);
+  }
+
+  @Test
+  public void enclosingClassTest() {
+    typeCheckModule("""
+      \\record R.{a,b} (A : \\Type a) (B : \\Type b) {
+        \\func test.{c,d} (C : \\Type c) (D : \\Type d) => 0
+      }
+      """);
+    Definition def = getDefinition("R.test");
+    assertEquals(4, def.getLevelParameters().size());
+    assertEquals(new ListLevels(Arrays.asList(new Level(def.getLevelParameters().get(0)), new Level(def.getLevelParameters().get(1)))), ((ClassCallExpression) def.getParameters().getType()).getLevels());
+    assertEquals(new UniverseExpression(new Sort(new Level(def.getLevelParameters().get(2)), ConstLevel.INFINITY)), def.getParameters().getNext().getType());
+    assertEquals(new UniverseExpression(new Sort(new Level(def.getLevelParameters().get(3)), ConstLevel.INFINITY)), def.getParameters().getNext().getNext().getType());
   }
 }

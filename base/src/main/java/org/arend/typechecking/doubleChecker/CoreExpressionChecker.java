@@ -211,9 +211,8 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
     }
     checkLevels(expr.getLevels(), expr);
     addBinding(expr.getThisBinding(), expr);
-    Expression thisExpr = new ReferenceExpression(expr.getThisBinding());
     for (Map.Entry<ClassField, Expression> entry : expr.getImplementedHere().entrySet()) {
-      Expression type = expr.getDefinition().getFieldType(entry.getKey(), expr.getLevels(entry.getKey().getParentClass()), thisExpr);
+      Expression type = expr.getFieldType(entry.getKey());
       if (entry.getKey().isProperty() || Objects.equals(entry.getKey().getResultTypeLevel(), ConstLevel.PROP.value())) {
         if (entry.getValue() instanceof LamExpression) {
           checkLam((LamExpression) entry.getValue(), type, ConstLevel.PROP.value());

@@ -34,7 +34,7 @@
 
   \open Limit
 
-  \lemma transLimit {C : SmallPrecat} {D : Precat} {F : Functor C.op D} {a : C} (S1 S2 : Presieve a)
+  \lemma transLimit {C D : Precat} {F : Functor C.op D} {a : C} (S1 S2 : Presieve a)
                     (L1 : \Pi {b : C} (h : Hom b a) -> Limit { | Cone => Cone.map F (Presieve.cone {S1.pullback h}) })
                     (L2 : \Pi {b : C} {h : Hom b a} -> S1 h -> Limit { | Cone => Cone.map F (Presieve.cone {S2.pullback h}) })
     : Limit { | Cone => Cone.map F S2.cone } \cowith
@@ -72,35 +72,35 @@
     | isSieve h (inP (w,k,g,p,sg)) => inP (w, k ∘ h, g, rewrite p o-assoc, sg)
 }
 
-\class Site \extends Precat.{\lp}
+\class Site.{s} \extends Precat.{s,s}
   | isCover (x : Ob) : Sieve x -> \Prop
   | cover-stable {x y : Ob} (h : Hom x y) {s : Sieve y} (c : isCover y s) : isCover x (s.pullback h)
 
-\record SitePrehom \extends Functor.{\lp} {
-  \override C : Site
-  \override D : Site
+\record SitePrehom.{a,b} \extends Functor.{a,a,b,b} {
+  \override C : Site.{a}
+  \override D : Site.{b}
   | F-cover {x : C} {s : Sieve x} : isCover x s -> isCover (F x) (Sieve.map \this s)
 }
 
-\func inducedSite {C : SmallPrecat} {D : Site} (F : Functor C D) : Site \cowith
+\func inducedSite {C : Precat} {D : Site} (F : Functor C D) : Site \cowith
   | Precat => C
   | isCover x s => ∃ (s' : Sieve (F x)) (isCover (F x) s') ∀ {y} (h : Hom y x) (s h = s' (F.Func h))
   | cover-stable h {s} (inP (s' : Sieve, c, p)) => inP (s'.pullback (F.Func h), cover-stable (F.Func h) c, \lam g => p (h ∘ g) *> pmap (s' __) Func-o)
 
-\class SiteWithBasis \extends Site, PrecatWithPullbacks.{\lp,\lp} {
-  | isBasicCover (x : Ob) {J : \Set} (g : J -> SlicePrecat x) : \Prop
-  | basicCover-stable {x y : Ob} (f : Hom x y) {J : \Set} {g : J -> SlicePrecat y} : isBasicCover y g -> isBasicCover x (\lam j => pullbackFunctor f (g j))
-  | isCover x s => ∃ (J : \Set) (g : J -> SlicePrecat x) (isBasicCover x g) (\Pi (j : J) -> s (g j).2)
+\class SiteWithBasis.{p} \extends Site.{p}, PrecatWithPullbacks.{p,p} {
+  | isBasicCover (x : Ob) {J : \Set p} (g : J -> SlicePrecat x) : \Prop
+  | basicCover-stable {x y : Ob} (f : Hom x y) {J : \Set p} {g : J -> SlicePrecat y} : isBasicCover y g -> isBasicCover x (\lam j => pullbackFunctor f (g j))
+  | isCover x s => ∃ (J : \Set p) (g : J -> SlicePrecat x) (isBasicCover x g) (\Pi (j : J) -> s (g j).2)
   | cover-stable h {s} (inP (J,g,c,d)) => inP (J, \lam j => pullbackFunctor h (g j), basicCover-stable h c, \lam j => transportInv (s {_}) (Pullback.pbCoh {pullback h (g j).2}) (isSieve _ (d j)))
 
-  \lemma genSieve (a : Ob) {J : \Set} (g : J -> SlicePrecat a) : Sieve a (\lam {b} f => ∃ (j : J) (h : Hom b (g j).1) ((g j).2 ∘ h = f)) \cowith
+  \lemma genSieve (a : Ob) {J : \Set p} (g : J -> SlicePrecat a) : Sieve a (\lam {b} f => ∃ (j : J) (h : Hom b (g j).1) ((g j).2 ∘ h = f)) \cowith
     | isSieve {z} {y} f (inP (j,h,s)) => inP (j, h ∘ f, inv o-assoc *> pmap (`∘ f) s)
 }
 
-\record SiteWithBasisPrehom \extends Functor.{\lp} {
-  \override C : SiteWithBasis
-  \override D : SiteWithBasis
-  | F-basicCover {x : C} {J : \Set} {g : J -> SlicePrecat x} : isBasicCover x g -> isBasicCover (F x) (\lam j => (F (g j).1, Func (g j).2))
+\record SiteWithBasisPrehom.{s} \extends Functor.{s,s,s,s} {
+  \override C : SiteWithBasis.{s}
+  \override D : SiteWithBasis.{s}
+  | F-basicCover {x : C} {J : \Set s} {g : J -> SlicePrecat x} : isBasicCover x g -> isBasicCover (F x) (\lam j => (F (g j).1, Func (g j).2))
   | F-pullback {x y z : C} {f : Hom x z} {g : Hom y z} : Iso {D} {F (pullback f g)} {pullback (Func f) (Func g)} $
       pbMap (Func pbProj1) (Func pbProj2) $ inv Func-o *> pmap Func pbCoh *> Func-o
 }

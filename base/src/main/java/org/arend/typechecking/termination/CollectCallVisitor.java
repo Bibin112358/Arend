@@ -116,8 +116,8 @@ public class CollectCallVisitor extends SearchVisitor<Void> {
           if (type instanceof FunCallExpression funCall && funCall.getDefinition() == Prelude.ARRAY) {
             type = type.normalize(NormalizationMode.WHNF);
           }
-          if (!(type instanceof ClassCallExpression classCall)) return null;
-          type = classCall.getDefinition().getFieldType(classEliminator.classField).applyExpression(new ReferenceExpression(classCall.getThisBinding()));
+          if (!(type instanceof ClassCallExpression classCall && classCall.getDefinition().containsField(classEliminator.classField))) return null;
+          type = classCall.getFieldType(classEliminator.classField);
         }
       }
     }

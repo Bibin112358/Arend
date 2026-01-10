@@ -1,7 +1,6 @@
 package org.arend.term.concrete;
 
 import org.arend.core.context.binding.LevelVariable;
-import org.arend.core.context.binding.ParamLevelVariable;
 import org.arend.ext.concrete.*;
 import org.arend.ext.concrete.definition.*;
 import org.arend.ext.concrete.expr.*;
@@ -1900,12 +1899,10 @@ public final class Concrete {
 
   public static class LevelParameters extends SourceNodeImpl implements ConcreteLevelParameters {
     public final List<? extends LevelReferable> referables;
-    public final boolean isIncreasing;
 
-    public LevelParameters(Object data, List<? extends LevelReferable> referables, boolean isIncreasing) {
+    public LevelParameters(Object data, List<? extends LevelReferable> referables) {
       super(data);
       this.referables = referables;
-      this.isIncreasing = isIncreasing;
     }
 
     @Override
@@ -1913,17 +1910,16 @@ public final class Concrete {
       return referables;
     }
 
-    @Override
-    public boolean isIncreasing() {
-      return isIncreasing;
-    }
-
     public static Concrete.LevelParameters makeLevelParameters(List<? extends LevelVariable> variables) {
       List<LevelReferable> refs = new ArrayList<>(variables.size());
       for (LevelVariable variable : variables) {
         refs.add(new DataLevelReferable(null, variable.getName()));
       }
-      return new Concrete.LevelParameters(null, refs, variables.size() <= 1 || LevelVariable.PVAR == variables.get(0) || variables.get(0) instanceof ParamLevelVariable && variables.get(1) instanceof ParamLevelVariable && ((ParamLevelVariable) variables.get(0)).getSize() <= ((ParamLevelVariable) variables.get(1)).getSize());
+      return new Concrete.LevelParameters(null, refs);
+    }
+
+    public static Concrete.LevelParameters copyLevelParameters(Object data, Concrete.LevelParameters parameters) {
+      return parameters == null ? null : new LevelParameters(data, parameters.referables);
     }
 
     @Override

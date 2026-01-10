@@ -210,7 +210,7 @@ public class UseTypechecking {
               break;
             }
             levelFields.add(classField);
-            Expression fieldType = classCall.getDefinition().getFieldType(classField, classCall.getLevels(classField.getParentClass()), thisExpr);
+            Expression fieldType = classCall.getFieldType(classField, thisExpr);
             Expression paramType = link.getType();
             if (!Expression.compare(fieldType, paramType, UniverseExpression.OMEGA, CMP.EQ)) {
               if (parameters == null) {

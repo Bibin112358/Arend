@@ -4,6 +4,7 @@
 \import Category.Limit
 \import Category.Slice
 \import Category.Subcat
+\import Category.Topos.Presheaf
 \import Category.Topos.Sheaf.Site
 \import Equiv
 \import Function.Meta
@@ -16,31 +17,12 @@
 \import Set.SetCategory
 \import Topology.Locale
 
--- | Presheaves valued in {D}
-\record VPresheaf (D : Cat.{\suc \lp}) (C : SmallPrecat) (\coerce F : Functor C.op D)
-
--- | Presheaves valued in sets
-\record Presheaf \extends VPresheaf
-  | D => SetCat
-
-\instance VPresheafCat (D : Cat.{\suc \lp}) (C : Precat) : Cat
-  => subCat {FunctorCat {C.op} {D}} {VPresheaf D C} (\new Embedding {
-    | f P => P
-    | isEmb _ _ => \new Retraction {
-      | sec p => ext p
-      | f_sec => idpe
-    }
-  })
-
-\instance PresheafCat (C : Precat) : Cat
-  => VPresheafCat SetCat C
-
 -- | Sheaves valued in {D}
-\class VSheaf \extends VPresheaf {
-  \override C : Site
+\class VSheaf.{s,o,h} \extends VPresheaf.{o,h,s,s} {
+  \override C : Site.{s}
   | isSheaf {x : C} {s : Sieve x} : isCover x s -> Limit { | Cone => Cone.map F s.cone }
 } \where {
-  \func restrict {L : Locale} (a : L) (S : VSheaf { | C => L }) : VSheaf S.D (L.restrict a) \cowith
+  \func restrict.{s,o,h} {L : Locale.{s}} (a : L) (S : VSheaf.{s,o,h} { | C => L }) : VSheaf S.D (L.restrict a) \cowith
     | F => Comp S Locale.restrict.functor.op
     | isSheaf {x} {s : Sieve} x<=s =>
       \let | lim : Limit => S.isSheaf {x.1} {\new Sieve {
@@ -66,7 +48,7 @@
         }
       }
 
-  \lemma direct_image {C C' : SiteWithBasis} (f : SiteWithBasisPrehom C C') (S : VSheaf { | C => C' }) : VSheaf S.D C (Comp S f.op)
+  \lemma direct_image.{s,o,h} {C C' : SiteWithBasis.{s}} (f : SiteWithBasisPrehom.{s} C C') (S : VSheaf.{s,o,h} { | C => C' }) : VSheaf S.D C (Comp S f.op)
     => vsheafOnSiteWithBasis (Comp S f.op) \lam x {J} g c z =>
          IsEquiv.trans (vsheafMatchingFamily S (f x) {J} (\lam j => (f (g j).1, f.Func (g j).2)) (f.F-basicCover c) z) $ inP \new QEquiv {
            | f (m : MatchingFamily) => \new MatchingFamily {
@@ -83,7 +65,7 @@
            | f_sec => idpe
          }
 
-  \lemma direct_image_framePres {P P' : FramePres} (f : FramePresPrehom P P') (S : VSheaf { | C => framePresSite P' }) : VSheaf S.D (framePresSite P) (Comp S f.functor.op)
+  \lemma direct_image_framePres.{s,o,h} {P P' : FramePres.{s}} (f : FramePresPrehom P P') (S : VSheaf.{s,o,h} { | C => framePresSite P' }) : VSheaf S.D (framePresSite P) (Comp S f.functor.op)
     => direct_image (\new SiteWithBasisPrehom {
       | Functor => f.functor
       | F-basicCover => TruncP.map __ \lam t => (f t.1, Cover.map t.2, \lam j => f (t.3 j), f.func-basicCover t.4, \lam j => (Cover.map (t.5 j).1, rewriteI f.func-conj $ Cover.map (t.5 j).2))
@@ -94,7 +76,7 @@
       }
     }) S
 
-  \lemma direct_image_locale {L L' : Locale} (f : FrameHom L' L) (S : VSheaf { | C => L }) : VSheaf S.D L' (Comp S f.functor.op)
+  \lemma direct_image_locale.{s,o,h} {L L' : Locale.{s}} (f : FrameHom L' L) (S : VSheaf.{s,o,h} { | C => L }) : VSheaf S.D L' (Comp S f.functor.op)
     => direct_image (\new SiteWithBasisPrehom {
       | Functor => f.functor
       | F-basicCover => func-<= __ <=∘ func-Join>=
@@ -105,25 +87,25 @@
       }
     }) S
     \where {
-      \func map {L L' : Locale} {D : Cat.{\suc \lp}} (f : FrameHom L' L) {S S' : VSheaf D L} (a : NatTrans.{\suc \lp} S S') : NatTrans (direct_image_locale f S) (direct_image_locale f S') \cowith
+      \func map.{s,o,h} {L L' : Locale.{s}} {D : Cat.{o,h}} (f : FrameHom L' L) {S S' : VSheaf D L} (a : NatTrans S S') : NatTrans (direct_image_locale f S) (direct_image_locale f S') \cowith
         | trans x => a (f x)
         | natural g => a.natural (f.functor.Func g)
     }
 
-  \func direct_image_id {L : Locale} (S : VSheaf { | C => L }) : direct_image_locale (id L) S = {VSheaf S.D L} S
+  \func direct_image_id.{s,o,h} {L : Locale.{s}} (S : VSheaf.{s,o,h} { | C => L }) : direct_image_locale (id L) S = {VSheaf S.D L} S
     => ext $ ext (idp, ext \lam {X} {Y} h => pmap Func prop-pi)
 
-  \func transport_direct_image {L L' : Locale} (p : L = L') (S : VSheaf { | C => L }) : transport (VSheaf S.D) p S = direct_image_locale (Iso.f {Precat.idtoiso p}) S \elim p
+  \func transport_direct_image.{s,o,h} {L L' : Locale.{s}} (p : L = L') (S : VSheaf.{s,o,h} { | C => L }) : transport (VSheaf S.D) p S = direct_image_locale (Iso.f {Precat.idtoiso p}) S \elim p
     | idp => inv (direct_image_id S)
 
-  \func transport_direct_image-iso {L L' : Locale} (e : Iso {LocaleCat} {L} {L'}) (S : VSheaf { | C => L }) : transport (VSheaf S.D) (Cat.isotoid e) S = direct_image_locale e.f S
+  \func transport_direct_image-iso.{s,o,h} {L L' : Locale.{s}} (e : Iso {LocaleCat} {L} {L'}) (S : VSheaf.{s,o,h} { | C => L }) : transport (VSheaf S.D) (Cat.isotoid e) S = direct_image_locale e.f S
     => transport_direct_image (Cat.isotoid e) S *> path \lam i => direct_image_locale (IsEquiv.f_ret univalence {e} i).f S
 }
 
 -- | Sheaves valued in sets
-\class Sheaf \extends Presheaf, VSheaf
+\class Sheaf.{s,v} \extends Presheaf.{v,s,s}, VSheaf.{s, \suc v, v}
 
-\instance VSheafCat (D : Cat.{\suc \lp}) (C : Site) : Cat
+\instance VSheafCat.{s,v} (D : Cat.{\suc v, v}) (C : Site.{s}) : Cat
   => subCat {VPresheafCat D C} {VSheaf D C} (\new Embedding {
     | f P => P
     | isEmb _ _ => \new Retraction {
@@ -135,16 +117,16 @@
 \instance SheafCat (C : Site) : Cat
   => VSheafCat SetCat C
 
-\lemma sheaf-preserve {C : Site} {D E : Cat.{\suc \lp}} (G : Functor D E)
-  (G-lim : \Pi {J : Precat} (H : Functor J D) -> PreservesLimit G H) (F : VSheaf D C) : VSheaf E C (Comp G F) \cowith
+\lemma sheaf-preserve.{s,o,h} {C : Site.{s}} {D E : Cat.{o,h}} (G : Functor D E)
+  (G-lim : \Pi {J : Precat.{s,s}} (H : Functor J D) -> PreservesLimit G H) (F : VSheaf D C) : VSheaf E C (Comp G F) \cowith
   | isSheaf {x} {s : Sieve x} c => G-lim (Comp F s.diagram.op) (F.isSheaf c)
 
-\lemma sheaf-reflect {C : Site} {D E : Cat.{\suc \lp}} (G : Functor D E)
-  (G-lim : \Pi {J : Precat} (H : Functor J D) -> ReflectsLimit G H) (F : Functor C.op D) (S : VSheaf E C (Comp G F)) : VSheaf D C F \cowith
+\lemma sheaf-reflect.{s,o,h} {C : Site.{s}} {D E : Cat.{o,h}} (G : Functor D E)
+  (G-lim : \Pi {J : Precat.{s,s}} (H : Functor J D) -> ReflectsLimit G H) (F : Functor C.op D) (S : VSheaf E C (Comp G F)) : VSheaf D C F \cowith
   | isSheaf {x} {s : Sieve x} c => G-lim (Comp F s.diagram.op) (Cone.map F s.cone) (S.isSheaf c)
 
-\lemma vsheafOnSiteWithBasis {C : SiteWithBasis} {D : Cat.{\suc \lp}} (F : Functor C.op D)
-  (p : \Pi (x : C) {J : \Set} (g : J -> SlicePrecat x) (c : isBasicCover x g) (z : D) -> IsEquiv (matchingFamily x g z))
+\lemma vsheafOnSiteWithBasis.{s,o,h} {C : SiteWithBasis.{s}} {D : Cat.{o,h}} (F : Functor C.op D)
+  (p : \Pi (x : C) {J : \Set s} (g : J -> SlicePrecat x) (c : isBasicCover x g) (z : D) -> IsEquiv (matchingFamily {C} {D} {F} x g z))
   : VSheaf D C F \cowith
   | isSheaf {x} {s : Sieve} (inP (J,g,c,d)) => \new Limit {
     | isLimit z =>
@@ -160,15 +142,15 @@
             exts \lam j => inv o-assoc *> pmap (`∘ _) (inv F.Func-o *> pmap F.Func pbCoh *> Func-o) *> o-assoc *> path (\lam i => _ ∘ (IsEquiv.f_ret e i).family j) *> inv (cone-isMatching z ((y,Hyx),ys) (g j, d j))
       }
   } \where {
-    \record MatchingFamily (x : C) {J : \Set} (g : J -> SlicePrecat x) (z : D)
+    \record MatchingFamily.{s,o,h} {C : SiteWithBasis.{s}} {D : Cat.{o,h}} {F : Functor C.op D} (x : C) {J : \Set s} (g : J -> SlicePrecat x) (z : D)
       | family (j : J) : Hom z (F (g j).1)
       | isMatching (j j' : J) : F.Func (pbProj1 {pullback (g j).2 (g j').2}) ∘ family j = Func pbProj2 ∘ family j'
 
-    \func matchingFamily (x : C) {J : \Set} (g : J -> SlicePrecat x) (z : D) (h : Hom z (F x)) : MatchingFamily x g z \cowith
-      | family j => Func (g j).2 ∘ h
+    \func matchingFamily.{s,o,h} {C : SiteWithBasis.{s}} {D : Cat.{o,h}} {F : Functor C.op D} (x : C) {J : \Set s} (g : J -> SlicePrecat x) (z : D) (h : Hom z (F x)) : MatchingFamily x g z \cowith
+      | family j => F.Func (g j).2 ∘ h
       | isMatching j j' => inv o-assoc *> pmap (`∘ h) (inv Func-o *> pmap Func pbCoh *> Func-o) *> o-assoc
 
-    \lemma cone-isMatching {x : C} (z : D) {s : Sieve x} {c : Cone (Comp F s.diagram.op) z} (q q' : \Sigma (y : SlicePrecat x) (s y.2))
+    \lemma cone-isMatching.{s,o,h} {C : SiteWithBasis.{s}} {D : Cat.{o,h}} {F : Functor C.op D} {x : C} (z : D) {s : Sieve x} {c : Cone (Comp F s.diagram.op) z} (q q' : \Sigma (y : SlicePrecat x) (s y.2))
       : F.Func pbProj1 ∘ c.coneMap q = Func pbProj2 ∘ c.coneMap q'
       => c.coneCoh {q} {(pullback q.1.2 q'.1.2, q.1.2 ∘ pbProj1), s.isSieve _ q.2} (pbProj1, idp) *>
          path (\lam i => c.coneMap ((_, pbCoh @ i), prop-dpi _ _ _ @ i)) *>
@@ -177,7 +159,7 @@
 
 \open vsheafOnSiteWithBasis
 
-\lemma vsheafMatchingFamily {C : SiteWithBasis} {D : Cat.{\suc \lp}} (F : VSheaf D C) (x : C) {J : \Set} (g : J -> SlicePrecat x) (c : isBasicCover x g) (z : D) : IsEquiv (matchingFamily x g z)
+\lemma vsheafMatchingFamily.{s,o,h} {C : SiteWithBasis.{s}} {D : Cat.{o,h}} (F : VSheaf D C) (x : C) {J : \Set s} (g : J -> SlicePrecat x) (c : isBasicCover x g) (z : D) : IsEquiv (matchingFamily {C} {D} {F} x g z)
   => \have lim : Limit => F.isSheaf {x} {\new Sieve {
                                           | S {y} k => ∃ (j : J) (h : Hom y (g j).1) (k = (g j).2 ∘ h)
                                           | isSieve {z} {y} z->y {y->x} (inP (j,h,p)) => inP (j, h ∘ z->y, rewrite p o-assoc)
@@ -305,7 +287,7 @@
 }
 -}
 
-\lemma sheafOnPresentedFrame {P : FramePres} {D : CompleteCat.{\suc \lp}} (F : VSheaf D (framePresSite P)) : VSheaf D (PresentedFrame P) extend \cowith
+\lemma sheafOnPresentedFrame.{s,o,h} {P : FramePres.{s}} {D : CompleteCat.{s,o,h}} (F : VSheaf D (framePresSite P)) : VSheaf D (PresentedFrame P) extend \cowith
   | isSheaf {U} {s : Sieve} (inP (J, g, U<=g, g<=s)) =>
   \new Limit {
     | isLimit z =>
@@ -337,17 +319,17 @@
     \open Limit
     \open Cover
 
-    \lemma genSieve {P : FramePres} (a : P) {J : \Set} (g : J -> P) : Sieve {framePresPreorder P} a (\lam {b} _ => ∃ (j : J) (Cover1 b (g j))) \cowith
+    \lemma genSieve.{s} {P : FramePres.{s}} (a : P) {J : \Set s} (g : J -> P) : Sieve {framePresPreorder P} a (\lam {b} _ => ∃ (j : J) (Cover1 b (g j))) \cowith
       | isSieve {z} {y} z<=y (inP (j,y<=gj)) => inP (j, cover-trans z<=y (\lam _ => y<=gj))
 
-    \lemma cover1-lem {a : P} {J : \Set} {g : J -> P} (j : J) (p : Cover1 a (g j))
+    \lemma cover1-lem.{s,o,h} {P : FramePres.{s}} {D : CompleteCat.{s,o,h}} {F : VSheaf D (framePresSite P)} {a : P} {J : \Set s} {g : J -> P} (j : J) (p : Cover1 a (g j))
       : Limit { | Cone => Cone.map F (Presieve.cone {genSieve a g}) }
       => Presieve.idLimit (genSieve a g) (inP (later (j,p)))
 
-    \lemma cover-lem {a : P} {J : \Set} {g : J -> P} (c : Cover a g)
+    \lemma cover-lem.{s,o,h} {P : FramePres.{s}} {D : CompleteCat.{s,o,h}} {F : VSheaf D (framePresSite P)} {a : P} {J : \Set s} {g : J -> P} (c : Cover a g)
       => cover'-lem (cover-inj () idp) (Cover'.cover-cover' c)
 
-    \lemma cover'-lem {a b : P} (b<=a : Cover1 b a) {J : \Set} {g : J -> P} (c : Cover' a g)
+    \lemma cover'-lem.{s,o,h} {P : FramePres.{s}} {D : CompleteCat.{s,o,h}} {F : VSheaf D (framePresSite P)} {a b : P} (b<=a : Cover1 b a) {J : \Set s} {g : J -> P} (c : Cover' a g)
       : Limit { | Cone => Cone.map F (Presieve.cone {genSieve b g}) } \elim c
       | cover-basic' {x} {y} p {f} c q => F.isSheaf {b} {genSieve b g} (inP (J,
           \lam j => (conj b (g j), cover-proj1 idp () idp),

@@ -52,11 +52,11 @@ public class DesugarVisitor extends BaseConcreteExpressionVisitor<Void> {
     }
 
     if (def.getLevelParameters() != null) {
-      errorReporter.report(new TypecheckingError("Definition already has p-levels, but refers to different ones", def));
+      errorReporter.report(new TypecheckingError("Definition already has level parameters, but refers to different ones", def));
     }
     LevelDefinition firstDef = defs.iterator().next();
     if (defs.size() == 1 && def.getLevelParameters() == null) {
-      def.setLevelParameters(new Concrete.LevelParameters(def.getData(), firstDef.getReferables(), firstDef.isIncreasing()));
+      def.setLevelParameters(new Concrete.LevelParameters(def.getData(), firstDef.getReferables()));
     } else {
       List<LevelReferable> refs = new ArrayList<>();
       if (def.getLevelParameters() != null) {
@@ -65,7 +65,7 @@ public class DesugarVisitor extends BaseConcreteExpressionVisitor<Void> {
       for (LevelDefinition pDef : defs) {
         refs.addAll(pDef.getReferables());
       }
-      def.setLevelParameters(new Concrete.LevelParameters(def.getData(), refs, def.getLevelParameters() != null ? def.getLevelParameters().isIncreasing : firstDef.isIncreasing()));
+      def.setLevelParameters(new Concrete.LevelParameters(def.getData(), refs));
     }
   }
 
@@ -97,11 +97,13 @@ public class DesugarVisitor extends BaseConcreteExpressionVisitor<Void> {
     }
   }
 
-  private static Concrete.Expression makeThisClassCall(Object data, Referable classRef, Concrete.LevelParameters levelParams) {
-    List<Concrete.LevelExpression> levelArgs = levelParams == null ? Collections.emptyList() : new ArrayList<>(levelParams.referables.size());
+  private Concrete.Expression makeThisClassCall(Object data, TCDefReferable classRef, Concrete.LevelParameters levelParams) {
+    List<Concrete.LevelExpression> levelArgs = levelParams == null ? null : new ArrayList<>(levelParams.referables.size());
     if (levelParams != null) {
-      for (LevelReferable referable : levelParams.referables) {
-        levelArgs.add(new Concrete.VarLevelExpression(data, referable));
+      Concrete.LevelParameters classParams = myConcreteProvider.getConcrete(classRef) instanceof Concrete.ResolvableDefinition classDef ? classDef.getLevelParameters() : levelParams;
+      int size = classParams == null ? Math.min(1, levelParams.referables.size()) : classParams.referables.size();
+      for (int i = 0; i < size; i++) {
+        levelArgs.add(new Concrete.VarLevelExpression(data, levelParams.referables.get(i)));
       }
     }
     return Concrete.ClassExtExpression.make(data, new Concrete.ReferenceExpression(data, classRef, levelArgs), new Concrete.Coclauses(data, Collections.emptyList()));
@@ -114,7 +116,7 @@ public class DesugarVisitor extends BaseConcreteExpressionVisitor<Void> {
 
     if (def instanceof Concrete.CoClauseFunctionDefinition function) {
       if (myConcreteProvider.getConcrete(function.getUseParent()) instanceof Concrete.ResolvableDefinition parent) {
-        def.setLevelParameters(parent.getLevelParameters());
+        def.setLevelParameters(Concrete.LevelParameters.copyLevelParameters(def.getData(), parent.getLevelParameters()));
       }
     }
 

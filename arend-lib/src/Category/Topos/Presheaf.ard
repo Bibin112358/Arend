@@ -3,10 +3,10 @@
 \import Category.Coreflection
 \import Category.Functor
 \import Category.Limit
+\import Category.Subcat
 \import Category.Subobj
 \import Category.Topos
-\import Category.Topos.Sheaf
-\import Category.Yoneda
+\import Equiv
 \import Function.Meta
 \import Meta
 \import Order.PartialOrder
@@ -14,37 +14,52 @@
 \import Paths.Meta
 \import Set.SetCategory
 
-\instance VPresheafComplete (C : SmallPrecat) (D : CompleteCat.{\suc \lp}) : CompleteCat
+-- | Presheaves valued in {D}
+\record VPresheaf.{o2,h2,o1,h1} (D : Cat.{o2,h2}) (C : Precat.{o1,h1}) (\coerce F : Functor C.op D)
+
+-- | Presheaves valued in sets
+\record Presheaf.{s,o,h} \extends VPresheaf.{\suc s, s, o, h}
+  | D => SetCat.{s}
+
+\instance VPresheafCat.{o2,h2,o1,h1} (D : Cat.{o2,h2}) (C : Precat.{o1,h1}) : Cat
+  => subCat {FunctorCat {C.op} {D}} {VPresheaf D C} (\new Embedding {
+    | f P => P
+    | isEmb _ _ => \new Retraction {
+      | sec p => ext p
+      | f_sec => idpe
+    }
+  })
+
+\instance PresheafCat.{s,o,h} (C : Precat.{o,h}) : Cat
+  => VPresheafCat SetCat.{s} C
+
+\instance VPresheafComplete.{s,o2,h2,o1,h1} (D : CompleteCat.{s,o2,h2}) (C : Precat.{o1,h1}) : CompleteCat.{s}
   | Cat => VPresheafCat D C
-  | limit => limit'
+  | limit => limit
   \where {
-    \func limit' {J : Precat.{\lp,\lp}} (G : Functor J (VPresheafCat D C))
-      : Limit G => \new Limit {
+    \protected \func limit.{s,o2,h2,o1,h1} {D : CompleteCat.{s,o2,h2}} {C : Precat.{o1,h1}} {J : Precat.{s,s}} (G : Functor J (VPresheafCat D C)) : Limit G \cowith
       | apex => apex
       | coneMap => cone-nat-map
       | coneCoh h => exts $ \lam _ => coneCoh h
       | limMap => lim-nat-map
       | limBeta {z} z-cone _ => exts $ \lam X => unfold $ unfold $ rewrite (limBeta {L X} (cone-at-point X z z-cone)) idp
       | limUnique j-unique => exts $ \lam X => limUnique $ \lam j => path (\lam i => j-unique j i X)
-    }
       \where {
-        \func functor-at-point(c : C) : Functor J D => \new Functor {
+        \func functor-at-point (c : C) : Functor J D \cowith
           | F j => G j c
           | Func f => G.Func f c
           | Func-id {X} => rewrite (G.Func-id {X}) idp
           | Func-o => rewrite G.Func-o idp
-        }
 
-        \func L  (c : C) => D.limit {J} (functor-at-point c)
+        \func L (c : C) => D.limit {J} (functor-at-point c)
 
-        \func cone {X Y : C} (f : Hom Y X) : Cone (functor-at-point Y) => \new Cone {
+        \func cone {X Y : C} (f : Hom Y X) : Cone (functor-at-point Y) \cowith
           | apex => Cone.apex {L X}
           | coneMap j => Func f ∘ coneMap {L X} j
           | coneCoh h => rewriteI (coneCoh {L X} h, o-assoc, o-assoc)
               (rewrite (natural {Func {G} h} f) idp)
-        }
 
-        \func apex : VPresheaf D C => \new VPresheaf {
+        \func apex : VPresheaf D C \cowith
           | F => \new Functor {
             | F c => L c
             | Func f => limMap (cone f)
@@ -53,29 +68,25 @@
                                                                           limBeta {L Z} (cone g) j) (unfold coneMap
                 (rewrite (Func-o {G j}, o-assoc, o-assoc) (rewrite (limBeta {L Y} (cone f) j) (unfold coneMap idp)))))
           }
-        }
 
         \func cone-nat-map (j : J) : Hom apex (G j) => \new NatTrans {
           | trans c => coneMap {L c} j
           | natural {_} {Y} f => rewrite (limBeta {L Y} (cone f) j) idp
         }
 
-        \func cone-at-point (X : C) (H : VPresheaf D C) (z-cone : Cone {J} G H)
-          : Cone (functor-at-point X) (H X) => \new Cone {
+        \func cone-at-point (X : C) (H : VPresheaf D C) (z-cone : Cone {J} G H) : Cone (functor-at-point X) (H X) \cowith
           | coneMap j => coneMap {z-cone} j X
           | coneCoh h => path (\lam i => ((coneCoh {z-cone} h) i) X)
-        }
 
-        \func lim-nat-map {z : VPresheaf D C} (z-cone : Cone G z) : Hom z apex =>
-          \new NatTrans {
-            | trans X => limMap $ cone-at-point X z z-cone
-            | natural {X} {Y} f => limUnique (\lam (j : J) => unfold
-              $ rewrite (inv o-assoc, limBeta {L Y} (cone-at-point Y z z-cone) j,
-                         inv o-assoc, limBeta {L Y} (cone f), o-assoc,
-                         limBeta {L X} (cone-at-point X z z-cone))
-                  $ natural {coneMap {z-cone} j} f
-            )
-          }
+        \func lim-nat-map {z : VPresheaf D C} (z-cone : Cone G z) : Hom z apex => \new NatTrans {
+          | trans X => limMap $ cone-at-point X z z-cone
+          | natural {X} {Y} f => limUnique (\lam (j : J) => unfold
+            $ rewrite (inv o-assoc, limBeta {L Y} (cone-at-point Y z z-cone) j,
+                       inv o-assoc, limBeta {L Y} (cone f), o-assoc,
+                       limBeta {L X} (cone-at-point X z z-cone))
+                $ natural {coneMap {z-cone} j} f
+          )
+        }
       }
 
 --  \func bprod-at-point (X Y : Presheaf C) (c : C) (p : Product.apex {Bprod {PresheafCatComplete C} X Y} c)
@@ -87,21 +98,20 @@
 -- the proof of this should be completely analogues to the CompleteCat (VPresheafCat) instance.
 -- For example, it could be proven with a transport along the equality [C, D]^op = [C^op, D^op].
 
-\instance VPresheafCocomplete (C : SmallPrecat) (D : Cat.{\suc \lp}) : CocompleteCat (VPresheafCat D C)
+\instance VPresheafCocomplete.{s,o2,h2,o1,h1} (D : CocompleteCat.{s,o2,h2}) (C : Precat.{o1,h1}) : CocompleteCat.{s} (VPresheafCat D C)
  => {?}
 
-\instance VPresheafCatBicomplete (C : SmallPrecat) (D : BicompleteCat.{\suc \lp}) : BicompleteCat (VPresheafCat D C)
+\instance VPresheafCatBicomplete.{s,o2,h2,o1,h1} (D : BicompleteCat.{s,o2,h2}) (C : Precat.{o1,h1}) : BicompleteCat.{s} (VPresheafCat D C)
   | Cat => VPresheafCat D C
-  | limit => limit {VPresheafComplete C D}
-  | colimit => colimit {VPresheafCocomplete C D}
+  | limit => limit {VPresheafComplete D C}
+  | colimit => colimit {VPresheafCocomplete D C}
 
-\instance PresheafCatComplete (C : SmallPrecat) : CompleteCat (PresheafCat C) => VPresheafComplete C SetBicat
+\func PresheafCatBicomplete.{s,o,h} (C : Precat.{o,h}) : BicompleteCat.{s, \max (\suc s) (\max o h), \max s o} (PresheafCat.{s} C)
+  => VPresheafCatBicomplete.{s, \suc s, s, o, h} SetBicat.{s} C
 
-\func PresheafCatBicomplete (C : SmallPrecat) : BicompleteCat (PresheafCat C) => VPresheafCatBicomplete C SetBicat
+\func SubPresheave.{s,o,h} (C : Precat.{o,h}) (P : PresheafCat.{s} C)
+  => (SubobjPreorder {PresheafCat C} P).PosetC
 
-\func SubPresheave (C : SmallPrecat) (P : PresheafCat C) => Preorder.PosetC {SubobjPreorder {PresheafCat C} P}
-
-\open YonedaEmbedding
 --\open PrecatWithBprod
 
 --\instance PresheafCartesianClosed (C : SmallPrecat) : CartesianClosedPrecat

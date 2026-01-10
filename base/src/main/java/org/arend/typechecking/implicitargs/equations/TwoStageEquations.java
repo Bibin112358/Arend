@@ -847,7 +847,7 @@ public class TwoStageEquations implements Equations {
         solution.updateHasUniverses();
 
         for (ClassCallExpression lowerBound : pair.proj2) {
-          if (!lowerBound.getLevels(classDef).compare(levels, CMP.LE, this, pair.proj1.getSourceNode()) || !new CompareVisitor(this, CMP.LE, pair.proj1.getSourceNode()).compareClassCallLevels(lowerBound, solution)) {
+          if (!lowerBound.getLevels(classDef).compare(levels, CMP.LE, this, pair.proj1.getSourceNode()) || !new CompareVisitor(this, CMP.LE, pair.proj1.getSourceNode()).compareLevels(lowerBound, solution)) {
             reportBoundsError(pair.proj1, pair.proj2, CMP.GE);
             allOK = false;
             continue loop;
@@ -856,7 +856,6 @@ public class TwoStageEquations implements Equations {
       } else {
         solution = pair.proj2.getFirst();
         Map<ClassField, Expression> map = solution.getImplementedHere();
-        Expression thisExpr = new ReferenceExpression(solution.getThisBinding());
         for (int i = 1; i < pair.proj2.size(); i++) {
           Map<ClassField, Expression> otherMap = pair.proj2.get(i).getImplementedHere();
           if (map.size() != otherMap.size()) {
@@ -883,7 +882,7 @@ public class TwoStageEquations implements Equations {
           for (Map.Entry<ClassField, Expression> entry : map.entrySet()) {
             if (entry.getKey().isProperty()) continue;
             Expression other = otherMap.get(entry.getKey());
-            if (other == null || !CompareVisitor.compare(this, CMP.EQ, entry.getValue(), other, solution.getDefinition().getFieldType(entry.getKey(), solution.getLevels(entry.getKey().getParentClass()), thisExpr), pair.proj1.getSourceNode())) {
+            if (other == null || !CompareVisitor.compare(this, CMP.EQ, entry.getValue(), other, solution.getFieldType(entry.getKey()), pair.proj1.getSourceNode())) {
               reportBoundsError(pair.proj1, pair.proj2, CMP.LE);
               allOK = false;
               continue loop;

@@ -546,7 +546,7 @@ public class ConcreteCompareVisitor implements ConcreteExpressionVisitor<Concret
     if (params1 == params2) return true;
     if (params1 == null || params2 == null) return false;
     updateData(params1, params2);
-    if (params1.isIncreasing != params2.isIncreasing || params1.referables.size() != params2.referables.size()) return false;
+    if (params1.referables.size() != params2.referables.size()) return false;
     for (int i = 0; i < params1.referables.size(); i++) {
       if (!params1.referables.get(i).getRefName().equals(params2.referables.get(i).getRefName())) return false;
       mySubstitution.put(params1.referables.get(i), params2.referables.get(i));
