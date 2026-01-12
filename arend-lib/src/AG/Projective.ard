@@ -163,7 +163,7 @@
     \open CMonoid
     \open functorial
 
-    \func functor => \new Functor (Precat.op {framePresSite (ProjPres R)}) CRingBicat {
+    \func functor => \new Functor (Precat.op {FramePresSite (ProjPres R)}) CRingBicat {
       | F a => HomogenLocRing (powers a.1)
       | Func {a} {b} c => (functorial a.3 b.3 suc/=0 (ProjPres.cover_spec c)).1
       | Func-id {a} => \case (functorial a.3 a.3 suc/=0 (ProjPres.cover_spec (cover-inj () idp))).2 \with {
@@ -171,7 +171,7 @@
           | inP (s,q) => inv q *> ext (~-pequiv (rewrite (pow_*,t.5,pow_*-comm) equation) *> inv (pmap __.1 s.4))
         })
       }
-      | Func-o {a} {b} {c} {g} {f} => \case (functorial a.3 c.3 suc/=0 (ProjPres.cover_spec (g ∘ {Precat.op {framePresSite (ProjPres R)}} f))).2, (functorial b.3 c.3 suc/=0 (ProjPres.cover_spec g)).2, (functorial a.3 b.3 suc/=0 (ProjPres.cover_spec f)).2 \with {
+      | Func-o {a} {b} {c} {g} {f} => \case (functorial a.3 c.3 suc/=0 (ProjPres.cover_spec (g ∘ {Precat.op {FramePresSite (ProjPres R)}} f))).2, (functorial b.3 c.3 suc/=0 (ProjPres.cover_spec g)).2, (functorial a.3 b.3 suc/=0 (ProjPres.cover_spec f)).2 \with {
         | inP (t1,p1), inP (t2,p2), inP (t3,p3) => inv p1 *> exts (\lam e =>
           \case (smap a.3 c.3 t1.1 t1.2 t1.3 t1.4 t1.5 t1.6 e).2, (smap b.3 c.3 t2.1 t2.2 t2.3 t2.4 t2.5 t2.6 (smap a.3 b.3 t3.1 t3.2 t3.3 t3.4 t3.5 t3.6 e).1).2, (smap a.3 b.3 t3.1 t3.2 t3.3 t3.4 t3.5 t3.6 e).2 \with {
             | inP (s1,q1), inP (s2,q2), inP (s3,q3) => inv q1 *> ext (\case LocRing.unequals $ pmap __.1 $ inv s1.4 *> s3.4, LocRing.unequals $ pmap __.1 $ q3 *> s2.4 \with {
@@ -197,7 +197,7 @@
     \lemma natTrans-isEmb (a : ProjPres R) {x y : HomogenLocRing (powers a.1)} (p : x.1 = y.1) : x = y
       => ext p
 
-    \lemma subSheaf-lem {a : framePresSite (ProjPres R)} {J : \Set} {g : J -> SlicePrecat {framePresSite (ProjPres R)} a} (c : isBasicCover a g) (x : LocRing (powers a.1))
+    \lemma subSheaf-lem {a : FramePresSite (ProjPres R)} {J : \Set} {g : J -> ObOver {FramePresSite (ProjPres R)} a} (c : isBasicCover a g) (x : LocRing (powers a.1))
                         (h : \Pi (j : J) -> \Sigma (y : HomogenLocRing (powers (g j).1.1)) (y.1 = (affineRingedPres.functorial (SpecPres.cover_ideal (Cover.map {ProjPres.toSpec R} (g j).2))).1 x))
                         : ∃ (y : HomogenLocRing (powers a.1)) (y.1 = x) \elim x
       | in~ ((d1, d2, inP (n,idp)) \as d) => fromSubRing d \case \elim c \with {

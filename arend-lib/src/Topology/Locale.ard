@@ -716,14 +716,14 @@
       | cover-prod-inj' c1 c2 j p => cover-trans (Cover.cover-prod (cover'-cover c1) (cover'-cover c2)) (\lam _ => cover-inj j p)
   }
 
-\func framePresPreorder (P : FramePres) : Preorder P \cowith
+\func FramePresPreorder (P : FramePres) : Preorder P \cowith
   | <= => Cover1
   | <=-refl => cover-inj () idp
   | <=-transitive p q => cover-trans p (\lam _ => q)
 
-\func framePresSite (P : FramePres) : SiteWithBasis \cowith
-  | Precat => framePresPreorder P
-  | pullback {x y z : P} (f : Cover1 x z) (g : Cover1 y z) => \new Pullback {framePresPreorder P} f g {
+\func FramePresSite (P : FramePres) : SiteWithBasis \cowith
+  | Precat => FramePresPreorder P
+  | pullback {x y z : P} (f : Cover1 x z) (g : Cover1 y z) => \new Pullback {FramePresPreorder P} f g {
     | apex => conj x y
     | pbProj1 => cover-proj1 idp () idp
     | pbProj2 => cover-proj2 idp () idp
@@ -744,7 +744,7 @@
   | func-conj {x y : Dom} : func (conj x y) = conj (func x) (func y)
   | func-basicCover {J : \Set} {x : Dom} {f : J -> Dom} : BasicCover x f -> BasicCover (func x) (\lam j => func (f j))
 
-  \func functor : Functor (framePresSite Dom) (framePresSite Cod) \cowith
+  \func functor : Functor (FramePresSite Dom) (FramePresSite Cod) \cowith
     | F => func
     | Func => Cover.map
     | Func-id => idp

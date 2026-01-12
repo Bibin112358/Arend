@@ -13,7 +13,7 @@
 
 \record Presieve {C : Precat} (x : C) (\coerce S : \Pi {y : C} -> Hom y x -> \Prop) {
   \func diagram : Functor
-    => Comp (SlicePrecat.forget x) (subPrecat.embedding {SlicePrecat x} (\lam (p : \Sigma (y : SlicePrecat x) (S y.2)) => p.1))
+    => Comp (SlicePrecat.forget x) (subPrecat.embedding {SlicePrecat x} (\lam (p : \Sigma (y : ObOver x) (S y.2)) => p.1))
 
   \func cone : Cone diagram.op x \cowith
     | coneMap => __.1.2
@@ -88,19 +88,19 @@
   | cover-stable h {s} (inP (s' : Sieve, c, p)) => inP (s'.pullback (F.Func h), cover-stable (F.Func h) c, \lam g => p (h ∘ g) *> pmap (s' __) Func-o)
 
 \class SiteWithBasis.{p} \extends Site.{p}, PrecatWithPullbacks.{p,p} {
-  | isBasicCover (x : Ob) {J : \Set p} (g : J -> SlicePrecat x) : \Prop
-  | basicCover-stable {x y : Ob} (f : Hom x y) {J : \Set p} {g : J -> SlicePrecat y} : isBasicCover y g -> isBasicCover x (\lam j => pullbackFunctor f (g j))
-  | isCover x s => ∃ (J : \Set p) (g : J -> SlicePrecat x) (isBasicCover x g) (\Pi (j : J) -> s (g j).2)
+  | isBasicCover (x : Ob) {J : \Set p} (g : J -> ObOver x) : \Prop
+  | basicCover-stable {x y : Ob} (f : Hom x y) {J : \Set p} {g : J -> ObOver y} : isBasicCover y g -> isBasicCover x (\lam j => pullbackFunctor f (g j))
+  | isCover x s => ∃ (J : \Set p) (g : J -> ObOver x) (isBasicCover x g) (\Pi (j : J) -> s (g j).2)
   | cover-stable h {s} (inP (J,g,c,d)) => inP (J, \lam j => pullbackFunctor h (g j), basicCover-stable h c, \lam j => transportInv (s {_}) (Pullback.pbCoh {pullback h (g j).2}) (isSieve _ (d j)))
 
-  \lemma genSieve (a : Ob) {J : \Set p} (g : J -> SlicePrecat a) : Sieve a (\lam {b} f => ∃ (j : J) (h : Hom b (g j).1) ((g j).2 ∘ h = f)) \cowith
+  \lemma genSieve (a : Ob) {J : \Set p} (g : J -> ObOver a) : Sieve a (\lam {b} f => ∃ (j : J) (h : Hom b (g j).1) ((g j).2 ∘ h = f)) \cowith
     | isSieve {z} {y} f (inP (j,h,s)) => inP (j, h ∘ f, inv o-assoc *> pmap (`∘ f) s)
 }
 
 \record SiteWithBasisPrehom.{s} \extends Functor.{s,s,s,s} {
   \override C : SiteWithBasis.{s}
   \override D : SiteWithBasis.{s}
-  | F-basicCover {x : C} {J : \Set s} {g : J -> SlicePrecat x} : isBasicCover x g -> isBasicCover (F x) (\lam j => (F (g j).1, Func (g j).2))
+  | F-basicCover {x : C} {J : \Set s} {g : J -> ObOver x} : isBasicCover x g -> isBasicCover (F x) (\lam j => (F (g j).1, Func (g j).2))
   | F-pullback {x y z : C} {f : Hom x z} {g : Hom y z} : Iso {D} {F (pullback f g)} {pullback (Func f) (Func g)} $
       pbMap (Func pbProj1) (Func pbProj2) $ inv Func-o *> pmap Func pbCoh *> Func-o
 }
