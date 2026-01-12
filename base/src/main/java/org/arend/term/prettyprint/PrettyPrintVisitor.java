@@ -328,7 +328,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
   }
 
   private void printLevels(List<Concrete.LevelExpression> levels) {
-    if (levels == null) return;
+    if (levels == null || levels.isEmpty()) return;
 
     myBuilder.append(".{");
     boolean first = true;
@@ -350,9 +350,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
     }
     printReferenceName(expr, prec);
 
-    if (expr.getLevels() != null) {
-      printLevels(expr.getLevels());
-    }
+    printLevels(expr.getLevels());
     if (parens) {
       myBuilder.append(')');
     }
