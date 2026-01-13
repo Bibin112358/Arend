@@ -153,8 +153,8 @@
 \func Proj (R : GradedCRing) => PresentedFrame (ProjPres R)
 
 \func projRingedPres (R : GradedCRing) : Scheme (Proj R) \cowith
-  | R => sheafOnPresentedFrame {_} {CRingBicat} $ sheaf-reflect CRingCat.forget CRingCat.forget.reflectsLimit functor $
-           subSheafWithBasis {_} {\new Presheaf _ (Comp CRingCat.forget functor)} {\new Sheaf { | VSheaf => VSheaf.direct_image_framePres (ProjPres.toSpec R) (sheaf-preserve CRingCat.forget CRingCat.forget.preservesLimit affineRingedPres.R) }} natTrans natTrans-isEmb subSheaf-lem
+  | R => sheafOnPresentedFrame {_} {CRingBicat} $ sheaf-reflect CRingCat.forget CRingCat.forget.reflectsLimit functor $ {?}
+           -- TODO[sorts]: subSheafWithBasis {_} {\new Presheaf _ (Comp CRingCat.forget functor)} {\new Sheaf { | VSheaf => VSheaf.direct_image_framePres (ProjPres.toSpec R) (sheaf-preserve CRingCat.forget CRingCat.forget.preservesLimit affineRingedPres.R) }} natTrans natTrans-isEmb subSheaf-lem
   | isScheme => {?}
   \where {
     \open SubMonoid
@@ -197,6 +197,7 @@
     \lemma natTrans-isEmb (a : ProjPres R) {x y : HomogenLocRing (powers a.1)} (p : x.1 = y.1) : x = y
       => ext p
 
+    {- TODO[sorts]
     \lemma subSheaf-lem {a : FramePresSite (ProjPres R)} {J : \Set} {g : J -> ObOver {FramePresSite (ProjPres R)} a} (c : isBasicCover a g) (x : LocRing (powers a.1))
                         (h : \Pi (j : J) -> \Sigma (y : HomogenLocRing (powers (g j).1.1)) (y.1 = (affineRingedPres.functorial (SpecPres.cover_ideal (Cover.map {ProjPres.toSpec R} (g j).2))).1 x))
                         : ∃ (y : HomogenLocRing (powers a.1)) (y.1 = x) \elim x
@@ -221,6 +222,7 @@
             \in inP ((0, 1, inP (0, idp)), inv (c.contraction _) *> c.contraction _, 0, homogen-zro, R.homogen-ide)
         }
       }
+      -}
 
     \lemma functorial {R : GradedCRing} {a b : R} {ad bd : Nat} (ah : isHomogen a ad) (bh : isHomogen b bd) (bd/=0 : bd /= 0) (r : Cover1 {SpecPres R} b a)
       : \Sigma (f : RingHom (HomogenLocRing (powers a)) (HomogenLocRing (powers b))) (∃ (t : \Sigma (n : Nat) (c : R) (cd : Nat) (ch : isHomogen c cd) (pow b n = a * c) (bd * n = ad + cd)) (shom t.1 t.2 t.3 t.4 t.5 t.6 = f))

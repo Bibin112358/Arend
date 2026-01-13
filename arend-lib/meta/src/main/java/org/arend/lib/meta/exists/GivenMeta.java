@@ -101,7 +101,7 @@ public class GivenMeta implements MetaDefinition {
           i++;
         }
         if (sigmaRefs.size() % piParams.size() != 0) {
-          typechecker.getErrorReporter().report(new TypecheckingError("Expected (" + piParams.size() + " * n) parameters", param));
+          typechecker.getErrorReporter().report(new TypecheckingError("The number of parameters should be divisible by " + piParams.size(), param));
           return null;
         }
 

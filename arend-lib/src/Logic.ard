@@ -44,6 +44,11 @@
           => \lam (b, inP (a,fa=b)) (b', inP (a',fa'=b')) => ext $ inv fa=b *> p a a' *> fa'=b'
       }
 
+    \lemma rec-set-eval {A : \Sort} {B : \Set} (a : A) {f : A -> B} {p : \Pi (a a' : A) -> f a = f a'} : (rec-set (inP a) f p).1 = f a
+      => \case (rec-set (inP a) f p).2 \with {
+        | inP (a',q) => inv q *> p a' a
+      }
+
     \func map {A B : \Sort} (t : TruncP A) (f : A -> B) : TruncP B \elim t
       | inP a => inP (f a)
   }

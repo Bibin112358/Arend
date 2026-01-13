@@ -2,8 +2,7 @@
 \import Category.Functor
 \import Category.Limit
 \import Category.Topos.Presheaf
-\import Category.Topos.Sheaf
-\import Equiv (IsEquiv, QEquiv)
+\import Equiv
 \import Function.Meta
 \import Logic
 \import Meta
