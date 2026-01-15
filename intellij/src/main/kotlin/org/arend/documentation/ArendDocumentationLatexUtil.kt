@@ -9,8 +9,8 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.updateSettings.impl.pluginsAdvertisement.getPluginSuggestionNotificationGroup
 import com.intellij.util.ui.ImageUtil
-import org.arend.documentation.ArendDocumentationProvider.Companion.COEFFICIENT_HTML_FONT
-import org.arend.documentation.ArendDocumentationProvider.Companion.COEFFICIENT_LATEX_FONT
+import org.arend.documentation.ArendDocumentationGenerator.COEFFICIENT_HTML_FONT
+import org.arend.documentation.ArendDocumentationGenerator.COEFFICIENT_LATEX_FONT
 import org.arend.util.ArendBundle
 import org.scilab.forge.jlatexmath.ParseException
 import org.scilab.forge.jlatexmath.TeXConstants

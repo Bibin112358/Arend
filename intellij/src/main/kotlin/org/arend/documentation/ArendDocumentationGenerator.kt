@@ -3,10 +3,8 @@ package org.arend.documentation
 import com.intellij.codeInsight.documentation.DocumentationManagerProtocol.PSI_ELEMENT_PROTOCOL
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.IdeEventQueue
-import com.intellij.lang.documentation.AbstractDocumentationProvider
 import com.intellij.lang.documentation.DocumentationMarkup.*
 import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.colors.EditorColors
 import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.project.Project
@@ -14,10 +12,8 @@ import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.JBPopupListener
 import com.intellij.openapi.ui.popup.LightweightWindowEvent
 import com.intellij.openapi.util.Pair
-import com.intellij.openapi.wm.WindowManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.jcef.JBCefBrowser
 import com.intellij.ui.jcef.JBCefBrowserBase
@@ -50,38 +46,83 @@ import javax.swing.SwingUtilities
 import javax.swing.UIManager
 import kotlin.math.roundToInt
 
+object ArendDocumentationGenerator {
+    const val COEFFICIENT_HTML_FONT = 1.2
+    const val COEFFICIENT_LATEX_FONT = 1.25
+    const val DEFAULT_FONT = 15.0f
 
-class ArendDocumentationProvider : AbstractDocumentationProvider() {
+    private const val END_FONT_HTML = ";}"
+    private const val ROW_FONT_HTML = ".row { font-size: "
+    private const val DEFINITION_FONT_HTML = ".definition { font-size: "
+    private const val CONTENT_FONT_HTML = ".content { font-size: "
 
     private var popupCefBrowserHtml = ""
     private var lastElement: PsiElement? = null
     private var lastOriginalElement: PsiElement? = null
 
-    override fun getQuickNavigateInfo(element: PsiElement, originalElement: PsiElement?) = generateDoc(element, originalElement, false)
+    fun generateDoc(element: PsiElement, originalElement: PsiElement?, withDocComments: Boolean = true, suggestedFont: Int? = null): String? {
+        val ref = element as? PsiReferable ?: (element as? ArendDocComment)?.owner
+        ?: return if (element.isArendKeyword()) generateDocForKeywords(element) else null
 
-    override fun generateDoc(element: PsiElement, originalElement: PsiElement?) = generateDoc(element, originalElement, true)
+        val font = suggestedFont ?:
+            (UIManager.getDefaults().getFont("Label.font")
+                ?.size?.times(COEFFICIENT_HTML_FONT))?.roundToInt()
+        val docCommentInfo = ArendDocCommentInfo(hasLatexCode = false, wasPrevRow = false,
+            suggestedFont = font?.times(COEFFICIENT_LATEX_FONT)?.toFloat() ?: DEFAULT_FONT)
 
-    override fun getDocumentationElementForLink(psiManager: PsiManager?, link: String, context: PsiElement?): PsiElement? {
-        if (link.startsWith(ACTION_PREFIX)) {
-            val elementText = link.removePrefix(ACTION_PREFIX)
-            invokeLater {
-                val color = getHtmlRgbFormat(UIManager.getColor("PopupMenu.foreground").rgb)
-                showInCefBrowser(elementText, color, psiManager?.project ?: context?.project)
+        val latexImagesDir = File(LATEX_IMAGES_DIR)
+        if (latexImagesDir.exists()) latexImagesDir.deleteRecursively()
+
+        var offsetStartText = -1
+        val htmlBuilder = StringBuilder().apply { wrapTag("html") {
+            if (withDocComments) {
+                wrapTag("head") {
+                    wrapTag("style") {
+                        append(".normal_text { white_space: nowrap; }.code { white_space: pre; }")
+                        if (font != null) {
+                            append("$ROW_FONT_HTML$font$END_FONT_HTML")
+                            append("$DEFINITION_FONT_HTML$font$END_FONT_HTML")
+                            append("$CONTENT_FONT_HTML$font$END_FONT_HTML")
+                        }
+                    }
+                }
             }
-            return null
-        }
-        val longName = link.removePrefix(FULL_PREFIX)
-        val scope = getReferableScope(((context as? ArendDocComment)?.owner as? ReferableBase<*>) ?: (context as? ReferableBase<*>))
-        if (scope is EmptyScope) return null
-        val ref = RedirectingReferable.getOriginalReferable(Scope.resolveName(scope, LongName.fromString(longName).toList()))
-        return if (ref is PsiReferable && longName.length != link.length) ref.documentation else ((ref as? LocatedReferableImpl)?.data as? PsiElement)
-    }
 
-    override fun getCustomDocumentationElement(editor: Editor, file: PsiFile, contextElement: PsiElement?, targetOffset: Int): PsiElement? {
-        if (contextElement?.isArendKeyword() == true) {
-            return contextElement
+            append("<body ")
+            if (withDocComments) {
+                val scheme = EditorColorsManager.getInstance().globalScheme
+                append("style=\"color:${getHtmlRgbFormat(UIManager.getColor("Label.foreground").rgb)};" +
+                        "background-color:${getHtmlRgbFormat(scheme.getColor(EditorColors.DOCUMENTATION_COLOR)?.rgb ?: 0)};\">")
+            }
+            offsetStartText = this.length
+            wrap(DEFINITION_START, DEFINITION_END) {
+                generateDefinition(ref)
+            }
+
+            wrap(CONTENT_START, CONTENT_END) {
+                generateContent(ref, originalElement)
+            }
+
+            if (withDocComments) {
+                val doc = element as? ArendDocComment ?: ref.documentation
+                if (doc != null) {
+                    docCommentInfo.hasLatexCode = hasLatexCode(doc)
+
+                    wrap(CONTENT_START, CONTENT_END) {
+                        generateDocComments(ref, doc, element is ArendDocComment, docCommentInfo)
+                    }
+                }
+            }
+            append("</body>")
+        } }
+        if (docCommentInfo.hasLatexCode) {
+            val elementText = ref.refName
+            popupCefBrowserHtml = htmlBuilder.toString()
+            lastElement = element
+            lastOriginalElement = originalElement
+            htmlBuilder.insert(offsetStartText, "<a href=\"${PSI_ELEMENT_PROTOCOL}${ACTION_PREFIX}$elementText\">Open in another browser</a>")
         }
-        return null
+        return htmlBuilder.toString()
     }
 
     private fun generateDocForKeywords(element: PsiElement): String {
@@ -105,67 +146,12 @@ class ArendDocumentationProvider : AbstractDocumentationProvider() {
         } }
     }
 
-    private fun generateDoc(element: PsiElement, originalElement: PsiElement?, withDocComments: Boolean, suggestedFont: Int? = null): String? {
-        val ref = element as? PsiReferable ?: (element as? ArendDocComment)?.owner
-        ?: return if (element.isArendKeyword()) generateDocForKeywords(element) else null
-
-        val font = suggestedFont ?:
-            (UIManager.getDefaults().getFont("Label.font")
-                ?.size?.times(COEFFICIENT_HTML_FONT))?.roundToInt()
-        val docCommentInfo = ArendDocCommentInfo(hasLatexCode = false, wasPrevRow = false,
-            suggestedFont = font?.times(COEFFICIENT_LATEX_FONT)?.toFloat() ?: DEFAULT_FONT)
-
-        var offsetStartText = -1
-        val htmlBuilder = StringBuilder().apply { wrapTag("html") {
-            if (withDocComments) {
-                wrapTag("head") {
-                    wrapTag("style") {
-                        append(".normal_text { white_space: nowrap; }.code { white_space: pre; }")
-                        if (font != null) {
-                            append("$ROW_FONT_HTML$font$END_FONT_HTML")
-                            append("$DEFINITION_FONT_HTML$font$END_FONT_HTML")
-                            append("$CONTENT_FONT_HTML$font$END_FONT_HTML")
-                        }
-                    }
-                }
-            }
-
-            append("<body ")
-            if (withDocComments) {
-                val scheme = EditorColorsManager.getInstance().globalScheme
-                append("style=\"color:${getHtmlRgbFormat(UIManager.getColor("PopupMenu.foreground").rgb)};" +
-                        "background-color:${getHtmlRgbFormat(scheme.getColor(EditorColors.DOCUMENTATION_COLOR)?.rgb ?: 0)};\">")
-            }
-            offsetStartText = this.length
-            wrap(DEFINITION_START, DEFINITION_END) {
-                generateDefinition(ref)
-            }
-
-            wrap(CONTENT_START, CONTENT_END) {
-                generateContent(ref, originalElement)
-            }
-
-            if (withDocComments) {
-                val doc = element as? ArendDocComment ?: ref.documentation
-                if (doc != null) {
-                    File(LATEX_IMAGES_DIR).deleteRecursively()
-                    docCommentInfo.hasLatexCode = hasLatexCode(doc)
-
-                    wrap(CONTENT_START, CONTENT_END) {
-                        generateDocComments(ref, doc, element is ArendDocComment, docCommentInfo)
-                    }
-                }
-            }
-            append("</body>")
-        } }
-        if (docCommentInfo.hasLatexCode) {
-            val elementText = ref.refName
-            popupCefBrowserHtml = htmlBuilder.toString()
-            lastElement = element
-            lastOriginalElement = originalElement
-            htmlBuilder.insert(offsetStartText, "<a href=\"${PSI_ELEMENT_PROTOCOL}${ACTION_PREFIX}$elementText\">Open in another browser</a>")
-        }
-        return htmlBuilder.toString()
+    fun getDocumentationElementForLink(link: String, context: PsiElement?): PsiElement? {
+        val longName = link.removePrefix(FULL_PREFIX)
+        val scope = getReferableScope(((context as? ArendDocComment)?.owner as? ReferableBase<*>) ?: (context as? ReferableBase<*>))
+        if (scope is EmptyScope) return null
+        val ref = RedirectingReferable.getOriginalReferable(Scope.resolveName(scope, LongName.fromString(longName).toList()))
+        return if (ref is PsiReferable && longName.length != link.length) ref.documentation else ((ref as? LocatedReferableImpl)?.data as? PsiElement)
     }
 
     private fun changeCefBrowserSize(browser: JBCefBrowser, shift: Double) {
@@ -180,7 +166,7 @@ class ArendDocumentationProvider : AbstractDocumentationProvider() {
         browser.loadHTML(popupCefBrowserHtml)
     }
 
-    private fun showInCefBrowser(title: String, linkColor: String, project: Project?) {
+    fun showInCefBrowser(title: String, linkColor: String, project: Project?) {
         val browser = JBCefBrowser()
         browser.component.preferredSize = Dimension(1, 1)
 
@@ -385,16 +371,5 @@ class ArendDocumentationProvider : AbstractDocumentationProvider() {
         }
 
         return null
-    }
-
-    companion object {
-        const val COEFFICIENT_HTML_FONT = 1.2
-        const val COEFFICIENT_LATEX_FONT = 1.25
-        const val DEFAULT_FONT = 15.0f
-
-        const val END_FONT_HTML = ";}"
-        const val ROW_FONT_HTML = ".row { font-size: "
-        const val DEFINITION_FONT_HTML = ".definition { font-size: "
-        const val CONTENT_FONT_HTML = ".content { font-size: "
     }
 }

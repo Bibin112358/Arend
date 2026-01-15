@@ -81,8 +81,11 @@
 
         <!-- Documentation -->
 
-        <lang.documentationProvider language="Arend"
-                                    implementationClass="org.arend.documentation.ArendDocumentationProvider"/>
+        <platform.backend.documentation.psiTargetProvider
+                implementation="org.arend.documentation.ArendDocumentationTargetProvider"/>
+
+        <platform.backend.documentation.linkHandler
+                implementation="org.arend.documentation.ArendDocumentationLinkHandler"/>
 
         <lang.documentationProvider language="INJECTION_TEXT"
                                     implementationClass="org.arend.injection.PsiInjectionTextDocumentationProvider"/>
