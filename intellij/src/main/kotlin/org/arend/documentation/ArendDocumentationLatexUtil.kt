@@ -36,7 +36,7 @@ internal fun getHtmlLatexCode(title: String, latexCode: String, project: Project
         val image = ImageUtil.createImage(icon.iconWidth, icon.iconHeight, BufferedImage.TYPE_INT_ARGB)
 
         val label = JLabel()
-        label.setForeground(UIManager.getColor("PopupMenu.foreground"))
+        label.foreground = UIManager.getColor("PopupMenu.foreground")
 
         val graphics = image.createGraphics()
         graphics.color = EditorColorsManager.getInstance().globalScheme.getColor(EditorColors.DOCUMENTATION_COLOR)
