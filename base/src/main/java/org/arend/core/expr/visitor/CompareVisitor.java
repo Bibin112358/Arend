@@ -324,15 +324,9 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
     CMP origCMP = myCMP;
     if (!myOnlySolveVars && myAllowEquations) {
       Boolean dataAndApp = checkDefCallAndApp(expr1, expr2, true);
-      if (dataAndApp != null) {
-        if (!dataAndApp) initResult(expr1, expr2);
-        return dataAndApp;
-      }
+      if (dataAndApp != null) return dataAndApp;
       dataAndApp = checkDefCallAndApp(expr2, expr1, false);
-      if (dataAndApp != null) {
-        if (!dataAndApp) initResult(expr1, expr2);
-        return dataAndApp;
-      }
+      if (dataAndApp != null) return dataAndApp;
     }
 
     if (!myOnlySolveVars && myNormalCompare) {
@@ -380,6 +374,9 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
     }
     if (myOnlySolveVars) {
       ok = true;
+    }
+    if (ok) {
+      myResult = null;
     }
     myOnlySolveVars = onlySolveVars;
     return ok;
@@ -1193,6 +1190,8 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
       }
       List<? extends Expression> oldList = oldDataArgs.subList(numberOfOldArgs, oldDataArgs.size());
       if (!compareLists(correctOrder ? oldList : args, correctOrder ? args : oldList, null, defCall1.getDefinition(), substitution)) {
+        myResult = null;
+        initResult(correctOrder ? expr1 : expr2, correctOrder ? expr2 : expr1);
         return false;
       }
 
@@ -1261,13 +1260,20 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
 
       Expression finalExpr1 = correctOrder ? lam : substitute(fun);
       Expression finalExpr2 = correctOrder ? fun : substitute(lam);
+      Boolean ok;
       if (variable.isSolved()) {
         CompareVisitor visitor = new CompareVisitor(myEquations, myCMP, variable.getSourceNode());
         visitor.myNormalCompare = myNormalCompare;
-        return visitor.compare(finalExpr1, finalExpr2, null, true);
+        ok = visitor.compare(finalExpr1, finalExpr2, null, true);
       } else {
-        return myNormalCompare && myEquations.addEquation(finalExpr1, finalExpr2, null, myCMP, variable.getSourceNode(), correctOrder ? null : variable, correctOrder ? variable : null) ? true : null;
+        ok = myNormalCompare && myEquations.addEquation(finalExpr1, finalExpr2, null, myCMP, variable.getSourceNode(), correctOrder ? null : variable, correctOrder ? variable : null) ? true : null;
       }
+      if (ok != null && !ok) {
+        myResult = null;
+        initResult(correctOrder ? expr1 : expr2, correctOrder ? expr2 : expr1);
+        return null;
+      }
+      return ok;
     }
   }
 
