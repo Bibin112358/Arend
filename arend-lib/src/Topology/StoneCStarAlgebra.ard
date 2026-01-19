@@ -115,12 +115,12 @@
   | c*-sum {a b : E} : norm (a * a) ExUpperReal.<= norm (a * a + b * b)
   | c*-square {a : E} : norm a ExUpperReal.* norm a ExUpperReal.<= norm (a * a)
 
-  \lemma norm_*-char {x : E} : norm x = Join \lam (s : \Sigma (y : E) (norm y <= ExUpperRealPointed.ide)) => norm (x * s.1)
+  \lemma norm_*-char {x : E} : norm x = ExUpperRealLattice.SJoin (\lam y => norm (x * y)) (norm __ <= ExUpperRealPointed.ide)
     => <=-antisymmetric (\lam {b} (inP (a,a<b,f)) =>
-      \have a>0 => norm>=0 $ f (0, =_<= norm_zro <=∘ <=-less ExUpperRealAbMonoid.zro<ide)
+      \have a>0 => norm>=0 $ f $ inP ((0, =_<= norm_zro <=∘ <=-less ExUpperRealAbMonoid.zro<ide), idp)
       \in ExUpperRealSemigroup.square-bound-div (norm-bounded x) (<=-less a>0) (ExUpperRealSemigroup.finv_<=-rotate-right a>0 \lam {c} |x|<c =>
-        \have |xx|<ca => ExUpperRealSemigroup.finv_<-rotate-right (norm>=0 |x|<c) $ transport (ExUpperRealAbMonoid.`< a) (norm_*q-ofPos $ <=-less $ RatField.finv>0 $ norm>=0 |x|<c) $ transportInv (norm __ < a) toRatAlgebra.*c-comm-right $ ExUpperRealAbMonoid.<-rat.2 $ f (RatField.finv c *q x, <=-less $ transportInv (`< _) (norm_*q-ofPos $ <=-less $ RatField.finv>0 $ norm>=0 |x|<c) $ ExUpperRealSemigroup.finv_<-rotate-left (norm>=0 |x|<c) ExUpperRealAbMonoid.zro<ide $ transportInv (_ <) (ExUpperRealSemigroup.ide-right $ <=-less $ ExUpperRealAbMonoid.<-rat.2 $ norm>=0 |x|<c) $ ExUpperRealAbMonoid.<-rat.2 |x|<c)
-        \in ExUpperRealAbMonoid.<-rat.1 $ ExUpperRealSemigroup.finv_<-rotate-left a>0 (ExUpperRealAbMonoid.<-rat.2 $ norm>=0 |x|<c) $ transport (_ <) ExUpperRealSemigroup.*-comm $ c*-square <∘r |xx|<ca) a<b) $ Join-univ \lam s => norm_*_<= <=∘ ExUpperRealSemigroup.<=_* <=-refl s.2 <=∘ =_<= (ExUpperRealSemigroup.ide-right norm>=0)
+        \have |xx|<ca => ExUpperRealSemigroup.finv_<-rotate-right (norm>=0 |x|<c) $ transport (ExUpperRealAbMonoid.`< a) (norm_*q-ofPos $ <=-less $ RatField.finv>0 $ norm>=0 |x|<c) $ transportInv (norm __ < a) toRatAlgebra.*c-comm-right $ ExUpperRealAbMonoid.<-rat.2 $ f $ inP ((RatField.finv c *q x, <=-less $ transportInv (`< _) (norm_*q-ofPos $ <=-less $ RatField.finv>0 $ norm>=0 |x|<c) $ ExUpperRealSemigroup.finv_<-rotate-left (norm>=0 |x|<c) ExUpperRealAbMonoid.zro<ide $ transportInv (_ <) (ExUpperRealSemigroup.ide-right $ <=-less $ ExUpperRealAbMonoid.<-rat.2 $ norm>=0 |x|<c) $ ExUpperRealAbMonoid.<-rat.2 |x|<c), idp)
+        \in ExUpperRealAbMonoid.<-rat.1 $ ExUpperRealSemigroup.finv_<-rotate-left a>0 (ExUpperRealAbMonoid.<-rat.2 $ norm>=0 |x|<c) $ transport (_ <) ExUpperRealSemigroup.*-comm $ c*-square <∘r |xx|<ca) a<b) $ ExUpperRealLattice.SJoin-univ $ later \lam |a|<=1 => norm_*_<= <=∘ ExUpperRealSemigroup.<=_* <=-refl |a|<=1 <=∘ =_<= (ExUpperRealSemigroup.ide-right norm>=0)
 }
 
 \class StoneC*Algebra \extends StoneC*PseudoAlgebra, RealBanachAlgebra, OrderedC*Algebra, PosetRing {

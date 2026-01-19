@@ -32,8 +32,8 @@
 
   \lemma open-union {U V : Set E} (Uo : isOpen U) (Vo : isOpen V) : isOpen (U ∨ V)
     => cover-open $ later \case \elim __ \with {
-      | inP (true,Ux) => inP (U, Uo, Ux, join-left)
-      | inP (false,Vx) => inP (V, Vo, Vx, join-right)
+      | inP (_, byLeft idp, Ux) => inP (U, Uo, Ux, join-left)
+      | inP (_, byRight idp, Vx) => inP (V, Vo, Vx, join-right)
     }
 
   \type \infix 4 <=<T (V U : Set E) : \Prop

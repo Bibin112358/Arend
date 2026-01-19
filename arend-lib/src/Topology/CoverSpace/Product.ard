@@ -57,10 +57,10 @@
                   | filter-top => inP (top, top, <=<_top, <=<_top, \lam _ _ => ())
                   | filter-meet (inP (U,V,x<=<U,y<=<V,q)) (inP (U',V',x<=<U',y<=<V',q')) => inP (U ∧ U', V ∧ V', RatherBelow.<=<_meet-same x<=<U x<=<U', RatherBelow.<=<_meet-same y<=<V y<=<V', \lam (Ux,U'x) (Vy,V'y) => (q Ux Vy, q' U'x V'y))
                 }) (\case __ \with {
-                      | inP (true, Dc) => \case CoverSpace.cauchy-regular-cover Dc x \with {
+                      | inP (_, byLeft idp, Dc) => \case CoverSpace.cauchy-regular-cover Dc x \with {
                         | inP (U, inP (W,CW,p), x<=<U) => inP (W, CW, inP (U, top, x<=<U, <=<_top, \lam Ux _ => p Ux))
                       }
-                      | inP (false, Dc) => \case CoverSpace.cauchy-regular-cover Dc y \with {
+                      | inP (_, byRight idp, Dc) => \case CoverSpace.cauchy-regular-cover Dc y \with {
                         | inP (V, inP (W,CW,p), y<=<V) => inP (W, CW, inP (top, V, <=<_top, y<=<V, \lam _ Vy => p Vy))
                       }
       }) xy<=<W \with {
@@ -80,8 +80,8 @@
         \func precover {Z : PrecoverSpace} {X Y : CoverSpace} (f : PrecoverMap Z X) (g : PrecoverMap Z Y) : PrecoverMap Z (X ⨯ Y) \cowith
           | func z => (f z, g z)
           | func-cover => closure-univ-cover $ later \case __ \with {
-            | inP (true, Dc) => cauchy-refine (f.func-cover Dc) \lam (inP (V, inP (U',CU',q), p)) => inP (_, inP (U',CU',idp), \lam Ux => q $ rewrite p in Ux)
-            | inP (false, Dc) => cauchy-refine (g.func-cover Dc) \lam (inP (V, inP (U',CU',q), p)) => inP (_, inP (U',CU',idp), \lam Ux => q $ rewrite p in Ux)
+            | inP (_, byLeft idp,  Dc) => cauchy-refine (f.func-cover Dc) \lam (inP (V, inP (U',CU',q), p)) => inP (_, inP (U',CU',idp), \lam Ux => q $ rewrite p in Ux)
+            | inP (_, byRight idp, Dc) => cauchy-refine (g.func-cover Dc) \lam (inP (V, inP (U',CU',q), p)) => inP (_, inP (U',CU',idp), \lam Ux => q $ rewrite p in Ux)
           }
       }
 
@@ -90,8 +90,8 @@
       \where {
         \lemma isEmbedding {X Y X' Y' : CoverSpace} {f : CoverMap X Y} {g : CoverMap X' Y'} (fe : f.IsEmbedding) (ge : g.IsEmbedding) : CoverMap.IsEmbedding {prod f g}
           => closure-embedding (\lam c => c) (prod f g) \case __ \with {
-            | inP (true,  Dc) => closure $ inP (true,  cauchy-subset (fe Dc) \lam (inP (V, inP (W,CW,q), p)) => inP $ later (_, inP (W, CW, (\lam c => p c) <=∘ q), <=-refl))
-            | inP (false, Dc) => closure $ inP (false, cauchy-subset (ge Dc) \lam (inP (V, inP (W,CW,q), p)) => inP $ later (_, inP (W, CW, (\lam c => p c) <=∘ q), <=-refl))
+            | inP (_, byLeft idp,  Dc) => closure $ inP (_, byLeft idp,  cauchy-subset (fe Dc) \lam (inP (V, inP (W,CW,q), p)) => inP $ later (_, inP (W, CW, (\lam c => p c) <=∘ q), <=-refl))
+            | inP (_, byRight idp, Dc) => closure $ inP (_, byRight idp, cauchy-subset (ge Dc) \lam (inP (V, inP (W,CW,q), p)) => inP $ later (_, inP (W, CW, (\lam c => p c) <=∘ q), <=-refl))
           }
 
         \lemma isDenseEmbedding {X X' Y Y' : CoverSpace} {f : CoverMap X Y} {g : CoverMap X' Y'} (fde : f.IsDenseEmbedding) (gde : g.IsDenseEmbedding) : CoverMap.IsDenseEmbedding {prod f g}
@@ -115,8 +115,8 @@
 \instance ProductStronglyRegularCoverSpace (X Y : StronglyRegularCoverSpace) : StronglyRegularCoverSpace (\Sigma X Y)
   | CoverSpace => ProductCoverSpace X Y
   | isStronglyRegular => ClosureCoverSpace.closure-regular StronglyRatherBelow $ later \case \elim __ \with {
-    | inP (true, Cc) => closure $ inP (true, cauchy-subset (isStronglyRegular Cc) \lam {W} (inP (V, inP (U,CU,p), W<=<V)) => inP $ later (_, inP (U, CU, <=<-left (s<=<_^-1 proj1 W<=<V) p), <=-refl))
-    | inP (false, Cc) => closure $ inP (false, cauchy-subset (isStronglyRegular Cc) \lam {W} (inP (V, inP (U,CU,p), W<=<V)) => inP $ later (_, inP (U, CU, <=<-left (s<=<_^-1 proj2 W<=<V) p), <=-refl))
+    | inP (_, byLeft idp,  Cc) => closure $ inP (CoverTransfer __.1, byLeft idp,  cauchy-subset (isStronglyRegular Cc) \lam {W} (inP (V, inP (U,CU,p), W<=<V)) => inP $ later (_, inP (U, CU, <=<-left (s<=<_^-1 proj1 W<=<V) p), <=-refl))
+    | inP (_, byRight idp, Cc) => closure $ inP (CoverTransfer __.2, byRight idp, cauchy-subset (isStronglyRegular Cc) \lam {W} (inP (V, inP (U,CU,p), W<=<V)) => inP $ later (_, inP (U, CU, <=<-left (s<=<_^-1 proj2 W<=<V) p), <=-refl))
   }
 
 \instance StronglyRegularCoverSpaceHasProduct : HasProduct StronglyRegularCoverSpace
@@ -144,10 +144,10 @@
     | inP (x,Ux), inP (y,Vy) => inP ((x,y), f Ux Vy)
   }
   | isCauchyFilter => ClosurePrecoverSpace.closure-filter \this $ later \case __ \with {
-    | inP (true, Dc) => \case F.isCauchyFilter Dc \with {
+    | inP (_, byLeft idp, Dc) => \case F.isCauchyFilter Dc \with {
       | inP (V, inP (U,CU,q), FV) => inP (U, CU, inP (V, FV, top, filter-top, \lam Vx _ => q Vx))
     }
-    | inP (false, Dc) => \case G.isCauchyFilter Dc \with {
+    | inP (_, byRight idp, Dc) => \case G.isCauchyFilter Dc \with {
       | inP (V, inP (U,CU,q), GV) => inP (U, CU, inP (top, filter-top, V, GV, \lam _ Vy => q Vy))
     }
   }

@@ -33,6 +33,7 @@
 \import Logic.Meta
 \import Meta
 \import Order.Lattice
+\import Order.Lattice.CompleteLattice
 \import Order.PartialOrder
 \import Paths
 \import Paths.Meta
@@ -40,7 +41,6 @@
 \import Set.SetCategory
 \import Topology.Locale
 \open Monoid
-\open CompleteLattice (SJoin)
 \open Ideal
 
 \func SpecPres (R : CRing) : FramePres R \cowith
@@ -270,7 +270,7 @@
 
 \record LocallyRingedLocale \extends RingedLocale
   | isNonTrivial (a : L) : 0 = {R.F a} 1 -> a <= bottom
-  | isLocallyRinged (a : L) (x : R.F a) : a <= SJoin (\lam b => \Sigma (p : b <= a) (EitherInv \this p x))
+  | isLocallyRinged (a : L) (x : R.F a) : a <= Join (\lam b => \Sigma (p : b <= a) (EitherInv \this p x))
   \where {
     \func EitherInv (L : RingedLocale) {a b : L} (p : b <= a) (x : L.R.F a)
       => Inv (L.R.F.Func p x) || Inv (L.R.F.Func p x + 1)
@@ -310,7 +310,7 @@
   | RingedLocale => ringedLocaleFromPres P
   | isNonTrivial U t {x} Ux => cover-trans (isNonTrivialPres x $ pmap (__.1 (x, \lam {y} c => U.2 y $ Cover.cover-trans1 c $ cover-inj (x,Ux) idp)) t) (\case __)
   | isLocallyRinged U x {a} Ua => cover-trans (isLocallyRingedPres a (x.1 (a, \lam {z} c => U.2 z $ Cover.cover-trans1 c $ cover-inj (a,Ua) idp)))
-      \lam t => cover-inj ((PresentedFrame.embed t.1, (\lam {z} c => U.2 z $ Cover.cover-trans1 c $ Cover.cover-trans1 t.2.1 $ cover-inj (a,Ua) idp, LocallyRingedFramePres.toPresented t.2.1 U Ua x t.2.2)), t.1, cover-inj () idp) idp
+      \lam t => cover-inj (t.1, inP (PresentedFrame.embed t.1, (PresentedFrame.embed<= $ Cover.cover-trans1 t.2.1 $ cover-inj (a,Ua) idp, LocallyRingedFramePres.toPresented t.2.1 U Ua x t.2.2), cover-inj () idp)) idp
 
 \func affineRingedPres (R : CRing) : LocallyRingedFramePres (SpecPres R) \cowith
   | R : VSheaf CRingCat (FramePresSite (SpecPres R)) \cowith {
@@ -445,17 +445,17 @@
 \func affineRingedLocale (R : CRing) => locallyRingedLocaleFromPres (affineRingedPres R)
 
 \record Scheme.{s,v} \extends LocallyRingedLocale.{s,v}
-  | isScheme : L.top <= SJoin (\lam U => ∃ (R' : CRing.{v}) (VSheaf.restrict U R = {RingedLocale} affineRingedLocale R'))
-  | isNonTrivial a p => meet-univ L.top-univ <=-refl <=∘ L.meet-monotone isScheme <=-refl <=∘ L.Join-rdistr>= <=∘ Join-univ (\lam (b, inP (R',q)) =>
-      \let t => transportInv (\lam (x : RingedLocale) => \Pi (a : x.L) -> 0 = {x.R.F a} 1 -> a <= bottom) q (isNonTrivial {affineRingedLocale R'})
-      \in t (b ∧ a, meet-left) (inv func-zro *> pmap (R.F.Func (meet-right {_} {b})) p *> func-ide) <=∘ Join-univ (\case __))
-  | isLocallyRinged a x => meet-univ L.top-univ <=-refl <=∘ L.meet-monotone isScheme <=-refl <=∘ L.Join-rdistr>= <=∘ Join-univ (\lam (b, inP (R',q)) =>
-      \let t => transportInv (\lam (x : RingedLocale) => \Pi (a : x.L) (y : x.R.F a) -> a <= SJoin (\lam b => \Sigma (p : b <= a) (LocallyRingedLocale.EitherInv _ p y))) q (isLocallyRinged {affineRingedLocale R'})
-      \in t (b ∧ a, meet-left) (R.F.Func meet-right x) <=∘ Join-univ (\lam ((c,c<=b),(c<=ba,e)) => Join-cond $ later (c, (c<=ba <=∘ meet-right, ||.map (transportInv (\lam (f : RingHom (R a) (R c)) => Inv (f x)) R.F.Func-o) (transportInv (\lam (f : RingHom (R a) (R c)) => Inv (f x + 1)) R.F.Func-o) e))))
+  | isScheme : L.top <= Join (\lam U => ∃ (R' : CRing.{v}) (VSheaf.restrict U R = {RingedLocale} affineRingedLocale R'))
+  | isNonTrivial a p => meet-univ (L.top-univ <=∘ isScheme) <=-refl <=∘ L.Join-rdistr>= <=∘ L.SJoin-univ (later \lam {b} (inP (R',q)) =>
+    \let t => transportInv (\lam (x : RingedLocale) => \Pi (a : x.L) -> 0 = {x.R.F a} 1 -> a <= bottom) q (isNonTrivial {affineRingedLocale R'})
+    \in t (b ∧ a, meet-left) (inv func-zro *> pmap (R.F.Func (meet-right {_} {b})) p *> func-ide) <=∘ L.SJoin-univ (later \case __))
+  | isLocallyRinged a x => meet-univ (L.top-univ <=∘ isScheme) <=-refl <=∘ L.Join-rdistr>= <=∘ L.SJoin-univ (later \lam {b} (inP (R',q)) =>
+    \let t => transportInv (\lam (x : RingedLocale) => \Pi (a : x.L) (y : x.R.F a) -> a <= Join (\lam b => \Sigma (p : b <= a) (LocallyRingedLocale.EitherInv _ p y))) q (isLocallyRinged {affineRingedLocale R'})
+    \in t (b ∧ a, meet-left) (R.F.Func meet-right x) <=∘ L.SJoin-univ (later \lam {(c,c<=b)} (c<=ba,e) => Join-cond (c<=ba <=∘ meet-right, ||.map (transportInv (\lam (f : RingHom (R a) (R c)) => Inv (f x)) R.F.Func-o) (transportInv (\lam (f : RingHom (R a) (R c)) => Inv (f x + 1)) R.F.Func-o) e)))
 
 \func affineScheme (R : CRing) : Scheme \cowith
   | RingedLocale => affineRingedLocale R
-  | isScheme {x} _ =>  cover-inj (((\lam _ => \Sigma, \lam _ _ => ()), inP (R, RingedLocalePrecat.isotoid $ restrict_iso (RingedLocale.R {affineRingedLocale R}))), x, ()) idp
+  | isScheme {x} _ => cover-inj (x, inP ((\lam _ => \Sigma, \lam _ _ => ()), inP (R, RingedLocalePrecat.isotoid $ restrict_iso (RingedLocale.R {affineRingedLocale R})), ())) idp
   \where {
     \func locale_iso {L : Locale} : Iso {LocaleCat} {L.restrict L.top} {L} \cowith
       | f => Locale.restrict.map

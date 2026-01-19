@@ -48,7 +48,7 @@
   \lemma inhabited_weaklyProper (p : TruncP E) : IsWeaklyProperUniform \elim p
     | inP x => \lam Cu => uniform-refine Cu \case \elim __ \with {
       | byLeft p => \case uniform-cover Cu x \with {
-        | inP (_, byLeft idp, inP ((),_))
+        | inP (_, byLeft idp, inP (_,(),_))
         | inP (V, byRight CV, Vx) => inP (V, CV, rewrite p bottom-univ)
       }
       | byRight CU => inP (_, CU, <=-refl)

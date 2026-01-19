@@ -120,6 +120,26 @@
 \lemma <->sym {P Q : \Prop} (f : P <-> Q) : Q <-> P
   => (f.2,f.1)
 
+-- | `Image f` is the set `{ f a | a : A }`.
+\type TSetIm {A B : \Sort} (f : A -> B) (b : B)
+  => ∃ (a : A) (f a = b)
+
+\lemma TSetIm-con {A B : \Sort} {f : A -> B} (a : A) : TSetIm f (f a)
+  => inP (a,idp)
+
+\lemma TSetIm-elim {A B : \Sort} {C : B -> \Prop} {f : A -> B} (c : \Pi (a : A) -> C (f a)) {b : B} (s : TSetIm f b) : C b \elim s
+  | inP (a,p) => transport C p (c a)
+
+-- | `SetIm f P` is the set `{ f a | a : A, P a }`.
+\type SetIm {A B : \Sort} (f : A -> B) (P : A -> \Sort) (b : B)
+  => TSetIm (\lam (s : Given P) => f s.1) b
+
+\lemma SetIm-con {A B : \Sort} {f : A -> B} {P : A -> \Sort} {a : A} (Pa : P a) : SetIm f P (f a)
+  => inP ((a,Pa),idp)
+
+\lemma SetIm-elim {A B : \Sort} {C : B -> \Prop} {f : A -> B} {P : A -> \Sort} (c : \Pi {a : A} -> P a -> C (f a)) {b : B} (s : SetIm f P b) : C b
+  => TSetIm-elim (\lam t => c t.2) s
+
 \func OneOf (l : Array \Type) => ∃ (P : l) P
 
 \func ElemOf (l : Array \Type) => Given (P : l) P

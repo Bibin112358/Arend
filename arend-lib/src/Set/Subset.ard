@@ -59,13 +59,13 @@
   | meet-univ p q c => (p c, q c)
   | top _ => \Sigma
   | top-univ _ => ()
-  | Join {J} f a => ∃ (j : J) (f j a)
-  | Join-cond j c => inP (j,c)
-  | Join-univ d (inP (j,c)) => d j c
-  | Join-ldistr>= (d, inP (j,c)) => inP (j,(d,c))
+  | Join C a => ∃ (U : C) (U a)
+  | Join-cond {C} {U} CU Ux => inP (U,CU,Ux)
+  | Join-univ {C} {U} d (inP (U,CU,Ux)) => d CU Ux
+  | Join-ldistr>= {C} {W} (Wx, inP (U,CU,Ux)) => inP (\lam a => \Sigma (W a) (U a), SetIm-con CU, (Wx,Ux))
 
 \lemma bottom-empty {A : \Type} {E : \Prop} {x : A} (b : (SetLattice A).bottom x) : E \elim b
-  | inP ((),_)
+  | inP (_,(),_)
 
 \func Refines {X : \Type} (C D : Set (Set X)) : \Prop
   => ∀ {U : C} ∃ (V : D) (U ⊆ V)
@@ -138,4 +138,4 @@
   | func-<= p {_} => p
   | func-top>= {_} _ => ()
   | func-meet>= c => c
-  | func-Join>= c => c
+  | func-Join>= (inP (U,CU,Ufx)) => inP (f ^-1 U, SetIm-con CU, Ufx)

@@ -90,10 +90,10 @@
 
 \lemma directedProdCover-char {I : DirectedSet} {X : CoverSpace} {D : Set (Set (\Sigma I X))} : isCauchy {DirectedCoverSpace.precover ⨯ X} D <-> DirectProdCover D
   => (ClosurePrecoverSpace.closure-cauchy {_} {DirectProdCover.Space} $ later \case \elim __ \with {
-        | inP (true, (inP (U, inP (V,CV,p), N, g), h)) => (top-cauchy $ inP $ later (N, V, CV, \lam s _ => p $ g s), \lam n => \case h n \with {
+        | inP (_, byLeft idp, (inP (U, inP (V,CV,p), N, g), h)) => (top-cauchy $ inP $ later (N, V, CV, \lam s _ => p $ g s), \lam n => \case h n \with {
           | inP (W, inP (W',CW',WW'), Wn) => top-cauchy $ inP $ later (W', CW', \lam _ => WW' Wn)
         })
-        | inP (false, Cc) => (cauchy-subset Cc \lam (inP (V,CV,p)) => \case I.isInhabitted \with {
+        | inP (_, byRight idp, Cc) => (cauchy-subset Cc \lam (inP (V,CV,p)) => \case I.isInhabitted \with {
           | inP N => inP $ later (N, V, CV, \lam _ s => p s)
         }, \lam n => cauchy-subset Cc \lam (inP (V,CV,p)) => inP $ later (V, CV, p __))
       }, \lam Dc => cauchy-refine {DirectedCoverSpace.precover ⨯ X} (cauchy-glue {DirectedCoverSpace.precover {I} ⨯ X} (ProductPrecoverSpace.proj2.func-cover Dc.1)

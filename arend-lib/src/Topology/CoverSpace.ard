@@ -5,6 +5,7 @@
 \import Logic.TFAE
 \import Meta
 \import Order.Lattice
+\import Order.Lattice.CompleteLattice
 \import Order.PartialOrder
 \import Paths
 \import Paths.Meta
@@ -150,7 +151,7 @@
   => <=<_<= (s<=<_<=< p)
 
 \lemma s<=<_bottom {X : PrecoverSpace} {U : Set X} : bottom s<=< U
-  => unfolds $ top-cauchy $ byLeft $ <=-antisymmetric (later \lam _ => \lam (inP s) => s.1) top-univ
+  => unfolds $ top-cauchy $ byLeft $ <=-antisymmetric (later \lam _ => \lam (inP s) => s.2) top-univ
 
 \lemma s<=<_^-1 {X Y : PrecoverSpace} (f : PrecoverMap X Y) {U V : Set Y} (U<=<V : U s<=< V) : f ^-1 U s<=< f ^-1 V
   => cauchy-subset (f.func-cover U<=<V) \case __ \with {
@@ -406,13 +407,13 @@
   | <=-antisymmetric f g => PrecoverSpace.PrecoverSpace-ext \lam {C} => (f,g)
   | top => DiscreteCover X
   | top-univ {A} c => cauchy-cover {A} c
-  | Join {J} f => ClosurePrecoverSpace (\lam C => ∃ (j : J) (isCauchy {f j} C))
+  | Join S => ClosurePrecoverSpace (\lam C => ∃ (s : S) (s.isCauchy C))
       \lam e x => \case \elim e \with {
-        | inP (j,Cc) => cauchy-cover Cc x
+        | inP (s,Ss,Cc) => cauchy-cover Cc x
       }
-  | Join-cond j Cc => closure $ inP (j,Cc)
-  | Join-univ e => closure-cauchy $ later \case __ \with {
-    | inP (j,Cc) => e j Cc
+  | Join-cond {S} {s} Ss Cc => closure $ inP (s,Ss,Cc)
+  | Join-univ {S} e => closure-cauchy $ later \case __ \with {
+    | inP (s,Ss,Cc) => e Ss Cc
   }
 
 \func CoverTransfer {X : \Set} {Y : CoverSpace} (f : X -> Y) : CoverSpace X \cowith
@@ -499,19 +500,22 @@
   | <=-antisymmetric f g => CoverSpace.CoverSpace-ext \lam {C} => (f,g)
   | top => DiscreteCover X
   | top-univ {A} c => cauchy-cover {A} c
-  | Join f => \new CoverSpace {
-    | PrecoverSpace => Join {PrecoverLattice X} f
-    | isRegular => ClosureCoverSpace.closure-regular {Join f} RegularRatherBelow $ later \case __ \with {
-      | inP (j,Cc) => closure $ inP (j, cauchy-subset (isRegular {f j} Cc) $ later \lam {U} (inP (V,CV,U<=<V)) => inP (V, CV, Join-cond {PrecoverLattice X} j {f} U<=<V))
-    }
+  | Join S => \new CoverSpace {
+    | PrecoverSpace => CompleteLattice.SJoin {PrecoverLattice X} (\lam s => s) S
+    | isRegular Cc =>
+      \let Y => CompleteLattice.SJoin {PrecoverLattice X} (\lam (s : CoverSpace X) => s) S
+      \in ClosureCoverSpace.closure-regular {Y} RegularRatherBelow (\lam {C} => \case \elim __ \with {
+        | inP (s,Ss,sC) => closure $ inP (s, Ss, SetIm-elim {_} {_} {\lam s' => s'.isCauchy C -> s'.isCauchy \lam V => ∃ (U : C) (V <=< U)}
+          (\lam {s'} Ss' s'C => cauchy-subset (s'.isRegular s'C) \lam {V} (inP (U,CU,V<=<U)) => inP $ later (U, CU, Join-cond {PrecoverLattice X} {_} {s'} (later $ SetIm-con Ss') V<=<U)) Ss sC)
+      }) Cc
   }
-  | Join-cond j {f} => Join-cond {PrecoverLattice X} j
-  | Join-univ => Join-univ {PrecoverLattice X}
+  | Join-cond {S} {s} Ss {C} sC => closure $ inP (s, SetIm-con Ss, sC)
+  | Join-univ {S} {s} h {C} Cc => closure-cauchy (\lam {D} (inP (s',Ss',s'D)) => SetIm-elim {_} {_} {\lam s' => s'.isCauchy D -> s.isCauchy D} (\lam {s2} Ss2 => h Ss2) Ss' s'D) Cc
   | join A B => \new CoverSpace {
     | PrecoverSpace => A ∨ {PrecoverLattice X} B
-    | isRegular => ClosureCoverSpace.closure-regular {A ∨ B} RegularRatherBelow $ later \case __ \with {
-      | inP (true, Cc) => closure $ inP (true, cauchy-subset (isRegular Cc) $ later \lam {U} (inP (V,CV,U<=<V)) => inP (V, CV, join-left {PrecoverLattice X} {A} {B} U<=<V))
-      | inP (false, Cc) => closure $ inP (false, cauchy-subset (isRegular Cc) $ later \lam {U} (inP (V,CV,U<=<V)) => inP (V, CV, join-right {PrecoverLattice X} {A} {B} U<=<V))
+    | isRegular => ClosureCoverSpace.closure-regular {A ∨ B} RegularRatherBelow $ later \lam t => closure \case \elim t \with {
+      | inP (_, byLeft idp, sC) => inP (A, byLeft idp, cauchy-subset (isRegular sC) \lam {V} (inP (U,CU,V<=<U)) => inP $ later (U, CU, join-left {PrecoverLattice X} {A} {B} V<=<U))
+      | inP (_, byRight idp, sC) => inP (B, byRight idp, cauchy-subset (isRegular sC) \lam {V} (inP (U,CU,V<=<U)) => inP $ later (U, CU, join-right {PrecoverLattice X} {A} {B} V<=<U))
     }
   }
   | join-left => join-left {PrecoverLattice X}
@@ -519,12 +523,11 @@
   | join-univ => join-univ {PrecoverLattice X}
 
 \func RegPrecoverSpace (X : PrecoverSpace) : CoverSpace X
-  => CompleteLattice.SJoin {CoverLattice X} \lam A => A <= {PrecoverLattice X} X
+  => CompleteLattice.Join {CoverLattice X} \lam A => A <= {PrecoverLattice X} X
 
 \func regPrecoverSpace {X : PrecoverSpace} : PrecoverMap X (RegPrecoverSpace X) \cowith
   | func x => x
-  | func-cover d => CompleteLattice.SJoin-univ {PrecoverLattice X} {\lam A => A <= {PrecoverLattice X} X} (\lam p => p) $
-      transport (isCauchy {RegPrecoverSpace X}) (ext \lam U => ext (\lam DU => inP (U, DU, idp), \lam (inP (V,DV,U=V)) => rewrite U=V DV)) d
+  | func-cover d => cauchy-subset (closure-cauchy (\lam {C} (inP (s,Ss,sC)) => SetIm-elim {_} {_} {\lam s => s.isCauchy C -> X.isCauchy C} (\lam p => p) Ss sC) d) \lam {U} DU => inP $ later (U, DU, idp)
 
 \lemma regPrecoverSpace-extend {X : PrecoverSpace} {Y : CoverSpace} (f : PrecoverMap X Y) : PrecoverMap (RegPrecoverSpace X) Y f \cowith
-  | func-cover {D} Dc => CompleteLattice.SJoin-cond {CoverLattice X} {\lam A => A <= {PrecoverLattice X} X} {CoverTransfer f} PrecoverTransfer-char $ func-cover {PrecoverTransfer-map f} Dc
+  | func-cover {D} Dc => CompleteLattice.Join-cond {CoverLattice X} {\lam A => A <= {PrecoverLattice X} X} {CoverTransfer f} PrecoverTransfer-char $ func-cover {PrecoverTransfer-map f} Dc

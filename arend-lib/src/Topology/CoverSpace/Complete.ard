@@ -481,7 +481,7 @@
 
 \func regPrecoverCauchyFilter {X : PrecoverSpace} (F : ProperFilter X) (Fc : ∀ {C : isCauchy} ∃ (U : C) (F U)) : CauchyFilter (RegPrecoverSpace X) \cowith
   | ProperFilter => F
-  | isCauchyFilter Cc => ClosurePrecoverSpace.closure-filter F (\lam (inP ((A,A<=X),CAc)) => Fc $ A<=X CAc) Cc
+  | isCauchyFilter Cc => ClosurePrecoverSpace.closure-filter F (\lam {C} (inP (A,A<=X,AC)) => Fc $ SetIm-elim {_} {_} {\lam s => s.isCauchy C -> X.isCauchy C} (\lam p => p) A<=X AC) Cc
 
 \lemma regPrecoverSpace-extend-coverMap {X : PrecoverSpace} {Y : CoverSpace} (f : PrecoverMap X Y) : CoverMap (RegPrecoverSpace X) Y f \cowith
   | PrecoverMap => regPrecoverSpace-extend f
