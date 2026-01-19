@@ -31,6 +31,7 @@
 \import Logic.Meta
 \import Meta
 \import Order.Biordered
+\import Order.HeytingAlgebra
 \import Order.Lattice
 \import Order.Lattice.CompleteLattice
 \import Order.LinearOrder \hiding (isDense)
@@ -50,7 +51,7 @@
 \open Locale
 \open CompleteLattice
 
-\class Locale \extends CompleteLattice, BoundedDistributiveLattice, Site.{\lp,\lp} {
+\class Locale \extends CompleteLattice, HeytingAlebra, Site.{\lp,\lp} {
   | join x y => Join \lam z => (z = x) || (z = y)
   | join-left => Join-cond (byLeft idp)
   | join-right => Join-cond (byRight idp)
@@ -72,6 +73,9 @@
   | Meet C => Join \lam x => ∀ {y : C} (x <= y)
   | Meet-cond Cx => Join-univ (__ Cx)
   | Meet-univ => Join-cond
+  | --> x y => Join (__ ∧ x <= y)
+  | <=-curry => Join-cond
+  | <=-uncurry p => meet-monotone p <=-refl <=∘ meet-comm =<= Join-ldistr>= <=∘ Join-univ (SetIm-elim \lam {c} ca<=b => meet-comm =<= ca<=b)
 
   \lemma Join-ldistr {C : E -> \Prop} {e : E} : e ∧ Join C = SJoin (e ∧) C
     => <=-antisymmetric Join-ldistr>= $ SJoin-univ \lam Ca => meet-monotone <=-refl (Join-cond Ca)
@@ -133,33 +137,8 @@
 
   \type isLocallyCompact => \Pi (x : E) -> x <= Join (`<< x)
 
-  \func \infixr 5 --> (x y : E) => Join (__ ∧ x <= y)
-
-  \lemma exponent {x y z : E} : x ∧ y <= z <-> x <= y --> z
-    => (Join-cond, \lam p => meet-monotone p <=-refl <=∘ eval)
-
-  \lemma exponent-monotone {x y x' y' : E} (p : x' <= x) (q : y <= y') : x --> y <= x' --> y'
-    => exponent.1 $ meet-monotone <=-refl p <=∘ eval <=∘ q
-
-  \lemma exponent-double {x y z : E} : x --> y --> z = x ∧ y --> z
-    => <=-antisymmetric (exponent.1 $ inv meet-assoc =<= meet-monotone eval <=-refl <=∘ eval) (exponent.1 $ exponent.1 $ meet-assoc =<= eval)
-
-  \lemma eval {x y : E} : (x --> y) ∧ x <= y
-    => Join-rdistr>= <=∘ SJoin-univ \lam p => p
-
-  \lemma exponent_meet {x y z : E} : x --> y ∧ z = (x --> y) ∧ (x --> z)
-    => <=-antisymmetric (meet-univ (exponent-monotone <=-refl meet-left) (exponent-monotone <=-refl meet-right)) (exponent.1 (meet-univ (meet-monotone meet-left <=-refl <=∘ eval) (meet-monotone meet-right <=-refl <=∘ eval)))
-
-  \lemma trueExponent {x y : E} (p : x <= y) : top <= x --> y
-    => exponent.1 (meet-right <=∘ p)
-
-  \func neg (x : E) => x --> bottom
-
-  \lemma neg-inverse {x y : E} (p : x <= y) : neg y <= neg x
-    => exponent.1 $ meet-monotone <=-refl p <=∘ eval
-
   -- | The "rather below" relation: `x <=< y` if and only if the closure of {x} is contained in {y}.
-  \type \infix 4 <=< (x y : E) => top <= neg x ∨ y
+  \type \infix 4 <=< (x y : E) => top <= HeytingAlebra.neg x ∨ y
 
   -- | The "weakly rather below" relation: `x <=<w y` if and only if the weak closure of {x} is contained in {y}.
   \type \infix 4 <=<w (x y : E) => open y <= {NucleusFrame _} FrameHom.wclosed-image {Nucleus.map {open x}}
@@ -170,10 +149,10 @@
 
   \func open (a : E) : Nucleus (a --> __) \cowith
     | nucleus-meet => <=-antisymmetric
-        (meet-univ (exponent.1 (eval <=∘ meet-left)) (exponent.1 (eval <=∘ meet-right)))
-        (exponent.1 (meet-univ (meet-monotone meet-left <=-refl <=∘ eval) (meet-monotone meet-right <=-refl <=∘ eval)))
-    | nucleus-unit => exponent.1 meet-left
-    | nucleus-join>= => exponent.1 (transport (_ ∧ __ <= _) meet-idemp (transport (`<= _) meet-assoc (meet-monotone eval <=-refl <=∘ eval)))
+        (meet-univ (<=-curry (eval <=∘ meet-left)) (<=-curry (eval <=∘ meet-right)))
+        (<=-curry (meet-univ (meet-monotone meet-left <=-refl <=∘ eval) (meet-monotone meet-right <=-refl <=∘ eval)))
+    | nucleus-unit => <=-curry meet-left
+    | nucleus-join>= => <=-curry (transport (_ ∧ __ <= _) meet-idemp (transport (`<= _) meet-assoc (meet-monotone eval <=-refl <=∘ eval)))
 
   \func closed (a : E) : Nucleus (a ∨ __) \cowith
     | nucleus-meet => equation
@@ -447,10 +426,10 @@
     => nucleus-<= p <=∘ nucleus-join>=
 
   \lemma nucleus_exponent {x y : L} (p : nucleus y <= y) : nucleus (x --> y) <= x --> y
-    => exponent.1 $ meet-monotone <=-refl nucleus-unit <=∘ nucleus-meet>= <=∘ nucleus-<= eval <=∘ p
+    => <=-curry $ meet-monotone <=-refl nucleus-unit <=∘ nucleus-meet>= <=∘ nucleus-<= L.eval <=∘ p
 
   \lemma exponent-func {x y : L} : x --> y <= nucleus x --> nucleus y
-    => Join-univ \lam p => exponent.1 $ meet-monotone nucleus-unit <=-refl <=∘ nucleus-meet>= <=∘ nucleus-<= p
+    => Join-univ \lam p => <=-curry $ meet-monotone nucleus-unit <=-refl <=∘ nucleus-meet>= <=∘ nucleus-<= p
 
   \type Subtype => \Sigma (x : L) (nucleus x <= x)
 
@@ -504,33 +483,33 @@
     | nucleus-meet>= {a} {b} =>
       \have lem {x y z : L} : (x ∧ y) ∧ z = (x ∧ z) ∧ (y ∧ z) => equation
       \in SMeet-univ \lam {c} ab<=c => meet-monotone (SMeet-cond join-left) (SMeet-cond join-left) <=∘
-        exponent.1 (lem =<= meet-monotone (meet-monotone <=-refl (nucleus-<= join-right) <=∘ eval) (meet-monotone <=-refl (nucleus-<= join-right) <=∘ eval) <=∘
+        <=-curry (lem =<= meet-monotone (meet-monotone <=-refl (nucleus-<= join-right) <=∘ L.eval) (meet-monotone <=-refl (nucleus-<= join-right) <=∘ L.eval) <=∘
                                  nucleus-meet>= <=∘ nucleus-<= (ldistr>= <=∘ join-univ (L.rdistr>= <=∘ join-univ ab<=c meet-left) meet-right))
     | nucleus-<= x<=y => SMeet-univ \lam y<=a => SMeet-cond (x<=y <=∘ y<=a)
-    | nucleus-unit => SMeet-univ \lam x<=a => later $ exponent.1 $ meet-left <=∘ x<=a <=∘ nucleus-unit
-    | nucleus-join>= => SMeet-univ \lam x<=a => SMeet-cond (SMeet-cond x<=a) <=∘ exponent-monotone <=-refl (Nucleus.nucleus_exponent nucleus-join>=) <=∘
-        exponent-double =<= later (exponent-monotone (meet-univ (nucleus-<= $ exponent.1 $ meet-left <=∘ nucleus-unit) <=-refl) <=-refl)
+    | nucleus-unit => SMeet-univ \lam x<=a => later $ <=-curry $ meet-left <=∘ x<=a <=∘ nucleus-unit
+    | nucleus-join>= => SMeet-univ \lam x<=a => SMeet-cond (SMeet-cond x<=a) <=∘ L.exponent-monotone <=-refl (Nucleus.nucleus_exponent nucleus-join>=) <=∘
+        inv L.curry =<= later (L.exponent-monotone (meet-univ (nucleus-<= $ <=-curry $ meet-left <=∘ nucleus-unit) <=-refl) <=-refl)
 
   \protected \lemma exp-univ1 {L : Locale} {j k n : Nucleus {L}} (p : \Pi {x : L} -> NucleusFrame.meet j k x <= n x) {x : L} : j x <= exp k n x
-    => SMeet-univ \lam x<=a => later $ exponent.1 $ meet-monotone (nucleus-<= x<=a) <=-refl <=∘ p
+    => SMeet-univ \lam x<=a => later $ <=-curry $ meet-monotone (nucleus-<= x<=a) <=-refl <=∘ p
 
   \protected \lemma exp-univ2 {L : Locale} {k n : Nucleus {L}} {x y : L} (p : y <= exp k n x) : y ∧ k x <= n x
-    => exponent.2 $ p <=∘ SMeet-cond <=-refl
+    => <=-uncurry $ p <=∘ SMeet-cond <=-refl
 
   \lemma open_exp {L : Locale} {a : L} (x y : (open a).locale) : (x --> {(open a).locale} y).1 = x.1 --> y.1
     => <=-antisymmetric
-      (Join-univ \lam p => exponent.1 $ exponent.1 ((meet-assoc *> pmap (_ ∧) meet-comm *> inv meet-assoc) =<= meet-monotone p <=-refl <=∘ SJoin-rdistr>= <=∘ SJoin-univ \lam p => p) <=∘ y.2)
-      (Join-univ \lam {w} p => exponent.1 $ exponent.1 (meet-left <=∘ meet-left) <=∘ SJoin-cond {_} {(open a).Subtype} {_} {_} {a --> w, nucleus-join>=} (exponent.1 (meet-univ (meet-monotone meet-left <=-refl <=∘ eval) (meet-left <=∘ meet-right) <=∘ p) <=∘ y.2))
+      (Join-univ \lam p => <=-curry $ <=-curry ((meet-assoc *> pmap (_ ∧) meet-comm *> inv meet-assoc) =<= meet-monotone p <=-refl <=∘ SJoin-rdistr>= <=∘ SJoin-univ \lam p => p) <=∘ y.2)
+      (Join-univ \lam {w} p => <=-curry $ <=-curry (meet-left <=∘ meet-left) <=∘ SJoin-cond {_} {(open a).Subtype} {_} {_} {a --> w, nucleus-join>=} (<=-curry (meet-univ (meet-monotone meet-left <=-refl <=∘ L.eval) (meet-left <=∘ meet-right) <=∘ p) <=∘ y.2))
 
   \lemma open-isOpen {L : Locale} (a : L) : (open a).map.IsOpen
-    => \lam x => inP (a ∧ x.1, \lam y => rewrite Nucleus.map_direct $ open_exp x (a --> y, nucleus-join>=) *> exponent-double *> pmap (__ --> y) meet-comm)
+    => \lam x => inP (a ∧ x.1, \lam y => rewrite Nucleus.map_direct $ open_exp x (a --> y, nucleus-join>=) *> inv L.curry *> pmap (__ --> y) meet-comm)
 
   \lemma open_IsPositive {L : Locale} {a : L} {b : (open a).locale} : IsPositive (b.1 ∧ a) <-> (open a).locale.IsPositive b
-    => (\lam ba>0 P b<=P => ba>0 P $ exponent.2 $ b<=P <=∘ =_<= (open a).locale_pHat,
-        \lam b>0 P ba<=P => b>0 P $ exponent.1 ba<=P L.<=∘ =_<= (inv (open a).locale_pHat))
+    => (\lam ba>0 P b<=P => ba>0 P $ <=-uncurry $ b<=P <=∘ =_<= (open a).locale_pHat,
+        \lam b>0 P ba<=P => b>0 P $ <=-curry ba<=P L.<=∘ =_<= (inv (open a).locale_pHat))
 
   \lemma open_IsOvert {L : Locale} (Lo : L.IsOvert) {a : L} : (open a).locale.IsOvert
-    => \lam b => unfolds $ exponent.1 (Lo _ <=∘ pHat-impl open_IsPositive.1) <=∘ =_<= (inv (open a).locale_pHat)
+    => \lam b => unfolds $ <=-curry (Lo _ <=∘ pHat-impl open_IsPositive.1) <=∘ =_<= (inv (open a).locale_pHat)
 }
 
 -- | The order of nuclei is inversed. That is, `n <= m` iff `m.locale` is a sublocale of `n.locale`.
@@ -565,7 +544,7 @@
   }
   | Join-cond Cx {y} => SMeet-univ $ later \lam h => h Cx
   | Join-univ c {x} => SMeet-cond (later c)
-  | Join-ldistr>= {C} {k} {x} => unfold $ SMeet-univ \lam {n} h => meet-monotone <=-refl (SMeet-cond {_} {_} {_} {_} {Nucleus.exp k n} $ later \lam {j} Cj => Nucleus.exp-univ1 \lam {x} => meet-comm =<= h (SetIm-con Cj)) <=∘ meet-monotone <=-refl (SMeet-cond <=-refl) <=∘ meet-comm =<= eval
+  | Join-ldistr>= {C} {k} {x} => unfold $ SMeet-univ \lam {n} h => meet-monotone <=-refl (SMeet-cond {_} {_} {_} {_} {Nucleus.exp k n} $ later \lam {j} Cj => Nucleus.exp-univ1 \lam {x} => meet-comm =<= h (SetIm-con Cj)) <=∘ meet-monotone <=-refl (SMeet-cond <=-refl) <=∘ meet-comm =<= L.eval
   \where {
     \open Topology.Locale(NucleusFrame)
 
@@ -595,16 +574,16 @@
       => ext $ double-nucleus-left {j.L} wclosure_<= x
 
     \lemma nucleus>=open {L : Locale} {a : L} {j : Nucleus {L}} (c : top <= j a) : open a <= j
-      => \lam {x} => j.exponent-func <=∘ meet-univ <=-refl (top-univ <=∘ c) <=∘ eval
+      => \lam {x} => j.exponent-func <=∘ meet-univ <=-refl (top-univ <=∘ c) <=∘ L.eval
       \where
         \lemma conv {L : Locale} {a : L} {j : Nucleus {L}} (c : open a <= j) : top <= j a
-          => exponent.1 meet-right <=∘ c
+          => <=-curry meet-right <=∘ c
 
     \lemma open_<= {L : Locale} {a b : L} (p : a <= b) : open b <= open a
-      => \lam {x} => exponent-monotone p <=-refl
+      => \lam {x} => L.exponent-monotone p <=-refl
       \where
         \lemma conv {L : Locale} {a b : L} (p : open b <= open a) : a <= b
-          => meet-univ top-univ <=-refl <=∘ exponent.2 (nucleus>=open.conv p)
+          => meet-univ top-univ <=-refl <=∘ <=-uncurry (nucleus>=open.conv p)
 
     -- | The intersection of two sublocales is a pullback.
     \sfunc intersection-pullback {L : Locale} (j k : Nucleus {L}) : Pullback {LocaleCat} j.map k.map (Nucleus.locale {j ∨ k})
@@ -624,16 +603,16 @@
   }
 
 \lemma closed>=open {L : Locale} {c a : L} (p : top <= c ∨ a) : closed c >= open a
-  => \lam {x} => meet-univ <=-refl (top-univ <=∘ p) <=∘ ldistr>= <=∘ join-monotone meet-right eval
+  => \lam {x} => meet-univ <=-refl (top-univ <=∘ p) <=∘ ldistr>= <=∘ join-monotone meet-right L.eval
   \where
     \lemma conv {L : Locale} {c a : L} (p : closed c >= open a) : top <= c ∨ a
-      => trueExponent <=-refl <=∘ p
+      => L.top_exponent <=-refl <=∘ p
 
 \lemma open<=closed {L : Locale} {c a : L} (p : c ∧ a <= bottom) : open a >= closed c
-  => \lam {x} => unfold (join-univ (exponent.1 (p <=∘ bottom-univ)) (exponent.1 meet-left))
+  => \lam {x} => unfold (join-univ (<=-curry (p <=∘ bottom-univ)) (<=-curry meet-left))
   \where
     \lemma conv {L : Locale} {c a : L} (p : open a >= closed c) : c ∧ a <= bottom
-      => meet-monotone join-left <=-refl <=∘ exponent.2 p
+      => meet-monotone join-left <=-refl <=∘ <=-uncurry p
 
 -- | A closed and "bounded" sublocale is compact.
 \lemma closed-compact {L : Locale} {N : Nucleus {L}} (c : N.isClosed) {a : L} (w : a << top) (b : N >= open a) : N.locale.isCompact
@@ -642,7 +621,7 @@
            | top<=g : top <= IJoin g => top<=C <=∘ c <=∘ join-univ (IJoin-cond nothing) (SJoin-univ \lam {a} Ca => IJoin-cond $ just $ later (a,Ca))
            | (inP (l,a<=gl)) => <<_IJoin w top<=g
            | l' => filterMap (\lam x => x) l
-      \in inP (map __.1 l', \lam j => (l' j).2, unfold $ trueExponent a<=gl <=∘ b <=∘ N.nucleus-univ (IJoin-univ \lam j' => later $ cases (l j' arg addPath) \with {
+      \in inP (map __.1 l', \lam j => (l' j).2, unfold $ L.top_exponent a<=gl <=∘ b <=∘ N.nucleus-univ (IJoin-univ \lam j' => later $ cases (l j' arg addPath) \with {
         | nothing, _ => N.nucleus-<= bottom-univ
         | just j, p => \have (k,q) => filterMap-index (\lam x => x) l p
                        \in rewriteI q (IJoin-cond k) <=∘ nucleus-unit
@@ -1307,9 +1286,9 @@
 -- | A locale {L} is overt if and only the unique map from L to the terminal locale is open.
 \lemma overt=open {L : Locale} : L.IsOvert <-> IsOpen {LocaleCat.terminalMap {L}}
   => coe2 (\lam i => L.IsOvert <-> (\Pi (x : L) -> ∃ (P : \Sigma -> \Prop) ∀ (Q : \Sigma -> \Prop) (LocaleCat.terminal-direct (x --> pHat (Q ())) i = discrete.exponent P Q @ i))) right
-      (\lam o x => inP (\lam _ => IsPositive x, \lam Q => ext \lam _ => ext (\lam x<=Q x>0 => x>0 (Q ()) $ meet-univ top-univ <=-refl <=∘ exponent.2 x<=Q, \lam f => exponent.1 $ meet-right <=∘ o x <=∘ pHat-impl f)),
+      (\lam o x => inP (\lam _ => IsPositive x, \lam Q => ext \lam _ => ext (\lam x<=Q x>0 => x>0 (Q ()) $ meet-univ top-univ <=-refl <=∘ <=-uncurry x<=Q, \lam f => <=-curry $ meet-right <=∘ o x <=∘ pHat-impl f)),
        \lam f x => \case f x \with {
-         | inP (P,g) => meet-univ top-univ <=-refl <=∘ exponent.2 (propExt.conv (pmap (__ ()) $ g (\lam _ => IsPositive x)) (\lam p Q x<=Q => propExt.dir (pmap (__ ()) $ g (\lam _ => Q)) (exponent.1 $ meet-right <=∘ x<=Q) p))
+         | inP (P,g) => meet-univ top-univ <=-refl <=∘ <=-uncurry (propExt.conv (pmap (__ ()) $ g (\lam _ => IsPositive x)) (\lam p Q x<=Q => propExt.dir (pmap (__ ()) $ g (\lam _ => Q)) (<=-curry $ meet-right <=∘ x<=Q) p))
        }) left
 
 -- | Open maps are closed under composition.
@@ -1426,9 +1405,9 @@
     \lemma generalized {L : Locale} (reg : L.IsRegularLocale) (M : Locale) (p1 p2 : LocaleCat.Hom M L) : isHausdorffLocale.generalized L M p1 p2
       => \lam a b U p =>
          \have | lem1 {d x y : L} (p : d <=< x) (q : p1 (y ∧ x) ∧ p2 d <= extend p1 p2 U) : p1 y ∧ p2 d <= extend p1 p2 U
-                 => meet-monotone (func-<= (meet-univ <=-refl (top-univ <=∘ later p) <=∘ ldistr>=) <=∘ func-join>=) <=-refl <=∘ M.rdistr>= <=∘ join-univ (Join-cond (byRight (y ∧ neg d, d, meet-monotone meet-right <=-refl <=∘ eval, idp))) q
+                 => meet-monotone (func-<= (meet-univ <=-refl (top-univ <=∘ later p) <=∘ ldistr>=) <=∘ func-join>=) <=-refl <=∘ M.rdistr>= <=∘ join-univ (Join-cond (byRight (y ∧ L.neg d, d, meet-monotone meet-right <=-refl <=∘ L.eval, idp))) q
                | lem2 {d x y : L} (p : d <=< x) (q : p1 d ∧ p2 (y ∧ x) <= extend p1 p2 U) : p1 d ∧ p2 y <= extend p1 p2 U
-                 => meet-monotone <=-refl (func-<= (meet-univ <=-refl (top-univ <=∘ later p) <=∘ ldistr>=) <=∘ func-join>=) <=∘ ldistr>= <=∘ join-univ (Join-cond $ byRight (d, y ∧ neg d, meet-monotone <=-refl meet-right <=∘ meet-comm =<= eval, idp)) q
+                 => meet-monotone <=-refl (func-<= (meet-univ <=-refl (top-univ <=∘ later p) <=∘ ldistr>=) <=∘ func-join>=) <=∘ ldistr>= <=∘ join-univ (Join-cond $ byRight (d, y ∧ L.neg d, meet-monotone <=-refl meet-right <=∘ meet-comm =<= L.eval, idp)) q
                | tu<=NU {t u : L} (q : p1 u ∧ p2 u <= extend p1 p2 U) : p1 t ∧ p2 u <= extend p1 p2 U
                  => meet-monotone <=-refl (func-<= (reg u) <=∘ func-Join>=) <=∘ SJoin-ldistr>= <=∘ SJoin-univ \lam a<=<u => lem1 a<=<u (meet-monotone (func-<= meet-right) (func-<= (<=<_<= $ later a<=<u)) <=∘ q)
          \in meet-monotone (func-<= (reg a) <=∘ func-Join>=) <=-refl <=∘ SJoin-rdistr>= <=∘ SJoin-univ \lam {b} b<=<a => lem2 b<=<a (meet-monotone <=-refl (func-<= (meet-comm =<= p)) <=∘ tu<=NU (meet-monotone func-Join>= func-Join>= <=∘ SJoin-distr>= <=∘ SJoin-univ \lam {s} t => tu<=NU (Join-cond $ byLeft $ later t.2)))
@@ -1529,7 +1508,7 @@
 \instance LocaleRatherBelow {L : Locale} : RatherBelow (L.<=<)
   | <=<_top => unfolds join-right
   | <=<-left p q => unfolds $ p <=∘ join-univ join-left (q <=∘ join-right)
-  | <=<-right p q => unfolds $ q <=∘ join-univ (neg-inverse p <=∘ join-left) join-right
+  | <=<-right p q => unfolds $ q <=∘ join-univ (L.neg-inverse p <=∘ join-left) join-right
   | <=<_meet p q => unfolds $ meet-univ <=-refl <=-refl <=∘ MeetSemilattice.meet-monotone (unfolds in p) q <=∘ ldistr>= <=∘
       join-univ (meet-right <=∘ L.neg-inverse meet-right <=∘ join-left) (L.rdistr>= <=∘ join-univ (meet-left <=∘ L.neg-inverse meet-left <=∘ join-left) join-right)
 

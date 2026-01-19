@@ -11,9 +11,9 @@
   | compl-meet {a : E} : a ∧ compl a <= bottom
   | compl-join {a : E} : top <= a ∨ compl a
 
-  | implies a b => compl a ∨ b
-  | exponent-left xa<=b => meet-univ <=-refl top-univ <=∘ meet-monotone <=-refl compl-join <=∘ ldistr>= <=∘ join-comm =<= join-monotone meet-right xa<=b
-  | exponent-right x<=a-->b => meet-monotone x<=a-->b <=-refl <=∘ rdistr>= <=∘ join-univ (meet-comm =<= compl-meet <=∘ bottom-univ) meet-left
+  | --> a b => compl a ∨ b
+  | <=-curry xa<=b => meet-univ <=-refl top-univ <=∘ meet-monotone <=-refl compl-join <=∘ ldistr>= <=∘ join-comm =<= join-monotone meet-right xa<=b
+  | <=-uncurry x<=a-->b => meet-monotone x<=a-->b <=-refl <=∘ rdistr>= <=∘ join-univ (meet-comm =<= compl-meet <=∘ bottom-univ) meet-left
 
   \lemma compl-adj {a b : E} (ab : a ∧ b <= bottom) : a <= compl b
     => meet-univ <=-refl top-univ <=∘ meet-monotone <=-refl compl-join <=∘ ldistr>= <=∘ join-univ (ab <=∘ bottom-univ) meet-right
@@ -52,15 +52,15 @@
   | join a b => (neg $ neg $ a.1 ∨ b.1, neg-negated)
   | join-left => join-left <=∘ id<=neg_neg
   | join-right => join-right <=∘ id<=neg_neg
-  | join-univ {x} {y} {z} p q => double-->-monotone (join-univ p q) <=∘ z.2
+  | join-univ {x} {y} {z} p q => double-exponent-monotone (join-univ p q) <=∘ z.2
   | top => (R.top,R.top-univ)
   | top-univ => R.top-univ
   | bottom => (R.bottom,R.bottom-negated)
   | bottom-univ => R.bottom-univ
-  | ldistr>= => rewrite (neg_join,neg_join) $ exponent-left $ (R.meet-comm *> inv R.meet-assoc) =<= R.meet-monotone (meet-univ (exponent-left $ R.meet-assoc =<= R.meet-monotone meet-left <=-refl <=∘ eval) (exponent-left $ R.meet-assoc =<= R.meet-monotone meet-right <=-refl <=∘ eval)) <=-refl <=∘ modus-ponens
+  | ldistr>= => rewrite (neg_join,neg_join) $ <=-curry $ (R.meet-comm *> inv R.meet-assoc) =<= R.meet-monotone (meet-univ (<=-curry $ R.meet-assoc =<= R.meet-monotone meet-left <=-refl <=∘ eval) (<=-curry $ R.meet-assoc =<= R.meet-monotone meet-right <=-refl <=∘ eval)) <=-refl <=∘ modus-ponens
   | compl a => (neg a.1, neg-negated)
   | compl-meet => modus-ponens
-  | compl-join => exponent-left $ meet-right <=∘ neg_join =<= modus-ponens
+  | compl-join => <=-curry $ meet-right <=∘ neg_join =<= modus-ponens
   \where {
     \open HeytingAlebra
   }

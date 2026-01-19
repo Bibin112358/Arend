@@ -93,7 +93,7 @@
 } \where {
   \func restrict.{s,o,h} {L : Locale.{s}} (a : L) (S : VSheaf.{s,o,h} { | C => L }) : VSheaf S.D (L.restrict a) \cowith
     | F => Comp S Locale.restrict.functor.op
-    | isSheaf => {?}
+    | isSheaf => {?} -- TODO[sorts]
 
   \lemma direct_image_locale.{s,o,h,o',h'} {L L' : Locale.{s}} (f : FrameHom L' L) (S : VSheaf.{s,o,h} { | C => L }) : VSheaf S.D L' (Comp S f.functor.op)
     => S.direct_image f.functor

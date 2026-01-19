@@ -42,10 +42,10 @@
 \func nucleus-star {L : Locale} (j : Nucleus {L}) (U : L -> \Prop) => Join (\lam y => \Sigma (U y) (j.locale.IsPositive (j y, nucleus-join>=)))
   \where {
     \lemma star_open {L : Locale} (a : L) (U : L -> \Prop) : nucleus-star (open a) U = star a U
-      => \have | lem {x} {b} : (a --> x <= a --> b) = (a ∧ x <= b)
-                  => propExt (\lam c => meet-comm =<= exponent.2 (nucleus-unit {open a} <=∘ c))
-                             (\lam c => nucleus-univ {open a} $ exponent.1 $ meet-comm =<= c)
-               | lem2 y P : a --> y <= ((open a).locale.pHat P).1 = a ∧ y <= pHat P
+      => \have | lem {x} {b} : (a L.--> x <= a L.--> b) = (a ∧ x <= b)
+                  => propExt (\lam c => meet-comm =<= L.<=-uncurry (nucleus-unit {open a} <=∘ c))
+                             (\lam c => nucleus-univ {open a} $ L.<=-curry $ meet-comm =<= c)
+               | lem2 y P : a L.--> y <= ((open a).locale.pHat P).1 = a ∧ y <= pHat P
                   => pmap (_ <=) (open a).locale_pHat *> lem
          \in path \lam i => Join \lam x => \Sigma (U x) (\Pi (P : \Prop) -> lem2 x P i -> P)
   }
