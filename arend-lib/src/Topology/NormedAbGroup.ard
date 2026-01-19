@@ -71,7 +71,7 @@
 
   \default norm_zro => inv (norm-dist *> pmap norm (pmap (zro +) negative_zro *> zro-right)) *> dist-refl
   \default norm_negative => pmap norm (inv zro-left) *> inv norm-dist *> dist-symm *> norm-dist *> pmap norm (pmap (_ +) negative_zro *> zro-right)
-  \default norm_+ => transport (\lam z => norm (_ + z) <= _) negative-isInv $ =_<= (inv norm-dist) <=∘ dist-triang {_} {_} {0} <=∘ =_<= (pmap2 (ExUpperReal.+) (norm-dist *> pmap norm (pmap (_ +) negative_zro *> zro-right)) (norm-dist *> pmap norm (pmap (0 +) negative-isInv *> zro-left)))
+  \default norm_+ => transport (\lam z => norm (_ + z) <= _) negative-isInv $ inv norm-dist =<= dist-triang {_} {_} {0} <=∘ =_<= (pmap2 (ExUpperReal.+) (norm-dist *> pmap norm (pmap (_ +) negative_zro *> zro-right)) (norm-dist *> pmap norm (pmap (0 +) negative-isInv *> zro-left)))
 
   \default dist-refl => norm-dist *> pmap norm negative-right *> norm_zro
   \default dist-symm => norm-dist *> simplify *> norm_negative *> inv norm-dist
@@ -212,7 +212,7 @@
         <-rat.1 $ transport (norm __ < eps) (pmap2 (+) fr fl *> simplify : f x (y - y') + f (x - x') y' = f x y - f x' y') $ norm_+ <∘r
           <=_+ norm_*_<= norm_*_<= <∘r transport (_ + __ < _) *-comm (<=_+ (ExUpperRealSemigroup.<=_* <=-refl $ <=-less $ <-rat.2 yy'<gamma) (ExUpperRealSemigroup.<=_* <=-refl (<=-less $ <-rat.2 xx'<gamma)) <∘r
           transport (`< _) (ExUpperRealSemigroup.rdistr norm>=0 norm>=0) (ExUpperRealSemigroup.<=_* <=-refl (<=-rat.1 meet-left) <∘r ExUpperRealSemigroup.<_*-left' (
-            \have lem {X : ExPseudoNormedAbGroup} {x1 x2 : X} (d : (norm (x1 - x2)).U 1) : norm x2 <= norm x1 + 1 => transport (_ <= _ + __) norm_- (=_<= (pmap norm equation.abGroup) <=∘ norm_+) <=∘ <=_+ <=-refl (<=-less $ <-rat.2 d)
+            \have lem {X : ExPseudoNormedAbGroup} {x1 x2 : X} (d : (norm (x1 - x2)).U 1) : norm x2 <= norm x1 + 1 => transport (_ <= _ + __) norm_- (pmap norm equation.abGroup =<= norm_+) <=∘ <=_+ <=-refl (<=-less $ <-rat.2 d)
             \in <=_+ (lem x0x<1) (lem (U_<= yy'<gamma meet-right) <=∘ <=_+ (lem y0y<1) <=-refl) <∘r transport (_ <) +-rat (<_+ (transport (_ <) +-rat $ <_+-left $ <-rat.2 |x0|<x0b) $ transport (_ < ) +-rat $ <_+-left $ transport (_ <) +-rat $ <_+-left $ <-rat.2 |y0|<y0b)) (ExUpperRealAbMonoid.<=_+-positive norm>=0 norm>=0) gamma>0 <∘l gamma-m)))
     }
   })

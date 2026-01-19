@@ -207,7 +207,7 @@
       | func a => SJoin (\lam b => points_* $ f ^-1 points^* b) (M.`<=< a)
       | func-<= p => SJoin-univ \lam {b} b<=<x => SJoin-cond (<=<-left b<=<x p)
       | func-top>= => Join-cond (later \lam _ => filter-top) <=∘ SJoin-cond <=<_top
-      | func-meet>= => L.SJoin-distr>= <=∘ SJoin-univ (later \lam {(b,c)} (b<=<x,c<=<y) => =_<= (inv $ pmap points_* (pmap (f ^-1) points^*_meet *> func-meet {^-1_FrameHom f} {points^* b} {points^* c}) *> points_*_meet) <=∘ SJoin-cond (<=<_meet b<=<x c<=<y))
+      | func-meet>= => L.SJoin-distr>= <=∘ SJoin-univ (later \lam {(b,c)} (b<=<x,c<=<y) => inv (pmap points_* (pmap (f ^-1) points^*_meet *> func-meet {^-1_FrameHom f} {points^* b} {points^* c}) *> points_*_meet) =<= SJoin-cond (<=<_meet b<=<x c<=<y))
       | func-Join>= {C} => SJoin-univ $ later \lam {b} p =>
         \have Mc : top <= M.Join (\lam c => (c = M.neg b) || Given (x : C) (c M.<=< x))
                  => p <=∘ join-univ (Join-cond $ byLeft idp) (Join-univ \lam {x} Cx => Mr x <=∘ Join-univ \lam {y} y<=<x => Join-cond $ byRight (x,Cx,y<=<x))

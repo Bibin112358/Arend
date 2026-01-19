@@ -63,6 +63,9 @@
 \lemma =_<= {P : Preorder} {x y : P} (p : x = y) : x <= y
   | idp => <=-refl
 
+\lemma \infixr 9 =<= {E : Preorder} {x y z : E} (p : x = y) (q : y <= z) : x <= z
+  => =_<= p <=∘ q
+
 \class Poset \extends Preorder, Cat.{\lp,\lp} {
   | <=-antisymmetric {x y : E} : x <= y -> y <= x -> x = y
   | univalence => Cat.makeUnivalence \lam (e : Iso) => (<=-antisymmetric e.f e.hinv, prop-pi)

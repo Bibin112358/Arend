@@ -22,7 +22,7 @@
     => compl-adj $ meet-monotone <=-refl a<=b <=∘ meet-comm =<= compl-meet
 
   \lemma compl_meet {a b : E} : compl (a ∧ b) = compl a ∨ compl b
-    => <=-antisymmetric (meet-univ <=-refl top-univ <=∘ meet-monotone <=-refl compl-join <=∘ ldistr>= <=∘ join-comm =<= join-monotone meet-right (compl-adj $ =_<= meet-assoc <=∘ meet-comm =<= compl-meet)) $ join-univ (compl-mono meet-left) (compl-mono meet-right)
+    => <=-antisymmetric (meet-univ <=-refl top-univ <=∘ meet-monotone <=-refl compl-join <=∘ ldistr>= <=∘ join-comm =<= join-monotone meet-right (compl-adj $ meet-assoc =<= meet-comm =<= compl-meet)) $ join-univ (compl-mono meet-left) (compl-mono meet-right)
 
   \lemma compl_join {a b : E} : compl (a ∨ b) = compl a ∧ compl b
     => <=-antisymmetric (meet-univ (compl-mono join-left) (compl-mono join-right)) $ compl-adj $ ldistr>= <=∘ join-univ (meet-monotone meet-left <=-refl <=∘ meet-comm =<= compl-meet) (meet-monotone meet-right <=-refl <=∘ meet-comm =<= compl-meet)
@@ -34,7 +34,7 @@
 
   \lemma compl_symm-diff {a b : E} : compl (symm-diff a b) = a ∧ b ∨ compl a ∧ compl b
     => compl_join *> pmap2 (∧) compl_meet compl_meet *> rewrite (compl-inv,compl-inv) (<=-antisymmetric
-        (ldistr>= <=∘ join-comm =<= join-monotone (rdistr>= <=∘ join-univ (=_<= meet-comm <=∘ compl-meet <=∘ bottom-univ) (=_<= meet-comm)) (rdistr>= <=∘ join-univ <=-refl (compl-meet <=∘ bottom-univ)))
+        (ldistr>= <=∘ join-comm =<= join-monotone (rdistr>= <=∘ join-univ (meet-comm =<= compl-meet <=∘ bottom-univ) (=_<= meet-comm)) (rdistr>= <=∘ join-univ <=-refl (compl-meet <=∘ bottom-univ)))
         (join-univ (meet-comm =<= meet-monotone join-right join-right) (meet-monotone join-left join-left)))
 }
 

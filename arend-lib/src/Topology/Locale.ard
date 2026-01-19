@@ -125,7 +125,7 @@
   \lemma <<_IJoin {x y : E} (x<<y : x << y) {J : \Sort} {g : J -> E} (y<=g : y <= IJoin g) : ∃ (l : Array J) (x <= IJoin \lam j => g (l j))
     => \case x<<y y<=g \with {
       | inP (l,gl,x<=l) => \case FinSet.finiteAC (\lam j => gl j) \with {
-        | inP h => inP (\lam j => (h j).1, x<=l <=∘ IJoin-univ \lam j => =_<= (inv (h j).2) <=∘ IJoin-cond j)
+        | inP h => inP (\lam j => (h j).1, x<=l <=∘ IJoin-univ \lam j => inv (h j).2 =<= IJoin-cond j)
       }
     }
 
@@ -142,7 +142,7 @@
     => exponent.1 $ meet-monotone <=-refl p <=∘ eval <=∘ q
 
   \lemma exponent-double {x y z : E} : x --> y --> z = x ∧ y --> z
-    => <=-antisymmetric (exponent.1 $ =_<= (inv meet-assoc) <=∘ meet-monotone eval <=-refl <=∘ eval) (exponent.1 $ exponent.1 $ =_<= meet-assoc <=∘ eval)
+    => <=-antisymmetric (exponent.1 $ inv meet-assoc =<= meet-monotone eval <=-refl <=∘ eval) (exponent.1 $ exponent.1 $ meet-assoc =<= eval)
 
   \lemma eval {x y : E} : (x --> y) ∧ x <= y
     => Join-rdistr>= <=∘ SJoin-univ \lam p => p
@@ -504,12 +504,12 @@
     | nucleus-meet>= {a} {b} =>
       \have lem {x y z : L} : (x ∧ y) ∧ z = (x ∧ z) ∧ (y ∧ z) => equation
       \in SMeet-univ \lam {c} ab<=c => meet-monotone (SMeet-cond join-left) (SMeet-cond join-left) <=∘
-        exponent.1 (=_<= lem <=∘ meet-monotone (meet-monotone <=-refl (nucleus-<= join-right) <=∘ eval) (meet-monotone <=-refl (nucleus-<= join-right) <=∘ eval) <=∘
+        exponent.1 (lem =<= meet-monotone (meet-monotone <=-refl (nucleus-<= join-right) <=∘ eval) (meet-monotone <=-refl (nucleus-<= join-right) <=∘ eval) <=∘
                                  nucleus-meet>= <=∘ nucleus-<= (ldistr>= <=∘ join-univ (L.rdistr>= <=∘ join-univ ab<=c meet-left) meet-right))
     | nucleus-<= x<=y => SMeet-univ \lam y<=a => SMeet-cond (x<=y <=∘ y<=a)
     | nucleus-unit => SMeet-univ \lam x<=a => later $ exponent.1 $ meet-left <=∘ x<=a <=∘ nucleus-unit
     | nucleus-join>= => SMeet-univ \lam x<=a => SMeet-cond (SMeet-cond x<=a) <=∘ exponent-monotone <=-refl (Nucleus.nucleus_exponent nucleus-join>=) <=∘
-        =_<= exponent-double <=∘ later (exponent-monotone (meet-univ (nucleus-<= $ exponent.1 $ meet-left <=∘ nucleus-unit) <=-refl) <=-refl)
+        exponent-double =<= later (exponent-monotone (meet-univ (nucleus-<= $ exponent.1 $ meet-left <=∘ nucleus-unit) <=-refl) <=-refl)
 
   \protected \lemma exp-univ1 {L : Locale} {j k n : Nucleus {L}} (p : \Pi {x : L} -> NucleusFrame.meet j k x <= n x) {x : L} : j x <= exp k n x
     => SMeet-univ \lam x<=a => later $ exponent.1 $ meet-monotone (nucleus-<= x<=a) <=-refl <=∘ p
@@ -519,7 +519,7 @@
 
   \lemma open_exp {L : Locale} {a : L} (x y : (open a).locale) : (x --> {(open a).locale} y).1 = x.1 --> y.1
     => <=-antisymmetric
-      (Join-univ \lam p => exponent.1 $ exponent.1 (=_<= (meet-assoc *> pmap (_ ∧) meet-comm *> inv meet-assoc) <=∘ meet-monotone p <=-refl <=∘ SJoin-rdistr>= <=∘ SJoin-univ \lam p => p) <=∘ y.2)
+      (Join-univ \lam p => exponent.1 $ exponent.1 ((meet-assoc *> pmap (_ ∧) meet-comm *> inv meet-assoc) =<= meet-monotone p <=-refl <=∘ SJoin-rdistr>= <=∘ SJoin-univ \lam p => p) <=∘ y.2)
       (Join-univ \lam {w} p => exponent.1 $ exponent.1 (meet-left <=∘ meet-left) <=∘ SJoin-cond {_} {(open a).Subtype} {_} {_} {a --> w, nucleus-join>=} (exponent.1 (meet-univ (meet-monotone meet-left <=-refl <=∘ eval) (meet-left <=∘ meet-right) <=∘ p) <=∘ y.2))
 
   \lemma open-isOpen {L : Locale} (a : L) : (open a).map.IsOpen
@@ -565,7 +565,7 @@
   }
   | Join-cond Cx {y} => SMeet-univ $ later \lam h => h Cx
   | Join-univ c {x} => SMeet-cond (later c)
-  | Join-ldistr>= {C} {k} {x} => unfold $ SMeet-univ \lam {n} h => meet-monotone <=-refl (SMeet-cond {_} {_} {_} {_} {Nucleus.exp k n} $ later \lam {j} Cj => Nucleus.exp-univ1 \lam {x} => =_<= meet-comm <=∘ h (SetIm-con Cj)) <=∘ meet-monotone <=-refl (SMeet-cond <=-refl) <=∘ =_<= meet-comm <=∘ eval
+  | Join-ldistr>= {C} {k} {x} => unfold $ SMeet-univ \lam {n} h => meet-monotone <=-refl (SMeet-cond {_} {_} {_} {_} {Nucleus.exp k n} $ later \lam {j} Cj => Nucleus.exp-univ1 \lam {x} => meet-comm =<= h (SetIm-con Cj)) <=∘ meet-monotone <=-refl (SMeet-cond <=-refl) <=∘ meet-comm =<= eval
   \where {
     \open Topology.Locale(NucleusFrame)
 
@@ -916,7 +916,7 @@
 
     \func surj-map {L : Locale} {P : FramePres} (f : FrameHom L (PresentedFrame P)) (p : \Pi (y : P) -> ∃ (x : L) (f x = embed y)) (U : PresentedFrame P) : \Sigma (x : L) (f x = U)
       => (Join \lam x => f x <= U, func-Join *> <=-antisymmetric (SJoin-univ \lam q => q) \lam {y} Uy => \case p y \with {
-        | inP (x,fx=y) => cover-inj (y, inP (_, SetIm-con $ =_<= fx=y <=∘ embed<= (cover-inj (y,Uy) idp), rewrite fx=y $ cover-inj () idp)) idp
+        | inP (x,fx=y) => cover-inj (y, inP (_, SetIm-con $ fx=y =<= embed<= (cover-inj (y,Uy) idp), rewrite fx=y $ cover-inj () idp)) idp
       })
 
     \lemma Cover_embed {P : FramePres} {a b : P} (a<=b : Cover1 a b) : embed a <= embed b
@@ -1069,7 +1069,7 @@
       | func => h
       | func-top => func-unit
       | func-meet => func-conj
-      | func-Join>= => =_<= (pmap h Join_IJoin) <=∘ h.func-basicCover <=-refl <=∘ IJoin-univ \lam s => SJoin-cond s.2
+      | func-Join>= => pmap h Join_IJoin =<= h.func-basicCover <=-refl <=∘ IJoin-univ \lam s => SJoin-cond s.2
     }
     | ret_f h => idp
     | f_sec h => idp
@@ -1092,7 +1092,7 @@
       | func => h
       | func-top>= => locale_cover h.func-image <=∘ IJoin-univ \lam x => FrameUnitalSubcat.Func-<= top-univ
       | func-meet => func-conj
-      | func-Join>= => =_<= (pmap h Join_IJoin) <=∘ h.func-basicCover <=-refl <=∘ IJoin-univ \lam s => SJoin-cond s.2
+      | func-Join>= => pmap h Join_IJoin =<= h.func-basicCover <=-refl <=∘ IJoin-univ \lam s => SJoin-cond s.2
     }
     | ret_f h => idp
     | f_sec h => idp
@@ -1128,7 +1128,7 @@
       | func U => SJoin f U.1
       | func-<= {U} {V} U<=V => SJoin-univ \lam Ua => SJoin-cond (U<=V Ua)
       | func-top>= => locale_cover f.func-image <=∘ IJoin-univ \lam x => SJoin-cond ()
-      | func-meet>= {U} {V} => SJoin-distr>= <=∘ SJoin-univ \lam {s} UVs => =_<= (inv f.func-conj) <=∘ SJoin-cond (later $ cover-inj (s.1,s.2,UVs.1,UVs.2) idp)
+      | func-meet>= {U} {V} => SJoin-distr>= <=∘ SJoin-univ \lam {s} UVs => inv f.func-conj =<= SJoin-cond (later $ cover-inj (s.1,s.2,UVs.1,UVs.2) idp)
       | func-Join>= => SJoin-univ \lam p => locale_cover (Cover.map p) <=∘ IJoin-univ (later \lam (x, inP (U,CU,Ux)) => SJoin-cond Ux <=∘ SJoin-cond CU)
 
     \lemma adjointMap_embed {X : FramePres} {Y : Locale} (f : FramePresHom X (F Y)) (x : X) : adjointMap f (embed x) = f x
@@ -1351,7 +1351,7 @@
              | func x => h (f.direct x)
              | func-top => pmap h f.direct-top *> func-top
              | func-meet => pmap h f.direct-meet *> func-meet
-             | func-Join>= => func-<= (direct-<= $ Join-univ \lam {a} Ca => =_<= (inv $ FrameHom.surjective-split sur a) <=∘ func-<= (SJoin-cond Ca)) <=∘ =_<= lem <=∘ func-SJoin>=
+             | func-Join>= => func-<= (direct-<= $ Join-univ \lam {a} Ca => inv (FrameHom.surjective-split sur a) =<= func-<= (SJoin-cond Ca)) <=∘ lem =<= func-SJoin>=
            }, ext (exts \lam x => lem)))
        }
 
@@ -1395,10 +1395,10 @@
 
     \lemma diagonal_direct {L : Locale} (a : L) : (diagonal L).direct a = PresentedFrame.closure (\lam (j : \Sigma (b c : L) (b ∧ c <= a)) => fpair j.1 j.2)
       => <=-antisymmetric (Join-univ \lam {U} Up {t} Ut => \case term-product t \with {
-        | inP (x,y,p,q) => cover-trans1 p $ cover-inj (x, y, Join-cond (U.2 _ $ unfold fpair $ repeat {2} (rewrite (path (fconj-eq x y))) $ cover-trans1 (cover-conj1 (cover-proj1 idp () idp) (cover-proj2 idp () idp)) $ cover-trans1 q $ cover-inj (t,Ut) idp) <=∘ =_<= (inv (diagonal_func U)) <=∘ Up) idp
+        | inP (x,y,p,q) => cover-trans1 p $ cover-inj (x, y, Join-cond (U.2 _ $ unfold fpair $ repeat {2} (rewrite (path (fconj-eq x y))) $ cover-trans1 (cover-conj1 (cover-proj1 idp () idp) (cover-proj2 idp () idp)) $ cover-trans1 q $ cover-inj (t,Ut) idp) <=∘ inv (diagonal_func U) =<= Up) idp
       }) $ closure<= \lam j => cover-inj (_, cover-inj (_,
         \let U => embed (fpair j.1 j.2)
-        \in inP (U, =_<= (diagonal_func U) <=∘ Join-univ \lam Uww =>
+        \in inP (U, diagonal_func U =<= Join-univ \lam Uww =>
           \have m => colimit-univ _ $ Product.fromLimit.cone $ later \case __ \with { | 0 => id _ | 1 => id _ }
           \in meet-univ <=-refl <=-refl <=∘ locale_cover (map {m} Uww) <=∘ IJoin-univ (\lam _ => <=-refl) <=∘ j.3, cover-inj () idp)) idp) idp
 
@@ -1428,10 +1428,10 @@
          \have | lem1 {d x y : L} (p : d <=< x) (q : p1 (y ∧ x) ∧ p2 d <= extend p1 p2 U) : p1 y ∧ p2 d <= extend p1 p2 U
                  => meet-monotone (func-<= (meet-univ <=-refl (top-univ <=∘ later p) <=∘ ldistr>=) <=∘ func-join>=) <=-refl <=∘ M.rdistr>= <=∘ join-univ (Join-cond (byRight (y ∧ neg d, d, meet-monotone meet-right <=-refl <=∘ eval, idp))) q
                | lem2 {d x y : L} (p : d <=< x) (q : p1 d ∧ p2 (y ∧ x) <= extend p1 p2 U) : p1 d ∧ p2 y <= extend p1 p2 U
-                 => meet-monotone <=-refl (func-<= (meet-univ <=-refl (top-univ <=∘ later p) <=∘ ldistr>=) <=∘ func-join>=) <=∘ ldistr>= <=∘ join-univ (Join-cond $ byRight (d, y ∧ neg d, meet-monotone <=-refl meet-right <=∘ =_<= meet-comm <=∘ eval, idp)) q
+                 => meet-monotone <=-refl (func-<= (meet-univ <=-refl (top-univ <=∘ later p) <=∘ ldistr>=) <=∘ func-join>=) <=∘ ldistr>= <=∘ join-univ (Join-cond $ byRight (d, y ∧ neg d, meet-monotone <=-refl meet-right <=∘ meet-comm =<= eval, idp)) q
                | tu<=NU {t u : L} (q : p1 u ∧ p2 u <= extend p1 p2 U) : p1 t ∧ p2 u <= extend p1 p2 U
                  => meet-monotone <=-refl (func-<= (reg u) <=∘ func-Join>=) <=∘ SJoin-ldistr>= <=∘ SJoin-univ \lam a<=<u => lem1 a<=<u (meet-monotone (func-<= meet-right) (func-<= (<=<_<= $ later a<=<u)) <=∘ q)
-         \in meet-monotone (func-<= (reg a) <=∘ func-Join>=) <=-refl <=∘ SJoin-rdistr>= <=∘ SJoin-univ \lam {b} b<=<a => lem2 b<=<a (meet-monotone <=-refl (func-<= (=_<= meet-comm <=∘ p)) <=∘ tu<=NU (meet-monotone func-Join>= func-Join>= <=∘ SJoin-distr>= <=∘ SJoin-univ \lam {s} t => tu<=NU (Join-cond $ byLeft $ later t.2)))
+         \in meet-monotone (func-<= (reg a) <=∘ func-Join>=) <=-refl <=∘ SJoin-rdistr>= <=∘ SJoin-univ \lam {b} b<=<a => lem2 b<=<a (meet-monotone <=-refl (func-<= (meet-comm =<= p)) <=∘ tu<=NU (meet-monotone func-Join>= func-Join>= <=∘ SJoin-distr>= <=∘ SJoin-univ \lam {s} t => tu<=NU (Join-cond $ byLeft $ later t.2)))
   }
 
 \func dense_closed_ofs : OFS {LocaleCat} \cowith
@@ -1449,14 +1449,14 @@
          n.map,
          exts \lam x => func-join *> <=-antisymmetric (join-univ (direct-counit <=∘ bottom-univ) <=-refl) join-right,
          \lam {x} p => unfold $ direct-unit <=∘ direct-<= p <=∘ join-left,
-         (\lam {x} => =_<= (n.map_direct (n.map x)) <=∘ join-univ (join-left <=∘ =_<= (inv (n.map_direct (n.map bottom))) <=∘ join-left) join-right, Nucleus.map.surjective {n}))
+         (\lam {x} => n.map_direct (n.map x) =<= join-univ (join-left <=∘ inv (n.map_direct (n.map bottom)) =<= join-left) join-right, Nucleus.map.surjective {n}))
   | unique-lift f (g : FrameHom) Lf Rg => OFS.liftFromMono {LocaleCat} f g (regularMono_Mono (surj_regular Rg.2)) \lam t s p =>
     \have lem {x} : s (g.direct (g x)) = s x => <=-antisymmetric (func-<= (Rg.1 {x}) <=∘ func-join>= <=∘ join-univ (Lf (=_<= (inv (path (\lam i => p i (g.direct (inv g.func-bottom i)))) *> pmap t (surjective-split Rg.2 bottom) *> func-bottom)) <=∘ bottom-univ) <=-refl) (func-<= direct-unit)
     \in (\new FrameHom {
        | func x => s (g.direct x)
        | func-top => pmap s g.direct-top *> func-top
        | func-meet => pmap s g.direct-meet *> func-meet
-       | func-Join>= {C} => func-<= (direct-<= $ Join-univ \lam {a} Ca => =_<= (inv $ FrameHom.surjective-split Rg.2 a) <=∘ func-<= (SJoin-cond Ca)) <=∘ =_<= lem <=∘ func-SJoin>=
+       | func-Join>= {C} => func-<= (direct-<= $ Join-univ \lam {a} Ca => inv (FrameHom.surjective-split Rg.2 a) =<= func-<= (SJoin-cond Ca)) <=∘ lem =<= func-SJoin>=
      }, exts \lam x => lem)
   \where \open FrameHom
 

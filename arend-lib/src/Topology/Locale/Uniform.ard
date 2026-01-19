@@ -43,8 +43,8 @@
   \where {
     \lemma star_open {L : Locale} (a : L) (U : L -> \Prop) : nucleus-star (open a) U = star a U
       => \have | lem {x} {b} : (a --> x <= a --> b) = (a ∧ x <= b)
-                  => propExt (\lam c => =_<= meet-comm <=∘ exponent.2 (nucleus-unit {open a} <=∘ c))
-                             (\lam c => nucleus-univ {open a} $ exponent.1 $ =_<= meet-comm <=∘ c)
+                  => propExt (\lam c => meet-comm =<= exponent.2 (nucleus-unit {open a} <=∘ c))
+                             (\lam c => nucleus-univ {open a} $ exponent.1 $ meet-comm =<= c)
                | lem2 y P : a --> y <= ((open a).locale.pHat P).1 = a ∧ y <= pHat P
                   => pmap (_ <=) (open a).locale_pHat *> lem
          \in path \lam i => Join \lam x => \Sigma (U x) (\Pi (P : \Prop) -> lem2 x P i -> P)
@@ -151,10 +151,10 @@
       => nucleus>=open $ isCovering uU <=∘ Join-univ \lam {w} Uw => j.nucleus-unit <=∘ IsOvert_IJoin o {j w, nucleus-join>=} <=∘ j.locale.IJoin-univ {_} {_} {_, nucleus-join>=} \lam jw>0 => nucleus-<= $ Join-cond (Uw,jw>0)
 
     \lemma wclosure>=nucleus-star {L : PreuniformLocale} {j : Nucleus {L}} (o : j.locale.IsOvert) {U : L -> \Prop} (uU : isUniform U) : open (nucleus-star j U) <= j.map.wclosed-image
-      => =_<= (pmap open $ inv $ star_wclosure uU) <=∘ top>=star (sdense_overt {<=-map j.map.wclosed-image j wclosure_<=} wclosure-sdense o) uU
+      => pmap open (inv $ star_wclosure uU) =<= top>=star (sdense_overt {<=-map j.map.wclosed-image j wclosure_<=} wclosure-sdense o) uU
 
     \lemma wclosure>=star {L : PreuniformLocale} {a : L} {U : L -> \Prop} (uU : isUniform U) : open (star a U) <= wclosed-image {Nucleus.map {open a}}
-      => =_<= (pmap open $ inv $ nucleus-star.star_open a U) <=∘ wclosure>=nucleus-star (open_IsOvert uniform-overt) uU
+      => pmap open (inv $ nucleus-star.star_open a U) =<= wclosure>=nucleus-star (open_IsOvert uniform-overt) uU
   }
 
 \lemma uniform=>wregular {L : UniformLocale} : L.IsWeaklyRegularLocale
@@ -302,7 +302,7 @@
         | (0,a) => direct-<= top-univ <=∘ IJoin-cond ()
         | (1,a) => IsOvert_IJoin M.uniform-overt <=∘ IJoin-univ (later \lam f_a>0 => IJoin-cond \lam P c => f_a>0 P $ Join-univ \lam p => sd $ p <=∘ c)
         | (2,(U,uU)) => \have (inP (V, uV, V<=Uf)) => f.isUniformEmbedding uU
-                        \in =_<= direct-top <=∘ isCovering uV <=∘ Join-univ \lam {z} p => f.direct-unit <=∘ IJoin-cond (later (f z, V<=Uf p))
+                        \in direct-top =<= isCovering uV <=∘ Join-univ \lam {z} p => f.direct-unit <=∘ IJoin-cond (later (f z, V<=Uf p))
         | (3,a) => isAdmissible (direct a) <=∘ Join-univ \lam {z} p => f.direct-unit <=∘ IJoin-cond (later (f z, <=u.adjoint f p))
       }
       | func-image {y} => cover-basic $ f.direct-unit <=∘ IJoin-cond (f y)
