@@ -40,8 +40,8 @@ abstract class AbstractArendBlock(node: ASTNode, val settings: CommonCodeStyleSe
                     val targetFileLocation = targetFile?.moduleLocation
 
                     if (targetFileLocation != null) {
-                        //TODO: This operation may be slow
-                        arendServer.getCheckerFor(listOf(targetFileLocation)).resolveModules(UnstoppableCancellationIndicator.INSTANCE, ProgressReporter.empty())
+                        //TODO: This operation is slow; disabled for now; formatter may not resolve everything correctly...
+                        //arendServer.getCheckerFor(listOf(targetFileLocation)).resolveModules(UnstoppableCancellationIndicator.INSTANCE, ProgressReporter.empty())
                     }
 
                     val result = appExprToConcreteOnlyTopLevel(psi)

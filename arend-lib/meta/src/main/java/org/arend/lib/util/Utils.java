@@ -327,13 +327,19 @@ public class Utils {
   }
 
   public static boolean safeCompare(ExpressionTypechecker typechecker, UncheckedExpression expr1, UncheckedExpression expr2, CMP cmp, ConcreteSourceNode marker, boolean allowEquations, boolean normalize, boolean useTypes) {
-    return expr1.getUnderlyingExpression() == expr2.getUnderlyingExpression() || typechecker.withCurrentState(tc -> {
-      if (tc.compare(expr1, expr2, cmp, marker, allowEquations, normalize, useTypes)) {
-        return true;
-      }
-      tc.loadSavedState();
-      return false;
-    });
+    if (expr1.getUnderlyingExpression() == expr2.getUnderlyingExpression()) {
+      return true;
+    }
+
+    Boolean result = tryTypecheck(typechecker,tc -> {
+        if (tc.compare(expr1, expr2, cmp, marker, allowEquations, normalize, useTypes)) {
+          return true;
+        }
+        tc.loadSavedState();
+        return false;
+      });
+
+    return result != null && result;
   }
 
   public static boolean isProp(CoreExpression type) {
