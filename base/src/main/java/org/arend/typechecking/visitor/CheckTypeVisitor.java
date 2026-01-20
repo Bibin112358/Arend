@@ -554,7 +554,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       }
     }
 
-    return isOmega ? result : checkResultExpr(expectedType, result, expr);
+    return checkResultExpr(expectedType, result, expr);
   }
 
   private TypecheckingResult checkResultExpr(Expression expectedType, TypecheckingResult result, Concrete.Expression expr) {

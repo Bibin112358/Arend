@@ -389,4 +389,10 @@ public class DataTest extends TypeCheckingTestCase {
       "\\truncated \\data D.{p1,p2} (A : \\Type p1) : \\Set\n" +
       "  | con A");
   }
+
+  @Test
+  public void constructorTypeTest() {
+    typeCheckDef("\\data D (F : Nat -> \\Set0) | con F", 1);
+    assertThatErrorsAre(typeMismatchError());
+  }
 }

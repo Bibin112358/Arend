@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import static org.arend.ExpressionFactory.Universe;
+import static org.arend.Matchers.typeMismatchError;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -426,5 +427,11 @@ public class RecordsTest extends TypeCheckingTestCase {
       \\lemma test : S 0 \\cowith
       """, 1);
     assertThatErrorsAre(Matchers.fieldsImplementation(false, Collections.singletonList(get("R.p"))));
+  }
+
+  @Test
+  public void fieldTypeTest() {
+    typeCheckDef("\\record R (F : Nat -> \\Set0) | field : F", 1);
+    assertThatErrorsAre(typeMismatchError());
   }
 }
