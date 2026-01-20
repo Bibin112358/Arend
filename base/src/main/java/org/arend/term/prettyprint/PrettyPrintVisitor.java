@@ -26,9 +26,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static org.arend.ext.prettyprinting.PrettyPrinterConfig.MAX_LEN;
+
 public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence, Void>, ConcreteLevelExpressionVisitor<Precedence, Void>, ConcreteResolvableDefinitionVisitor<Void, Void> {
   public static final int INDENT = 2;
-  public static final int MAX_LEN = 120;
   public static final float SMALL_RATIO = (float) 0.1;
 
   protected final StringBuilder myBuilder;
@@ -36,11 +37,17 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
   private final VariableTracker<Referable> myHVariables = new VariableTracker<>();
   protected int myIndent;
   private final boolean noIndent;
+  private final int myLineLength;
 
-  public PrettyPrintVisitor(StringBuilder builder, int indent, boolean doIndent) {
+  public PrettyPrintVisitor(StringBuilder builder, int indent, boolean doIndent, int lineLength) {
     myBuilder = builder;
     myIndent = indent;
     noIndent = !doIndent;
+    myLineLength = lineLength;
+  }
+
+  public PrettyPrintVisitor(StringBuilder builder, int indent, boolean doIndent) {
+    this(builder, indent, doIndent, MAX_LEN);
   }
 
   public PrettyPrintVisitor(StringBuilder builder, int indent) {
@@ -52,7 +59,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
   }
 
   protected PrettyPrintVisitor copy(StringBuilder builder, int indent, boolean doIndent) {
-    return new PrettyPrintVisitor(builder, indent, doIndent);
+    return new PrettyPrintVisitor(builder, indent, doIndent, myLineLength);
   }
 
   public void printGroup(ConcreteGroup group) {
@@ -1777,13 +1784,13 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
     boolean printSpaceBefore() {return true;}
     boolean printSpaceAfter() {return true;}
 
-    boolean doHyphenation(int leftLen, int rightLen) {
-      if (leftLen == 0) leftLen = 1; if (leftLen > MAX_LEN) leftLen = MAX_LEN;
-      if (rightLen == 0) rightLen = 1; if (rightLen > MAX_LEN) rightLen = MAX_LEN;
+    boolean doHyphenation(int leftLen, int rightLen, int lineLength) {
+      if (leftLen == 0) leftLen = 1; if (leftLen > lineLength) leftLen = lineLength;
+      if (rightLen == 0) rightLen = 1; if (rightLen > lineLength) rightLen = lineLength;
       double ratio = ((double) rightLen) / leftLen;
       if (ratio > 1.0) ratio = 1/ratio;
 
-      int myMaxLen = (ratio > SMALL_RATIO) ? MAX_LEN : Math.round(MAX_LEN * (1 + SMALL_RATIO));
+      int myMaxLen = (ratio > SMALL_RATIO) ? lineLength : Math.round(lineLength * (1 + SMALL_RATIO));
 
       return (leftLen + rightLen + getOpText().trim().length() + 1 > myMaxLen);
     }
@@ -1827,7 +1834,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
       int leftLen = lhs_sz == 0 ? 0 : lhs_strings.get(lhs_sz-1).trim().length();
       int rightLen = rhs_sz == 0 ? 0 : rhs_strings.getFirst().trim().length();
 
-      boolean hyph = doHyphenation(leftLen, rightLen) && !(rhs_sz > 0 && rhs_strings.getFirst().isEmpty());
+      boolean hyph = doHyphenation(leftLen, rightLen, ppv_default.myLineLength) && !(rhs_sz > 0 && rhs_strings.getFirst().isEmpty());
 
       for (int i=0; i<lhs_sz; i++) {
         String s = lhs_strings.get(i);

@@ -101,7 +101,7 @@ public abstract class Expression implements Body, CoreExpression {
     if (config.getNormalizationMode() != null) {
       FixLevelParameters.fix(this); // Expressions created in errors might have not fixed levels, so we fix them here
     }
-    ToAbstractVisitor.convert(this, prettifier, config).accept(new PrettyPrintVisitor(builder, 0, !config.isSingleLine()), new Precedence(Concrete.Expression.PREC));
+    ToAbstractVisitor.convert(this, prettifier, config).accept(new PrettyPrintVisitor(builder, 0, !config.isSingleLine(), config.getLineLength()), new Precedence(Concrete.Expression.PREC));
   }
 
   @Override

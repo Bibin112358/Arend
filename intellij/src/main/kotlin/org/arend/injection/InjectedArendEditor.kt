@@ -12,6 +12,7 @@ import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.ScrollType
+import com.intellij.openapi.editor.colors.EditorFontType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.TextRange
@@ -61,7 +62,7 @@ import javax.swing.JPanel
 
 abstract class InjectedArendEditor(
     val project: Project,
-    name: String,
+    val name: String,
     var treeElement: ArendErrorTreeElement?,
 ) {
     protected val editor: Editor?
@@ -323,7 +324,7 @@ abstract class InjectedArendEditor(
         PsiDocumentManager.getInstance(project).getPsiFile(it) as? PsiInjectionTextFile
     }
 
-    private class ProjectPrintConfig(
+    private inner class ProjectPrintConfig(
         project: Project,
         printOptionsKind: PrintOptionKind,
         scope: Scope?,
@@ -345,6 +346,18 @@ abstract class InjectedArendEditor(
 
         override fun getNormalizationMode(): NormalizationMode? {
             return null
+        }
+
+        override fun getLineLength(): Int {
+            val editor = editor ?: return super.getLineLength()
+            val fontMetrics = editor.component.getFontMetrics(editor.colorsScheme.getFont(EditorFontType.PLAIN))
+            val charWidth = fontMetrics.charWidth(' ')
+            val width = editor.component.width
+            return if (charWidth > 0) {
+                (width / charWidth).coerceAtLeast(30)
+            } else {
+                super.getLineLength()
+            }
         }
     }
 
