@@ -434,4 +434,13 @@ public class RecordsTest extends TypeCheckingTestCase {
     typeCheckDef("\\record R (F : Nat -> \\Set0) | field : F", 1);
     assertThatErrorsAre(typeMismatchError());
   }
+
+  @Test
+  public void recordsBug() {
+    typeCheckModule("""
+      \\record R (E : \\Set0)
+      \\func test (A B : R) : A = B => R {}
+      """, 1);
+    assertThatErrorsAre(typeMismatchError());
+  }
 }

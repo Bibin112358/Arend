@@ -1319,7 +1319,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       return null;
     }
 
-    return expr.getStatements().isEmpty() ? typeCheckedBaseClass : typecheckClassExt(expr.getStatements(), expectedType, classCall, null, expr, false);
+    return expr.getStatements().isEmpty() ? checkResult(expectedType, typeCheckedBaseClass, expr) : typecheckClassExt(expr.getStatements(), expectedType, classCall, null, expr, false);
   }
 
   public TypecheckingResult typecheckClassExt(List<? extends Concrete.ClassFieldImpl> classFieldImpls, Expression expectedType, ClassCallExpression classCallExpr, Set<ClassField> pseudoImplemented, Concrete.Expression expr, boolean useDefaults) {
