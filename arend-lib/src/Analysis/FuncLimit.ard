@@ -74,12 +74,11 @@
         | func s => f s.1 s.2
         | func-cover Dc => ClosurePrecoverSpace.closure-univ-cover {_} {_} {DirectedCoverSpace.precover ⨯ X} (\lam {E} Eu => \case fc Eu \with {
             | inP (C,Cc,h) => directedProdCover-char.2
-                (cauchy-subset (cauchy-glue Cc {\lam U V => ∃ (N : I) (W : E) ∀ {n} (N <= n) ∀ {x} (U x -> V x -> W (f n x))} \lam CU => \case h CU \with {
-                  | inP (N,D,Dc,Dg) => cauchy-subset Dc \lam {V} DV => \case Dg DV \with {
-                    | inP (W,EW,Eg) => inP $ later (N,W,EW,Eg)
-                  }
-                }) \lam {_} (inP (U, V, CU, inP (N,W,EW,g), idp)) => inP $ later (N, _, inP (W, EW, idp), \lam p (Ux,Vx) => g p Ux Vx),
-                 \lam n => cauchy-subset (func-cover {f n} $ Y.makeCauchy Eu) \lam {_} (inP (V,DV,idp)) => inP $ later (_, inP (V, DV, idp), \lam s => s))
+                (cauchy-glue* Cc \lam CU => \case h CU \with {
+                  | inP (N,D,Dc,Dg) => inP (D, Dc, \lam DV => \case Dg DV \with {
+                    | inP (W,EW,Eg) => inP $ later (N, _, inP (W,EW,idp), \lam p s => Eg p s.1 s.2)
+                  })
+                }, \lam n => cauchy-subset (func-cover {f n} $ Y.makeCauchy Eu) \lam {_} (inP (V,DV,idp)) => inP $ later (_, inP (V, DV, idp), \lam s => s))
           }) (uniform-cauchy.1 Dc)
       }
 

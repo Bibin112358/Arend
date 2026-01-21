@@ -67,18 +67,13 @@
         | byLeft q => byLeft q
         | byRight q => byRight $ later (j, p *> inv q)
       }
-      | cover-trans {I} {f} c d =>
-        \have t => cauchy-glue (isStronglyRegular $ cover-char c U'<=<U)
-            {\lam U1 V1 => U1 s<=< Compl U' || (\Sigma (i : I) (U1 s<=< f i) ((V1 = Compl U1) || (\Sigma (j : J) (g j = V1))))} \case __ \with {
-              | inP (W, byLeft e, W'<=<W) => top-cauchy $ byLeft $ rewrite e in W'<=<W
-              | inP (W, byRight (i,fi=W), W'<=<W) => cauchy-subset (cover-char (d i) (rewrite (inv fi=W) in W'<=<W)) \lam e => byRight $ later (i, rewrite fi=W W'<=<W, e)
-            }
-        \in cauchy-refine t \case __ \with {
-          | inP (V, W, inP (U, byLeft e, V<=<U), _, Z=VW) => inP (_, byLeft idp, rewrite Z=VW $ meet-left <=∘ s<=<_<= V<=<U <=∘ =_<= e)
-          | inP (V, W, inP (U, _, V<=<U), byLeft e2, Z=VW) => inP (_, byLeft idp, rewrite Z=VW $ meet-left <=∘ s<=<_<= e2)
-          | inP (V, W, inP (U, _, V<=<U), byRight (i, V<=<fi, byLeft e), Z=VW) => inP (_, byLeft idp, rewrite (Z=VW,e) \lam (Vx,nVx) => absurd $ nVx Vx)
-          | inP (V, W, inP (U, _, V<=<U), byRight (i, V<=<fi, byRight (j,gj=W)), Z=VW) => inP (_, byRight (j,idp), rewrite (Z=VW,gj=W) meet-right)
-        }
+      | cover-trans {I} {f} c d => cauchy-glue-refine (isStronglyRegular $ cover-char c U'<=<U) \lam {W'} => \case \elim __ \with {
+        | inP (W, byLeft e, W'<=<W) => inP (_, cauchy-top, \lam _ => inP (W, byLeft e, meet-left <=∘ s<=<_<= W'<=<W))
+        | inP (_, byRight (i,idp), W'<=<fi) => inP (_, cover-char (d i) W'<=<fi, \lam {W''} => \case \elim W'', \elim __ \with {
+          | _, byLeft idp => inP (_, byLeft idp, \lam s => absurd $ s.2 s.1)
+          | W'', byRight e => inP (_, byRight $ later e, meet-right)
+        })
+      }
       | cover-proj1 {U1} {U2} p j q => cauchy-refine U'<=<U \lam {V} => \case __ \with {
         | byLeft r => inP (V, byLeft r, <=-refl)
         | byRight r => inP (U1, byRight (j,q), rewrite (r *> p) meet-left)
