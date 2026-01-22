@@ -1,0 +1,25 @@
+\import Category
+\import Category.Functor
+\import Category.Slice
+\import Category.Topos.Sheaf.Site
+\import Logic
+\import Logic.Meta
+\import Paths
+\import Paths.Meta
+
+\record SiteHom.{o1,h1,o2,h2} \extends Functor.{o1,h1,o2,h2} {
+  \override C : Site.{o1,h1}
+  \override D : Site.{o2,h2}
+
+  | Func-cover {x : C} {P : Presieve x} : isCover x P -> isCover (F x) (Presieve.pushforward \this P)
+  | Func-flat {x y1 y2 : C} (p1 : Hom y1 x) (p2 : Hom y2 x) {u : D} (t1 : Hom u (F y1)) (t2 : Hom u (F y2)) : Func p1 ∘ t1 = Func p2 ∘ t2
+    -> ∃ (w : C) (s1 : Hom w y1) (s2 : Hom w y2) (p1 ∘ s1 = p2 ∘ s2) (g : Hom u (F w)) (Func s1 ∘ g = t1) (Func s2 ∘ g = t2)
+
+  \lemma Func-coverFam {J : \Sort} {x : C} {f : J -> ObOver x} (fc : Site.IsCoverFam f) : Site.IsCoverFam (Site.pushforwardFam \this f)
+    => transport (isCover _) (ext \lam py => ext (\lam (inP (_, inP (j,idp), p)) => inP (j,p), \lam (inP (j,p)) => inP (f j, inP (j,idp), p))) (Func-cover fc)
+} \where {
+  \func id.{o,h} {C : Site.{o,h}} : SiteHom C C \cowith
+    | Functor => Id
+    | Func-cover {x} {P} => transport (isCover x) (ext \lam px => ext (\lam Ppx => inP (px,Ppx,idp), \lam (inP (py,Ppy,q)) => transportInv P q Ppy))
+    | Func-flat p1 p2 {u} t1 t2 r => inP (u, t1, t2, r, Precat.id u, id-right, id-right)
+}

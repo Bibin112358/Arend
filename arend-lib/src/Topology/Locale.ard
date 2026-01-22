@@ -18,6 +18,7 @@
 \import Category.Subcat
 \import Category.Subobj
 \import Category.Topos.Sheaf.Site
+\import Category.Topos.Sheaf.SiteHom
 \import Data.Array
 \import Data.Bool
 \import Data.Maybe
@@ -68,7 +69,7 @@
   | cover-stable {x} {y} x<=y {S} Sc =>
     inP (\lam px => ∃ (py : S) (px.1 <= py.1),
          meet-univ <=-refl (x<=y <=∘ Sc) <=∘ Join-ldistr>= <=∘ Join-univ (SetIm-elim \lam s => Join-cond $ later (meet-left, inP (_, s.2, meet-right))),
-         \lam px (inP (py,Spy,px<=py)) => inP (py, Spy, px<=py, prop-pi))
+         \lam (inP (py,Spy,px<=py)) => inP (py, Spy, px<=py, prop-pi))
 
   | Meet C => Join \lam x => ∀ {y : C} (x <= y)
   | Meet-cond Cx => Join-univ (__ Cx)
@@ -796,7 +797,7 @@
 \func FramePresSite (P : FramePres) : Site \cowith
   | Precat => FramePresPreorder P
   | isCover x C => ∃ (y : P) (Cover1 x y) (J : \Set \lp) (g : J -> P) (BasicCover y g) ∀ j (C (conj x (g j), cover-proj1 idp () idp))
-  | cover-stable x<=y (inP (z,y<=z,J,g,z<=g,d)) => inP (_, inP (z, cover-trans1 x<=y y<=z, J, g, z<=g, \lam j => inP $ later (_, d j, cover-conj1 x<=y (cover-inj () idp), prop-pi)), \lam px t => t)
+  | cover-stable x<=y (inP (z,y<=z,J,g,z<=g,d)) => inP (_, inP (z, cover-trans1 x<=y y<=z, J, g, z<=g, \lam j => inP $ later (_, d j, cover-conj1 x<=y (cover-inj () idp), prop-pi)), \lam t => t)
   \where \open Cover
 
 \record FramePresPrehom \extends SetHom {
