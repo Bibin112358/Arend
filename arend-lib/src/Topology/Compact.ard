@@ -174,7 +174,7 @@
   => ∃ (C : X.isUniform) ∀ {E : X.isCauchy} (IsLocallyUniform C E)
 
 \lemma locallyUniform-cauchy {X : PreuniformSpace} {C : Set (Set X)} (Cc : isCauchy C) (E : Set (Set X)) (lu : IsLocallyUniform C E) : isCauchy E
-  => cauchy-glue-refine Cc \lam CU => inP (_, X.makeCauchy (lu CU), \lam r => r)
+  => cauchy-glue-refine Cc \lam CU => X.makeCauchy (lu CU)
 
 \lemma locallyUniform-cover-char {X : StronglyRegularUniformSpace} {C : Set (Set X)} (Cb : ∀ {U : C} (IsTotallyBoundedSet U)) (Cp : ∀ {U : C} ∃ U) {E : Set (Set X)} (Ec : isCauchy E) : IsLocallyUniform C E
   => \lam {U} CU =>

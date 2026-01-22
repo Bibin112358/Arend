@@ -59,13 +59,11 @@
 \lemma cauchy-subset {X : PrecoverSpace} {C D : Set (Set X)} (Cc : isCauchy C) (e : \Pi {U : Set X} -> C U -> D U) : isCauchy D
   => cauchy-refine Cc \lam {U} CU => inP (U, e CU, <=-refl)
 
-\lemma cauchy-glue-refine {X : PrecoverSpace} {C E : Set (Set X)} (Cc : isCauchy C) (Ds : ∀ {U : C} ∃ (D : isCauchy) ∀ {V : D} ∃ (W : E) (U ∧ V ⊆ W)) : isCauchy E
-  => cauchy-refine (cauchy-glue Cc {\lam U V => ∃ (W : E) (U ∧ V ⊆ W)} \lam CU => \case Ds CU \with {
-    | inP (D,Dc,Ec) => cauchy-subset Dc Ec
-  }) \lam {_} (inP (U, V, CU, r, idp)) => r
+\lemma cauchy-glue* {X : PrecoverSpace} {C E : Set (Set X)} (Cc : isCauchy C) (Ds : ∀ {U : C} (isCauchy \lam V => E (U ∧ V))) : isCauchy E
+  => cauchy-subset (cauchy-glue Cc Ds) \lam {W} (inP (U,V,CU,EUV,idp)) => EUV
 
-\lemma cauchy-glue* {X : PrecoverSpace} {C E : Set (Set X)} (Cc : isCauchy C) (Ds : ∀ {U : C} ∃ (D : isCauchy) ∀ {V : D} (E (U ∧ V))) : isCauchy E
-  => cauchy-glue-refine Cc \lam CU => TruncP.map (Ds CU) \lam (D,Dc,h) => (D, Dc, \lam DV => inP (_, h DV, <=-refl))
+\lemma cauchy-glue-refine {X : PrecoverSpace} {C E : Set (Set X)} (Cc : isCauchy C) (Ds : ∀ {U : C} (isCauchy \lam V => ∃ (W : E) (U ∧ V ⊆ W))) : isCauchy E
+  => cauchy-refine (cauchy-glue Cc Ds) \lam {W} (inP (U,V,CU,r,idp)) => r
 
 \lemma top-cauchy {X : PrecoverSpace} {C : Set (Set X)} (Ct : C top) : isCauchy C
   => cauchy-subset cauchy-top $ later \lam p => rewriteI p Ct
@@ -299,7 +297,7 @@
     | inP (W,DW,V<=W) => inP $ later (W, DW, p <=∘ V<=W)
   }
   | cauchy-glue {C} Ec {D} Fc => cauchy-glue* Ec \lam {V} (inP (U,CU,VU)) =>
-    inP (_, Fc CU, \lam {V'} (inP (U',DUU',V'U')) => inP $ later (U ∧ U', inP (U, U', CU, DUU', idp), \lam s => (VU s.1, V'U' s.2)))
+    cauchy-subset (Fc CU) \lam {V'} (inP (U',DUU',V'U')) => inP $ later (U ∧ U', inP (U, U', CU, DUU', idp), \lam s => (VU s.1, V'U' s.2))
   \where {
     \lemma makeCauchy {C : Set (Set Y)} (Cc : isCauchy C) : isCauchy {PrecoverTransfer f} \lam U => ∃ (V : C) (U = f ^-1 V)
       => cauchy-subset Cc \lam {V} CV => inP $ later (f ^-1 V, inP (V, CV, idp), <=-refl)
@@ -358,7 +356,7 @@
       | closure-top p => cauchy-subset cauchy-top \lam q => inP $ later (top, rewrite p idp, inv q)
       | closure-refine Cc g => cauchy-refine (closure-univ-cover Ap Cc) \lam (inP (V,CV,q)) => TruncP.map (g CV) \lam (V',CV',V<=V') => (f ^-1 V', inP (V', CV', idp), rewrite q \lam c => V<=V' c)
       | closure-trans {D} Cc {E} g p => cauchy-glue* (closure-univ-cover Ap Cc) \lam {_} (inP (V,DV,idp)) =>
-        inP (_, closure-univ-cover Ap (g DV), \lam {_} (inP (V',EVV',idp)) => inP $ later (V ∧ V', rewrite p $ inP (V,V',DV,EVV',idp), idp))
+        cauchy-subset (closure-univ-cover Ap (g DV)) \lam {_} (inP (V',EVV',idp)) => inP $ later (V ∧ V', rewrite p $ inP (V,V',DV,EVV',idp), idp)
 
     \lemma closure-univ {S : PrecoverSpace X} {Y : PrecoverSpace} (AS : \Pi {C : Set (Set X)} -> isCauchy C -> Closure A C) (f : Y -> X) (Ap : ∀ {C : A} (isCauchy \lam U => ∃ (V : Set X) (C V) (U = f ^-1 V))) : PrecoverMap Y S f \cowith
       | func-cover Cc => closure-univ-cover Ap (AS Cc)
@@ -401,7 +399,7 @@
           | closure-top q => top-cauchy $ inP $ later (top, rewrite q idp, top-univ)
           | closure-refine CD g => cauchy-subset (aux CD) \lam (inP (V,DV,q)) => TruncP.map (g DV) \lam (V',CV',V<=V') => later (V', CV', q <=∘ V<=V')
           | closure-trans {D} CD {E} g q => cauchy-glue* (aux CD) \lam {W} (inP (V,DV,WV)) =>
-            inP (_, aux (g DV), \lam {W'} (inP (V',EVV',W'V')) => inP $ later (V ∧ V', rewrite q $ inP (V,V',DV,EVV',idp), \lam s => (WV s.1, W'V' s.2)))
+            cauchy-subset (aux (g DV)) \lam {W'} (inP (V',EVV',W'V')) => inP $ later (V ∧ V', rewrite q $ inP (V,V',DV,EVV',idp), \lam s => (WV s.1, W'V' s.2))
       }
   }
 

@@ -68,11 +68,11 @@
         | byRight q => byRight $ later (j, p *> inv q)
       }
       | cover-trans {I} {f} c d => cauchy-glue-refine (isStronglyRegular $ cover-char c U'<=<U) \lam {W'} => \case \elim __ \with {
-        | inP (W, byLeft e, W'<=<W) => inP (_, cauchy-top, \lam _ => inP (W, byLeft e, meet-left <=∘ s<=<_<= W'<=<W))
-        | inP (_, byRight (i,idp), W'<=<fi) => inP (_, cover-char (d i) W'<=<fi, \lam {W''} => \case \elim W'', \elim __ \with {
+        | inP (W, byLeft e, W'<=<W) => top-cauchy $ inP $ later (W, byLeft e, meet-left <=∘ s<=<_<= W'<=<W)
+        | inP (_, byRight (i,idp), W'<=<fi) => cauchy-subset (cover-char (d i) W'<=<fi) $ later \lam {W''} => \case \elim W'', \elim __ \with {
           | _, byLeft idp => inP (_, byLeft idp, \lam s => absurd $ s.2 s.1)
           | W'', byRight e => inP (_, byRight $ later e, meet-right)
-        })
+        }
       }
       | cover-proj1 {U1} {U2} p j q => cauchy-refine U'<=<U \lam {V} => \case __ \with {
         | byLeft r => inP (V, byLeft r, <=-refl)
