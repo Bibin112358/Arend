@@ -159,9 +159,8 @@
           }
           | ret mf => \new MatchingFamily {
             | family => mf.family
-            | isMatching {j} {j'} gg' => \case f.Func-flat j.1.2 j'.1.2 _ _ gg' \with {
-              | inP (w,s1,s2,s1s2,h,s1h,s2h) => rewrite (inv s1h, inv s2h, F.Func-o, F.Func-o) $ o-assoc *> pmap (_ ∘) (mf.isMatching s1s2) *> inv o-assoc
-            }
+            | isMatching {j} {j'} {z} {g} {g'} gg' => separated-covering (f.Func-flat-pullback gg') \lam {u} (inP (w,w>j,w>j',c,h,hl,hr)) =>
+              inv o-assoc *> pmap (`∘ _) (inv Func-o) *> pmap (`∘ _) (pmap F.Func (inv hl) *> Func-o) *> o-assoc *> pmap (_ ∘) (mf.isMatching c) *> inv o-assoc *> pmap (`∘ _) (inv Func-o *> pmap F.Func hr) *> pmap (`∘ _) Func-o *> o-assoc
           }
           | ret_f => idpe
           | f_sec => idpe

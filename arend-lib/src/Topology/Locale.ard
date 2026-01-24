@@ -388,7 +388,8 @@
     | Func-id => idp
     | Func-o => idp
     | Func-cover p => func-<= p <=∘ func-Join>= <=∘ SJoin-univ \lam s => Join-cond $ later (func-<= s.1, inP (_, s.2, idp))
-    | Func-flat {x} {y1} {y2} p1 p2 t1 t2 r => inP (y1 ∧ y2, meet-left, meet-right, prop-pi, meet-univ t1 t2 <=∘ func-meet>=, prop-pi, prop-pi)
+    | Func-flat-terminal => Covering.covering-id $ inP (top, top-univ <=∘ func-top>=)
+    | Func-flat-pullback {x} {y1} {y2} {y1<=x} {y2<=x} {u} {u<=Fy1} {u<=Fy2} _ => Covering.covering-id $ inP (y1 ∧ y2, meet-left, meet-right, prop-pi, meet-univ u<=Fy1 u<=Fy2 <=∘ func-meet>=, prop-pi, prop-pi)
 } \where {
   \protected \func id {L : Locale} : FrameHom L L \cowith
     | func x => x
@@ -806,14 +807,11 @@
   | func-conj {x y : Dom} : func (conj x y) = conj (func x) (func y)
   | func-basicCover {J : \Set} {x : Dom} {f : J -> Dom} : BasicCover x f -> BasicCover (func x) (\lam j => func (f j))
 
-  \func functor : SiteHom (FramePresSite Dom) (FramePresSite Cod) \cowith
+  \func functor : Functor (FramePresSite Dom) (FramePresSite Cod) \cowith
     | F => func
     | Func => Cover.map
     | Func-id => idp
     | Func-o => idp
-    | Func-cover (inP (y,x<=y,J,g,y<=g,d)) => inP (func y, Cover.map x<=y, J, \lam j => func (g j), func-basicCover y<=g, \lam j => inP (_, d j, ext $ inv func-conj))
-    | Func-flat {x} {y1} {y2} p1 p2 {u} t1 t2 r => inP (conj y1 y2, cover-proj1 idp () idp, Cover.cover-proj2 idp () idp,
-        prop-pi, transportInv (Cover1 u) func-conj $ Cover.cover-prod t1 t2, prop-pi, prop-pi)
 }
 
 \record FramePresHom \extends FramePresPrehom

@@ -2,8 +2,10 @@
 \import Category.Functor
 \import Category.Slice
 \import Category.Topos.Sheaf.Site
+\import Function.Meta
 \import Logic
 \import Logic.Meta
+\import Meta
 \import Paths
 \import Paths.Meta
 
@@ -12,8 +14,9 @@
   \override D : Site.{o2,h2}
 
   | Func-cover {x : C} {P : Presieve x} : isCover x P -> isCover (F x) (Presieve.pushforward \this P)
-  | Func-flat {x y1 y2 : C} (p1 : Hom y1 x) (p2 : Hom y2 x) {u : D} (t1 : Hom u (F y1)) (t2 : Hom u (F y2)) : Func p1 ∘ t1 = Func p2 ∘ t2
-    -> ∃ (w : C) (s1 : Hom w y1) (s2 : Hom w y2) (p1 ∘ s1 = p2 ∘ s2) (g : Hom u (F w)) (Func s1 ∘ g = t1) (Func s2 ∘ g = t2)
+  | Func-flat-terminal {u : D} : Covering u \lam v => ∃ (w : C) (Hom v.1 (F w))
+  | Func-flat-pullback {x y1 y2 : C} {p1 : Hom y1 x} {p2 : Hom y2 x} {u : D} {f : Hom u (F y1)} {g : Hom u (F y2)} (f_g : Func p1 ∘ f = Func p2 ∘ g)
+    : Covering u \lam v => ∃ (w : C) (f' : Hom w y1) (g' : Hom w y2) (p1 ∘ f' = p2 ∘ g') (h : Hom v.1 (F w)) (Func f' ∘ h = f ∘ v.2) (Func g' ∘ h = g ∘ v.2)
 
   \lemma Func-coverFam {J : \Sort} {x : C} {f : J -> ObOver x} (fc : Site.IsCoverFam f) : Site.IsCoverFam (Site.pushforwardFam \this f)
     => transport (isCover _) (ext \lam py => ext (\lam (inP (_, inP (j,idp), p)) => inP (j,p), \lam (inP (j,p)) => inP (f j, inP (j,idp), p))) (Func-cover fc)
@@ -21,5 +24,6 @@
   \func id.{o,h} {C : Site.{o,h}} : SiteHom C C \cowith
     | Functor => Id
     | Func-cover {x} {P} => transport (isCover x) (ext \lam px => ext (\lam Ppx => inP (px,Ppx,idp), \lam (inP (py,Ppy,q)) => transportInv P q Ppy))
-    | Func-flat p1 p2 {u} t1 t2 r => inP (u, t1, t2, r, Precat.id u, id-right, id-right)
+    | Func-flat-terminal {u} => Covering.covering-id $ inP (u, C.id u)
+    | Func-flat-pullback {x} {y1} {y2} {p1} {p2} {u} {f} {g} f_g => Covering.covering-id $ inP (u, f, g, f_g, C.id u, idp, idp)
 }
