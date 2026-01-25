@@ -315,7 +315,7 @@
 \func affineRingedPres (R : CRing) : LocallyRingedFramePres (SpecPres R) \cowith
   | R : VSheaf CRingCat (FramePresSite (SpecPres R)) \cowith {
     | F => functor R
-    | isSheaf (inP (y,x<=y,J,f,c',q)) D => unfolds at c' $ {?}
+    | isSheaf => {?}
   }
   {- TODO[sorts]
     => sheaf-reflect CRingCat.forget CRingCat.forget.reflectsLimit (functor R) $

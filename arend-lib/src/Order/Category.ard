@@ -9,12 +9,6 @@
 \import Set
 \import Set.SetHom
 
-\record PosetHom \extends SetHom {
-  \override Dom : Poset
-  \override Cod : Poset
-  | func-<= {x y : Dom} : x <= y -> func x <= func y
-}
-
 \instance PosetCat : Cat
   | Ob => Poset
   | Hom P1 P2 => PosetHom P1 P2

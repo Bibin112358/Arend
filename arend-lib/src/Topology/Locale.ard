@@ -235,10 +235,9 @@
     }
 }
 
-\record FrameHom \extends SetHom {
+\record FrameHom \extends PosetHom {
   \override Dom : Locale
   \override Cod : Locale
-  | func-<= {x y : Dom} : x <= y -> func x <= func y
   | func-top : func top = top
   | func-top>= : top <= func top
   | func-meet {x y : Dom} : func (x ∧ y) = func x ∧ func y
@@ -1266,7 +1265,8 @@
     | tupleBeta {_} {_} {j} => \case j
     | tupleEq {Z} {h1} {h2} _ => exts \lam P =>
         \have t : P = pHat {discrete (\Sigma)} (P ()) => ext \lam _ => ext (\lam p => inP (\lam _ => \Sigma, p, ()), \lam (inP (_,p,_)) => p)
-        \in rewrite t $ func-Join *> <=-antisymmetric (SJoin-univ \lam p => top-univ <=∘ h2.func-top>= <=∘ SJoin-cond p) (SJoin-univ \lam p => top-univ <=∘ h1.func-top>= <=∘ SJoin-cond p) *> inv func-Join}
+        \in rewrite t $ func-Join *> <=-antisymmetric (SJoin-univ \lam p => top-univ <=∘ h2.func-top>= <=∘ SJoin-cond p) (SJoin-univ \lam p => top-univ <=∘ h1.func-top>= <=∘ SJoin-cond p) *> inv func-Join
+  }
   \where {
     \lemma terminal-direct {L : Locale} (x : L) : direct {LocaleCat.terminalMap {L}} x = (\lam _ => top <= x)
       => ext \lam _ => ext (\lam (inP (P,P<=x,p)) => Join-cond p <=∘ P<=x, \lam p => inP (\lam _ => \Sigma, top-univ <=∘ p, ()))

@@ -140,6 +140,15 @@
 \lemma SetIm-elim {A B : \Sort} {C : B -> \Prop} {f : A -> B} {P : A -> \Sort} (c : \Pi {a : A} -> P a -> C (f a)) {b : B} (s : SetIm f P b) : C b
   => TSetIm-elim (\lam t => c t.2) s
 
+\lemma SetIm_id {A : \Sort} {P : A -> \Prop} : SetIm (\lam x => x) P = P
+  => ext \lam a => propExt (SetIm-elim \lam p => p) SetIm-con
+
+\lemma SetIm_o {A B C : \Sort} {f : A -> B} {g : B -> C} {P : A -> \Prop} : SetIm (\lam x => g (f x)) P = SetIm g (SetIm f P)
+  => ext \lam c => ext (SetIm-elim \lam p => SetIm-con $ SetIm-con p, SetIm-elim $ SetIm-elim SetIm-con)
+
+\lemma SetIm_TSetIm {A B C : \Sort} {f : A -> B} {g : B -> C} : SetIm g (TSetIm f) = TSetIm (\lam a => g (f a))
+  => ext \lam c => propExt (SetIm-elim $ TSetIm-elim TSetIm-con) (TSetIm-elim \lam a => SetIm-con $ TSetIm-con a)
+
 \func OneOf (l : Array \Type) => ∃ (P : l) P
 
 \func ElemOf (l : Array \Type) => Given (P : l) P

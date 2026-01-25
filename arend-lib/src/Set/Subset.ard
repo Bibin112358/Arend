@@ -7,7 +7,7 @@
 \import Order.PartialOrder
 \import Paths
 \import Paths.Meta
-\import Topology.Locale
+\import Topology.Locale \hiding (func-<=,.func-<=)
 
 \func Set (X : \Sort) => X -> \Prop
   \where {
@@ -67,8 +67,11 @@
 \lemma bottom-empty {A : \Type} {E : \Prop} {x : A} (b : (SetLattice A).bottom x) : E \elim b
   | inP (_,(),_)
 
-\func Refines {X : \Type} (C D : Set (Set X)) : \Prop
-  => ∀ {U : C} ∃ (V : D) (U ⊆ V)
+\func Refines {P : Preorder} (C D : Set P) : \Prop
+  => ∀ {x : C} ∃ (y : D) (x <= y)
+
+\lemma <=_Refines {P : Preorder} {C D : Set P} (C<=D : C ⊆ D) : Refines C D
+  => \lam Cx => inP (_, C<=D Cx, <=-refl)
 
 \lemma Refines-cover {X : \Type} {C D : Set (Set X)} (r : Refines C D) {x : X} (p : ∃ (U : C) (U x)) : ∃ (V : D) (V x) \elim p
   | inP (U,CU,Ux) => \case r CU \with {

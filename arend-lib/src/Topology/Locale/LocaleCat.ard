@@ -1,0 +1,119 @@
+\import Category
+\import Category.Limit
+\import Category.Meta
+\import Category.Subcat
+\import Equiv
+\import Function.Meta
+\import Logic
+\import Logic.Meta
+\import Meta
+\import Order.Lattice
+\import Order.Lattice.CompleteLattice
+\import Order.PartialOrder
+\import Paths
+\import Paths.Meta
+\import Set.Subset
+\import Topology.Locale \hiding (func-basicCover,.func-basicCover,Cover,cover-inj,cover-trans)
+\import Topology.Locale.PreorderSite
+\open CompleteLattice
+\open SiteLocale \hiding (<=)
+
+\func FrameCat : Cat Locale \cowith
+  | Hom => FrameHom
+  | id L => FrameHom.id
+  | o => FrameHom.∘
+  | id-left => idp
+  | id-right => idp
+  | o-assoc => idp
+  | univalence => sip \lam {X} {S1} {S2} (h1 : FrameHom) (h2 : FrameHom) => exts Locale {
+    | <= x y => ext (h1.func-<=, h2.func-<=)
+    | meet x y => h1.func-meet
+    | top => h1.func-top
+    | Join C => h1.func-Join *> <=-antisymmetric (S2.SJoin-univ \lam Ca => h1.func-<= $ S1.SJoin-cond Ca) (h1.func-<= $ S1.SJoin-univ \lam Ca => h2.func-<= $ S2.SJoin-cond Ca) *> inv h2.func-Join
+  }
+  \where {
+    \func equiv_iso {f : FrameHom} (e : QEquiv f) : Iso {FrameCat} f \cowith
+      | hinv => \new FrameHom {
+        | func => e.ret
+        | func-top => pmap e.ret (inv func-top) *> e.ret_f top
+        | func-meet {x} {y} => pmap e.ret (inv (func-meet *> pmap2 (∧) (e.f_ret x) (e.f_ret y))) *> e.ret_f _
+        | func-Join {C} => pmap e.ret (Join_SJoin *> inv (FrameHom.func-SJoin *> pmap (SJoin __ C) (ext e.f_ret))) *> e.ret_f _
+      }
+      | hinv_f => exts e.ret_f
+      | f_hinv => exts e.f_ret
+  }
+
+\instance PreorderSiteCat : CocompleteCat PreorderSite
+  | Hom => PreorderSiteHom
+  | id X => PreorderSiteHom.id
+  | o => PreorderSiteHom.∘
+  | id-left => idp
+  | id-right => idp
+  | o-assoc => idp
+  | univalence => sip \lam {X} {S1} {S2} h1 h2 => exts PreorderSite {
+    | <= x y => propExt h1.func-<= h2.func-<=
+    | isBasicCover x U => propExt
+      (\lam x<=U => transport (isBasicCover x) SetIm_id $ h1.func-basicCover x<=U)
+      (\lam x<=U => transport (isBasicCover x) SetIm_id $ h2.func-basicCover x<=U)
+  }
+  | colimit => {?}
+
+\func FrameReflectiveSubcat : ReflectiveSubPrecat FrameCat PreorderSiteCat \cowith
+  | F (L : Locale) : PreorderSite \cowith {
+    | E => L
+    | <= => <=
+    | <=-refl => <=-refl
+    | <=-transitive => <=-transitive
+    | isBasicCover x U => x <= Join U
+    | basic-cover-stable {a} a<=b {U} b<=U => inP (\lam c => Given (c <= a) ∃ (u : U) (c <= u), meet-univ <=-refl (a<=b <=∘ b<=U) <=∘ Join-ldistr>= <=∘ SJoin-univ \lam {u} Uu => Join-cond $ later (meet-left, inP (u, Uu, meet-right)), __.2, __.1)
+  }
+  | Func {X Y : Locale} (f : FrameHom X Y) : PreorderSiteHom (F X) (F Y) f \cowith {
+    | func-<= => func-<=
+    | func-basicCover x<=C => func-<= x<=C <=∘ f.func-Join>=
+    | func-flat-top => cover-inj top-univ $ inP (top, func-top)
+    | func-flat-meet {x} {y} u<=fx u<=fy => Cover.cover-basic $ meet-univ u<=fx u<=fy <=∘ Join-cond (inP ((x ∧ y, (meet-left, meet-right)), func-meet))
+  }
+  | Func-id => idp
+  | Func-o => idp
+  | isFullyFaithful => inP \new QEquiv {
+    | ret h => \new FrameHom {
+      | func => h
+      | func-<= => func-<=
+      | func-top>= => locale_cover h.func-flat-top <=∘ Join-univ (TSetIm-elim \lam a => func-<= top-univ)
+      | func-meet>= => locale_cover (h.func-flat-meet meet-left meet-right) <=∘ Join-univ (SetIm-elim $ later \lam s => func-<= $ meet-univ s.1 s.2)
+      | func-Join>= => h.func-basicCover <=-refl
+    }
+    | ret_f => idpe
+    | f_sec => idpe
+  }
+  | reflector => SiteLocale
+  | reflectorMap (X : PreorderSite) : PreorderSiteHom X (F (SiteLocale X)) \cowith {
+    | func x => embed x
+    | func-<= x<=y => embed-univ (cover-inj x<=y idp)
+    | func-basicCover x<=C => embed-univ $ Cover.cover-sub (Cover.cover-basic x<=C) \lam {y} Cy => inP (embed y, SetIm-con Cy, Cover.cover-refl idp)
+    | func-flat-top {U} => Cover.cover-basic $ \lam {x} _ => Cover.cover-refl $ inP (embed x, TSetIm-con x, Cover.cover-refl idp)
+    | func-flat-meet {x} {y} {U} U<=x U<=y => Cover.cover-basic \lam {z} Uz => Cover.cover-sub (Cover.cover-inter (U<=x Uz) (U<=y Uz))
+      \lam {e} (inP (_,idp,_,idp,e<=x,e<=y)) => inP (embed e, SetIm-con (e<=x,e<=y), Cover.cover-refl idp)
+  }
+  | isReflective => \new QEquiv {
+    | ret => adjointMap
+    | ret_f f => exts \lam U => inv $ pmap f element_SJoin *> f.func-SJoin
+    | f_sec f => exts \lam x => <=-antisymmetric (SJoin-univ \lam c => locale_cover (f.cover-map c) <=∘ SJoin-univ \lam p => later $ =_<= $ pmap f (inv p)) (SJoin-cond $ Cover.cover-refl idp)
+  }
+  \where {
+    \lemma locale_cover {L : Locale} {x : L} {U : Set L} (x<=U : Cover {F L} x U) : x <= Join U \elim x<=U
+      | cover-inj x<=t Ut => x<=t <=∘ Join-cond Ut
+      | cover-trans x<=T T<=U => x<=T <=∘ Join-univ \lam Tw => locale_cover (T<=U Tw)
+
+    \func adjointMap {X : PreorderSite} {Y : Locale} (f : PreorderSiteHom X (F Y)) : FrameHom (SiteLocale X) Y \cowith
+      | func U => SJoin f U.1
+      | func-<= {U} {V} U<=V => SJoin-univ \lam Ua => SJoin-cond (U<=V Ua)
+      | func-top>= => locale_cover f.func-flat-top <=∘ IJoin-univ \lam a => SJoin-cond ()
+      | func-meet>= {U} {V} => Y.SJoin-distr>= <=∘ SJoin-univ (later \lam {(a,b)} (Ua,Vb) =>
+        locale_cover (f.func-flat-meet meet-left meet-right) <=∘ SJoin-univ (later \lam {c} (c<=a,c<=b) =>
+          SJoin-cond $ Cover.cover-refl $ inP $ later (embed c, \lam {y} => \case \elim y, \elim __ \with {
+            | _, byLeft idp => embed-univ $ U.2 (cover-inj c<=a Ua)
+            | _, byRight idp => embed-univ $ V.2 (cover-inj c<=b Vb)
+          }, Cover.cover-refl idp)))
+      | func-Join>= => SJoin-univ \lam c => locale_cover (f.cover-map c) <=∘ SJoin-univ (later \lam {b} (inP (U,CU,Ub)) => SJoin-cond Ub <=∘ SJoin-cond CU)
+  }
