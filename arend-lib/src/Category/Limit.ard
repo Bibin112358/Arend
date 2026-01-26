@@ -197,7 +197,7 @@
   \func eqMap {Z : D} (h : Hom Z X) (p : f ∘ h = g ∘ h) : Hom Z apex
     => IsEquiv.ret (isEqualizer Z) (h,p)
 
-  \lemma eqBeta {Z : D} (h : Hom Z X) (p : f ∘ h = g ∘ h) : eql ∘ eqMap h p = h
+  \lemma eqBeta {Z : D} {h : Hom Z X} {p : f ∘ h = g ∘ h} : eql ∘ eqMap h p = h
     => pmap __.1 (IsEquiv.f_ret (isEqualizer Z))
 
   \lemma eqMono {Z : D} {h1 h2 : Hom Z apex} (p : eql ∘ h1 = eql ∘ h2) : h1 = h2
@@ -308,11 +308,11 @@
   \func unique {D : Precat} {x y : D} {f g : Hom x y} (E E' : Equalizer f g) : Iso {D} {E} {E'} \cowith
     | f => E'.eqMap eql equal
     | hinv => E.eqMap eql equal
-    | hinv_f => E.eqMono $ rewriteEq (E.eqBeta E'.eql equal) (E'.eqBeta _ _ *> inv id-right)
-    | f_hinv => E'.eqMono $ rewriteEq (E'.eqBeta E.eql equal) (E.eqBeta _ _ *> inv id-right)
+    | hinv_f => E.eqMono $ rewriteEq (E.eqBeta {_} {E'.eql}) (E'.eqBeta *> inv id-right)
+    | f_hinv => E'.eqMono $ rewriteEq (E'.eqBeta {_} {E.eql}) (E.eqBeta *> inv id-right)
 
   \lemma unique-map {D : Precat} {x y : D} {f g : Hom x y} (E E' : Equalizer f g) : E'.eql ∘ Iso.f {unique E E'} = E.eql
-    => E'.eqBeta eql equal
+    => E'.eqBeta
 
   \lemma mono=>equalizer {D : Precat} {x y e : D} {f g : Hom x y} {eql : Hom e x} (equal : f ∘ eql = g ∘ eql)
                          (m : Mono eql) (p : \Pi {z : D} (h : Hom z x) -> f ∘ h = g ∘ h -> ∃ (k : Hom z e) (eql ∘ k = h)) (z : D)
@@ -332,7 +332,7 @@
   \func equalizer-iso {D : Precat} {X Y : D} {f : Hom X Y} (eq : Equalizer f f) : Iso {D} {eq} {X} eq.eql
   \cowith
     | hinv => unique id-equalizer eq
-    | hinv_f => unfold $ eq.eqMono $ rewriteI o-assoc $ rewrite (eq.eqBeta _ _, id-left, id-right) idp
+    | hinv_f => unfold $ eq.eqMono $ rewriteI o-assoc $ rewrite (eq.eqBeta, id-left, id-right) idp
     | f_hinv => unique-map id-equalizer eq
 }
 
@@ -487,8 +487,8 @@
       | coneCoh {j} {j'} h => inv o-assoc *> inv (pmap (`∘ eql.eql) Y.tupleBeta) *> o-assoc *> pmap (Y.proj (j,j',h) ∘) eql.equal *> inv o-assoc *> pmap (`∘ eql.eql) Y.tupleBeta
       | isLimit Z => inP \new QEquiv {
         | ret (c : Cone) => eql.eqMap (X.tupleMap c.coneMap) (Y.tupleMapComp _ _ *> pmap Y.tupleMap (ext (\lam j => o-assoc *> pmap (_ ∘) X.tupleBeta *> c.coneCoh j.3 *> inv X.tupleBeta)) *> inv (Y.tupleMapComp _ _))
-        | ret_f h => eql.eqMono (eql.eqBeta _ _ *> path (\lam i => X.tupleMap (\lam j => o-assoc {_} {_} {_} {_} {_} {X.proj j} @ i)) *> X.tupleEq (\lam j => X.tupleBeta))
-        | f_sec (c : Cone) => exts \lam j => o-assoc *> pmap (_ ∘) (eql.eqBeta _ _) *> X.tupleBeta
+        | ret_f h => eql.eqMono (eql.eqBeta *> path (\lam i => X.tupleMap (\lam j => o-assoc {_} {_} {_} {_} {_} {X.proj j} @ i)) *> X.tupleEq (\lam j => X.tupleBeta))
+        | f_sec (c : Cone) => exts \lam j => o-assoc *> pmap (_ ∘) eql.eqBeta *> X.tupleBeta
       }
     }
 
@@ -754,9 +754,20 @@
   TruncP (Equalizer { | D => C | X => y | apex => x | eql => f })
 
 \lemma regularMono_Mono {C : Precat} {x y : C} {f : Hom x y} (reg : isRegularMono f) : Mono f \elim reg
-  | inP (E : Equalizer) => \new Mono f E.eqMono
+  | inP E => \new Mono f E.eqMono
 
-\lemma regularMono_pullback (P : Pullback {}) (m : isRegularMono P.g) : isRegularMono P.pbProj1 => {?}
+\lemma regularMono_pullback (P : Pullback {}) (m : isRegularMono P.g) : isRegularMono P.pbProj1 \elim m
+  | inP E => inP \new Equalizer {
+    | Y => E.Y
+    | f => E.f ∘ P.f
+    | g => E.g ∘ P.f
+    | equal => o-assoc *> pmap (_ ∘) P.pbCoh *> inv o-assoc *> pmap (`∘ _) E.equal *> o-assoc *> inv (o-assoc *> pmap (_ ∘) pbCoh)
+    | isEqualizer Z => inP \new QEquiv {
+      | ret s => P.pbMap s.1 (E.eqMap (P.f ∘ s.1) \box inv o-assoc *> s.2 *> o-assoc) (inv E.eqBeta)
+      | ret_f h => P.pbEta P.pbBeta1 $ P.pbBeta2 *> E.eqMono (E.eqBeta *> inv o-assoc *> pmap (`∘ h) P.pbCoh *> o-assoc)
+      | f_sec s => ext P.pbBeta1
+    }
+  }
 
 {- | If both squares are pullbacks, then the outter rectangle is a pullback.
   Q  -->  P  --> P.y
