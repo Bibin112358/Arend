@@ -345,7 +345,9 @@
         <runLineMarkerContributor language="Arend"
                                   implementationClass="org.arend.typechecking.execution.TypeCheckRunLineMarkerContributor"/>
 
-        <codeInsight.lineMarkerProvider language="Arend" implementationClass="org.arend.codeInsight.ArendLineMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="Arend" implementationClass="org.arend.codeInsight.ArendRecursiveLineMarkerProvider"/>
+
+        <codeInsight.lineMarkerProvider language="Arend" implementationClass="org.arend.codeInsight.ArendSuperclassesLineMarkerProvider"/>
 
         <!-- Color Settings -->
 
@@ -452,6 +454,7 @@
         <highlightingPassFactory implementation="org.arend.injection.InjectionHighlightingPassFactory"/>
         <highlightingPassFactory implementation="org.arend.highlight.PartiallyInfixOperatorPrefixFormPassFactory"/>
         <highlightingPassFactory implementation="org.arend.highlight.NameShadowingHighlighterPassFactory"/>
+        <highlightingPassFactory implementation="org.arend.highlight.ArendSubclassesPassFactory"/>
         <!-- TODO[server2]
         <highlightingPassFactory implementation="org.arend.highlight.ArendUnusedImportHighlightingPassFactory"/>
         -->
