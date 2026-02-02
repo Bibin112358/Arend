@@ -49,6 +49,7 @@ import com.intellij.ui.components.JBList
 import com.intellij.ui.components.fields.ExtendableTextField
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.Alarm
+import com.intellij.util.SlowOperations
 import com.intellij.util.concurrency.annotations.RequiresEdt
 import com.intellij.util.ui.*
 import net.miginfocom.swing.MigLayout
@@ -410,7 +411,9 @@ class ProofSearchUI(private val project: Project, private val caret: Caret?) : B
                 val element = model.getElementAt(indices[0])
                 if (element is DefElement) {
                     close()
-                    insertDefinition(project, element.entry.def, caret)
+                    SlowOperations.allowSlowOperations("arend.proof.search.insert").use {
+                        insertDefinition(project, element.entry.def, caret)
+                    }
                 }
             }
         }.registerCustomShortcutSet(CommonShortcuts.getCtrlEnter(), this, this)
@@ -449,13 +452,15 @@ class ProofSearchUI(private val project: Project, private val caret: Caret?) : B
 
     private fun onEntrySelected(element: ProofSearchUIEntry) = when (element) {
         is DefElement -> {
-            previewAction.performForContext({
-                when (it) {
-                    CommonDataKeys.PROJECT.name -> project
-                    CommonDataKeys.PSI_ELEMENT.name -> element.entry.def
-                    else -> null
-                }
-            }, false)
+            SlowOperations.allowSlowOperations("arend.proof.search.preview").use {
+                previewAction.performForContext({
+                    when (it) {
+                        CommonDataKeys.PROJECT.name -> project
+                        CommonDataKeys.PSI_ELEMENT.name -> element.entry.def
+                        else -> null
+                    }
+                }, false)
+            }
         }
         is MoreElement -> {
             model.remove(element)
@@ -466,7 +471,9 @@ class ProofSearchUI(private val project: Project, private val caret: Caret?) : B
     private fun goToDeclaration(element: ProofSearchUIEntry) = when (element) {
         is DefElement -> {
             close()
-            element.entry.def.navigationElement.navigate()
+            SlowOperations.allowSlowOperations("arend.proof.search.goto").use {
+                element.entry.def.navigationElement.navigate()
+            }
         }
         else -> Unit
     }

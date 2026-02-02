@@ -47,6 +47,7 @@ import org.arend.typechecking.subexpr.CorrespondedSubDefVisitor
 import org.arend.typechecking.termination.BaseCallGraph
 import org.arend.typechecking.termination.BaseCallMatrix
 import org.arend.typechecking.termination.CollectCallVisitor
+import org.arend.util.ComputationInterruptedException
 import java.awt.BorderLayout
 import java.awt.MouseInfo
 import java.awt.event.MouseAdapter
@@ -85,12 +86,20 @@ class ArendLineMarkerProvider : LineMarkerProviderDescriptor() {
   }
 
   private fun recursiveLineMarkers(file: ArendFile, result: MutableCollection<in LineMarkerInfo<*>>, elements: List<PsiElement>) {
-    recursiveLineMarkers(file).forEach {
-      it.element?.let { id ->
-        ProgressManager.checkCanceled()
-        if (elements.contains(id)) {
-          result.add(it)
+    try {
+      recursiveLineMarkers(file).forEach {
+        it.element?.let { id ->
+          ProgressManager.checkCanceled()
+          if (elements.contains(id)) {
+            result.add(it)
+          }
         }
+      }
+    } catch (e: Exception) {
+      if (e is ComputationInterruptedException || e is com.intellij.openapi.progress.ProcessCanceledException) {
+        // Ignore, the computation was canceled
+      } else {
+        throw e
       }
     }
   }
