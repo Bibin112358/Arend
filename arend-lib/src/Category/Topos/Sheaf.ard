@@ -17,6 +17,8 @@
 \import Paths
 \import Paths.Meta
 \import Topology.Locale
+\import Topology.Locale.LocaleCat
+\import Topology.Locale.PreorderSite
 
 \record MatchingFamily.{s,o1,h1,o2,h2} {C : Precat.{o1,h1}} {D : Precat.{o2,h2}} (F : Functor C.op D) {J : \Type s} (x : C) (P : J -> ObOver x) (d : D)
   | \coerce family (j : J) : Hom d (F (P j).1)
@@ -195,7 +197,7 @@
 -- | Sheaves valued in sets
 \class Sheaf.{s,v} \extends Presheaf.{v,s,s}, VSheaf.{s, \suc v, v}
 
-\lemma sheafOnPresentedFrame.{s,o,h} {P : FramePres.{s}} {D : CompleteCat.{s,o,h}} (F : VSheaf D (FramePresSite P)) : VSheaf D (PresentedFrame P) extend \cowith
+\lemma sheafOnPresentedFrame.{s,o,h} {P : PreorderSite.{s}} {D : CompleteCat.{s,o,h}} (F : VSheaf D P) : VSheaf D (SiteLocale P) extend \cowith
   | isSheaf => {?} -- TODO[sorts]
   {-
   | isSheaf {U} {S : Sieve} (inP (J, g, U<=g, g<=s)) =>
@@ -226,7 +228,7 @@
     }
     -}
   \where {
-    \open PresentedFrame(embed)
+    \open SiteLocale
     \open Limit
     \open Cover
 
@@ -255,19 +257,19 @@
       => cover'-lem (cover-inj () idp) (Cover'.cover-cover' c)
 -}
 
-    \func extend : Functor (PresentedFrame P).op D \cowith
+    \func extend : Functor (SiteLocale P).op D \cowith
       | F b => lim b
       | Func {a} {b} b<=a => limMap {lim b} (cone b<=a)
       | Func-id {b} => (lim b).limUniqueBeta {lim b} \lam j => unfold $ inv $ id-right *> cong (ext idp)
       | Func-o {a} {b} {c} {b<=c} {a<=b} => (lim c).limUniqueBeta {lim a} \lam j => inv (pmap (`∘ _) ((lim c).limBeta (cone b<=c) j) *> (lim b).limBeta (cone a<=b) (j.1, j.2 <=∘ b<=c)) *> o-assoc
       \where {
-        \func limFunctor (b : PresentedFrame P)
-          => Comp F (subPrecat.embedding \lam (t : \Sigma (x : P) (PresentedFrame.embed x <= b)) => t.1).op
+        \func limFunctor (b : Opens P)
+          => Comp F (subPrecat.embedding \lam (t : \Sigma (x : P) (embed x <= b)) => t.1).op
 
-        \func lim (b : PresentedFrame P)
+        \func lim (b : Opens P)
           => D.limit (limFunctor b)
 
-        \func cone {a b : PresentedFrame P} (b<=a : b <= a) : Cone (limFunctor b) (lim a) \cowith
+        \func cone {a b : Opens P} (b<=a : b <= a) : Cone (limFunctor b) (lim a) \cowith
           | coneMap (x,x<=b) => coneMap (later (x, (\lam {_} => x<=b) <=∘ b<=a))
           | coneCoh {j} {j'} => \case \elim j, \elim j' \with { | (_,_), (_,_) => \lam h => coneCoh $ later h }
       }

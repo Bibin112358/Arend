@@ -137,6 +137,9 @@
 \lemma SetIm-con {A B : \Sort} {f : A -> B} {P : A -> \Sort} {a : A} (Pa : P a) : SetIm f P (f a)
   => inP ((a,Pa),idp)
 
+\lemma SetIm-cone {A B : \Sort} {f : A -> B} {P : A -> \Sort} (a : A) (Pa : P a) : SetIm f P (f a)
+  => inP ((a,Pa),idp)
+
 \lemma SetIm-elim {A B : \Sort} {C : B -> \Prop} {f : A -> B} {P : A -> \Sort} (c : \Pi {a : A} -> P a -> C (f a)) {b : B} (s : SetIm f P b) : C b
   => TSetIm-elim (\lam t => c t.2) s
 

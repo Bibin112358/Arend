@@ -7,7 +7,7 @@
 \import Order.PartialOrder
 \import Paths
 \import Paths.Meta
-\import Topology.Locale \hiding (func-<=,.func-<=)
+\import Topology.Locale
 
 \func Set (X : \Sort) => X -> \Prop
   \where {
@@ -64,6 +64,12 @@
   | Join-univ {C} {U} d (inP (U,CU,Ux)) => d CU Ux
   | Join-ldistr>= {C} {W} (Wx, inP (U,CU,Ux)) => inP (\lam a => \Sigma (W a) (U a), SetIm-con CU, (Wx,Ux))
 
+\func empty {A : \Type} : Set A
+  => \lam _ => Empty
+
+\lemma empty-univ {A : \Type} {U : Set A} : empty ⊆ U
+  => absurd __
+
 \lemma bottom-empty {A : \Type} {E : \Prop} {x : A} (b : (SetLattice A).bottom x) : E \elim b
   | inP (_,(),_)
 
@@ -81,7 +87,7 @@
 \lemma Refines-single_top {X : \Type} {C : Set (Set X)} : Refines C (single top)
   => \lam _ => inP (top, idp, top-univ)
 
-\lemma Refines-refl {X : \Type} {C : Set (Set X)} : Refines C C
+\lemma Refines-refl {P : Preorder} {C : Set P} : Refines C C
   => \lam CU => inP (_, CU, <=-refl)
 
 \lemma Refines-trans {X : \Type} {C D E : Set (Set X)} (r1 : Refines C D) (r2 : Refines D E) : Refines C E

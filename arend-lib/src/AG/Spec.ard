@@ -1,0 +1,72 @@
+\import Algebra.Meta
+\import Algebra.Monoid
+\import Algebra.Pointed
+\import Algebra.Ring
+\import Algebra.Ring.Ideal
+\import Algebra.Semiring
+\import Function.Meta
+\import Logic
+\import Logic.Meta
+\import Meta
+\import Paths
+\import Paths.Meta
+\import Set.Subset
+\import Topology.Locale
+\import Topology.Locale.PreorderSite
+\open Monoid
+\open Ideal
+\open Cover
+
+\func SpecPres (R : CRing) : PreorderSite R \cowith
+  | <= a b => TruncP (LDiv b a)
+  | <=-refl => inP LDiv.id-div
+  | <=-transitive (inP y|x) (inP z|y) => inP (LDiv.trans z|y y|x)
+  | isBasicCover c U => Given (a b : R) (c = a + b) (U = \lam x => (a * c = x) || (b * c = x)) || Given (c = 0) (U = empty)
+  | basic-cover-stable {c} {d} (inP d|c) {U} => \case \elim U, \elim __ \with {
+    | _, byLeft (a,b,d=a+b,idp) => inP (_, byLeft (a * d|c.inv, b * d|c.inv, inv d|c.inv-right *> pmap (`* _) d=a+b *> rdistr, idp), \lam {x} => \case \elim x, \elim __ \with {
+      | _, byLeft idp => inP (_, byLeft idp, inP $ LDiv.make (d|c.inv * d|c.inv) $ equation.cMonoid {d|c.inv-right})
+      | _, byRight idp => inP (_, byRight idp, inP $ LDiv.make (d|c.inv * d|c.inv) $ equation.cMonoid {d|c.inv-right})
+    }, \case \elim __ \with {
+      | byLeft p => inP $ LDiv.make _ (*-comm *> p)
+      | byRight p => inP $ LDiv.make _ (*-comm *> p)
+    })
+    | _, byRight (d=0,idp) => inP (_, byRight (R.ldiv=0 d|c d=0, idp), Refines-refl {\this}, absurd __)
+  }
+  \where {
+    \func Cover1 {R : CRing} (x y : R) => Cover {SpecPres R} x (single y)
+
+    \lemma cover_ideal {R : CRing} {x : R} {U : Set R} (c : Cover {SpecPres R} x U) : (sclosure U).radical x \elim c
+      | cover-inj {t} (inP t|x) Ut => inP (1, inP ((t|x.inv, (t,Ut)) :: nil, ide-left *> inv t|x.inv-right *> *-comm *> inv zro-right))
+      | cover-trans (byLeft (a,b,x=a+b,idp)) h => radical_square $ transportInv radical (pmap (`* x) x=a+b *> rdistr) $
+          radical.contains_+ (cover_ideal $ h $ byLeft idp) (cover_ideal $ h $ byRight idp)
+      | cover-trans (byRight (x=0,idp)) _ => rewrite x=0 radical.contains_zro
+
+    \lemma cover_ide {R : CRing} {x : R} : Cover1 x 1
+      => cover-inj (inP LDiv.ide-div) idp
+
+    \lemma cover_square {R : CRing} {x : R} : Cover1 x (x * x)
+      => cover-trans (byLeft (x, 0, inv zro-right, idp)) \lam {y} => \case \elim __ \with {
+        | byLeft xx=y => cover-refl xx=y
+        | byRight p => cover-sub (cover-basic $ byRight (inv p *> R.zro_*-left, idp)) empty-univ
+      }
+
+    \lemma cover_* {R : CRing} {x y z : R} (x<=y : Cover1 x y) (x<=z : Cover1 x z) : Cover1 x (y * z)
+      => cover-trans* (cover-inter x<=y x<=z) \lam (inP (_, idp, _, idp, inP y|t, inP z|t)) => cover-refine cover_square \lam {_} (idp) => inP (_, idp, inP $ LDiv.product y|t z|t)
+
+    \lemma cover_pow {R : CRing} {x : R} (n : Nat) : Cover1 x (pow x n) \elim n
+      | 0 => cover_ide
+      | suc n => cover_* (cover_pow n) $ later (cover-refl idp)
+
+    \lemma cover_bigSum {R : CRing} {l : Array R} : Cover {SpecPres R} (R.BigSum l) (TSetIm l) \elim l
+      | nil => cover-sub (cover-basic $ byRight (idp,idp)) empty-univ
+      | a :: l => cover-trans (byLeft (a, R.BigSum l, idp, idp)) \lam {t} => \case \elim t, \elim __ \with {
+        | _, byLeft idp => cover-left (inP $ LDiv.make _ idp) $ cover-refl $ TSetIm-con (later 0)
+        | _, byRight idp => cover-left (inP $ LDiv.make _ idp) $ cover-sub cover_bigSum \lam {_} => TSetIm-elim \lam j => TSetIm-con $ later (suc j)
+      }
+
+    \lemma ideal_cover {R : CRing} {x : R} {U : Set R} (p : radical {sclosure U} x) : Cover {SpecPres R} x U \elim p
+      | inP (n, inP (l,p)) => cover-trans* (cover_pow n) \lam {_} (idp) => rewrite p $ cover-refine cover_bigSum $ TSetIm-elim \lam j => inP $ later (_, (l j).2.2, inP $ LDiv.make _ *-comm)
+  }
+
+\func Spec (R : CRing) : Locale
+  => SiteLocale (SpecPres R)

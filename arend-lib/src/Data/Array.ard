@@ -8,6 +8,7 @@
 \import Function
 \import Function.Meta ($)
 \import Logic
+\import Logic.Meta
 \import Meta
 \import Order.PartialOrder
 \import Paths
@@ -80,7 +81,7 @@
   | nil => ys
   | :: a xs => a :: xs ++ ys
   \where {
-    \func index-left {A : \Sort} {l m : Array A} (i : Fin l.len) : Fin (DArray.len {l ++ m}) \elim l, i
+    \func index-left {A : \Sort} {l m : Array A} (i : Fin l.len) : Fin (l ++ m).len \elim l, i
       | a :: l, 0 => 0
       | a :: l, suc i => suc (index-left i)
 
@@ -95,7 +96,7 @@
     \lemma index-left-inj {A : \Sort} {l m : Array A} : IsInj (index-left {A} {l} {m})
       => \lam p => nat_fin_= $ inv index-left-nat *> p *> index-left-nat
 
-    \func index-right {A : \Sort} {l m : Array A} (i : Fin m.len) : Fin (DArray.len {l ++ m}) \elim l
+    \func index-right {A : \Sort} {l m : Array A} (i : Fin m.len) : Fin (l ++ m).len \elim l
       | nil => i
       | a :: l => suc (index-right i)
 
@@ -113,7 +114,7 @@
     \lemma index-left/=right {A : \Sort} {l m m' : Array A} {i : Fin l.len} {j : Fin m'.len} : index-left {A} {l} {m} i /= {Nat} index-right {A} {l} j
       => \lam p => NatSemiring.<-irreflexive $ (fin_< i) NatSemiring.<∘l rewrite (inv index-left-nat *> p *> index-right-nat) (NatSemiring.<=_+ <=-refl zero<=_)
 
-    \func split-index {A : \Sort} {l m : Array A} (i : Fin (DArray.len {l ++ m}))
+    \func split-index {A : \Sort} {l m : Array A} (i : Fin (l ++ m).len)
       : Or (\Sigma (j : Fin l.len) (i = index-left j)) (\Sigma (j : Fin m.len) (i = index-right j)) \elim l, i
       | nil, i => inr (i,idp)
       | a :: l, 0 => inl (0,idp)
@@ -128,11 +129,14 @@
         | inr (i,p) => rewrite (p,++_index-right) (Pl' i)
       }
 
-    \func index-big {A : \Sort} {ls : Array (Array A)} (i : Fin ls.len) (j : Fin (DArray.len {ls i})) : Fin (DArray.len {Big (++) nil ls}) \elim ls, i
+    \func Big++-all {A : \Sort} {P : A -> \Sort} {ls : Array (Array A)} (Pl : \Pi (i : Fin ls.len) (j : Fin (ls i).len) -> P (ls i j)) (k : Fin (Big (++) nil ls).len) : P (Big (++) nil ls k) \elim ls
+      | l :: ls => ++-all {A} {P} (Pl 0) (Big++-all {A} {P} \lam i => Pl (suc i)) k
+
+    \func index-big {A : \Sort} {ls : Array (Array A)} (i : Fin ls.len) (j : Fin (ls i).len) : Fin (Big (++) nil ls).len \elim ls, i
       | l :: ls, 0 => index-left j
       | l :: ls, suc i => index-right (index-big i j)
 
-    \func Big++-index {A : \Sort} {ls : Array (Array A)} {i : Fin ls.len} {j : Fin (DArray.len {ls i})} : Big (++) nil ls (index-big i j) = ls i j \elim ls, i
+    \func Big++-index {A : \Sort} {ls : Array (Array A)} {i : Fin ls.len} {j : Fin (ls i).len} : Big (++) nil ls (index-big i j) = ls i j \elim ls, i
       | ls :: l, 0 => ++_index-left j
       | ls :: l, suc i => ++_index-right *> Big++-index
   }
@@ -149,7 +153,7 @@
   | nil => idp
   | :: a l => pmap (a ::) ++_nil
 
-\lemma len_++ {A : \Sort} {l l' : Array A} : DArray.len {l ++ l'} = l.len Nat.+ l'.len \elim l
+\lemma len_++ {A : \Sort} {l l' : Array A} : (l ++ l').len = l.len Nat.+ l'.len \elim l
   | nil => idp
   | a :: l => pmap suc len_++
 
@@ -203,7 +207,7 @@
   | nil => nil
   | :: a l => if (p a) (a :: filter p l) (filter p l)
 
-\lemma filter-sat {A : \Sort} (p : A -> Bool) (l : Array A) (i : Fin (DArray.len {filter p l})) : p (filter p l i) = true \elim l
+\lemma filter-sat {A : \Sort} (p : A -> Bool) (l : Array A) (i : Fin (filter p l).len) : p (filter p l i) = true \elim l
   | :: a l => cases (p a arg addPath, i) \with {
     | false, _, i => filter-sat p l i
     | true, q, 0 => q
@@ -269,7 +273,7 @@
     | no _ => keep D l
   }
   \where {
-    \lemma satisfies {A : \Sort} {P : A -> \Prop} (D : \Pi (a : A) -> Dec (P a)) {l : Array A} {i : Fin (DArray.len {keep D l})} : P (keep D l i) \elim l
+    \lemma satisfies {A : \Sort} {P : A -> \Prop} (D : \Pi (a : A) -> Dec (P a)) {l : Array A} {i : Fin (keep D l).len} : P (keep D l i) \elim l
       | a :: l => cases (D a, i) \with {
         | yes e, 0 => e
         | yes e, suc i => satisfies D
@@ -279,7 +283,7 @@
     \func element {A : \Sort} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} {j : Fin l.len} (p : P (l j)) : Index (l j) (keep D l)
       => rewrite keep=remove (remove.element $ later \lam q => q p)
 
-    \func preimage {A : \Sort} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} (i : Fin (DArray.len {keep D l})) : \Sigma (j : Fin l.len) (keep D l i = l j) \elim l
+    \func preimage {A : \Sort} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} (i : Fin (keep D l).len) : \Sigma (j : Fin l.len) (keep D l i = l j) \elim l
       | nil => (i,idp)
       | a :: l => cases (D a, i) \with {
         | yes e, 0 => (0,idp)
@@ -287,7 +291,7 @@
         | no q, i => \let t => preimage i \in (suc t.1, t.2)
       }
 
-    \lemma no-repeats {A : \Sort} {l : Array A} (p : \Pi {i j : Fin l.len} -> l i = l j -> i = j) {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {i j : Fin (DArray.len {keep D l})} (q : keep D l i = keep D l j) : i = j \elim l
+    \lemma no-repeats {A : \Sort} {l : Array A} (p : \Pi {i j : Fin l.len} -> l i = l j -> i = j) {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {i j : Fin (keep D l).len} (q : keep D l i = keep D l j) : i = j \elim l
       | a :: l => cases (D a, i, j, q) \with {
         | no _, i, j, q => no-repeats (\lam {i'} {j'} s => pmap (fpred i') $ p {suc i'} {suc j'} s) q
         | yes _, 0, 0, q => idp
@@ -323,7 +327,7 @@
     | no _ => a :: remove D l
   }
   \where {
-    \lemma no-element {A : \Sort} {P : A -> \Prop} (D : \Pi (a : A) -> Dec (P a)) {l : Array A} {i : Fin (DArray.len {remove D l})} (p : P (remove D l i)) : Empty \elim l
+    \lemma no-element {A : \Sort} {P : A -> \Prop} (D : \Pi (a : A) -> Dec (P a)) {l : Array A} {i : Fin (remove D l).len} (p : P (remove D l i)) : Empty \elim l
       | nil => \case i
       | a :: l => cases (D a, i, p) \with {
         | yes e, i, p => no-element D p
@@ -344,7 +348,7 @@
         }
       }
 
-    \func preimage {A : \Sort} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} (i : Fin (DArray.len {remove D l})) : \Sigma (j : Fin l.len) (remove D l i = l j) \elim l
+    \func preimage {A : \Sort} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} (i : Fin (remove D l).len) : \Sigma (j : Fin l.len) (remove D l i = l j) \elim l
       | nil => (i,idp)
       | a :: l => cases (D a, i) \with {
         | yes e, i => \let t => preimage i \in (suc t.1, t.2)
@@ -352,7 +356,7 @@
         | no q, suc i => \let t => preimage i \in (suc t.1, t.2)
       }
 
-    \lemma no-repeats {A : \Sort} {l : Array A} (p : \Pi {i j : Fin l.len} -> l i = l j -> i = j) {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {i j : Fin (DArray.len {remove D l})} (q : remove D l i = remove D l j) : i = j \elim l
+    \lemma no-repeats {A : \Sort} {l : Array A} (p : \Pi {i j : Fin l.len} -> l i = l j -> i = j) {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {i j : Fin (remove D l).len} (q : remove D l i = remove D l j) : i = j \elim l
       | nil => \case i
       | a :: l => cases (D a, i, j, q) \with {
         | yes _, i, j, q => no-repeats (\lam {i'} {j'} s => pmap (fpred i') $ p {suc i'} {suc j'} s) q
@@ -425,7 +429,7 @@
     | no n, no n1 => rewrite (dec_no_reduce n1) (keep_remove=keep PQ)
   }
 
-\lemma remove<= {A : \Sort} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} : DArray.len {remove D l} <= l.len \elim l
+\lemma remove<= {A : \Sort} {P : A -> \Prop} {D : \Pi (a : A) -> Dec (P a)} {l : Array A} : (remove D l).len <= l.len \elim l
   | nil => <=-refl
   | a :: l => mcases \with {
     | yes p => remove<= <=∘ id<=suc
@@ -504,7 +508,7 @@
   | nil => nil
   | a :: l => a :: removeElem a (nub l)
 
-\func nub-isSurj {A : DecSet} (l : Array A) (i : Fin l.len) : \Sigma (j : Fin (DArray.len {nub l})) (nub l j = l i) \elim l, i
+\func nub-isSurj {A : DecSet} (l : Array A) (i : Fin l.len) : \Sigma (j : Fin (nub l).len) (nub l j = l i) \elim l, i
   | a :: l, 0 => (0,idp)
   | a :: l, suc i =>
     \case decideEq a (l i) \with {
@@ -515,7 +519,7 @@
         \in (suc s.1, s.2 *> t.2)
     }
   \where {
-    \func remove-isSurj {A : DecSet} (a : A) (l : Array A) (i : Fin l.len) (p : l i /= a) : \Sigma (j : Fin (DArray.len {removeElem a l})) (removeElem a l j = l i) \elim l
+    \func remove-isSurj {A : DecSet} (a : A) (l : Array A) (i : Fin l.len) (p : l i /= a) : \Sigma (j : Fin (removeElem a l).len) (removeElem a l j = l i) \elim l
       | nil => \case i
       | a' :: l => unfold removeElem $ mcases \with {
         | yes e => cases (i,p) \with {
@@ -529,13 +533,13 @@
       }
   }
 
-\func nub-preimage {A : DecSet} {l : Array A} (j : Fin (DArray.len {nub l})) : \Sigma (i : Fin l.len) (nub l j = l i) \elim l, j
+\func nub-preimage {A : DecSet} {l : Array A} (j : Fin (nub l).len) : \Sigma (i : Fin l.len) (nub l j = l i) \elim l, j
   | a :: l, 0 => (0, idp)
   | a :: l, suc j => \have | (k,p) => remove.preimage j
                            | (i,q) => nub-preimage k
                      \in (suc i, p *> q)
 
-\lemma nub-isInj {A : DecSet} {l : Array A} {i j : Fin (DArray.len {nub l})} (p : nub l i = nub l j) : i = j \elim l, i, j
+\lemma nub-isInj {A : DecSet} {l : Array A} {i j : Fin (nub l).len} (p : nub l i = nub l j) : i = j \elim l, i, j
   | a :: l, 0, 0 => idp
   | a :: l, 0, suc j => absurd $ remove.no-element (decideEq a) p
   | a :: l, suc i, 0 => absurd (remove.no-element (decideEq a) (inv p))
@@ -825,4 +829,21 @@
           | no q => rewrite (decideEq/=_reduce $ fsuc/= q) idp
         }
       }) *> pmap {Array A n} (def :: __) char
+  }
+
+\lemma chooseRight {A : \Sort} (l : Array A) {P Q : A -> \Sort} (pq : ∀ (a : l) (P a || Q a))
+  : ∃ (l' : Array A) (∀ (a' : l') (Q a')) ∀ (a : l) (P a || Given (a' : l') (a = a')) \elim l
+  | nil => inP (nil, \case __ \with {}, \case __ \with {})
+  | a :: l => \case pq 0, chooseRight l {P} {Q} (\lam j => pq (suc j)) \with {
+    | byLeft Pa, inP (l',l'Q,ll') => inP (l', l'Q, \case \elim __ \with {
+      | 0 => byLeft Pa
+      | suc j => ll' j
+    })
+    | byRight Qa, inP (l',l'Q,ll') => inP (a :: l', \case \elim __ \with {
+      | 0 => Qa
+      | suc j => l'Q j
+    }, \case \elim __ \with {
+      | 0 => byRight (0,idp)
+      | suc j => ||.map (\lam p => p) (\lam s => (suc s.1, s.2)) (ll' j)
+    })
   }

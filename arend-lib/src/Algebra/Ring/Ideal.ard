@@ -85,6 +85,9 @@
   \lemma radical_pow {x : S} {n : Nat} (s : radical (Monoid.pow x n)) : radical x \elim s
     | inP (m,p) => inP (n * m, transportInv contains Monoid.pow_* p)
 
+  \lemma radical_square {x : S} (s : radical (x * x)) : radical x
+    => radical_pow {_} {x} {2} $ transportInv radical (*-assoc *> ide-left) s
+
   \lemma radical-univ {I : Ideal S} (p : \Pi {x : S} -> I x -> radical x) {x : S} (s : I.radical x) : radical x \elim s
     | inP (n,Ix^n) => radical_pow (p Ix^n)
 

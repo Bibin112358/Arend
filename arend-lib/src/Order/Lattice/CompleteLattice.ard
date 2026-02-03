@@ -79,6 +79,9 @@
   \lemma SJoin-cond {A : \Sort} {f : A -> E} {P : A -> \Prop} {a : A} (Pa : P a) : f a <= SJoin f P
     => Join-cond (SetIm-con Pa)
 
+  \lemma SJoin-conde {A : \Sort} {f : A -> E} {P : A -> \Prop} (a : A) (Pa : P a) : f a <= SJoin f P
+    => SJoin-cond Pa
+
   \lemma SJoin-univ {A : \Sort} {f : A -> E} {P : A -> \Prop} {e : E} (p : ∀ {a : P} (f a <= e)) : SJoin f P <= e
     => Join-univ (SetIm-elim p)
 
