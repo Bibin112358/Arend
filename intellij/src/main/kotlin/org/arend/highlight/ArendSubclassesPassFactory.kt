@@ -21,6 +21,5 @@ class ArendSubclassesPassFactory : BasePassFactory<IArendFile>(IArendFile::class
     ) {
         val service = project.service<ArendPassFactoryService>()
         myPassId = registrar.registerTextEditorHighlightingPass(this, intArrayOf(service.highlightingPassId), null, false, -1)
-        service.typecheckerPassId = myPassId
     }
 }
