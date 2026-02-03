@@ -1941,7 +1941,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
         errorReporter.report(new TypecheckingError("Recursive call must have the same levels as the definition", expr));
       }
     } else if (expr.getLevels() == null) {
-      levels = isMin ? definition.makeMinLevels() : definition.generateInferVars(getEquations(), !withoutUniverses && (definition == myDefinition || definition.getUniverseKind() != UniverseKind.NO_UNIVERSES), expr);
+      levels = isMin ? definition.makeMinLevels() : definition.generateInferVars(myEquations, !withoutUniverses && (definition == myDefinition || definition.getUniverseKind() != UniverseKind.NO_UNIVERSES), expr);
     } else {
       levels = typecheckLevels(definition, expr, null, isMin);
     }
@@ -2086,7 +2086,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       InferenceVariable variable = myArgsInference.newInferenceVariable(UniverseExpression.OMEGA, expr);
       Expression type = new UniverseExpression(new SortExpression.InfVar(variable));
       variable.setType(type);
-      return new TypecheckingResult(InferenceReferenceExpression.make(variable, getEquations()), type);
+      return new TypecheckingResult(InferenceReferenceExpression.make(variable, myEquations), type);
     } else if (expectedType != null) {
       Expression norm = expectedType.normalize(NormalizationMode.WHNF);
       if (norm instanceof ClassCallExpression classCall) {
@@ -2099,7 +2099,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
           }
         }
       }
-      return new TypecheckingResult(InferenceReferenceExpression.make(myArgsInference.newInferenceVariable(expectedType, expr), getEquations()), expectedType);
+      return new TypecheckingResult(InferenceReferenceExpression.make(myArgsInference.newInferenceVariable(expectedType, expr), myEquations), expectedType);
     } else {
       errorReporter.report(new ArgInferenceError(getExpressionPrettifier(), expression(), expr, new Expression[0]));
       return null;
@@ -3111,7 +3111,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
           i++;
         } else if (!isExplicit && (i >= arguments.size() || arguments.get(i).isExplicit())) {
           Expression paramType = param.getType().subst(substitution, levelSubst);
-          Expression expr = InferenceReferenceExpression.make(myArgsInference.newInferenceVariable(paramType, refExpr), getEquations());
+          Expression expr = InferenceReferenceExpression.make(myArgsInference.newInferenceVariable(paramType, refExpr), myEquations);
           substitution.add(param, expr);
           arguments.add(i++, new Concrete.Argument(new Concrete.ReferenceExpression(refExpr.getData(), new CoreReferable(null, new TypecheckingResult(expr, paramType))), true));
         } else {
@@ -3371,7 +3371,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
     if (pLevel == null) {
       InferenceLevelVariable pl = new InferenceLevelVariable(true, expr);
-      getEquations().addVariable(pl);
+      myEquations.addVariable(pl);
       pLevel = new Level(pl);
     }
 

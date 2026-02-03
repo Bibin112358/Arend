@@ -1,20 +1,17 @@
 package org.arend.typechecking.implicitargs.equations;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class LevelEquations<Var> {
-  private final List<Var> myVariables = new ArrayList<>();
+  private final Set<Var> myVariables = new HashSet<>();
   private final List<LevelEquation<Var>> myEquations = new ArrayList<>();
 
   public List<LevelEquation<Var>> getEquations() {
     return myEquations;
   }
 
-  public List<Var> getVariables() {
+  public Set<Var> getVariables() {
     return myVariables;
   }
 
@@ -29,6 +26,8 @@ public class LevelEquations<Var> {
 
   void addEquation(LevelEquation<Var> equation) {
     myEquations.add(equation);
+    if (equation.getVariable1() != null) myVariables.add(equation.getVariable1());
+    if (equation.getVariable2() != null) myVariables.add(equation.getVariable2());
   }
 
   public void clear() {
