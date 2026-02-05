@@ -36,9 +36,13 @@
 
 \func subCat.{obj,hom} {C : Cat.{obj,hom}} {X : \Type obj} (e : Embedding {X} {C}) : Cat \cowith
   | Precat => subPrecat e
-  | univalence => Cat.makeUnivalence $ later \lam (j : Iso) =>
-    \have (t,r) => Cat.univalenceToTransport (\new Iso j.f j.hinv j.hinv_f j.f_hinv)
-    \in (sec {e.isEmb j.dom j.cod} t, pmap (transport (Hom (e j.dom)) __ (id (e j.dom))) (f_sec {e.isEmb j.dom j.cod} t) *> r)
+  | univalence => faithful-univalence (subPrecat.embedding e) e
+  \where {
+    \lemma faithful-univalence {C : Precat} {D : Cat} (F : FaithfulFunctor C D) (e : Embedding F) {a b : C} : IsEquiv (C.idtoiso {a} {b})
+      => Cat.makeUnivalence \lam j =>
+        \have (t,r) => Cat.univalenceToTransport (F.Func-iso j)
+        \in ((e.isEmb j.dom j.cod).sec t, F.isFaithful $ inv id-right *> inv (Functor.transport_Hom-right _ F) *> pmap (transport (Hom (e j.dom)) __ _) ((e.isEmb j.dom j.cod).f_sec t) *> r)
+  }
 
 \lemma subCat-iso.{obj,hom} {C : Precat.{obj,hom}} {X : \Type obj} {f : X -> C} (e : Iso {subPrecat f}) : Iso {C} {f e.dom} {f e.cod} e \cowith
   | hinv => e.hinv

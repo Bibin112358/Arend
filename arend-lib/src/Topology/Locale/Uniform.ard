@@ -27,7 +27,7 @@
 \open Locale
 \open Nucleus
 \open MeetSemilattice
-\open FrameHom \hiding (isClosed, functor)
+\open FrameHom
 \open CompleteLattice
 \open Cover
 

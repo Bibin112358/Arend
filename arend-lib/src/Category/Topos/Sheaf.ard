@@ -151,7 +151,7 @@
         (\lam {t} => Covering.covering-sub (T<=U t.2) \lam {z} r => TSetIm-con $ later (z,r))
         (\lam {t} => sheaf-covering (T<=U t.2))
 
-  \lemma direct_image.{s',o',h'} {C' : Site.{s',s'}} (f : SiteHom C' C) : VSheaf D C' (Comp F f.op) \cowith
+  \lemma direct_image.{s'} {C' : Site.{s',s'}} (f : SiteHom C' C) : VSheaf D C' (Comp F f.op) \cowith
     | isSheaf {x} {S} xS {d} => IsEquiv.trans (isSheaf (f.Func-cover xS)) $
         IsEquiv.trans (MatchingFamily.map.isEquiv {C} {D} {F} {Given S} {Given (py : ObOver (f x)) ∃ (px : S) (py = (f px.1, Func px.2))} {\lam s => (_, inP (s.1,s.2,idp))} \lam (_, inP (px,Spx,idp)) => inP ((px,Spx),idp)) $
         inP \new QEquiv {
@@ -174,15 +174,6 @@
 
   \lemma direct_image_locale.{s,o,h} {L L' : Locale.{s}} (f : FrameHom L' L) (S : VSheaf.{s,o,h} { | C => L }) : VSheaf S.D L' (Comp S f.functor.op)
     => S.direct_image f.functor
-
-  \func direct_image_id.{s,o,h} {C : Site.{s,s}} (S : VSheaf.{s,o,h} { | C => C }) : S.direct_image SiteHom.id = {VSheaf S.D C} S
-    => ext $ ext (idp, ext \lam h => idp)
-
-  \func transport_direct_image.{s,o,h} {L L' : Locale.{s}} (p : L = L') (S : VSheaf.{s,o,h} { | C => L }) : transport (VSheaf S.D) p S = direct_image_locale (Iso.f {Precat.idtoiso p}) S \elim p
-    | idp => inv (direct_image_id S)
-
-  \func transport_direct_image-iso.{s,o,h} {L L' : Locale.{s}} (e : Iso {LocaleCat} {L} {L'}) (S : VSheaf.{s,o,h} { | C => L }) : transport (VSheaf S.D) (Cat.isotoid e) S = direct_image_locale e.f S
-    => transport_direct_image (Cat.isotoid e) S *> path \lam i => direct_image_locale (IsEquiv.f_ret univalence {e} i).f S
 }
 
 \instance VSheafCat.{s,v} (D : Cat.{\suc v, v}) (C : Site.{s,s}) : Cat
@@ -193,6 +184,11 @@
       | f_sec => idpe
     }
   })
+  \where {
+    \lemma functor-iso {F G : VSheaf D C} (e : Iso {FunctorCat C.op D} {F} {G}) : Iso {VSheafCat D C} {F} {G} e e.hinv \cowith
+      | hinv_f => e.hinv_f
+      | f_hinv => e.f_hinv
+  }
 
 -- | Sheaves valued in sets
 \class Sheaf.{s,v} \extends Presheaf.{v,s,s}, VSheaf.{s, \suc v, v}

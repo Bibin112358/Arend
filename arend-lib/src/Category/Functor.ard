@@ -102,12 +102,6 @@
   | id-left => exts (\lam X => id-left)
   | id-right => exts (\lam X => id-right)
   | o-assoc => exts (\lam X => o-assoc)
-
-\instance FunctorCat.{o1,h1,o2,h2} {C : Precat.{o1,h1}} {D : Cat.{o2,h2}} : Cat (Functor C D)
-  | Precat => FunctorPrecat
-  | univalence => Cat.makeUnivalence $ later \lam e =>
-    (exts (\lam X => D.isotoid (mapIso e X), \lam {X} {Y} h => Cat.transport_Hom_iso (mapIso e X) (mapIso e Y) (natural h)),
-     simp_coe $ simp_coe \lam X => Cat.transport_iso (mapIso e X))
   \where {
     \func mapIso.{o1,h1,o2,h2} {C : Precat.{o1,h1}} {D : Precat.{o2,h2}} (e : Iso {FunctorPrecat {C} {D}}) (X : C) : Iso {D} \cowith
       | dom => e.dom X
@@ -116,7 +110,19 @@
       | hinv => e.hinv X
       | hinv_f => path (\lam i => trans {e.hinv_f @ i} X)
       | f_hinv => path (\lam i => trans {e.f_hinv @ i} X)
+
+    \lemma fromIso.{o1,h1,o2,h2} {C : Precat.{o1,h1}} {D : Precat.{o2,h2}} {F G : Functor C D} (f : NatTrans F G) (e : \Pi {x : C} -> Iso (f x))
+      : Iso {FunctorPrecat {C} {D}} f \cowith
+      | hinv => NatTrans.iso e
+      | hinv_f => exts \lam x => e.hinv_f
+      | f_hinv => exts \lam x => e.f_hinv
   }
+
+\instance FunctorCat.{o1,h1,o2,h2} (C : Precat.{o1,h1}) (D : Cat.{o2,h2}) : Cat (Functor C D)
+  | Precat => FunctorPrecat
+  | univalence => Cat.makeUnivalence $ later \lam e =>
+    (exts (\lam X => D.isotoid (FunctorPrecat.mapIso e X), \lam {X} {Y} h => Cat.transport_Hom_iso (FunctorPrecat.mapIso e X) (FunctorPrecat.mapIso e Y) (natural h)),
+     simp_coe $ simp_coe \lam X => Cat.transport_iso (FunctorPrecat.mapIso e X))
 
 \instance FamPrecat.{s,o,h} {J : \Type s} (D : Precat.{o,h}) : Precat (J -> D)
   | Hom F G => \Pi {j : J} -> Hom (F j) (G j)

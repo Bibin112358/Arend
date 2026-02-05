@@ -121,9 +121,9 @@
 
 \func embedding-universal {C : Precat} {E : CocompleteCat.{\suc \lp}} (A : Functor C E)
   : \Sigma (L : Functor (PresheafCat C) E) (A = Comp L YonedaEmbedding)
-  => (L-Functor, IsEquiv.ret (FunctorCat.univalence {A} {Comp L-Functor YonedaEmbedding}) functors-iso)
+  => (L-Functor, IsEquiv.ret ((FunctorCat _ _).univalence {A} {Comp L-Functor YonedaEmbedding}) functors-iso)
   \where {
-    \func functors-iso : Iso {FunctorCat {C} {E}} {A} {Comp L-Functor YonedaEmbedding} \cowith
+    \func functors-iso : Iso {FunctorCat C E} {A} {Comp L-Functor YonedaEmbedding} \cowith
       | f => nat
       | hinv => nat.iso \lam {X} => image-of-rep-iso X
       | hinv_f => exts \lam _ => unfold $ unfold Iso.hinv_f

@@ -4,6 +4,7 @@
 \import Category
 \import Category.Functor
 \import Category.Topos.Sheaf
+\import Equiv
 \import Function.Meta
 \import Logic
 \import Meta
@@ -38,94 +39,40 @@
       | Func f => f
       | Func-id => idp
       | Func-o => idp
-
-    \func homMap.{s,v} {L M : RingedLocale.{s,v}} {f g : RingedLocaleHom M L} (p : f = g) (a : L) : RingHom (M.R (f a)) (M.R (g a))
-      => M.R.F.Func (=_<= (inv (path (\lam i => p i a))))
-
-    \lemma homMap-lem.{s,v} {L M : RingedLocale.{s,v}} {f g : RingedLocaleHom M L} (p : f = g) (a : L) : transport (\lam (h : RingedLocaleHom M L) => RingHom (M.R (f a)) (M.R (h a))) p RingHom.id = homMap p a \elim p
-      | idp => inv M.R.F.Func-id *> pmap M.R.F.Func prop-pi
-
-    \lemma homMap-lem2.{s,v} {L M : RingedLocale.{s,v}} {f g : RingedLocaleHom M L} (p : f = g) (a : L) : homMap p a Cat.∘ homMap (inv p) a = RingHom.id {M.R (g a)} \elim p
-      | idp => inv (pmap2 (Cat.∘) (homMap-lem idp a) (homMap-lem idp a)) *> id-left
-
-    \func homMap-natural.{s,v} {L M : RingedLocale.{s,v}} {f g : RingedLocaleHom M L} (p : f = g) : NatTrans (Comp M.R f.f.functor.op) (Comp M.R g.f.functor.op) \cowith
-      | trans => homMap p
-      | natural h => inv M.R.F.Func-o *> pmap M.R.F.Func prop-pi *> M.R.F.Func-o
-
-    \func natTrans-inv.{s,v} {L M : RingedLocale.{s,v}} {e : Iso {RingedLocalePrecat} {L} {M}} (f : NatTrans L.R (Comp M.R (Functor.op {FrameHom.functor {e.hinv}})))
-      : NatTrans (Comp L.R (Functor.op {FrameHom.functor {e.f}})) M.R \cowith
-      | trans x => homMap e.f_hinv x Cat.∘ f (e.f x)
-      | natural {a} {b} h =>
-        \let t : homMap e.f_hinv b Cat.∘ M.R.F.Func (Func {Functor.op {FrameHom.functor {e.hinv}}} (e.f.func-<= h)) = M.R.F.Func h Cat.∘ homMap e.f_hinv a
-        => pmap (_ Cat.∘ M.R.F.Func __) prop-pi *> natural {homMap-natural e.f_hinv} h *> pmap (Cat.`∘ _) (pmap M.R.F.Func prop-pi)
-        \in unfold Func $ rewrite (prop-isProp (Func {Functor.op {FrameHom.functor {e.f}}} h) (e.f.func-<= h)) $ o-assoc *> rewrite (f.natural (e.f.func-<= h)) (inv o-assoc *> path (\lam i => t i Cat.∘ f (e.f a)) *> o-assoc)
-
-    \lemma homMap_o.{s,v} {L L' : RingedLocale.{s,v}} (f : RingedLocaleHom L L') (g : RingedLocaleHom L' L) (p : f RingedLocalePrecat.∘ g = id L') (a : L')
-      : g.f# (f a) Cat.∘ f.f# a = homMap (inv p) a
-      => \have t => simp_coe (simp_coe $ pmapd (\lam (h : RingedLocaleHom L' L') => h.f#) p) a
-         \in transport-rotate (\lam (h : RingedLocaleHom L' L') => RingHom (L'.R a) (L'.R (h a))) p t *> homMap-lem (inv p) a
-
-    \lemma homMap_o-right.{s,v} {L L' : RingedLocale.{s,v}} (f : RingedLocaleHom L L') (g : RingedLocaleHom L' L) (p : f RingedLocalePrecat.∘ g = id L') (q : g RingedLocalePrecat.∘ f = id L) (a : L')
-      : f.f# a Cat.∘ homMap p a Cat.∘ g.f# (f a) = RingHom.id {L.R (f a)}
-      => pmap (Cat.`∘ _) (f.f#.natural _) *> CRingCat.o-assoc {L.R (f a)} {L'.R (g (f a))} {L.R (f (g (f a)))} {L.R (f a)} *> rewrite (homMap_o g f q (f a)) (inv L.R.F.Func-o *> pmap L.R.F.Func prop-pi *> L.R.F.Func-id)
-
-    \lemma homMap_o-left.{s,v} {L L' : RingedLocale.{s,v}} (f : RingedLocaleHom L L') (g : RingedLocaleHom L' L) (p : f RingedLocalePrecat.∘ g = id L') (a : L')
-      : homMap p a Cat.∘ g.f# (f a) Cat.∘ f.f# a = RingHom.id {L'.R a}
-      => o-assoc *> rewrite (homMap_o f g p a) (homMap-lem2 p a)
-
-    \func fromIso.{s,v} {L L' : RingedLocale.{s,v}} (e : Iso {RingedLocalePrecat} {L} {L'}) : Iso {VSheafCat CRingCat.{v} L'.L} {VSheaf.direct_image_locale e.f L.R} {L'.R} \cowith
-      | f => natTrans-inv (RingedLocaleHom.f# {e.hinv})
-      | hinv => RingedLocaleHom.f# {e.f}
-      | hinv_f => exts (homMap_o-right e.f e.hinv e.f_hinv e.hinv_f)
-      | f_hinv => exts (homMap_o-left e.f e.hinv e.f_hinv)
-
-    \func isotoid (e : Iso {RingedLocalePrecat}) : e.dom = e.cod
-      => ext (Cat.isotoid (RingedLocalePrecat.forget.Func-iso e), VSheaf.transport_direct_image-iso _ (RingedLocale.R {e.dom}) *> Cat.isotoid (RingedLocalePrecat.fromIso e))
   }
 
-{-
 \instance RingedLocaleCat : Cat RingedLocale
   | Precat => RingedLocalePrecat
-  | univalence =>
-    Cat.makeUnivalence \lam (e : Iso) => (isotoid e, transport_RingedLocaleHom (isotoid e) (id e.dom) *> ext (someLem6 e, simp_coe $ simp_coe $ someLem5 e)
-    )
-  \where {
-    \open RingedLocalePrecat
+  | univalence => Cat.makeUnivalenceFromPath \lam e =>
+    \have sip => SIP-comb LocaleCat (\lam L => (VSheafCat CRingCat L).op) (\lam L => RingedLocale L) (RingedLocaleHom __ __)
+      (\lam h => Iso {RingedLocalePrecat} h) (\lam {L} {R} => RingedLocalePrecat.id R) (\lam {L} {R} => idIso)
+      (\lam {L} => \new Embedding {
+        | f R => R.R
+        | isEmb R R' => \new Retraction {
+          | sec p => ext p
+          | f_sec => idpe
+        }
+      })
+      (\lam {L} {R1} {R2} f fi => Iso.op {fromIso f $ ring-iso fi})
+      (\lam {L} {R} => idp)
+      (\lam {L} {R1} {R2} f g fi gi p => ext $ exts \lam x => later $ inv id-left *> path (\lam i => p i x) *> id-left)
+      (RingedLocalePrecat.forget.Func-iso e) e.dom e.cod e.f e
+    \in (sip.2, sip.4)
+    \where {
+      \func fromIso {L : Locale} {R1 R2 : RingedLocale L} (f : RingedLocaleHom R1 R2 (id L)) (e : \Pi (x : L) -> Iso (f.f# x)) : Iso {VSheafCat CRingCat L} {R2.R} {R1.R}
+        => VSheafCat.functor-iso {_} {_} {R2.R} {R1.R} $ FunctorPrecat.fromIso {_} {_} {R2.R} (later \new NatTrans {
+          | trans => f.f#
+          | natural h => f.f#.natural h *> pmap (Func __ ∘ _) prop-pi
+        }) \lam {x} => e x
 
-    \lemma someLem2 (e : Iso {RingedLocalePrecat}) (a : e.dom) : e.f (transport (Locale.E {__}) (pmap (RingedLocale.L {__}) (isotoid e)) a) = a
-      => pmap e.f (someLem3 _ a) *> rewrite (Equiv.f_ret {LocaleCat.univalence {e.dom} {e.cod}} (Functor.Func-iso e)) (pmap (\lam (f : RingedLocaleHom e.dom e.dom) => f a) e.inv_f)
-
-    \lemma someLem3 {L M : Locale} (p : L = M) (a : L) : transport (\lam (X : Locale) => X.E) p a = Iso.inv {Precat.idtoiso p} a \elim p
-      | idp => idp
-
-    \lemma someLem5 {L M : RingedLocale} (e : Iso {RingedLocalePrecat} {L} {M}) (a : M) : transport (\lam (h : FrameHom M L) => RingHom (M.R a) (VSheaf.direct_image h (RingedLocale.R {e.dom}) a)) (someLem6 e) (RingedLocaleHom.f# {transportedRLHom (isotoid e) (id e.dom)} a) = RingedLocaleHom.f# {e} a
-      => simp_coe $ ext \lam y => simp_coe $ unfold someLem6 $ unfold_let $ transport_*> (\lam (h : FrameHom M L) => L.R (h a)) _ (someLem7 e) _ *> unfold {?}
-
-    \func someLem6 {L M : RingedLocale} (e : Iso {RingedLocalePrecat} {L} {M}) : transport (\lam (X : RingedLocale) => FrameHom X L) (isotoid e) (Cat.id L.L) = RingedLocaleHom.f {e.f}
-      => transport_FrameHom (isotoid e) _ *> someLem7 e -- exts (unfold \lam a => unfold {?}) -- simp_coe $ simp_coe \lam a => inv (whatev2 e a)
-
-    \lemma someLem7 {L M : RingedLocale} (e : Iso {RingedLocalePrecat} {L} {M}) : transportedFrameHom (isotoid e) (Cat.id L.L) = RingedLocaleHom.f {e.f}
-      => exts \lam a => unfold $ unfold {?}
-
-    \func transportedFrameHom {L M : RingedLocale} {N : Locale} (p : L = M) (f : FrameHom L N) : FrameHom M N \cowith
-      | func => transport (\lam (X : RingedLocale) => X -> N) p f -- \lam a => f (transport (\lam (X : RingedLocale) => X) (inv p) a)
-      | func-top>= => {?}
-      | func-meet => {?}
-      | func-Join>= => {?}
-
-    \lemma transport_FrameHom {L M : RingedLocale} {N : Locale} (p : L = M) (f : FrameHom L N) : transport (\lam (X : RingedLocale) => FrameHom X N) p f = transportedFrameHom p f \elim p
-      | idp => idp
-
-    \func transportedRLHom {L M N : RingedLocale} (p : L = M) (f : RingedLocaleHom N L) : RingedLocaleHom N M \cowith
-      | f => transport (FrameHom __ N) (pmap (RingedLocale.L {__}) p) f.f
-      | f# => Jl (\lam (X : RingedLocale) q => NatTrans X.R (VSheaf.direct_image (transport (FrameHom __ N) (pmap (RingedLocale.L {__}) q) f) N.R)) f.f# p
-
-    \func transportedRLHom' {L M N : RingedLocale} (e : Iso {RingedLocalePrecat} {L} {M}) (f : RingedLocaleHom N L) : RingedLocaleHom N M \cowith
-      | f => f.f FrameHom.∘ e.f
-      | f# => NatTrans.Comp-left f.f# (Functor.op {FrameHom.functor {e.f}}) Cat.∘ RingedLocaleHom.f# {e.f}
-
-    \lemma transport_RingedLocaleHom {L M N : RingedLocale} (p : L = M) (f : RingedLocaleHom N L)
-      : transport (RingedLocaleHom N) p f = transportedRLHom p f \elim p
-      | idp => idp
-  }
--}
+      \lemma ring-iso {L : Locale} {R1 R2 : RingedLocale L} {f : RingedLocaleHom R1 R2 (id L)} (e : Iso {RingedLocalePrecat} f) (a : R2) : Iso (f.f# a)
+        => \have | ei=id => inv FrameCat.id-left *> path (\lam i => (e.hinv_f i).f)
+                 | gp : \Sigma (g : RingedLocaleHom R2 R1 (id L)) (g = e.hinv) => RingedLocaleHom.castOver e.hinv ei=id
+                 | fg => RingedLocaleHom.eqCast $ pmap (f RingedLocalePrecat.∘) gp.2 *> e.f_hinv
+                 | gf => RingedLocaleHom.eqCast $ pmap (RingedLocalePrecat.`∘ f) gp.2 *> e.hinv_f
+           \in \new Iso {
+            | hinv => gp.1.f# a
+            | hinv_f => path (\lam i => (fg i).f# a)
+            | f_hinv => path (\lam i => (gf i).f# a)
+          }
+    }

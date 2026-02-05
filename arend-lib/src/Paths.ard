@@ -94,6 +94,10 @@
 
 \func pathOver {A : I -> \Sort} {a : A left} {a' : A right} (p : coe A a right = a') : Path A a a'
   => *>.concat (idpOver A a) p
+  \where {
+    \protected \func conv (p : Path A a a') : coe A a right = a'
+      => coe (\lam i => coe A a i = p i) idp right
+  }
 
 \func coe_path {A : \Sort} {a1 a2 a3 a4 : A} (p : a2 = a1) (q : a2 = a3) (r : a3 = a4)
   : coe (\lam i => p @ i = r @ i) q right = inv p *> q *> r

@@ -21,6 +21,7 @@
 \import Logic.FirstOrder.Algebraic
 \import Logic.FirstOrder.Algebraic.Category
 \import Logic.FirstOrder.Term
+\import Meta
 \import Paths
 \import Paths.Meta
 \import Set.SetCategory
@@ -85,6 +86,10 @@
         | f_hinv => exts \lam e i => p.f_hinv i e
       }, \lam p => Group-Iso->Ring-Iso ((GroupCat.Iso<->Inj+Surj (AddGroupHom.toGroupHom f)).2 p))
 
+    \lemma Iso<->IsEquiv {G H : Ring} {f : RingHom G H} : Iso {RingCat} f <-> IsEquiv f
+      => (\lam e => \have t => (Iso<->Inj+Surj f).1 e \in IsEquiv.fromInjSurj t.1 t.2,
+          \lam e => (Iso<->Inj+Surj f).2 (IsEquiv.isInj e, IsEquiv.isSurj e))
+
     \func image-iso {f : RingHom} (p : IsSurj f) : Iso {RingCat} {f.Image.IRing} {f.Cod}
       => (RingCat.Iso<->Inj+Surj f.image).2 (RingHom.image.isInj, RingHom.image.isSurj p)
 
@@ -122,6 +127,9 @@
         \func preservesLimit {J : Precat} (H : Functor J CRingCat) : PreservesLimit forget H
           => (CRingBicat.createsLimits H (SetBicat.limit (Comp CRingCat.forget H))).2
       }
+
+    \lemma Iso<->IsEquiv {R S : CRing} {f : RingHom R S} : Iso {CRingCat} f <-> IsEquiv f
+      => <->trans (forgetToRing.Func-iso __, \lam e => later \new Iso e.f e.hinv e.hinv_f e.f_hinv) RingCat.Iso<->IsEquiv
 
     \func Image=Cod {R : Ring} {S : CRing} (f : RingHom R S) (p : IsSurj f) : (RingHom.ImageC f).ICRing = {CRing} S
       => ext CRing { | Ring => RingCat.Image=Cod f p }
