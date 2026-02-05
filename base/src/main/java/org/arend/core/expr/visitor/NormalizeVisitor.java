@@ -6,7 +6,6 @@ import org.arend.core.constructor.SingleConstructor;
 import org.arend.core.context.binding.Binding;
 import org.arend.core.context.binding.EvaluatingBinding;
 import org.arend.core.context.binding.LevelVariable;
-import org.arend.core.context.binding.inference.TypeClassInferenceVariable;
 import org.arend.core.context.param.DependentLink;
 import org.arend.core.context.param.SingleDependentLink;
 import org.arend.core.context.param.TypedSingleDependentLink;
@@ -828,7 +827,7 @@ public class NormalizeVisitor extends ExpressionTransformer<NormalizationMode>  
     }
 
     Expression thisExpr = expr.getArgument().accept(this, mode);
-    if (!(thisExpr.getInferenceVariable() instanceof TypeClassInferenceVariable) && (!(mode == NormalizationMode.RNF) || thisExpr instanceof NewExpression)) {
+    if (mode != NormalizationMode.RNF || thisExpr instanceof NewExpression) {
       Expression impl = evalFieldCall(expr.getDefinition(), thisExpr);
       if (impl != null) {
         return impl.accept(this, mode);
