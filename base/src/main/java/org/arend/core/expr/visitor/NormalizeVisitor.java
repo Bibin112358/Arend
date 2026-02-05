@@ -385,8 +385,7 @@ public class NormalizeVisitor extends ExpressionTransformer<NormalizationMode>  
   }
 
   public Expression visitBody(Body body, List<? extends Expression> defCallArgs, LeveledDefCallExpression expr, NormalizationMode mode) {
-//    The REPL command :type doesn't have time to finish sometimes because of this check
-//    ComputationRunner.checkCanceled();
+    ComputationRunner.checkCanceled();
     Definition definition = expr.getDefinition();
 
     if (body instanceof IntervalElim elim) {
