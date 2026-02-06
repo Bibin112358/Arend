@@ -828,7 +828,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
 
     if (cdef instanceof Concrete.FunctionDefinition && ((Concrete.FunctionDefinition) cdef).getKind().isUse()) {
       Definition def = cdef.getUseParent().getTypechecked();
-      var levelParams = def.getLevelParameters();
+      var levelParams = def == null ? null : def.getLevelParameters();
       if (levelParams != null) {
         int n = def.getNumberOfPLevelParameters();
         if (cdef.getPLevelParameters() == null) {
@@ -840,22 +840,22 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       }
     }
 
-    var levelParams = cdef.enclosingClass == null ? null : cdef.enclosingClass.getTypechecked().getLevelParameters();
+    Definition enclosingClassDef = cdef.enclosingClass == null ? null : cdef.enclosingClass.getTypechecked();
+    var levelParams = enclosingClassDef == null ? null : enclosingClassDef.getLevelParameters();
     if (levelParams != null && !levelParams.isEmpty() && (cdef.getPLevelParameters() == null || cdef.getHLevelParameters() == null) && !parameters.isEmpty()) {
       refs.clear();
       getCovariantDefinitions(parameters.getFirst().getType(), refs);
-      Definition enclosingClass = cdef.enclosingClass.getTypechecked();
-      int n = enclosingClass.getNumberOfPLevelParameters();
+      int n = enclosingClassDef.getNumberOfPLevelParameters();
       if (cdef.getPLevelParameters() == null && n > 0) {
-        cdef.setPLevelParameters(levelVariablesToParameters(cdef.getData(), enclosingClass.getLevelParameters().subList(0, n), true));
+        cdef.setPLevelParameters(levelVariablesToParameters(cdef.getData(), enclosingClassDef.getLevelParameters().subList(0, n), true));
         if (cdef.getPLevelParameters() != null) {
           for (Concrete.ReferenceExpression ref : refs) {
             ref.setPLevels(levelParametersToExpressions(ref.getData(), cdef.getPLevelParameters(), LevelVariable.LvlType.PLVL));
           }
         }
       }
-      if (cdef.getHLevelParameters() == null && n < enclosingClass.getLevelParameters().size()) {
-        cdef.setHLevelParameters(levelVariablesToParameters(cdef.getData(), enclosingClass.getLevelParameters().subList(n, enclosingClass.getLevelParameters().size()), false));
+      if (cdef.getHLevelParameters() == null && n < enclosingClassDef.getLevelParameters().size()) {
+        cdef.setHLevelParameters(levelVariablesToParameters(cdef.getData(), enclosingClassDef.getLevelParameters().subList(n, enclosingClassDef.getLevelParameters().size()), false));
         if (cdef.getHLevelParameters() != null) {
           for (Concrete.ReferenceExpression ref : refs) {
             ref.setHLevels(levelParametersToExpressions(ref.getData(), cdef.getHLevelParameters(), LevelVariable.LvlType.HLVL));
@@ -1044,12 +1044,14 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     } else {
       if (def.getKind().isUse()) {
         Definition useParent = def.getUseParent().getTypechecked();
-        int n = useParent.getNumberOfPLevelParameters();
-        if (def.getPLevelParameters() != null) {
-          compareUseLevelParameters(def.getPLevelParameters(), levelVariablesToParameters(def.getPLevelParameters().getData(), useParent.getLevelParameters().subList(0, n), true));
-        }
-        if (def.getHLevelParameters() != null) {
-          compareUseLevelParameters(def.getHLevelParameters(), levelVariablesToParameters(def.getHLevelParameters().getData(), useParent.getLevelParameters().subList(n, useParent.getLevelParameters().size()), false));
+        if (useParent != null) {
+          int n = useParent.getNumberOfPLevelParameters();
+          if (def.getPLevelParameters() != null) {
+            compareUseLevelParameters(def.getPLevelParameters(), levelVariablesToParameters(def.getPLevelParameters().getData(), useParent.getLevelParameters().subList(0, n), true));
+          }
+          if (def.getHLevelParameters() != null) {
+            compareUseLevelParameters(def.getHLevelParameters(), levelVariablesToParameters(def.getHLevelParameters().getData(), useParent.getLevelParameters().subList(n, useParent.getLevelParameters().size()), false));
+          }
         }
       }
       findLevelsParentsInParameters(typedDef, def, def.getParameters());
