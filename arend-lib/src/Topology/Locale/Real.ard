@@ -250,7 +250,7 @@
            | inP (a,a<x), inP (b,xy<b) => \case isDense a<x, isDense xy<b \with {
              | inP (a',a<a',a'<x), inP (b',xy<b',b'<b) =>
                \have a'<b' => a'<x <∘ join-left <∘r xy<b'
-               \in closed-compact (closed-isClosed _) (<<-left (PreorderSite.<<-site.1 (RealPres.<<-intervals {_} {a',b',a'<b'} {a, b, a<a' <∘ a'<b' <∘ b'<b} (a<a',b'<b))) top-univ) $ closed>=open $ halves3-cover a'<x (join-right <∘r xy<b')
+               \in closed-compact (closed-isClosed _) (<<-left (PreorderSite.<<-site.1 (RealPres.<<-intervals {_} {a',b',a'<b'} {a, b, a<a' <∘ a'<b' <∘ b'<b} (a<a',b'<b))) top-univ) $ closed<=open $ halves3-cover a'<x (join-right <∘r xy<b')
            }
       }
   }

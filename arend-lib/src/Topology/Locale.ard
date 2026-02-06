@@ -143,20 +143,20 @@
     => \lam x => r x <=∘ Join-univ \lam w<=<x => Join-cond (compact_<=< c w<=<x)
 
   -- | The "weakly rather below" relation: `x <=<w y` if and only if the weak closure of {x} is contained in {y}.
-  \type \infix 4 <=<w (x y : E) => open y <= {NucleusFrame _} FrameHom.wclosed-image {Nucleus.map {open x}}
+  \type \infix 4 <=<w (x y : E) => (open x).map.wclosed-image <= {NucleusFrame _} open y
 
   \type IsRegularLocale => \Pi (x : E) -> x <= Join (`<=< x)
 
   \type IsWeaklyRegularLocale => \Pi (x : E) -> x <= Join (`<=<w x)
 
-  \func open (a : E) : Nucleus (a --> __) \cowith
+  \func open (a : E) : Nucleus _ (a --> __) \cowith
     | nucleus-meet => <=-antisymmetric
         (meet-univ (<=-curry (eval <=∘ meet-left)) (<=-curry (eval <=∘ meet-right)))
         (<=-curry (meet-univ (meet-monotone meet-left <=-refl <=∘ eval) (meet-monotone meet-right <=-refl <=∘ eval)))
     | nucleus-unit => <=-curry meet-left
     | nucleus-join>= => <=-curry (transport (_ ∧ __ <= _) meet-idemp (transport (`<= _) meet-assoc (meet-monotone eval <=-refl <=∘ eval)))
 
-  \func closed (a : E) : Nucleus (a ∨ __) \cowith
+  \func closed (a : E) : Nucleus _ (a ∨ __) \cowith
     | nucleus-meet => equation
     | nucleus-unit => join-right
     | nucleus-join>= => join-univ join-left <=-refl
@@ -319,7 +319,7 @@
   \lemma func_direct_func {x : Dom} : func (direct (func x)) = func x
     => <=-antisymmetric direct-counit (func-<= direct-unit)
 
-  \func image : Nucleus (\lam x => direct (func x)) \cowith
+  \func image : Nucleus _ (\lam x => direct (func x)) \cowith
     | nucleus-meet => pmap direct func-meet *> direct-meet
     | nucleus-unit => direct-unit
     | nucleus-join>= => direct-<= direct-counit
@@ -341,12 +341,12 @@
 
   \type IsStronglyDense => \Pi {P : \Prop} {x : Dom} -> func x <= pHat P -> x <= pHat P
 
-  \func IsWeaklyClosed => \Sigma (IsSurj func) (\Pi (j : Nucleus) ->
+  \func IsWeaklyClosed => \Sigma (IsSurj func) (\Pi (j : Nucleus _) ->
       (\Pi {P : \Prop} {x : Dom} -> func x <= pHat P -> x <= j (pHat P)) -> \Pi {x : Dom} -> direct (func x) <= j x)
 
   -- | The weak closure of the image
-  \func wclosed-image : Nucleus \cowith
-    | nucleus x => SMeet (\lam (j : Nucleus) => j x) \lam j => \Pi {P : \Prop} {x : Dom} -> func x <= pHat P -> x <= j (pHat P)
+  \func wclosed-image : Nucleus _ \cowith
+    | nucleus x => SMeet (\lam (j : Nucleus _) => j x) \lam j => \Pi {P : \Prop} {x : Dom} -> func x <= pHat P -> x <= j (pHat P)
     | nucleus-<= p => SMeet-univ \lam f => SMeet-cond f <=∘ nucleus-<= p
     | nucleus-meet>= => SMeet-univ \lam f => meet-monotone (SMeet-cond f) (SMeet-cond f) <=∘ nucleus-meet>=
     | nucleus-unit => SMeet-univ \lam _ => nucleus-unit
@@ -416,15 +416,15 @@
 
 \func LocaleHom (L M : Locale) => FrameHom M L
   \where {
-    \protected \func id {L : Locale} : LocaleHom L L
+    \func id {L : Locale} : LocaleHom L L
       => FrameHom.id
 
-    \protected \func compose \alias \infixl 8 ∘ {L M K : Locale} (g : LocaleHom M K) (f : LocaleHom L M) : LocaleHom L K
+    \func compose \alias \infixl 8 ∘ {L M K : Locale} (g : LocaleHom M K) (f : LocaleHom L M) : LocaleHom L K
       => f FrameHom.∘ g
   }
 
 -- | Nuclei encode sublocales
-\record Nucleus {L : Locale} (\coerce nucleus : L -> L) {
+\record Nucleus (L : Locale) (\coerce nucleus : L -> L) {
   | nucleus-meet {x y : L} : nucleus (x ∧ y) = nucleus x ∧ nucleus y
   | nucleus-meet>= {x y : L} : nucleus x ∧ nucleus y <= nucleus (x ∧ y)
   | nucleus-<= {x y : L} : x <= y -> nucleus x <= nucleus y
@@ -481,6 +481,15 @@
     | Func-id => idp
     | Func-o => idp
 
+  \protected \func lift {M : Locale} (f : LocaleHom M L) (f<=j : \Pi {x : L} -> f (nucleus x) <= f x) : LocaleHom M locale \cowith
+    | func s => f s.1
+    | func-Join>= => f<=j <=∘ func-SJoin>=
+    | func-meet => func-meet
+    | func-top>= => func-top>=
+
+  \protected \lemma lift_map {M : Locale} {f : LocaleHom M L} (f<=j : \Pi {x : L} -> f (nucleus x) <= f x) : map LocaleHom.∘ lift f f<=j = f
+    => exts \lam x => <=-antisymmetric f<=j (func-<= nucleus-unit)
+
   \lemma map_direct (x : locale) : map.direct x = x.1
     => <=-antisymmetric (Join-univ (\lam j => nucleus-unit <=∘ j)) (Join-cond x.2)
 
@@ -494,7 +503,7 @@
 
   \protected \func IsDense => nucleus bottom <= bottom
 } \where {
-  \protected \func exp {L : Locale} (j j' : Nucleus {L}) : Nucleus \cowith
+  \protected \func exp {L : Locale} (j j' : Nucleus L) : Nucleus L \cowith
     | nucleus x => SMeet (\lam y => j y --> j' y) (x <=)
     | nucleus-meet>= {a} {b} =>
       \have lem {x y z : L} : (x ∧ y) ∧ z = (x ∧ z) ∧ (y ∧ z) => equation
@@ -506,10 +515,13 @@
     | nucleus-join>= => SMeet-univ \lam x<=a => SMeet-cond (SMeet-cond x<=a) <=∘ L.exponent-monotone <=-refl (Nucleus.nucleus_exponent nucleus-join>=) <=∘
         inv L.curry =<= later (L.exponent-monotone (meet-univ (nucleus-<= $ <=-curry $ meet-left <=∘ nucleus-unit) <=-refl) <=-refl)
 
-  \protected \lemma exp-univ1 {L : Locale} {j k n : Nucleus {L}} (p : \Pi {x : L} -> NucleusFrame.meet j k x <= n x) {x : L} : j x <= exp k n x
-    => SMeet-univ \lam x<=a => later $ <=-curry $ meet-monotone (nucleus-<= x<=a) <=-refl <=∘ p
+  \protected \lemma exp-univ1 {L : Locale} {j k n : Nucleus L} (p : \Pi {x : L} -> (NucleusFrame L).join j k x <= n x) {x : L} : j x <= exp k n x
+    => SMeet-univ \lam x<=a => later $ <=-curry $ meet-monotone (nucleus-<= x<=a) <=-refl <=∘ SMeet-univ (later \lam {m} => \case \elim m, \elim __ \with {
+      | _, byLeft idp => meet-left
+      | _, byRight idp => meet-right
+    }) <=∘ p
 
-  \protected \lemma exp-univ2 {L : Locale} {k n : Nucleus {L}} {x y : L} (p : y <= exp k n x) : y ∧ k x <= n x
+  \protected \lemma exp-univ2 {L : Locale} {k n : Nucleus L} {x y : L} (p : y <= exp k n x) : y ∧ k x <= n x
     => <=-uncurry $ p <=∘ SMeet-cond <=-refl
 
   \lemma open_exp {L : Locale} {a : L} (x y : (open a).locale) : (x --> {(open a).locale} y).1 = x.1 --> y.1
@@ -526,96 +538,90 @@
 
   \lemma open_IsOvert {L : Locale} (Lo : L.IsOvert) {a : L} : (open a).locale.IsOvert
     => \lam b => unfolds $ <=-curry (Lo _ <=∘ pHat-impl open_IsPositive.1) <=∘ =_<= (inv (open a).locale_pHat)
+
+  \func idNucleus {L : Locale} : Nucleus L \cowith
+    | nucleus x => x
+    | nucleus-unit => <=-refl
+    | nucleus-join>= => <=-refl
+    | nucleus-meet => idp
+
+  \func topNucleus {L : Locale} : Nucleus L \cowith
+    | nucleus x => top
+    | nucleus-<= _ => top-univ
+    | nucleus-unit => top-univ
+    | nucleus-join>= => top-univ
+    | nucleus-meet>= => top-univ
 }
 
--- | The order of nuclei is inversed. That is, `n <= m` iff `m.locale` is a sublocale of `n.locale`.
-\instance NucleusFrame (L : Locale) : Locale (Nucleus {L})
-  | <= j j' => \Pi {x : L} -> j x <= j' x
+\instance NucleusFrame (L : Locale) : CompleteLattice (Nucleus L)
+  | <= j j' => \Pi {x : L} -> j' x <= j x
   | <=-refl => <=-refl
-  | <=-transitive p q {x} => <=-transitive p q
-  | <=-antisymmetric p q => exts (\lam x => <=-antisymmetric p q)
-  | meet (j j' : Nucleus {L}) : Nucleus => \new Nucleus {
-    | nucleus x => j x ∧ j' x
-    | nucleus-meet => rewrite (nucleus-meet {j}) $ rewrite (nucleus-meet {j'}) equation
-    | nucleus-unit => meet-univ nucleus-unit nucleus-unit
-    | nucleus-join>= => meet-monotone (Nucleus.nucleus-univ meet-left) (Nucleus.nucleus-univ meet-right)
+  | <=-transitive p q {x} => <=-transitive q p
+  | <=-antisymmetric p q => exts (\lam x => <=-antisymmetric q p)
+  | Join C => \new Nucleus L {
+    | nucleus x => SMeet (\lam (j : Nucleus L) => j x) C
+    | nucleus-<= x<=y => SMeet-univ \lam Ca => SMeet-cond Ca <=∘ nucleus-<= x<=y
+    | nucleus-meet>= => SMeet-univ \lam Ca => meet-monotone (SMeet-cond Ca) (SMeet-cond Ca) <=∘ nucleus-meet>=
+    | nucleus-unit => SMeet-univ \lam Ca => nucleus-unit
+    | nucleus-join>= => SMeet-univ \lam Ca => SMeet-cond Ca <=∘ nucleus-<= (SMeet-cond Ca) <=∘ nucleus-join>=
   }
-  | meet-left => meet-left
-  | meet-right => meet-right
-  | meet-univ p q {x} => meet-univ p q
-  | top => \new Nucleus {
-    | nucleus _ => top
-    | nucleus-meet>= => top-univ
-    | nucleus-<= _ => <=-refl
-    | nucleus-unit => top-univ
-    | nucleus-join>= => <=-refl
-  }
-  | top-univ => top-univ
-  | Join C => \new Nucleus {
-    | nucleus x => SMeet (\lam (n : Nucleus) => n x) (\lam n => ∀ {j : C} {x : L} (j x <= n x))
-    | nucleus-meet>= => SMeet-univ \lam p => meet-univ (meet-left <=∘ SMeet-cond p) (meet-right <=∘ SMeet-cond p) <=∘ nucleus-meet>=
-    | nucleus-<= x<=y => SMeet-univ \lam p => SMeet-cond p <=∘ nucleus-<= x<=y
-    | nucleus-unit => SMeet-univ \lam p => nucleus-unit
-    | nucleus-join>= => SMeet-univ \lam p => SMeet-cond p <=∘ Nucleus.nucleus-univ (SMeet-cond p)
-  }
-  | Join-cond Cx {y} => SMeet-univ $ later \lam h => h Cx
-  | Join-univ c {x} => SMeet-cond (later c)
-  | Join-ldistr>= {C} {k} {x} => unfold $ SMeet-univ \lam {n} h => meet-monotone <=-refl (SMeet-cond {_} {_} {_} {_} {Nucleus.exp k n} $ later \lam {j} Cj => Nucleus.exp-univ1 \lam {x} => meet-comm =<= h (SetIm-con Cj)) <=∘ meet-monotone <=-refl (SMeet-cond <=-refl) <=∘ meet-comm =<= L.eval
+  | Join-cond {C} {j} Cj {x} => SMeet-cond Cj
+  | Join-univ h {x} => SMeet-univ \lam Ca => h Ca
   \where {
     \open Topology.Locale(NucleusFrame)
 
-    \func <=-map {L : Locale} (j j' : Nucleus {L}) (j<=j' : j <= j') : FrameHom j.locale j'.locale \cowith
+    \func <=-map {L : Locale} (j j' : Nucleus L) (j'<=j : j' <= j) : FrameHom j.locale j'.locale \cowith
       | func x => (j' x.1, nucleus-join>=)
       | func-<= => nucleus-<=
       | func-top>= => nucleus-unit
       | func-meet>= => nucleus-meet>=
-      | func-Join>= => unfold $ nucleus-<= j<=j' <=∘ nucleus-join>= <=∘ nucleus-<= (SJoin-univ \lam Ca => nucleus-unit <=∘ SJoin-cond (SetIm-con Ca))
+      | func-Join>= => unfold $ nucleus-<= j'<=j <=∘ nucleus-join>= <=∘ nucleus-<= (SJoin-univ \lam Ca => nucleus-unit <=∘ SJoin-cond (SetIm-con Ca))
       \where
-        \lemma surjective {L : Locale} {j j' : Nucleus {L}} (j<=j' : j <= j') : IsSurj (<=-map j j' j<=j')
-          => \lam y => inP ((y.1, j<=j' <=∘ y.2), ext $ <=-antisymmetric y.2 nucleus-unit)
+        \lemma surjective (j'<=j : j' <= j) : IsSurj (<=-map j j' j'<=j)
+          => \lam y => inP ((y.1, j'<=j <=∘ y.2), ext $ <=-antisymmetric y.2 nucleus-unit)
 
-    \lemma double-nucleus-left {L : Locale} {j k : Nucleus {L}} (j<=k : j <= k) (x : L) : k (j x) = k x
-      => <=-antisymmetric (k.nucleus-univ j<=k) (nucleus-<= nucleus-unit)
+    \lemma double-nucleus-left {L : Locale} {j k : Nucleus L} (k<=j : k <= j) (x : L) : k (j x) = k x
+      => <=-antisymmetric (k.nucleus-univ k<=j) (nucleus-<= nucleus-unit)
 
-    \lemma double-nucleus-right {L : Locale} {j k : Nucleus {L}} (j<=k : j <= k) (x : L) : j (k x) = k x
-      => <=-antisymmetric (j<=k <=∘ nucleus-join>=) nucleus-unit
+    \lemma double-nucleus-right {L : Locale} {j k : Nucleus L} (k<=j : k <= j) (x : L) : j (k x) = k x
+      => <=-antisymmetric (k<=j <=∘ nucleus-join>=) nucleus-unit
 
-    \lemma wclosure_<= {j : Nucleus {}} : j.map.wclosed-image <= {NucleusFrame _} j
+    \lemma wclosure_<= {j : Nucleus} : j <= {NucleusFrame _} j.map.wclosed-image
       => \lam {x} => SMeet-cond $ later \lam p => nucleus-unit <=∘ p <=∘ nucleus-<= (SJoin-univ \lam p => Join-cond p)
 
-    \lemma wclosure-sdense {j : Nucleus {}} : IsStronglyDense {<=-map j.map.wclosed-image j wclosure_<=}
+    \lemma wclosure-sdense {j : Nucleus} : IsStronglyDense {<=-map j.map.wclosed-image j wclosure_<=}
       => wclosed-factor-sdense
 
-    \lemma wclosure-inclusion {j : Nucleus {}} (x : j.L) : <=-map j.map.wclosed-image j wclosure_<= (j.map.wclosed-image.map x) = j.map x
+    \lemma wclosure-inclusion {j : Nucleus} (x : j.L) : <=-map j.map.wclosed-image j wclosure_<= (j.map.wclosed-image.map x) = j.map x
       => ext $ double-nucleus-left {j.L} wclosure_<= x
 
-    \lemma nucleus>=open {L : Locale} {a : L} {j : Nucleus {L}} (c : top <= j a) : open a <= j
+    \lemma nucleus<=open {L : Locale} {a : L} {j : Nucleus L} (c : top <= j a) : j <= open a
       => \lam {x} => j.exponent-func <=∘ meet-univ <=-refl (top-univ <=∘ c) <=∘ L.eval
       \where
-        \lemma conv {L : Locale} {a : L} {j : Nucleus {L}} (c : open a <= j) : top <= j a
+        \lemma conv {L : Locale} {a : L} {j : Nucleus L} (c : j <= open a) : top <= j a
           => <=-curry meet-right <=∘ c
 
-    \lemma open_<= {L : Locale} {a b : L} (p : a <= b) : open b <= open a
+    \lemma open_<= {L : Locale} {a b : L} (p : a <= b) : open a <= open b
       => \lam {x} => L.exponent-monotone p <=-refl
       \where
-        \lemma conv {L : Locale} {a b : L} (p : open b <= open a) : a <= b
-          => meet-univ top-univ <=-refl <=∘ <=-uncurry (nucleus>=open.conv p)
+        \lemma conv {L : Locale} {a b : L} (p : open a <= open b) : a <= b
+          => meet-univ top-univ <=-refl <=∘ <=-uncurry (nucleus<=open.conv p)
   }
 
-\lemma closed>=open {L : Locale} {c a : L} (p : top <= c ∨ a) : closed c >= open a
+\lemma closed<=open {L : Locale} {c a : L} (p : top <= c ∨ a) : closed c <= open a
   => \lam {x} => meet-univ <=-refl (top-univ <=∘ p) <=∘ ldistr>= <=∘ join-monotone meet-right L.eval
   \where
-    \lemma conv {L : Locale} {c a : L} (p : closed c >= open a) : top <= c ∨ a
+    \lemma conv {L : Locale} {c a : L} (p : closed c <= open a) : top <= c ∨ a
       => L.top_exponent <=-refl <=∘ p
 
-\lemma open<=closed {L : Locale} {c a : L} (p : c ∧ a <= bottom) : open a >= closed c
+\lemma open<=closed {L : Locale} {c a : L} (p : c ∧ a <= bottom) : open a <= closed c
   => \lam {x} => unfold (join-univ (<=-curry (p <=∘ bottom-univ)) (<=-curry meet-left))
   \where
-    \lemma conv {L : Locale} {c a : L} (p : open a >= closed c) : c ∧ a <= bottom
+    \lemma conv {L : Locale} {c a : L} (p : open a <= closed c) : c ∧ a <= bottom
       => meet-monotone join-left <=-refl <=∘ <=-uncurry p
 
 -- | A closed and "bounded" sublocale is compact.
-\lemma closed-compact {L : Locale} {N : Nucleus {L}} (c : N.isClosed) {a : L} (w : a << top) (b : N >= open a) : N.locale.IsCompact
+\lemma closed-compact {L : Locale} {N : Nucleus L} (c : N.isClosed) {a : L} (w : a << top) (b : N <= open a) : N.locale.IsCompact
   => \lam {C} top<=C =>
       \let | g (j : Maybe (Given C)) : L => \case \elim j \with { | nothing => N bottom | just j => j.1.1 }
            | top<=g : top <= IJoin g => top<=C <=∘ c <=∘ join-univ (IJoin-cond nothing) (SJoin-univ \lam {a} Ca => IJoin-cond $ just $ later (a,Ca))

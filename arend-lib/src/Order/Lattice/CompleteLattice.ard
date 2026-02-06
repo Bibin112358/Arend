@@ -97,6 +97,9 @@
   \lemma SMeet-cond {A : \Sort} {f : A -> E} {P : A -> \Prop} {a : A} (Pa : P a) : SMeet f P <= f a
     => Meet-cond (SetIm-con Pa)
 
+  \lemma SMeet-conde {A : \Sort} {f : A -> E} {P : A -> \Prop} (a : A) (Pa : P a) : SMeet f P <= f a
+    => Meet-cond (SetIm-con Pa)
+
   \lemma SMeet-univ {A : \Sort} {f : A -> E} {P : A -> \Prop} {e : E} (p : ∀ {a : P} (e <= f a)) : e <= SMeet f P
     => Meet-univ (SetIm-elim p)
 

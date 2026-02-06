@@ -21,6 +21,7 @@
 \import Set.SetCategory
 \import Set.Subset
 \import Topology.Locale
+\import Topology.Locale.LocaleColimits
 \import Topology.Locale.LocaleProduct
 \import Topology.Locale.PreorderSite
 \open CompleteLattice
@@ -50,6 +51,10 @@
       }
       | hinv_f => exts e.ret_f
       | f_hinv => exts e.f_ret
+
+    \lemma iso_equiv (e : Iso {FrameCat}) : QEquiv e.f e.hinv \cowith
+      | ret_f x => path \lam i => e.hinv_f i x
+      | f_sec y => path \lam i => e.f_hinv i y
   }
 
 \func PreorderSiteCat : Cat PreorderSite \cowith
@@ -127,7 +132,7 @@
       | 0 => ProductLocale.beta1
       | 1 => ProductLocale.beta2
     }
-    | tupleEq e => {?}
+    | tupleEq e => ProductLocale.tupleEq (e 0) (e 1)
   }
 
 \func discreteLocaleFunctor : Functor SetCat LocaleCat \cowith
@@ -141,30 +146,44 @@
   | Func-id => idp
   | Func-o => idp
 
--- TODO[sorts]
-\lemma regular_surj {L M : Locale} {f : Hom L M} (reg : isRegularMono {LocaleCat} f) : IsSurj f \elim reg
-  | inP E => {?}
+\func localeEqualizer {L M : Locale} (f g : LocaleHom L M) : Equalizer {LocaleCat} f g \cowith
+  | apex => nucleus.locale
+  | eql => nucleus.map
+  | equal => exts \lam x => ext $ <=-antisymmetric
+              (SMeet-univ $ later \lam h => SMeet-cond h <=∘ =_<= (h x))
+              (SMeet-univ $ later \lam h => SMeet-cond h <=∘ =_<= (inv (h x)))
+  | isEqualizer K => IsEquiv.fromInjSurj
+    (\lam {h} {h'} p => exts \lam x => pmap h (ext $ <=-antisymmetric nucleus.nucleus-unit x.2) *>
+      path (\lam i => (p i).1 x.1) *> pmap h' (ext $ <=-antisymmetric x.2 nucleus.nucleus-unit))
+    \lam s => \have lem {x} => s.1.direct-adjoint.2 $ SMeet-conde s.1.image \lam y => path \lam i => s.1.direct (s.2 i y)
+              \in inP (nucleus.lift s.1 lem, ext $ nucleus.lift_map lem)
+  \where {
+    \func nucleus : Nucleus L
+      => Join \lam (j : Nucleus L) => \Pi (x : M) -> j (f x) = j (g x)
+  }
 
--- TODO[sorts]
-\lemma surj_regular {L M : Locale} {f : FrameHom M L} (sur : IsSurj f) : isRegularMono {LocaleCat} f
-  => {?}
-    {-
-    \let pb : Pullback => FrameBicat.pullback f f
-     \in inP \new Equalizer {LocaleCat} {M} {pb} pb.pbProj1 pb.pbProj2 L f pb.pbCoh {
-      | isEqualizer Z => IsEquiv.fromInjSurj
-      (\lam {h} {h'} p => exts \case sur __ \with {
-        | inP (x,q) => inv (pmap h q) *> pmap (\lam z => z.1 x) p *> pmap h' q
-      })
-      (\lam (h,p) =>
-        \have lem {x : M} => (unfold,unfold) in path (\lam i => p i (f.direct (f x), x, FrameHom.surjective-split sur (f x)))
-        \in inP (\new FrameHom {
-                   | func x => h (f.direct x)
-                   | func-top => pmap h f.direct-top *> func-top
-                   | func-meet => pmap h f.direct-meet *> func-meet
-                   | func-Join>= => func-<= (direct-<= $ Join-univ \lam {a} Ca => inv (FrameHom.surjective-split sur a) =<= func-<= (SJoin-cond Ca)) <=∘ lem =<= func-SJoin>=
-                 }, ext (exts \lam x => lem)))
-    }
--}
+\lemma regular_surj {L M : Locale} {f : LocaleHom L M} (reg : isRegularMono {LocaleCat} f) : IsSurj f \elim reg
+  | inP E =>
+    \let E' => localeEqualizer E.f E.g
+    \in transport IsSurj (path \lam i => (E'.eqBeta i).func) $ IsSurj.comp Nucleus.map.surjective (FrameCat.iso_equiv (Equalizer.unique E E').op).isSurj
+
+\lemma surj_regular {L M : Locale} {f : LocaleHom L M} (sur : IsSurj f) : isRegularMono {LocaleCat} f
+  => inP \new Equalizer {
+    | Y => PushoutLocale f f
+    | f => PushoutLocale.pinl
+    | g => PushoutLocale.pinr
+    | equal => PushoutLocale.pushoutCoh
+    | isEqualizer Z => IsEquiv.fromInjSurj (\lam {h} {h'} p => exts \lam a => \case sur a \with {
+      | inP (b,fb=a) => pmap h (inv fb=a) *> path (\lam i => (p i).1 b) *> pmap h' fb=a
+    }) \lam (h,p) =>
+      \have lem {x : M} => path (\lam i => p i (f.direct (f x), x, FrameHom.surjective-split sur (f x)))
+      \in inP (\new FrameHom {
+                 | func x => h (f.direct x)
+                 | func-top => pmap h f.direct-top *> func-top
+                 | func-meet => pmap h f.direct-meet *> func-meet
+                 | func-Join>= => func-<= (f.direct-<= $ Join-univ \lam {a} Ca => inv (FrameHom.surjective-split sur a) =<= func-<= (SJoin-cond Ca)) <=∘ lem =<= h.func-SJoin>=
+               }, ext (exts \lam x => lem))
+  }
 
 \func surj_equiv {f : FrameHom} (sur : IsSurj f) : Iso {FrameCat} {f.image.locale} {f.Cod}
   => FrameCat.equiv_iso {\new FrameHom f.image.locale f.Cod {
@@ -216,8 +235,8 @@
     \in (h.wclosed-image.locale, h.wclosed-factor, h.wclosed-image.map, exts left+right=h, h.wclosed-factor-sdense,
          (Nucleus.map.surjective, \lam j p {x} => Join-univ \lam k => h.wclosed-image.nucleus-unit <=∘ k <=∘ SMeet-cond \lam {P} {y} t => p $ h.wclosed-factor-sdense {P} {h.wclosed-image.map y} $ rewrite left+right=h t))
   | unique-lift f (g : FrameHom) Lf Rg => OFS.liftFromMono {LocaleCat} f g (regularMono_Mono (surj_regular Rg.1)) \lam t (s : FrameHom) gt=sf =>
-    \have g<=s : g.image <= s.image => Rg.2 s.image \lam {P} {x} gx<=P => direct-adjoint.1 $ Lf (rewriteI (path (gt=sf __ x)) $ func-<= gx<=P <=∘ func-pHat>=) <=∘ func-pHat<=
-    \in (hinv {surj_equiv Rg.1} ∘ NucleusFrame.<=-map g.image s.image g<=s ∘ s.factor, exts \lam x => func_direct_func *> <=-antisymmetric (direct-adjoint.2 g<=s) (func-<= direct-unit))
+    \have s<=g : s.image <= g.image => Rg.2 s.image \lam {P} {x} gx<=P => direct-adjoint.1 $ Lf (rewriteI (path (gt=sf __ x)) $ func-<= gx<=P <=∘ func-pHat>=) <=∘ func-pHat<=
+    \in (hinv {surj_equiv Rg.1} ∘ NucleusFrame.<=-map g.image s.image s<=g ∘ s.factor, exts \lam x => func_direct_func *> <=-antisymmetric (direct-adjoint.2 s<=g) (func-<= direct-unit))
   \where \open FrameHom
 
 {-
