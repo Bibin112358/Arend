@@ -15,7 +15,7 @@
 \import Set.SetCategory
 
 -- | Presheaves valued in {D}
-\record VPresheaf.{o2,h2,o1,h1} (D : Cat.{o2,h2}) (C : Precat.{o1,h1}) (\coerce F : Functor C.op D)
+\record VPresheaf.{o2,h2,o1,h1} (D : Precat.{o2,h2}) (C : Precat.{o1,h1}) (\coerce F : Functor C.op D)
 
 -- | Presheaves valued in sets
 \record Presheaf.{s,o,h} \extends VPresheaf.{\suc s, s, o, h}

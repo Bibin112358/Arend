@@ -53,10 +53,10 @@
   | limUnique {z : D} {f g : Hom z apex} (p : \Pi (j : J) -> coneMap j ∘ f = coneMap j ∘ g) : f = g
 
   \default limMap \as limMap-impl {z} c : Hom z apex
-  => IsEquiv.ret (isLimit z) c
+    => IsEquiv.ret (isLimit z) c
 
   \default limBeta \as limBeta-impl {z} (c : Cone G z) j : coneMap j ∘ limMap-impl c = c.coneMap j
-  => path (\lam i => coneMap {IsEquiv.f_ret (isLimit z) i} j)
+    => path (\lam i => coneMap {IsEquiv.f_ret (isLimit z) i} j)
 
   \default limUnique {z} {f} {g} p => IsEquiv.isInj (isLimit z) (exts p)
 

@@ -128,6 +128,9 @@
     \sfunc f_ret (e : IsEquiv f) {b : B} : f (ret e b) = b
       => pmap f (\peval ret e b) *> (toQEquiv e).f_ret b
 
+    \func splitSurj (e : IsEquiv f) (b : B) : \Sigma (a : A) (f a = b)
+      => (ret e b, f_ret e)
+
     \func adjoint (e : IsEquiv f) {a : A} {b : B} (p : f a = b) : a = ret e b
       => inv (ret_f e) *> pmap (ret e) p
 

@@ -11,6 +11,7 @@
 \import Equiv.Sigma
 \import Function.Meta
 \import Logic
+\import Logic.Meta
 \import Meta
 \import Order.Lattice
 \import Order.Lattice.CompleteLattice
@@ -39,9 +40,13 @@
   }
 
 \record LocallyRingedLocale \extends RingedLocale
-  | isNonTrivial (a : L) : 0 = {R.F a} 1 -> a <= bottom
-  | isLocallyRinged (a : L) (x : R.F a) : a <= Join (\lam b => \Sigma (p : b <= a) (EitherInv \this p x))
-  \where {
-    \func EitherInv (L : RingedLocale) {a b : L} (p : b <= a) (x : L.R.F a)
-      => Monoid.Inv (L.R.F.Func p x) || Monoid.Inv (L.R.F.Func p x + 1)
-  }
+  | isHomNonTrivial (a : L) : 0 = {R.F a} 1 -> a <= bottom
+  | isHomLocallyRinged (a : L) (x : R.F a) : a <= Join (\lam b => \Sigma (p : b <= a) (Monoid.Inv (R.F.Func p x) || Monoid.Inv (R.F.Func p x + 1)))
+
+\record LocallyRingedLocaleHom.{s,v} \extends RingedLocaleHom.{s,v} {
+  \override Dom : LocallyRingedLocale.{s,v}
+  \override Cod : LocallyRingedLocale.{s,v}
+
+  | isHomLocal {a : Dom} {b : Cod} (a<=fb : a <= f b) {x : Cod.R b} : Monoid.Inv (Dom.R.F.Func a<=fb (f# b x)) ->
+      ∃ (c : Cod) (a <= f c) (c<=b : c <= b) (Monoid.Inv (Cod.R.F.Func c<=b x))
+}
