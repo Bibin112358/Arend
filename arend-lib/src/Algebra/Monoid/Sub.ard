@@ -89,6 +89,9 @@
     | contains x => ∃ (n : Nat) (M.pow a n = x)
     | contains_ide => inP (0, idp)
     | contains_* (inP (n,a^n=x)) (inP (m,a^m=y)) => inP (n Nat.+ m, M.pow_+ *> pmap2 (*) a^n=x a^m=y)
+
+  \lemma powers-id {M : Monoid} {a : M} : powers a a
+    => inP (1, ide-left)
 }
 
 \class DecSubMonoid \extends SubMonoid, DecSubPointed {

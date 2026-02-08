@@ -88,6 +88,9 @@
 
   \func IsNilpotent (x : E) => ∃ (n : Nat) (pow x n = 0)
 
+  \lemma zro-nilpotent : IsNilpotent zro
+    => inP (1, ide-left)
+
   \lemma pow_-1_+2 {n : Nat} : pow -1 (n Nat.+ 2) = pow -1 n
     => pow_+ {_} { -1} {n} {2} *> pmap (_ *) (*-assoc *> ide-left *> negative_* *> ide-left) *> ide-right
 

@@ -40,8 +40,8 @@
   }
 
 \record LocallyRingedLocale \extends RingedLocale
-  | isHomNonTrivial (a : L) : 0 = {R.F a} 1 -> a <= bottom
-  | isHomLocallyRinged (a : L) (x : R.F a) : a <= Join (\lam b => \Sigma (p : b <= a) (Monoid.Inv (R.F.Func p x) || Monoid.Inv (R.F.Func p x + 1)))
+  | isLRLNonTrivial (a : L) : 0 = {R.F a} 1 -> a <= bottom
+  | isLocallyRinged (a : L) (x : R.F a) : a <= Join (\lam b => \Sigma (p : b <= a) (Monoid.Inv (R.F.Func p x) || Monoid.Inv (R.F.Func p x + 1)))
 
 \record LocallyRingedLocaleHom.{s,v} \extends RingedLocaleHom.{s,v} {
   \override Dom : LocallyRingedLocale.{s,v}

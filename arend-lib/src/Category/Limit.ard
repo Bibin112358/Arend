@@ -46,8 +46,11 @@
   | coneMap j => coneMap j ∘ f
   | coneCoh h => inv o-assoc *> pmap (`∘ f) (coneCoh h)
 
+\func IsLimitCone {J D : Precat} {F : Functor J D} (C : Cone F) : \Prop
+  => \Pi (z : D) -> IsEquiv (conePullback C z)
+
 \class Limit \extends Cone {
-  | isLimit (z : D) : IsEquiv (conePullback \this z)
+  | isLimit : IsLimitCone \this
   | limMap {z : D} (c : Cone G z) : Hom z apex
   | limBeta {z : D} (c : Cone G z) (j : J) : coneMap j ∘ limMap c = c.coneMap j
   | limUnique {z : D} {f g : Hom z apex} (p : \Pi (j : J) -> coneMap j ∘ f = coneMap j ∘ g) : f = g
@@ -741,14 +744,14 @@
     | colimit (G : Functor) => limit G.op
 }
 
-\func PreservesLimit {J C D : Precat} (G : Functor C D) (F : Functor J C) =>
-  \Pi (L : Limit F) -> Limit { | Cone => Cone.map G L }
+\func PreservesLimit {J C D : Precat} (G : Functor C D) (F : Functor J C)
+  => \Pi (c : Cone F) -> IsLimitCone c -> IsLimitCone (Cone.map G c)
 
-\func ReflectsLimit {J C D : Precat} (G : Functor C D) (F : Functor J C) =>
-  \Pi (c : Cone F) -> Limit { | Cone => Cone.map G c } -> Limit { | Cone => c }
+\func ReflectsLimit {J C D : Precat} (G : Functor C D) (F : Functor J C)
+  => \Pi (c : Cone F) -> IsLimitCone (Cone.map G c) -> IsLimitCone c
 
-\func CreatesLimit {J C D : Precat} (G : Functor C D) (F : Functor J C) =>
-  Limit (Comp G F) -> \Sigma (Limit F) (PreservesLimit G F) (ReflectsLimit G F)
+\func CreatesLimit {J C D : Precat} (G : Functor C D) (F : Functor J C)
+  => Limit (Comp G F) -> \Sigma (Limit F) (PreservesLimit G F) (ReflectsLimit G F)
 
 \func isRegularMono {C : Precat} {x y : C} (f : Hom x y) =>
   TruncP (Equalizer { | D => C | X => y | apex => x | eql => f })
