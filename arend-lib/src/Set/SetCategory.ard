@@ -85,6 +85,9 @@
           | ret_f h => ext \lam z => path (\lam i => IsEquiv.ret_f e i ())
           | f_sec c' => exts \lam j => ext \lam z => path (\lam i => (IsEquiv.f_ret e i).coneMap j ())
         }
+
+    \lemma limit-elem-equals {C : Cone { | D => SetCat }} (cl : IsLimitCone C) {x y : C.apex} (p : \Pi (j : C.J) -> C.coneMap j x = C.coneMap j y) : x = y
+      => path \lam i => IsEquiv.isInj (cl (\Sigma)) {\lam _ => x} {\lam _ => y} (exts \lam j => ext \lam _ => p j) i ()
   }
 
 \type SetColimit.{o,h,p} {J : Precat.{o,h}} (F : Functor J SetCat.{p})

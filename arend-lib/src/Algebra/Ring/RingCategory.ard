@@ -3,7 +3,9 @@
 \import Algebra.Group.GroupHom
 \import Algebra.Monoid
 \import Algebra.Monoid.MonoidCategory
+\import Algebra.Monoid.MonoidHom
 \import Algebra.Pointed
+\import Algebra.Pointed.PointedHom
 \import Algebra.Ring
 \import Algebra.Ring.RingHom
 \import Algebra.Ring.Sub
@@ -98,16 +100,16 @@
   }
 
 \instance CRingCat : Cat CRing
-=> subCat (\new Embedding {CRing} {Ring} {
-  | f R => R
-  | isEmb (R S : CRing) => \new Retraction {
-    | sec p => path (\lam i => \new CRing {
-      | Ring => p @ i
-      | *-comm => prop-dpi (\Pi {x y : p @ __} -> x * y = y * x) R.*-comm S.*-comm @ i
-    })
-    | f_sec => idpe
-  }
-})
+  => subCat (\new Embedding {CRing} {Ring} {
+    | f R => R
+    | isEmb (R S : CRing) => \new Retraction {
+      | sec p => path (\lam i => \new CRing {
+        | Ring => p @ i
+        | *-comm => prop-dpi (\Pi {x y : p @ __} -> x * y = y * x) R.*-comm S.*-comm @ i
+      })
+      | f_sec => idpe
+    }
+  })
   \where {
     \func forgetToRing : Functor CRingCat RingCat \cowith
       | F R => R
@@ -121,11 +123,19 @@
       | Func-id => idp
       | Func-o => idp
       \where {
-        \func reflectsLimit {J : Precat} (H : Functor J CRingCat) : ReflectsLimit forget H
-          => (CRingBicat.createsLimits H (SetBicat.limit (Comp CRingCat.forget H))).3
+        \sfunc reflectsLimit {J : Precat} (H : Functor J CRingCat) : ReflectsLimit forget H
+          => \lam C Cl R => IsEquiv.fromInjSurj (\lam {h} {h'} p => ext $ IsEquiv.isInj (Cl R) $ exts \lam j => path \lam i => (p i).coneMap j) \lam C' =>
+              \have | (inP (h,p)) => IsEquiv.isSurj (Cl R) (Cone.map forget C')
+                    | q {j} {x} => path \lam i => (p i).coneMap j x
+              \in inP (\new RingHom {
+                         | func => h
+                         | func-+ => SetBicat.limit-elem-equals Cl \lam j => q *> func-+ *> inv (pmap2 (+) q q) *> inv func-+
+                         | func-ide => SetBicat.limit-elem-equals Cl \lam j => q *> func-ide *> inv func-ide
+                         | func-* => SetBicat.limit-elem-equals Cl \lam j => q *> func-* *> inv (pmap2 (*) q q) *> inv func-*
+                       }, exts \lam j => ext $ path \lam i => (p i).coneMap j)
 
-        \func preservesLimit {J : Precat} (H : Functor J CRingCat) : PreservesLimit forget H
-          => (CRingBicat.createsLimits H (SetBicat.limit (Comp CRingCat.forget H))).2
+        \sfunc preservesLimit {J : Precat} (H : Functor J CRingCat) : PreservesLimit forget H
+          => {?}
       }
 
     \lemma Iso<->IsEquiv {R S : CRing} {f : RingHom R S} : Iso {CRingCat} f <-> IsEquiv f
@@ -267,5 +277,6 @@
       }
 
     \sfunc createsLimits {J : Precat} (F : Functor J CRingCat) : CreatesLimit CRingCat.forget F
-      => {?}
+      => \lam _ => (CRingBicat.limit F, CRingCat.forget.preservesLimit F, CRingCat.forget.reflectsLimit F)
+
   }
