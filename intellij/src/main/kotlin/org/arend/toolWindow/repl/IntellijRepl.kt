@@ -162,11 +162,8 @@ abstract class IntellijRepl private constructor(
     }
 
     override fun checkExpr(expr: Concrete.Expression, expectedType: Expression?, continuation: Consumer<TypecheckingResult>) {
-        val moduleLocation = expr.underlyingReferable.modulePath?.let { myServer.findModule(it, null, true, true) }
-        moduleLocation?.let { myServer.getCheckerFor(listOf(it)).typecheck(UnstoppableCancellationIndicator.INSTANCE, ProgressReporter.empty()) }
         ApplicationManager.getApplication().executeOnPooledThread {
-            val indicator = ModificationCancellationIndicator(PsiModificationTracker.getInstance(project))
-            ComputationRunner<Unit>().run(indicator) {
+            ComputationRunner<Unit>().run(UnstoppableCancellationIndicator.INSTANCE) {
                 super.checkExpr(expr, expectedType, continuation)
             }
         }
