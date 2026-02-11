@@ -993,11 +993,13 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
 
     if (def.getKind() == FunctionKind.LEVEL) {
       Definition useParent = def.getUseParent().getTypechecked();
-      if (def.getPLevelParameters() == null && useParent.hasNonTrivialPLevelParameters()) {
-        def.setPLevelParameters(Concrete.LevelParameters.makeLevelParameters(useParent.getLevelParameters().subList(0, useParent.getNumberOfPLevelParameters()), true));
-      }
-      if (def.getHLevelParameters() == null && useParent.hasNonTrivialHLevelParameters()) {
-        def.setHLevelParameters(Concrete.LevelParameters.makeLevelParameters(useParent.getLevelParameters().subList(useParent.getNumberOfPLevelParameters(), useParent.getLevelParameters().size()), false));
+      if (useParent != null) {
+        if (def.getPLevelParameters() == null && useParent.hasNonTrivialPLevelParameters()) {
+          def.setPLevelParameters(Concrete.LevelParameters.makeLevelParameters(useParent.getLevelParameters().subList(0, useParent.getNumberOfPLevelParameters()), true));
+        }
+        if (def.getHLevelParameters() == null && useParent.hasNonTrivialHLevelParameters()) {
+          def.setHLevelParameters(Concrete.LevelParameters.makeLevelParameters(useParent.getLevelParameters().subList(useParent.getNumberOfPLevelParameters(), useParent.getLevelParameters().size()), false));
+        }
       }
     }
 
