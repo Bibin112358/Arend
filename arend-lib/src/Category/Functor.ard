@@ -72,8 +72,12 @@
     | trans => trans
     | natural f => inv (natural f)
 
-  \lemma iso (e : \Pi {X : C} -> Iso (trans X)) : NatTrans G F (\lam X => e.hinv) \cowith
+  \lemma iso-inv (e : \Pi {X : C} -> Iso (trans X)) : NatTrans G F (\lam X => e.hinv) \cowith
     | natural f => e.isMono $ rewrite (inv o-assoc, e.f_hinv, id-left, inv o-assoc, natural f, o-assoc, e.f_hinv, id-right) idp
+
+  \lemma iso (e : \Pi {X : C} -> Iso (trans X)) : Iso {FunctorPrecat C D} \this (iso-inv e) \cowith
+    | hinv_f => exts \lam x => e.hinv_f
+    | f_hinv => exts \lam x => e.f_hinv
 } \where {
   \func Comp-left {C D E : Precat} (a : NatTrans {D} {E}) (H : Functor C D) : NatTrans (Comp a.F H) (Comp a.G H) \cowith
     | trans x => a (H x)
@@ -84,7 +88,7 @@
     | natural f => inv H.Func-o *> pmap H.Func (a.natural f) *> H.Func-o
 }
 
-\instance FunctorPrecat.{o1,h1,o2,h2} {C : Precat.{o1,h1}} {D : Precat.{o2,h2}} : Precat (Functor C D)
+\instance FunctorPrecat.{o1,h1,o2,h2} (C : Precat.{o1,h1}) (D : Precat.{o2,h2}) : Precat (Functor C D)
   | Hom => NatTrans
   | id F => \new NatTrans {
     | trans X => id (F X)
@@ -103,7 +107,7 @@
   | id-right => exts (\lam X => id-right)
   | o-assoc => exts (\lam X => o-assoc)
   \where {
-    \func mapIso.{o1,h1,o2,h2} {C : Precat.{o1,h1}} {D : Precat.{o2,h2}} (e : Iso {FunctorPrecat {C} {D}}) (X : C) : Iso {D} \cowith
+    \func mapIso.{o1,h1,o2,h2} {C : Precat.{o1,h1}} {D : Precat.{o2,h2}} (e : Iso {FunctorPrecat C D}) (X : C) : Iso {D} \cowith
       | dom => e.dom X
       | cod => e.cod X
       | f => e.f X
@@ -112,14 +116,14 @@
       | f_hinv => path (\lam i => trans {e.f_hinv @ i} X)
 
     \lemma fromIso.{o1,h1,o2,h2} {C : Precat.{o1,h1}} {D : Precat.{o2,h2}} {F G : Functor C D} (f : NatTrans F G) (e : \Pi {x : C} -> Iso (f x))
-      : Iso {FunctorPrecat {C} {D}} f \cowith
-      | hinv => NatTrans.iso e
+      : Iso {FunctorPrecat C D} f \cowith
+      | hinv => NatTrans.iso-inv e
       | hinv_f => exts \lam x => e.hinv_f
       | f_hinv => exts \lam x => e.f_hinv
   }
 
 \instance FunctorCat.{o1,h1,o2,h2} (C : Precat.{o1,h1}) (D : Cat.{o2,h2}) : Cat (Functor C D)
-  | Precat => FunctorPrecat
+  | Precat => FunctorPrecat C D
   | univalence => Cat.makeUnivalence $ later \lam e =>
     (exts (\lam X => D.isotoid (FunctorPrecat.mapIso e X), \lam {X} {Y} h => Cat.transport_Hom_iso (FunctorPrecat.mapIso e X) (FunctorPrecat.mapIso e Y) (natural h)),
      simp_coe $ simp_coe \lam X => Cat.transport_iso (FunctorPrecat.mapIso e X))

@@ -18,8 +18,7 @@
 \record VPresheaf.{o2,h2,o1,h1} (D : Precat.{o2,h2}) (C : Precat.{o1,h1}) (\coerce F : Functor C.op D)
 
 -- | Presheaves valued in sets
-\record Presheaf.{s,o,h} \extends VPresheaf.{\suc s, s, o, h}
-  | D => SetCat.{s}
+\func Presheaf.{s,o,h} (C : Precat.{o,h}) => VPresheaf.{\suc s, s, o, h} SetCat.{s} C
 
 \instance VPresheafCat.{o2,h2,o1,h1} (D : Cat.{o2,h2}) (C : Precat.{o1,h1}) : Cat
   => subCat {FunctorCat C.op D} {VPresheaf D C} (\new Embedding {

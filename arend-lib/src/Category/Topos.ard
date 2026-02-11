@@ -294,7 +294,7 @@
                           rewrite (o-assoc, terminate, o-assoc, o-assoc, terminate),
                           idp
                         }
-       \in pbMap terminalMap (h f) $ unfold (Pullback.f, Pullback.g) $ rewrite (step5, step4, step3, step2, step1, eqq-p-transpose-s _, ptranspose-eqq-eq f) idp
+       \in pbMap terminalMap (h f) $ rewrite (step5, step4, step3, step2, step1, eqq-p-transpose-s _, ptranspose-eqq-eq f) idp
 
   \private \use \lemma transpose-univ' {A B C : Ob} (f : Hom (Bprod A B) C) : f = eval ∘ prodMap (transpose' f) (id B) =>
     \let lem  : singleton C ∘ f = image ∘ prodMap (graphs.map ∘ transpose' f) (id B) =>

@@ -17,6 +17,7 @@
 \import Order.PartialOrder
 \import Paths
 \import Paths.Meta
+\import Set.SetCategory
 \import Set.Subset
 \import Topology.Locale
 \import Topology.Locale.LocaleCat
@@ -247,7 +248,8 @@
   }
 
 -- | Sheaves valued in sets
-\class Sheaf.{s,v} \extends Presheaf.{v,s,s}, VSheaf.{s, \suc v, v}
+\class Sheaf.{s,v} \extends VSheaf.{s, \suc v, v}
+  | D => SetCat.{v}
 
 \func IsPreorderSheaf.{o,h,s} {C : PreorderSite.{s}} {D : Precat.{o,h}} (F : Functor C.op D)
   => ∀ {x : C} ∀ {S : isBasicCover x} (∀ {y : S} (y <= x)) {d : F.D}

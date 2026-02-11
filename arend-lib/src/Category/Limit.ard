@@ -86,8 +86,8 @@
     | hinv_f => limUnique \lam j => inv o-assoc *> pmap (`∘ _) (L'.limBeta L j) *> L.limBeta L' j *> inv id-right
     | f_hinv => limUnique \lam j => inv o-assoc *> pmap (`∘ _) (L.limBeta L' j) *> L'.limBeta L j *> inv id-right
 
-  \func transFuncMap {D : Precat} (L L' : Limit { | D => D }) (H : Functor L.J L'.J) (a : NatTrans (Comp L'.G H) L.G) : Hom L' L =>
-    limMap cone
+  \func transFuncMap {D : Precat} (L L' : Limit { | D => D }) (H : Functor L.J L'.J) (a : NatTrans (Comp L'.G H) L.G) : Hom L' L
+    => limMap cone
   \where {
     \func cone : Cone L.G L' => \new Cone {
       | coneMap j => a j ∘ L'.coneMap (H j)
@@ -707,7 +707,7 @@
         | apex => E lim
         | coneMap j => E.eta-iso.hinv ∘ E.Func (lim.coneMap j)
         | coneCoh h => rewrite (inv (pmap E.Func (lim.coneCoh h)), Func-o, inv o-assoc, inv o-assoc)
-                               (pmap (`∘ _) (inv (NatTrans.natural {E.eta.iso E.eta-iso} (G.Func h))))
+                               (pmap (`∘ _) (inv (NatTrans.natural {E.eta.iso-inv E.eta-iso} (G.Func h))))
         | limMap c => E.eta_epsilon-equiv $ lim.limMap (Cone.map E.LAdj c)
         | limBeta c j => o-assoc *> pmap (_ ∘) (inv o-assoc *> pmap (`∘ _) (inv E.Func-o *> pmap E.Func (lim.limBeta (Cone.map E.LAdj c) j)) *> inv (E.eta.natural (coneMap j))) *> inv o-assoc *> pmap (`∘ _) E.eta-iso.hinv_f *> id-left
         | limUnique p => (symQEquiv E.eta_epsilon-equiv).isInj $ lim.limUnique \lam j => inv o-assoc *> pmap (`∘ _) (inv (E.epsilon.natural _)) *> o-assoc *> pmap (_ ∘) (inv Func-o *> pmap E.LAdj.Func (E.eta-iso.reverse.isMono (inv o-assoc *> p j *> o-assoc)) *> Func-o) *> inv o-assoc *> pmap (`∘ _) (E.epsilon.natural _) *> o-assoc

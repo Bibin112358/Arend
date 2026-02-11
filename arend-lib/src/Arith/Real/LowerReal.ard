@@ -18,7 +18,8 @@
 \import Paths
 \import Paths.Meta
 
-\record ExtendedLowerReal (L : Rat -> \Prop) {
+\record ExtendedLowerReal {
+  | \protected L : Rat -> \Prop
   | L-closed {q q' : Rat} : L q -> q' < q -> L q'
   | L-rounded {q : Rat} : L q -> ∃ (r : L) (q < r)
 

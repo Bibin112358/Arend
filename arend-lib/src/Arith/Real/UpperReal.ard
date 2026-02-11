@@ -22,7 +22,8 @@
 \import Paths.Meta
 \import Set
 
-\record ExUpperReal (U : Rat -> \Prop) {
+\record ExUpperReal {
+  | \protected U : Rat -> \Prop
   | U-closed {q q' : Rat} : U q -> q < q' -> U q'
   | U-rounded {q : Rat} : U q -> ∃ (r : U) (r < q)
 
