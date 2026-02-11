@@ -261,14 +261,15 @@ class ProofSearchUI(private val project: Project, private val caret: Caret?) : B
                         .filter { it.hasSuffixGroupStructure(modules.subList(0, modules.size - 1)) }
                     container.addAll(groups.flatMap { group -> group.statements.mapNotNull { (it.group as? ReferableBase<*>)?.takeIf { ref -> ref is ArendDefinition && matcher.prefixMatches(ref.refName) } } })
                 } else {
-                    StubIndex.getInstance().processAllKeys(ArendDefinitionIndex.KEY, project) { name ->
+                    val keys = StubIndex.getInstance().getAllKeys(ArendDefinitionIndex.KEY, project)
+                    for (name in keys) {
+                        if (!matcher.prefixMatches(name)) continue
                         StubIndex.getInstance().processElements(ArendDefinitionIndex.KEY, name, project, null, PsiReferable::class.java) {
-                            if (it is ReferableBase<*> && matcher.prefixMatches(name)) {
+                            if (it is ReferableBase<*>) {
                                 container.add(it)
                             }
                             true
                         }
-                        true
                     }
                 }
                 container
