@@ -104,7 +104,7 @@ abstract class BasePass(protected open val file: IArendFile, editor: Editor, nam
         }, if (file is ArendExpressionCodeFragment) ModalityState.defaultModalityState() else ModalityState.stateForComponent(editor.component))
     }
 
-    open fun applyInformationLater() {
+    protected fun collectHighlights() {
         runReadAction {
             for (error in errorList) {
                 val list = error.cause?.let { it as? Collection<*> ?: listOf(it) }?.mapSmartNotNull { getCauseElement(it)?.validOrNull() }
@@ -121,7 +121,11 @@ abstract class BasePass(protected open val file: IArendFile, editor: Editor, nam
                     }
                 }
             }
+        }
+    }
 
+    open fun applyInformationLater() {
+        runReadAction {
             if (isValid) {
                 UpdateHighlightersUtil.setHighlightersToEditor(myProject, document, textRange.startOffset, textRange.endOffset, highlights, colorsScheme, id)
             }
