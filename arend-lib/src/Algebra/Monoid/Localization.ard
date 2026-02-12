@@ -1,0 +1,130 @@
+\import Algebra.Meta
+\import Algebra.Monoid
+\import Algebra.Monoid.MonoidHom
+\import Algebra.Monoid.Sub
+\import Algebra.Pointed
+\import Algebra.Pointed.Sub
+\import Function
+\import Function.Meta
+\import Logic
+\import Logic.Meta
+\import Logic.Unique
+\import Meta
+\import Paths
+\import Paths.Meta
+\import Relation.Equivalence
+\import Set
+\open Monoid
+
+-- | An abstract characterization of monoid localizations.
+\record MonoidLocalization {B : CMonoid} (S : SubMonoid B) (L : CMonoid) (inL : MonoidHom B L) {
+  | localization-inv {x : B} : S x -> Inv (inL x)
+  | localization-inj {x y : B} : inL x = inL y -> ∃ (s : B) (S s) (x * s = y * s)
+  | localization-surj (x : L) : ∃ (y c : B) (S c) (x * inL c = inL y)
+
+  \lemma inv-char {x : B} : Inv (inL x) <-> ∃ (y : B) (S (x B.* y))
+    => (\lam xi => \case localization-surj xi.inv \with {
+      | inP (y,c,Sc,p) => \case localization-inj $ inv ide-left *> pmap (`* _) (inv xi.inv-right) *> *-assoc *> pmap (inL x *) p *> inv func-* \with {
+        | inP (s,Ss,q) => inP (y * s, transport S (q *> *-assoc) $ contains_* Sc Ss)
+      }
+    }, \lam (inP (y,Sxy)) => Inv.lmake (inL y * (localization-inv Sxy).inv) $ *-comm *> inv *-assoc *> pmap (`* _) (inv func-*) *> inv-right)
+
+  \lemma isEpi {K : CMonoid} (g h : MonoidHom L K) (d : \Pi (a : B) -> g (inL a) = h (inL a)) {x : L} : g x = h x
+    => \case localization-surj x \with {
+      | inP (y,c,Sc,xc=y) => (h.func-Inv $ localization-inv Sc).inv-cancel-right $ pmap (_ *) (inv (d c)) *> inv func-* *> pmap g xc=y *> d y *> pmap h (inv xc=y) *> func-*
+    }
+
+  \lemma inL-inj (cancel : \Pi {a : B} -> S a -> \Pi {x y : B} -> x * a = y * a -> x = y) : IsInj inL
+    => \case localization-inj __ \with {
+      | inP (c,Sc,p) => cancel Sc p
+    }
+
+  \sfunc lift {K : CMonoid} (f : MonoidHom B K) (l : \Pi {x : B} -> S x -> Inv (f x)) (a : L) : K
+    => contr.center.1
+    \where {
+      \protected \lemma contr : Contr (Given (k : K) ∃ (x c : B) (S c) (a * inL c = inL x) (k * f c = f x))
+        => \case localization-surj a \with {
+          | inP (x,c,Sc,ac=x) => \new Logic.Unique.Contr {
+            | center => (f x * (l Sc).inv, inP (x, c, Sc, ac=x, *-assoc *> pmap (_ *) inv-left *> ide-right))
+            | contraction (k', inP (y,d,Sd,ad=y,p)) => ext $ inv $ Inv.rotate-inv-right \case localization-inj $ func-* *> Inv.rotate-right (*-assoc *> inv (Inv.rotate-right (inv ((localization-inv Sc).rotate-inv-right ac=x) *> (localization-inv Sd).rotate-inv-right ad=y) *> *-assoc *> pmap (_ *) *-comm)) *> inv func-* \with {
+              | inP (e,Se,yce=xde) => (l Sd).inv-cancel-right $ equation.cMonoid {p} $ *-comm *> inv func-* *> (l Se).inv-cancel-right (inv func-* *> pmap f yce=xde *> func-*) *> func-* *> *-comm
+            }
+          }
+        }
+    }
+
+  \lemma lift-char {K : CMonoid} (f : MonoidHom B K) (l : \Pi {x : B} -> S x -> Inv (f x)) (a : L)
+    : ∃ (y c : B) (S c) (a * inL c = inL y) (lift f l a * f c = f y)
+    => TruncP.map lift.contr.center.2 \lam s => (s.1, s.2, s.3, s.4, pmap (`* _) (\peval lift f l a) *> s.5)
+
+  \lemma lift_inL-quot {K : CMonoid} {f : MonoidHom B K} {l : \Pi {x : B} -> S x -> Inv (f x)}
+                       {a : L} {c x : B} (Sc : S c) (ac=x : a * inL c = inL x) : lift f l a * f c = f x
+    => inv $ (l Sc).rotate-right $ inv $ (\peval lift f l a) *> pmap __.1 (lift.contr.contraction (f x * (l Sc).inv, inP (x, c, Sc, ac=x, *-assoc *> pmap (_ *) inv-left *> ide-right)))
+
+  \lemma lift_inL {K : CMonoid} {f : MonoidHom B K} {l : \Pi {x : B} -> S x -> Inv (f x)} {x : B} : lift f l (inL x) = f x
+    => inv ide-right *> pmap (_ *) (inv f.func-ide) *> lift_inL-quot contains_ide (pmap (_ *) inL.func-ide *> ide-right)
+
+  \func liftMonoidHom {K : CMonoid} (f : MonoidHom B K) (l : \Pi {x : B} -> S x -> Inv (f x)) : MonoidHom L K \cowith
+    | func => lift f l
+    | func-ide => pmap (lift f l) (inv inL.func-ide) *> lift_inL *> f.func-ide
+    | func-* {x} {y} => \case localization-surj x, localization-surj y \with {
+      | inP (y1,c1,Sc1,p1), inP (y2,c2,Sc2,p2) => (l (contains_* Sc1 Sc2)).inv-cancel-right $
+        lift_inL-quot (contains_* Sc1 Sc2) (equation.cMonoid {func-*, p1, p2} *> inv func-*) *> {_} {_} {f (y1 * y2)} func-* *> equation.cMonoid {func-*, lift_inL-quot Sc1 p1, lift_inL-quot Sc2 p2}
+    }
+}
+
+-- | The type of elements of {LocMonoid}.
+\type LocType {M : CMonoid} (S : SubMonoid M) => Quotient {\Sigma (x y : M) (S y)} (\lam a b => a.1 M.* b.2 = b.1 M.* a.2)
+
+\func inl~ {M : CMonoid} {S : SubMonoid M} (a : \Sigma (x y : M) (S y)) : LocType S => in~ a
+
+\lemma ~-lequiv {M : CMonoid} {S : SubMonoid M} {a b : \Sigma (x y : M) (S y)} (c : M) (s : S c) (p : a.1 * b.2 * c = b.1 * a.2 * c) : inl~ a = inl~ b
+  => path (~-equiv _ _ equation.cMonoid __) *> path (~-equiv (a.1 * c, a.2 * c, contains_* a.3 s) b (equation.cMonoid {p}) __)
+
+\lemma ~-lequiv1 {M : CMonoid} {S : SubMonoid M} {a b : \Sigma (x y : M) (S y)} (p : a.1 * b.2 = b.1 * a.2) : inl~ a = inl~ b
+  => ~-lequiv 1 S.contains_ide (simplify p)
+
+\lemma ~-unlequiv {M : CMonoid} {S : SubMonoid M} {a b : \Sigma (x y : M) (S y)} (p : inl~ a = inl~ b) : ∃ (c : M) (S c) (a.1 * b.2 * c = b.1 * a.2 * c)
+  => Equivalence.Closure.univ (\new Equivalence (\Sigma (x y : M) (S y)) {
+    | ~ x y => ∃ (z : M) (S z) (x.1 * y.2 * z = y.1 * x.2 * z)
+    | ~-reflexive => inP (ide, contains_ide, idp)
+    | ~-symmetric (inP (z,c,p)) => inP (z, c, inv p)
+    | ~-transitive {x} {y} (inP (t,ct,pt)) (inP (s,cs,ps)) => inP (y.2 * (t * s), contains_* y.3 (contains_* ct cs), equation.cMonoid {pt,ps})
+  }) (\lam x~y => inP (ide, contains_ide, simplify x~y)) $ Quotient.equality $ path (p __)
+
+-- | A concrete implementation of a monoid localization.
+\instance LocMonoid {M : CMonoid} (S : SubMonoid M) : CMonoid \cowith
+  | E => LocType S
+  | ide => in~ (1, 1, contains_ide)
+  | * (a b : LocType S) : LocType S \with {
+    | in~ (r1,s1,p1), in~ (r2,s2,p2) => in~ (r1 M.* r2, s1 M.* s2, contains_* p1 p2)
+    | ~-equiv x y p, in~ z => ~-lequiv1 (equation.cMonoid {p})
+    | in~ x, ~-equiv y z p => ~-lequiv1 (equation.cMonoid {p})
+  }
+  | *-assoc {in~ _} {in~ _} {in~ _} => ~-lequiv1 equation.monoid
+  | *-comm {in~ _} {in~ _} => path $ ~-lequiv1 (pmap2 (M.*) *-comm *-comm)
+  | ide-left {in~ _} => ~-lequiv1 simplify
+  \where {
+    \lemma isLocalization : MonoidLocalization S (LocMonoid S) locM \cowith
+      | localization-inv Sx => Inv.lmake (inl~ (1, _, Sx)) $ later (~-lequiv1 simplify)
+      | localization-inj p => \case ~-unlequiv p \with {
+        | inP (c,Sc,q) => inP (c, Sc, simplify in q)
+      }
+      | localization-surj => \case \elim __ \with {
+        | in~ a => inP (a.1, a.2, a.3, ~-lequiv1 simplify)
+      }
+  }
+
+\func locM {M : CMonoid} {S : SubMonoid M} : MonoidHom M (LocMonoid S) \cowith
+  | func x => inl~ (x, ide, contains_ide)
+  | func-ide => idp
+  | func-* => ~-lequiv1 simplify
+
+\lemma div_loc {M : CMonoid} {S : SubMonoid M} {a b : M} {Sb : S b} (a|b : Monoid.LDiv b a) : inl~ (a,b,Sb) = locM a|b.inv
+  => ~-lequiv1 $ ide-right *> inv a|b.inv-right *> *-comm
+
+\lemma localiaztion-inv-char {M : CMonoid} {S : SubMonoid M} {a : \Sigma (x y : M) (S y)} : Inv (inl~ a) <-> ∃ (c : M) (S (a.1 * c))
+  => <->trans (later (\lam ai => Inv.lmake (ai.inv * (L.localization-inv a.3).inv) $ *-assoc *> inv (ai.rotate-inv-left $ (L.localization-inv a.3).rotate-inv-left $ ~-lequiv1 $ simplify *-comm),
+                      \lam xi => Inv.lmake (xi.inv * locM a.2) $ *-assoc *> pmap (_ *) (later $ ~-lequiv1 $ simplify *-comm) *> xi.inv-left))
+              L.inv-char
+  \where \open LocMonoid(isLocalization \as L)

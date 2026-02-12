@@ -58,7 +58,7 @@
       | isMono p => f.isMono (g.isMono (inv o-assoc *> p *> o-assoc))
   }
 
-\func isEpi {C : Precat} {x y : C} (f : Hom x y) => \Pi {z : C} {g h : Hom y z} -> g ∘ f = h ∘ f -> g = h
+\func IsEpi {C : Precat} {x y : C} (f : Hom x y) => \Pi {z : C} {g h : Hom y z} -> g ∘ f = h ∘ f -> g = h
 
 \record SplitMono \extends Mono {
   | hinv : Hom cod dom
@@ -117,7 +117,7 @@
       | hinv_f => o-assoc *> e3.hinv_f
       | f_hinv => e2.isMono (rewriteEq e3.f_hinv (inv (rewriteEq id-right idp)))
 
-    \lemma leftFactor {C : Precat} {x y z : C} {f : Hom x y} (e : isEpi f) (g : Hom y z) (e3 : Iso (g ∘ f)) : Iso g
+    \lemma leftFactor {C : Precat} {x y z : C} {f : Hom x y} (e : IsEpi f) (g : Hom y z) (e3 : Iso (g ∘ f)) : Iso g
       => Iso.op {rightFactor {C.op} g (\new Mono f e) e3.op}
 
     \lemma composite {C : Precat} {x y z : C} (f : Iso {C} {x} {y}) (g : Iso {C} {y} {z}) : Iso (g.f ∘ f.f) \cowith

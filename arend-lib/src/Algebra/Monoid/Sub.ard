@@ -2,7 +2,6 @@
 \import Algebra.Monoid.MonoidHom
 \import Algebra.Pointed
 \import Algebra.Pointed.Sub
-\import Algebra.Ring.Localization()
 \import Arith.Nat
 \import Data.Array
 \import Function.Iterate
@@ -12,7 +11,7 @@
 \import Order.PartialOrder
 \import Paths
 \import Paths.Meta
-\import Set
+\import Set.SubSet
 
 \class SubSemigroup \extends SubSet {
   \override S : Semigroup
@@ -63,8 +62,6 @@
     | contains_ide => inP (1, byRight (byLeft idp))
     | contains_* {x} {y} (inP (n,xr)) (inP (m,yr)) => inP (suc (n ∨ m), byRight (byRight (x, y, apl-inc join-left x xr, apl-inc join-right y yr, idp)))
     \where {
-      \open Algebra.Ring.Localization
-
       \lemma ext {M : Monoid} (S : SubSet M) : S <= closure S
         => \lam x x<-S => inP (0, x<-S)
 

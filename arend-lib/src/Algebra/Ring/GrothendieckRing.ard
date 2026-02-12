@@ -1,5 +1,5 @@
 \import Algebra.Meta
-\import Algebra.Monoid.MonoidLocalization
+\import Algebra.Monoid.AbLocalization
 \import Algebra.Pointed
 \import Algebra.Ring
 \import Algebra.Semiring

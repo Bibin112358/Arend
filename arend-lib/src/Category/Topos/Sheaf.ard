@@ -138,13 +138,24 @@
 }
 
 \func IsSheaf.{o2,h2,o1,h1} {C : Site.{o1,h1}} {D : Precat.{o2,h2}} (F : Functor C.op D)
-  => ∀ {x : C} ∀ {S : isCover x} (SheafCond F S)
+  => ∀ {x : C} ∀ {S : isCover x} {d : D} (SheafCond F S d)
   \where {
-    \func SheafCond (F : Functor C.op D) {x : C} (S : Presieve x) : \Prop
-      => \Pi {d : D} -> IsEquiv {_} {PresieveMatchingFamily F x S d} (PresieveMatchingFamily.matchingFamily F x S d)
+    \func SheafCond.{o2,h2,o1,h1} {C : Site.{o1,h1}} {D : Precat.{o2,h2}} (F : Functor C.op D) {x : C} (S : Presieve x) (d : D) : \Prop
+      => IsEquiv {_} {PresieveMatchingFamily F x S d} (PresieveMatchingFamily.matchingFamily F x S d)
 
-    \lemma sheaf-lim {x : C} {S : Presieve x} : SheafCond F S <-> IsLimitCone cone
-      => \let e d => \new QEquiv {PresieveMatchingFamily F x S d} {Cone coneF d} {
+    \lemma SetSheafCond.{s,o,h} {C : Site.{o,h}} {F : Functor C.op SetCat.{s}} {x : C} (S : Presieve x) (c : SheafCond F S (\Sigma)) {D : \Set s} : SheafCond F S D \elim c
+      | inP e =>
+        \let mapMF d (mf : PresieveMatchingFamily F x S D) : PresieveMatchingFamily F x S (\Sigma) => \new MatchingFamily {
+          | family j _ => mf j d
+          | isMatching p => ext \lam _ => path \lam i => mf.isMatching p i d
+        } \in inP \new QEquiv {
+          | ret mf d => e.ret (mapMF d mf) ()
+          | ret_f h => ext \lam d => path \lam i => e.ret_f (\lam _ => h d) i ()
+          | f_sec mf => exts \lam j => ext \lam d => path \lam i => e.f_ret (mapMF d mf) i j ()
+        }
+
+    \lemma sheaf-lim {x : C} {S : Presieve x} {d : D} : SheafCond F S d <-> IsEquiv (conePullback cone d)
+      => \let e => \new QEquiv {PresieveMatchingFamily F x S d} {Cone coneF d} {
         | f mf => \new Cone {
           | coneMap j => Func j.4 ∘ mf (j.2,j.3)
           | coneCoh h => $ inv o-assoc *> pmap (`∘ _) (inv Func-o) *> mf.isMatching (inv o-assoc *> h.2)
@@ -155,8 +166,8 @@
         }
         | ret_f mf => exts \lam j => pmap (`∘ _) Func-id *> id-left
         | f_sec c => exts \lam j => c.coneCoh {j.2.1, j.2, j.3, id j.2.1} (j.4, pmap (`∘ _) id-right)
-      } \in (\lam sc d => transport IsEquiv (ext \lam h => exts \lam j => inv $ pmap (`∘ h) Func-o *> o-assoc) $ IsEquiv.trans sc $ inP (e d),
-             \lam lc {d} => transport IsEquiv (ext \lam h => exts \lam j => pmap (Func __ ∘ h) id-right) $ IsEquiv.trans (lc d) $ inP $ symQEquiv (e d))
+      } \in (\lam sc => transport IsEquiv (ext \lam h => exts \lam j => inv $ pmap (`∘ h) Func-o *> o-assoc) $ IsEquiv.trans sc (inP e),
+             \lam lc => transport IsEquiv (ext \lam h => exts \lam j => pmap (Func __ ∘ h) id-right) $ IsEquiv.trans lc $ inP (symQEquiv e))
       \where {
         \func coneJ : Precat \cowith
           | Ob => Given (y : C) (px : S) (Hom y px.1)
@@ -182,7 +193,7 @@
 -- | Sheaves valued in {D}
 \class VSheaf.{s,o,h} \extends SeparatedVPresheaf.{s,o,h} {
   | isSheaf : IsSheaf F
-  | isSeparated => \lam Sc {d} => IsEquiv.isInj (isSheaf Sc)
+  | isSeparated Sc {d} => IsEquiv.isInj (isSheaf Sc)
 
   \lemma sheaf-covering {x : C} {U : Presieve x} (x<=U : Covering x U) {d : D} : IsEquiv (PresieveMatchingFamily.matchingFamily F x U d) \elim x<=U
     | covering-inj s p ps=id Up \as x<=U => IsEquiv.fromInjSurj (separated-covering-inj x<=U) \lam mf => inP (Func s ∘ mf.family (_, Up), exts \lam j =>
@@ -252,9 +263,22 @@
   | D => SetCat.{v}
 
 \func IsPreorderSheaf.{o,h,s} {C : PreorderSite.{s}} {D : Precat.{o,h}} (F : Functor C.op D)
-  => ∀ {x : C} ∀ {S : isBasicCover x} (∀ {y : S} (y <= x)) {d : F.D}
-      (IsEquiv {_} {PresieveMatchingFamily F x _ d} (PresieveMatchingFamily.matchingFamily F x (\lam px => S px.1) d))
+  => ∀ {x : C} {S : isBasicCover x} (∀ {y : S} (y <= x)) {d : F.D} (SheafCond F x S d)
   \where {
+    \func SheafCond.{o,h,s} {C : PreorderSite.{s}} {D : Precat.{o,h}} (F : Functor C.op D) (x : C) (S : Set C) (d : D) : \Prop
+      => IsEquiv {_} {PresieveMatchingFamily F x _ d} (PresieveMatchingFamily.matchingFamily F x (\lam px => S px.1) d)
+
+    \lemma SetSheafCond.{s,s'} {C : PreorderSite.{s}} {F : Functor C.op SetCat.{s'}} (x : C) (S : Set C) (c : SheafCond F x S (\Sigma)) {D : \Set s'} : SheafCond F x S D \elim c
+      | inP e =>
+        \let mapMF d (mf : PresieveMatchingFamily F x (\lam j => S j.1) D) : PresieveMatchingFamily F x (\lam j => S j.1) (\Sigma) => \new MatchingFamily {
+          | family j _ => mf j d
+          | isMatching p => ext \lam _ => path \lam i => mf.isMatching p i d
+        } \in inP \new QEquiv {
+          | ret mf d => e.ret (mapMF d mf) ()
+          | ret_f h => ext \lam d => path \lam i => e.ret_f (\lam _ => h d) i ()
+          | f_sec mf => exts \lam j => ext \lam d => path \lam i => e.f_ret (mapMF d mf) i j ()
+        }
+
     \lemma toSheaf (FS : IsPreorderSheaf F) : IsSheaf F
       => \lam {x} {S} x<=S {d} => IsEquiv.trans (FS x<=S \lam s => s.1) $ inP \new QEquiv {
         | f mf => \new MatchingFamily {
@@ -318,9 +342,9 @@
   }
 
 \lemma sheaf-reflect.{s,o,h} {C : Site.{s,s}} {D E : Cat.{o,h}} (G : Functor D E)
-                             (G-lim : \Pi {J : Precat.{s,s}} (H : Functor J D) -> ReflectsLimit G H) (F : Functor C.op D) (R : VSheaf E C (Comp G F)) : VSheaf D C F \cowith
-  | isSheaf x<=S => IsSheaf.sheaf-lim.2 $ G-lim _ IsSheaf.sheaf-lim.cone $ (IsSheaf.sheaf-lim {C} {E} {R}).1 (R.isSheaf x<=S)
+                             (G-lim : \Pi {J : Precat.{s,s}} (H : Functor J D) -> ReflectsLimit G H) {F : Functor C.op D} (Fs : IsSheaf (Comp G F)) : IsSheaf F
+  => \lam x<=S {d} => IsSheaf.sheaf-lim.2 $ G-lim _ IsSheaf.sheaf-lim.cone (\lam d => (IsSheaf.sheaf-lim {C} {E} {Comp G F}).1 (Fs x<=S)) d
 
 \lemma sheaf-preserve.{s,o,h} {C : Site.{s,s}} {D E : Cat.{o,h}} (G : Functor D E)
-                              (G-lim : \Pi {J : Precat.{s,s}} (H : Functor J D) -> PreservesLimit G H) (F : VSheaf D C) : VSheaf E C (Comp G F) \cowith
-  | isSheaf x<=S => (IsSheaf.sheaf-lim {C} {E} {Comp G F}).2 $ G-lim IsSheaf.sheaf-lim.coneF IsSheaf.sheaf-lim.cone $ IsSheaf.sheaf-lim.1 (F.isSheaf x<=S)
+                              (G-lim : \Pi {J : Precat.{s,s}} (H : Functor J D) -> PreservesLimit G H) (F : VSheaf D C) : IsSheaf (Comp G F)
+  => \lam x<=S {d} => (IsSheaf.sheaf-lim {C} {E} {Comp G F}).2 $ G-lim IsSheaf.sheaf-lim.coneF IsSheaf.sheaf-lim.cone (\lam d' => IsSheaf.sheaf-lim.1 (F.isSheaf x<=S)) d

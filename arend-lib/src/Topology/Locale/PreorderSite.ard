@@ -87,6 +87,8 @@
         \lam lc x => cover-sub (lc (embed x) (cover-refl idp)) \lam {y} (inP (U,U<<x,Uy)) => <<-site.2 $ <<-right (embed-univ Uy) U<<x)
 }
 
+\func Cover1 {P : PreorderSite} (x y : P) => Cover x (single y)
+
 \truncated \data Cover {P : PreorderSite} (x : P) (U : Set P) : \Prop
   | cover-inj {t : P} (x <= t) (U t)
   | cover-trans {T : Set P} (isBasicCover x T) (∀ {t : T} (Cover t U))
@@ -108,6 +110,9 @@
     \lemma cover-trans* {x : P} {U V : Set P} (x<=V : Cover x V) (V<=U : ∀ {t : V} (Cover t U)) : Cover x U \elim x<=V
       | cover-inj x<=t Vt => cover-left x<=t (V<=U Vt)
       | cover-trans x<=T T<=V => cover-trans x<=T \lam Tt => cover-trans* (T<=V Tt) V<=U
+
+    \lemma cover-trans1 {x y : P} {U : Set P} (x<=y : Cover1 x y) (y<=U : Cover y U) : Cover x U
+      => cover-trans* x<=y \lam {_} (idp) => y<=U
 
     \lemma cover-refine {x : P} {U V : Set P} (x<=U : Cover x U) (U<=V : Refines U V) : Cover x V
       => cover-trans* x<=U \lam Ut => \case U<=V Ut \with {

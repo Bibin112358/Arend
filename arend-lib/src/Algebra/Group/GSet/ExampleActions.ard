@@ -6,7 +6,7 @@
 \import Logic
 \import Paths
 \import Paths.Meta
-\import Set
+\import Set.SubSet
 
 \func TranslationAction (G : Group) : TransitiveGroupAction G \cowith
   | E => G
@@ -34,7 +34,7 @@
       conjugate (m * n) e `qed
   | id-action {e : G} : conjugate G.ide e = e => conjugate-via-id
 
-\func trivialAction (G : Group) (E : BaseSet) : GroupAction G E \cowith
+\func trivialAction (G : Group) (E : \Set) : GroupAction G E \cowith
   | ** _ e => e
   | **-assoc => idp
   | id-action => idp

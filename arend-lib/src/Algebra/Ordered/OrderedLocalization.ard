@@ -1,6 +1,6 @@
 \import Algebra.Meta
 \import Algebra.Monoid
-\import Algebra.Monoid.MonoidLocalization
+\import Algebra.Monoid.AbLocalization
 \import Algebra.Monoid.Sub
 \import Algebra.Ordered
 \import Algebra.Pointed

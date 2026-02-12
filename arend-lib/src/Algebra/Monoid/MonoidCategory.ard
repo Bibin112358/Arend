@@ -20,11 +20,7 @@
 \instance MonoidCat : Cat Monoid
   | Hom M N => MonoidHom M N
   | id _ => MonoidHom.id
-  | o {x y z : Monoid} (g : MonoidHom y z) (f : MonoidHom x y) => \new MonoidHom {
-    | func x => g (f x)
-    | func-ide => pmap g f.func-ide *> g.func-ide
-    | func-* => pmap g f.func-* *> g.func-*
-  }
+  | o => MonoidHom.∘
   | id-left => idp
   | id-right => idp
   | o-assoc => idp

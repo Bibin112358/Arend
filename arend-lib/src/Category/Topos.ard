@@ -205,7 +205,7 @@
       | f_sec (h, com) => exts $ rewrite (pbBeta1 {char-pullback m}) idp
     }
 
-  \use \lemma monic+epi=iso {X Y : Ob} (m : Mono {\this} {X} {Y}) (m-is-epi : isEpi {\this} {X} {Y} m)
+  \use \lemma monic+epi=iso {X Y : Ob} (m : Mono {\this} {X} {Y}) (m-is-epi : IsEpi {\this} {X} {Y} m)
     : Iso {\this} {X} {Y} m =>
     \let equalizer => monic-is-regular m
          | true=char-m : true-over-obj = char-map m => m-is-epi (Equalizer.equal {equalizer} : true-over-obj ∘ m.f = char-map m ∘ m)

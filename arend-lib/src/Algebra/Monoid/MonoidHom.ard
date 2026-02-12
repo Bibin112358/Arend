@@ -33,6 +33,11 @@
     | func-ide => idp
     | func-* => idp
 
+  \func \fixl 8 compose \alias \infixl 8 ∘ {M N K : Monoid} (g : MonoidHom N K) (f : MonoidHom M N) : MonoidHom M K \cowith
+    | func x => g (f x)
+    | func-ide => pmap g f.func-ide *> g.func-ide
+    | func-* => pmap g f.func-* *> g.func-*
+
   \open Monoid(Inv)
 
   \func presInv (h : MonoidHom) (e : Inv {h.Dom}) : Inv (h e) \cowith

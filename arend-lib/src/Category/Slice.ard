@@ -3,7 +3,7 @@
 \import Paths
 \import Paths.Meta
 
-\type ObOver {C : Precat} (x : C) => \Sigma (y : C) (Hom y x)
+\func ObOver {C : Precat} (x : C) => \Sigma (y : C) (Hom y x)
   \where {
     \protected \func id : ObOver x => (x, C.id x)
 

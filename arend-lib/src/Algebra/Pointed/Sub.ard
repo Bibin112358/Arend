@@ -1,5 +1,5 @@
 \import Algebra.Pointed
-\import Set
+\import Set.SubSet
 
 \class SubPointed \extends SubSet {
   \override S : Pointed

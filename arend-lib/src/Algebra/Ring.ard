@@ -86,8 +86,6 @@
     | 0 => zro_*-right *> inv negative-right
     | suc n => pmap (_ *) (AddMonoid.BigSum_suc-nat {_} {n} {pow x}) *> ldistr *> pmap2 (+) geometric-partial-sum rdistr *> +-assoc *> pmap (_ +) (inv +-assoc *> pmap (_ +) negative_*-left *> pmap (`+ _) (pmap (_ +) ide-left *> negative-left) *> zro-left *> pmap negative pow-left)
 
-  \func IsNilpotent (x : E) => ∃ (n : Nat) (pow x n = 0)
-
   \lemma zro-nilpotent : IsNilpotent zro
     => inP (1, ide-left)
 
@@ -107,6 +105,18 @@
   \type IsConnected => \Pi (a : E) -> a * a = a -> (a = 0) || (a = 1)
 
   \func IsVonNeumannRegular => \Pi (a : E) -> ∃ (b : E) (a = a * b * a)
+
+  -- | A ring is local if and only if it is non-trivial and satisfies {IsLocal}.
+  \func IsLocal => \Pi (a : E) -> Monoid.Inv a || Monoid.Inv (a + 1)
+
+  \lemma isLocal-sum-char : IsLocal <-> ∀ {x} {y} (x + y = 1) (Monoid.Inv x || Monoid.Inv y)
+    => (\lam l {x} x+y=1 => \case l (negative x) \with {
+      | byLeft [-x]-inv => byLeft $ transport Monoid.Inv negative-isInv (negative_inv [-x]-inv)
+      | byRight [-x+1]-inv => byRight $ transport Monoid.Inv (equation.abGroup { -1 x+y=1 }) [-x+1]-inv
+    }, \lam l x => \case l (inv +-assoc *> pmap (`+ 1) negative-left *> zro-left) \with {
+      | byLeft [-x]-inv => byLeft $ transport Monoid.Inv negative-isInv (negative_inv [-x]-inv)
+      | byRight [x+1]-inv => byRight [x+1]-inv
+    })
 
   \protected \func op : Ring \cowith
     | AbGroup => \this

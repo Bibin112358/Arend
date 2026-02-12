@@ -82,6 +82,8 @@
     | 0 => natCoefZero *> inv (pmap (_ *) natCoefZero *> zro_*-right)
     | suc m => natCoef_+ *> pmap (`+ _) natCoef_* *> inv (pmap (_ *) (natCoefSuc m) *> ldistr *> pmap (_ +) ide-right)
 
+  \func IsNilpotent (x : E) => ∃ (n : Nat) (pow x n = 0)
+
   \lemma BigSum-ldistr {x : E} {l : Array E} : x * BigSum l = BigSum (map (x *) l) \elim l
     | nil => zro_*-right
     | :: a l => ldistr *> pmap (x * a +) BigSum-ldistr

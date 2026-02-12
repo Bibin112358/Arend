@@ -157,6 +157,15 @@
        \in (\lam s => TruncP.map (g s) (\lam (c, a=fc) => (c true, c false, a=fc *> FinSum_char2 BoolFin.equiv *> equation)),
             \lam (inP (c, d, a=fc)) => h (inP (if __ c d, a=fc *> inv (FinSum_char2 BoolFin.equiv *> equation))))
 
+  \lemma sclosure2-lem {R : CRing} {a x y : R} : sclosure (\lam z => (x = z) || (y = z)) a <-> ∃ (c d : R) (a = x * c + y * d)
+    => <->trans (sclosure-univ {_} {_} {closure (if __ x y)} \lam z => later \case \elim __ \with {
+      | byLeft p => inP ((1,true) :: nil, inv p *> inv ide-left *> inv zro-right)
+      | byRight p => inP ((1,false) :: nil, inv p *> inv ide-left *> inv zro-right)
+    }, closure-univ {_} {_} {if __ x y} {sclosure _} $ later \case \elim __ \with {
+      | true => inP ((1, (x, byLeft idp)) :: nil, inv ide-left *> inv zro-right)
+      | false => inP ((1, (y, byRight idp)) :: nil, inv ide-left *> inv zro-right)
+    }) $ closure2-lem (if __ x y)
+
   \lemma fin-closure-lem {D : FinSet} {R : CRing} {a : R} (f : D -> R)
     : closure f a <-> ∃ (c : D -> R) (a = FinSum (\lam i => c i * f i))
     => \case D.finEq \with {
