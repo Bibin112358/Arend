@@ -17,7 +17,7 @@
 \open Monoid
 
 -- | An abstract characterization of monoid localizations.
-\record MonoidLocalization {B : CMonoid} (S : SubMonoid B) (L : CMonoid) (inL : MonoidHom B L) {
+\record MonoidLocalization {B : CMonoid} (S : SubMonoid B) (\coerce L : CMonoid) (\coerce inL : MonoidHom B L) {
   | localization-inv {x : B} : S x -> Inv (inL x)
   | localization-inj {x y : B} : inL x = inL y -> ∃ (s : B) (S s) (x * s = y * s)
   | localization-surj (x : L) : ∃ (y c : B) (S c) (x * inL c = inL y)
@@ -39,6 +39,9 @@
       | inP (c,Sc,p) => cancel Sc p
     }
 
+  \protected \lemma quot-equals {a : L} {x c y d : B} (Sc : Inv (inL c)) (Sd : Inv (inL d)) (ac=x : a * inL c = inL x) (ad=y : a * inL d = inL y) : ∃ (e : B) (S e) (x * d * e = y * c * e)
+    => localization-inj $ func-* *> Inv.rotate-right (*-assoc *> inv (Inv.rotate-right (inv (Sd.rotate-inv-right ad=y) *> Sc.rotate-inv-right ac=x) *> *-assoc *> pmap (_ *) *-comm)) *> inv func-*
+
   \sfunc lift {K : CMonoid} (f : MonoidHom B K) (l : \Pi {x : B} -> S x -> Inv (f x)) (a : L) : K
     => contr.center.1
     \where {
@@ -46,7 +49,7 @@
         => \case localization-surj a \with {
           | inP (x,c,Sc,ac=x) => \new Logic.Unique.Contr {
             | center => (f x * (l Sc).inv, inP (x, c, Sc, ac=x, *-assoc *> pmap (_ *) inv-left *> ide-right))
-            | contraction (k', inP (y,d,Sd,ad=y,p)) => ext $ inv $ Inv.rotate-inv-right \case localization-inj $ func-* *> Inv.rotate-right (*-assoc *> inv (Inv.rotate-right (inv ((localization-inv Sc).rotate-inv-right ac=x) *> (localization-inv Sd).rotate-inv-right ad=y) *> *-assoc *> pmap (_ *) *-comm)) *> inv func-* \with {
+            | contraction (k', inP (y,d,Sd,ad=y,p)) => ext $ inv $ Inv.rotate-inv-right \case quot-equals (localization-inv Sd) (localization-inv Sc) ad=y ac=x \with {
               | inP (e,Se,yce=xde) => (l Sd).inv-cancel-right $ equation.cMonoid {p} $ *-comm *> inv func-* *> (l Se).inv-cancel-right (inv func-* *> pmap f yce=xde *> func-*) *> func-* *> *-comm
             }
           }
@@ -71,6 +74,29 @@
       | inP (y1,c1,Sc1,p1), inP (y2,c2,Sc2,p2) => (l (contains_* Sc1 Sc2)).inv-cancel-right $
         lift_inL-quot (contains_* Sc1 Sc2) (equation.cMonoid {func-*, p1, p2} *> inv func-*) *> {_} {_} {f (y1 * y2)} func-* *> equation.cMonoid {func-*, lift_inL-quot Sc1 p1, lift_inL-quot Sc2 p2}
     }
+} \where {
+  \lemma factor-right {M : CMonoid} (A B : MonoidLocalization {M}) (f : MonoidHom A B) (f_inL : \Pi (x : M) -> f (A x) = B x) : MonoidLocalization (SubMonoid.image A B.S) B f \cowith
+    | localization-inv {_} (inP (x,Sx,idp)) => rewrite f_inL (localization-inv Sx)
+    | localization-inj {x} {y} fx=fy => \case A.localization-surj x, A.localization-surj y \with {
+      | inP (a,c,Sc,p), inP (b,d,Sd,q) =>
+        \have | Bc-inv => transport Inv (f_inL c) $ f.func-Inv $ localization-inv Sc
+              | Bd-inv => transport Inv (f_inL d) $ f.func-Inv $ localization-inv Sd
+        \in \case B.quot-equals Bc-inv Bd-inv (pmap (_ *) (inv (f_inL c)) *> inv f.func-* *> pmap f p *> f_inL a) $ pmap2 (*) fx=fy (inv (f_inL d)) *> inv f.func-* *> pmap f q *> f_inL b \with {
+          | inP (e,Se,ade=bce) => \case B.inv-char.1 Bc-inv, B.inv-char.1 Bd-inv \with {
+            | inP (c',BScc'), inP (d',BSdd') => inP (A (c * c' * (d * d') * e), inP (_, contains_* (contains_* BScc' BSdd') Se, idp),
+              repeat {4} (rewrite A.inL.func-*) $ equation.cMonoid {p, q, repeat {4} (rewrite A.inL.func-*) $ pmap A.inL ade=bce})
+          }
+        }
+    }
+    | localization-surj z => \case B.localization-surj z \with {
+      | inP (x,c,Sc,p) => inP (A x, A c, inP (c,Sc,idp), pmap (z *) (f_inL c) *> p *> inv (f_inL x))
+    }
+
+  \lemma lift-double {M K : CMonoid} (A : MonoidLocalization {M}) (B : MonoidLocalization {A}) (C : MonoidLocalization {M} { | L => B }) (AB=C : \Pi (x : M) -> B (A x) = C x)
+    {f : MonoidHom M K} {l1 : \Pi {x : M} -> A.S x -> Inv (f x)} {l2 : \Pi {x : A} -> B.S x -> Inv (A.lift f l1 x)} {l3 : \Pi {x : M} -> C.S x -> Inv (f x)}
+    {b : B} : B.lift (A.liftMonoidHom f l1) l2 b = C.lift f l3 b
+    => B.isEpi (B.liftMonoidHom (A.liftMonoidHom f l1) l2) (C.liftMonoidHom f l3) \lam a => B.lift_inL *>
+      A.isEpi (A.liftMonoidHom f l1) (C.liftMonoidHom f l3 MonoidHom.∘ B.inL) \lam x => A.lift_inL *> unfold (rewrite AB=C $ inv C.lift_inL)
 }
 
 -- | The type of elements of {LocMonoid}.

@@ -4,6 +4,7 @@
 \import Function.Meta
 \import Logic
 \import Logic.Meta
+\import Logic.Unique
 \import Meta
 \import Paths
 \import Paths.Meta
@@ -83,6 +84,10 @@
     | suc m => natCoef_+ *> pmap (`+ _) natCoef_* *> inv (pmap (_ *) (natCoefSuc m) *> ldistr *> pmap (_ +) ide-right)
 
   \func IsNilpotent (x : E) => ∃ (n : Nat) (pow x n = 0)
+
+  \lemma trivial-char : (zro = ide) <-> Contr E
+    => (\lam p => Contr.make 0 \lam x => inv zro_*-right *> pmap (x *) p *> ide-right,
+        \lam c => inv (c.contraction 0) *> c.contraction 1)
 
   \lemma BigSum-ldistr {x : E} {l : Array E} : x * BigSum l = BigSum (map (x *) l) \elim l
     | nil => zro_*-right

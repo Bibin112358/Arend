@@ -70,6 +70,9 @@
           }
         }
     })
+} \where {
+  \lemma factor-right {R : CRing} (A B : RingLocalization {R}) (f : RingHom A.L B.L) (f_inL : \Pi (x : R) -> f (A x) = B x) : RingLocalization (SubMonoid.image A B.S) B.L f \cowith
+    | MonoidLocalization => MonoidLocalization.factor-right A B f f_inL
 }
 
 \instance LocRing {R : CRing} (S : SubMonoid R) : CRing \cowith

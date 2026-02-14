@@ -89,6 +89,11 @@
 
   \lemma powers-id {M : Monoid} {a : M} : powers a a
     => inP (1, ide-left)
+
+  \func image {M N : Monoid} (f : MonoidHom M N) (S : SubMonoid M) : SubMonoid N \cowith
+    | contains y => ∃ (x : M) (S x) (f x = y)
+    | contains_ide => inP (1, contains_ide, f.func-ide)
+    | contains_* (inP (a,Sa,fa=x)) (inP (b,Sb,fb=y)) => inP (a * b, contains_* Sa Sb, f.func-* *> pmap2 (*) fa=x fb=y)
 }
 
 \class DecSubMonoid \extends SubMonoid, DecSubPointed {
