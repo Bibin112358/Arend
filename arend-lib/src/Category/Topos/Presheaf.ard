@@ -31,6 +31,16 @@
 \instance VPresheafComplete.{s,o2,h2,o1,h1} (D : CompleteCat.{s,o2,h2}) (C : Precat.{o1,h1}) : CompleteCat.{s}
   | Cat => VPresheafCat D C
   | limit => limit
+  | terminal {
+    | apex => terminalPresheaf
+    | proj => \case __
+    | tupleMap _ => \new NatTrans {
+      | trans _ => D.terminalMap
+      | natural _ => D.terminal-unique
+    }
+    | tupleBeta {_} {_} {j} => \case j
+    | tupleEq _ => exts \lam a => D.terminal-unique
+  }
   \where {
     \protected \func limit.{s,o2,h2,o1,h1} {D : CompleteCat.{s,o2,h2}} {C : Precat.{o1,h1}} {J : Precat.{s,s}} (G : Functor J (VPresheafCat D C)) : Limit G \cowith
       | apex => apex
@@ -84,10 +94,13 @@
         }
       }
 
---  \func bprod-at-point (X Y : Presheaf C) (c : C) (p : Product.apex {Bprod {PresheafCatComplete C} X Y} c)
---    : Product.apex {Bprod {SetBicat} (X c) (Y c)}
---    => {?}
---      Product.apex {product}
+    \func terminalPresheaf : VPresheaf D C \cowith
+      | F {
+        | F _ => terminal
+        | Func _ => D.terminalMap
+        | Func-id => D.terminal-unique
+        | Func-o => D.terminal-unique
+      }
   }
 
 -- the proof of this should be completely analogues to the CompleteCat (VPresheafCat) instance.

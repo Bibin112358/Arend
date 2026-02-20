@@ -4,6 +4,7 @@
 \import Category.Functor
 \import Category.Limit
 \import Equiv
+\import Function
 \import Function.Meta
 \import Logic.Unique
 \import Logic
@@ -26,6 +27,12 @@
   | univalence => Cat.makeUnivalence $ later \lam (e : Iso) =>
     \let p => path (iso e.f e.hinv (\lam x => path ((e.hinv_f @ __) x)) (\lam y => path ((e.f_hinv @ __) y)))
     \in (p, simp_coe (\lam d => idp))
+  \where {
+    \lemma mono-char {X Y : \Set} {f : X -> Y} : Mono {SetCat} f <-> IsInj f
+      => (\lam fm p => path \lam i => fm.isMono (ext \lam _ => p) i (), \lam fi => \new Mono {
+        | isMono p => ext \lam x => fi $ path \lam i => p i x
+      })
+  }
 
 \sfunc SIP_Set.{p} (Str : \Set p -> \Type (\suc p)) (isHom : \Pi {x y : \Set p} -> Str x -> Str y -> (x -> y) -> \Type (\suc p))
                    (st : \Pi {X : \Set p} {S1 S2 : Str X} -> isHom S1 S2 (\lam x => x) -> isHom S2 S1 (\lam x => x) -> S1 = S2)

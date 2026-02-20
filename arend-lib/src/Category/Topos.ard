@@ -181,7 +181,7 @@
     | ret_f P => ext \lam x => propExt (\lam (inP s) => transport P s.2 $ propExt.conv s.1.3 ()) \lam Px => inP ((x, (), propExt (\lam _ => ()) (\lam _ => Px)), idp)
     | f_sec => \case \elim __ \with {
       | in~ m => <=-antisymmetric (
-        \have me {x} (p : ∃ (y : m.dom) (m.f y = x)) : \Sigma (y : m.dom) (m.f y = x) => TruncP.remove (\lam s s' => ext $ path \lam i => m.isMono (ext \lam _ => s.2 *> inv s'.2) i ()) p
+        \have me {x} (p : ∃ (y : m.dom) (m.f y = x)) : \Sigma (y : m.dom) (m.f y = x) => TruncP.remove (\lam s s' => ext $ SetCat.mono-char.1 m $ s.2 *> inv s'.2) p
         \in inP (\lam d => (me $ propExt.conv d.3 ()).1, ext \lam d => (me $ propExt.conv d.3 ()).2)) (inP (\lam d => (m.f d, (), propExt (\lam _ => ()) (\lam _ => inP (d,idp))), idp))
     }
   }
