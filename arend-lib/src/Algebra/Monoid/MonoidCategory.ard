@@ -1,5 +1,6 @@
 \import Algebra.Monoid
 \import Algebra.Monoid.MonoidHom
+\import Algebra.Pointed
 \import Algebra.Pointed.PointedCategory
 \import Algebra.Pointed.PointedHom
 \import Category
@@ -7,10 +8,13 @@
 \import Category.Functor
 \import Category.Limit
 \import Category.Meta
+\import Equiv
 \import Logic
 \import Logic.FirstOrder.Algebraic
 \import Logic.FirstOrder.Algebraic.Category
 \import Logic.FirstOrder.Term
+\import Logic.Meta
+\import Meta
 \import Paths
 \import Paths.Meta
 \import Set.SetCategory
@@ -33,9 +37,41 @@
       | Func-o => idp
   }
 
+\instance LimitMonoid {J : Precat} (F : Functor J MonoidCat) : Monoid (SetBicat.LimitSet (Comp MonoidCat.forget F))
+  | ide => (\lam _ => ide, \lam h => func-ide)
+  | * f g => (\lam j => f.1 j * g.1 j, \lam h => func-* *> pmap2 (*) (f.2 h) (g.2 h))
+  | *-assoc => exts \lam j => *-assoc
+  | ide-left => exts \lam j => ide-left
+  | ide-right => exts \lam j => ide-right
+  \where {
+    \func limProj {J : Precat} {F : Functor J MonoidCat} (j : J) : MonoidHom (LimitMonoid F) (F j) \cowith
+      | func l => l.1 j
+      | func-ide => idp
+      | func-* => idp
+
+    \func limMap {J : Precat} {F : Functor J MonoidCat} {M : Monoid} (c : Cone F M) : MonoidHom M (LimitMonoid F) \cowith
+      | func x => (\lam j => c.coneMap j x, \lam h => path \lam i => c.coneCoh h i x)
+      | func-ide => exts \lam j => func-ide
+      | func-* => exts \lam j => func-*
+
+    \lemma inv-char {x : LimitMonoid F} : Monoid.Inv {LimitMonoid F} x <-> ∀ j (Monoid.Inv (x.1 j))
+      => (\lam xi j => (limProj j).func-Inv xi, \lam xi => \new Monoid.Inv {
+        | inv => (\lam j => (xi j).inv, \lam {j} {j'} h => (F.Func h).func-InvElem (xi j) (xi j') (x.2 h))
+        | inv-left => exts \lam j => (xi j).inv-left
+        | inv-right => exts \lam j => (xi j).inv-right
+      })
+  }
+
 \instance MonoidBicat : BicompleteCat
   | Cat => MonoidCat
-  | limit => CompletePrecat.applyEquiv catEquiv
+  | limit F => \new Limit {
+    | apex => LimitMonoid F
+    | coneMap => LimitMonoid.limProj
+    | coneCoh h => exts \lam l => l.2 h
+    | limMap => LimitMonoid.limMap
+    | limBeta c j => idp
+    | limUnique p => exts \lam x => exts \lam j => path \lam i => p j i x
+  }
   | colimit => CocompletePrecat.applyEquiv catEquiv
   \where {
     \instance theory : Theory

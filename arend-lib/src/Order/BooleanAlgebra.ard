@@ -57,7 +57,7 @@
   | top-univ => R.top-univ
   | bottom => (R.bottom,R.bottom-negated)
   | bottom-univ => R.bottom-univ
-  | ldistr>= => rewrite (neg_join,neg_join) $ <=-curry $ (R.meet-comm *> inv R.meet-assoc) =<= R.meet-monotone (meet-univ (<=-curry $ R.meet-assoc =<= R.meet-monotone meet-left <=-refl <=∘ eval) (<=-curry $ R.meet-assoc =<= R.meet-monotone meet-right <=-refl <=∘ eval)) <=-refl <=∘ modus-ponens
+  | ldistr>= => rewrite (neg_join,neg_join) $ <=-curry $ (R.meet-comm *> inv R.meet-assoc) =<= R.meet-monotone (meet-univ (<=-curry $ R.meet-assoc =<= R.meet-monotone meet-left <=-refl <=∘ <=-eval) (<=-curry $ R.meet-assoc =<= R.meet-monotone meet-right <=-refl <=∘ <=-eval)) <=-refl <=∘ modus-ponens
   | compl a => (neg a.1, neg-negated)
   | compl-meet => modus-ponens
   | compl-join => <=-curry $ meet-right <=∘ neg_join =<= modus-ponens

@@ -66,7 +66,7 @@
      -}
     \lemma specPreorderSheaf : IsPreorderSheaf (Comp CRingCat.forget functor)
       => \lam {e} {S} e<=S _ {D} => IsPreorderSheaf.SetSheafCond e S \case \elim e, \elim S, \elim e<=S \with {
-        | _, _, byLeft (idp,idp) => contr-equiv (pi-Contr _ \lam _ => later $ Ring.trivial-char.1 $ LR.trivial-char.2 $ later $ inP (1,ide-left)) $ later \new Contr {
+        | _, _, byLeft (idp,idp) => contr-equiv (pi-Contr _ \lam _ => later $ Ring.trivial-char.1 $ LR.loc-trivial-char.2 $ later $ inP (1,ide-left)) $ later \new Contr {
           | center => \new MatchingFamily {
             | family j => \case j.2
             | isMatching {j} => \case j.2

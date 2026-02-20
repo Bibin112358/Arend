@@ -121,7 +121,7 @@
       L.SJoin-ldistr>= <=∘ SJoin-univ \lam {V} DUV => later $ transport (`<= _) points_*_meet $ SJoin-cond $ inP $ later (U, V, CU, DUV, idp)
   \where {
     \lemma points_<=< {a b : L} (p : a L.<=< b) : points^* a s<=< {LocalePrecoverSpace L} points^* b
-      => unfolds $ p <=∘ join-univ (points^*-points_* (\lam xna xa => CompleteFilter.isProper $ filter-mono (filter-meet xna xa) L.eval) <=∘ SJoin-cond (byLeft idp)) (points-unit <=∘ SJoin-cond (byRight idp))
+      => unfolds $ p <=∘ join-univ (points^*-points_* (\lam xna xa => CompleteFilter.isProper $ filter-mono (filter-meet xna xa) L.<=-eval) <=∘ SJoin-cond (byLeft idp)) (points-unit <=∘ SJoin-cond (byRight idp))
 
     \lemma cover-cauchy {C : Set L} (p : top <= L.Join C) : isCauchy {LocalePrecoverSpace L} \lam U => ∃ (a : C) (points^* a = U)
       => p <=∘ Join-univ \lam {a} Ca => points-unit <=∘ SJoin-cond (inP $ later (a, Ca, idp))
@@ -164,7 +164,7 @@
           => f.func-<= (Mr a) <=∘ func-Join>= <=∘ SJoin-univ (later \lam {b} b<=<a => meet-univ <=-refl (top-univ <=∘ func-top>= <=∘ g.func-<= b<=<a <=∘ g.func-join>=) <=∘
               ldistr>= <=∘ join-univ (hasDensePoints-char.1 Ld (\lam {x} c => x.isProper $
                 filter-mono (filter-meet (filter-mono c meet-right) (propExt.dir (pmap {PrecoverMap _ _} (__ x b) p) $ filter-mono c meet-left)) $
-                  func-meet>= <=∘ func-<= M.eval <=∘ g.func-bottom>=) <=∘ bottom-univ) meet-right)
+                  func-meet>= <=∘ func-<= M.<=-eval <=∘ g.func-bottom>=) <=∘ bottom-univ) meet-right)
        \in \lam p => exts \lam a => <=-antisymmetric (r p) $ r $ inv p)
       (\lam f => inP (frameHom f, exts \lam x => exts \lam a => ext (\case x.filter-SJoin __ \with {
         | inP (b,b<=<a,r) => \case filter-Join r \with {
@@ -174,7 +174,7 @@
         | inP (b,b<=<a,fxb) => \case filter-Join $ filter-mono fxb (Mr b) \with {
           | inP (b',b'<=<b,fxb') => \case filter-Join $ x.filter-mono filter-top $ f.func-cover $ LocalePrecoverSpace.cover-cauchy {M} {\lam x => (x = M.neg b') || (x = b)} $ b'<=<b <=∘ join-univ (Join-cond $ byLeft idp) (Join-cond $ byRight idp) \with {
             | inP (_, inP ((_, inP (_, inP (_, byLeft idp, idp), idp)), idp), xe) => absurd \case filter-Join xe \with {
-              | inP (c,q,xc) => CompleteFilter.isProper $ filter-mono (filter-meet (q xc) fxb') M.eval
+              | inP (c,q,xc) => CompleteFilter.isProper $ filter-mono (filter-meet (q xc) fxb') M.<=-eval
             }
             | inP (_, inP ((_, inP (_, inP (_, byRight idp, idp), idp)), idp), xe) => \case filter-Join xe \with {
               | inP (c,q,xc) => filter-mono xe (SJoin-cond b<=<a)
@@ -192,7 +192,7 @@
         \have Mc : top <= M.Join (\lam c => (c = M.neg b) || Given (x : C) (c M.<=< x))
                  => p <=∘ join-univ (Join-cond $ byLeft idp) (Join-univ \lam {x} Cx => Mr x <=∘ Join-univ \lam {y} y<=<x => Join-cond $ byRight (x,Cx,y<=<x))
         \in meet-univ <=-refl (top-univ <=∘ f.func-cover (LocalePrecoverSpace.cover-cauchy Mc)) <=∘ L.SJoin-ldistr>= <=∘ SJoin-univ \lam {x} => later \case \elim x, \elim __ \with {
-          | _, inP (_, (inP (_, byLeft idp, idp)), idp) => points_*_meet>= <=∘ points_*-mono (later \lam (fxb,fxnb) => absurd $ CompleteFilter.isProper $ filter-mono (filter-meet fxnb fxb) M.eval) <=∘ Ld <=∘ bottom-univ
+          | _, inP (_, (inP (_, byLeft idp, idp)), idp) => points_*_meet>= <=∘ points_*-mono (later \lam (fxb,fxnb) => absurd $ CompleteFilter.isProper $ filter-mono (filter-meet fxnb fxb) M.<=-eval) <=∘ Ld <=∘ bottom-univ
           | _, inP (_, (inP (a, byRight (d,Cd,a<=<d), idp)), idp) => meet-right <=∘ SJoin-cond a<=<d <=∘ SJoin-cond Cd
         }
   }
@@ -255,7 +255,7 @@
       | filter-top => inP (top, <=<_top, rewrite points^*_top filter-top)
       | filter-meet (inP (a',a'<=<a,Fa')) (inP (b',b'<=<b,Fb')) => inP (a' ∧ b', <=<_meet a'<=<a b'<=<b, rewrite points^*_meet $ filter-meet Fa' Fb')
       | filter-Join {C} (inP (b,b<=<C,Fb)) => \case F.isCauchyFilter {\lam U => (U = points^* (L.neg b)) || Given (x : C) (a : L) (a L.<=< x) (U = points^* a)} (b<=<C <=∘ join-univ (points-unit <=∘ SJoin-cond (byLeft idp)) (Join-univ \lam {x} Cx => Lr x <=∘ Join-univ \lam {y} y<=<x => points-unit <=∘ SJoin-cond (byRight $ later (x,Cx,y,y<=<x,idp)))) \with {
-        | inP (_, byLeft idp, p) => absurd $ F.isWeaklyProper $ filter-mono (filter-meet p Fb) \lam {x : CompleteFilter} s => absurd $ x.isProper $ x.filter-mono (x.filter-meet s.1 s.2) Locale.eval
+        | inP (_, byLeft idp, p) => absurd $ F.isWeaklyProper $ filter-mono (filter-meet p Fb) \lam {x : CompleteFilter} s => absurd $ x.isProper $ x.filter-mono (x.filter-meet s.1 s.2) Locale.<=-eval
         | inP (_, byRight (d,Cd,a,a<=<d,idp), p) => inP (d, Cd, inP (a,a<=<d,p))
       }
   }

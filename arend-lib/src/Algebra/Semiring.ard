@@ -85,7 +85,7 @@
 
   \func IsNilpotent (x : E) => ∃ (n : Nat) (pow x n = 0)
 
-  \lemma trivial-char : (zro = ide) <-> Contr E
+  \protected \lemma trivial-char : (zro = ide) <-> Contr E
     => (\lam p => Contr.make 0 \lam x => inv zro_*-right *> pmap (x *) p *> ide-right,
         \lam c => inv (c.contraction 0) *> c.contraction 1)
 

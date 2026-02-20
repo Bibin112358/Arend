@@ -162,12 +162,12 @@
       => Join \lam (j : Nucleus L) => \Pi (x : M) -> j (f x) = j (g x)
   }
 
-\lemma regular_surj {L M : Locale} {f : LocaleHom L M} (reg : isRegularMono {LocaleCat} f) : IsSurj f \elim reg
+\lemma regular_surj {L M : Locale} {f : LocaleHom L M} (reg : IsRegularMono {LocaleCat} f) : IsSurj f \elim reg
   | inP E =>
     \let E' => localeEqualizer E.f E.g
     \in transport IsSurj (path \lam i => (E'.eqBeta i).func) $ IsSurj.comp Nucleus.map.surjective (FrameCat.iso_equiv (Equalizer.unique E E').op).isSurj
 
-\lemma surj_regular {L M : Locale} {f : LocaleHom L M} (sur : IsSurj f) : isRegularMono {LocaleCat} f
+\lemma surj_regular {L M : Locale} {f : LocaleHom L M} (sur : IsSurj f) : IsRegularMono {LocaleCat} f
   => inP \new Equalizer {
     | Y => PushoutLocale f f
     | f => PushoutLocale.pinl

@@ -1,11 +1,7 @@
 \import Category
-\import Category.CartesianClosed
-\import Category.Coreflection
 \import Category.Functor
 \import Category.Limit
 \import Category.Subcat
-\import Category.Subobj
-\import Category.Topos
 \import Equiv
 \import Function.Meta
 \import Meta
@@ -107,9 +103,6 @@
 
 \func PresheafCatBicomplete.{s,o,h} (C : Precat.{o,h}) : BicompleteCat.{s, \max (\suc s) (\max o h), \max s o} (PresheafCat.{s} C)
   => VPresheafCatBicomplete.{s, \suc s, s, o, h} SetBicat.{s} C
-
-\func SubPresheave.{s,o,h} (C : Precat.{o,h}) (P : PresheafCat.{s} C)
-  => (SubobjPreorder {PresheafCat C} P).PosetC
 
 --\open PrecatWithBprod
 

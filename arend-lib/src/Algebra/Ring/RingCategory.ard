@@ -23,6 +23,7 @@
 \import Logic.FirstOrder.Algebraic
 \import Logic.FirstOrder.Algebraic.Category
 \import Logic.FirstOrder.Term
+\import Logic.Meta
 \import Meta
 \import Paths
 \import Paths.Meta
@@ -117,6 +118,12 @@
       | Func-id => idp
       | Func-o => idp
 
+    \func forgetToMonoid : Functor CRingCat MonoidCat \cowith
+      | F R => R
+      | Func f => f
+      | Func-id => idp
+      | Func-o => idp
+
     \func forget : Functor CRingCat SetCat \cowith
       | F R => R
       | Func f => f
@@ -145,9 +152,44 @@
       => ext CRing { | Ring => RingCat.Image=Cod f p }
   }
 
+\instance LimitCRing {J : Precat} (F : Functor J CRingCat) : CRing
+  | Monoid => LimitMonoid (Comp CRingCat.forgetToMonoid F)
+  | zro => (\lam _ => zro, \lam h => func-zro)
+  | + f g => (\lam j => f.1 j + g.1 j, \lam h => func-+ *> pmap2 (+) (f.2 h) (g.2 h))
+  | +-assoc => exts \lam j => +-assoc
+  | +-comm => exts \lam j => +-comm
+  | negative f => (\lam j => negative (f.1 j), \lam h => AddGroupHom.func-negative *> pmap negative (f.2 h))
+  | negative-left => exts \lam j => negative-left
+  | *-comm => exts \lam j => *-comm
+  | ldistr => exts \lam j => ldistr
+  | zro-left => exts \lam j => zro-left
+  \where {
+    \func limProj {J : Precat} {F : Functor J CRingCat} (j : J) : RingHom (LimitCRing F) (F j) \cowith
+      | func l => l.1 j
+      | func-ide => idp
+      | func-* => idp
+      | func-+ => idp
+
+    \func limMap {J : Precat} {F : Functor J CRingCat} {M : CRing} (c : Cone F M) : RingHom M (LimitCRing F) \cowith
+      | func x => (\lam j => c.coneMap j x, \lam h => path \lam i => c.coneCoh h i x)
+      | func-ide => exts \lam j => func-ide
+      | func-* => exts \lam j => func-*
+      | func-+ => exts \lam j => func-+
+
+    \lemma inv-char {x : LimitMonoid F} : Monoid.Inv {LimitCRing F} x <-> ∀ j (Monoid.Inv (x.1 j))
+      => LimitMonoid.inv-char {J} {Comp CRingCat.forgetToMonoid F}
+  }
+
 \instance CRingBicat : BicompleteCat
   | Cat => CRingCat
-  | limit => CompletePrecat.applyEquiv catEquiv
+  | limit F => \new Limit {
+    | apex => LimitCRing F
+    | coneMap => LimitCRing.limProj
+    | coneCoh h => exts \lam l => l.2 h
+    | limMap => LimitCRing.limMap
+    | limBeta c j => idp
+    | limUnique p => exts \lam x => exts \lam j => path \lam i => p j i x
+  }
   | colimit => CocompletePrecat.applyEquiv catEquiv
   \where {
     \instance theory : Theory

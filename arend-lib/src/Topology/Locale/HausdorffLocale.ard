@@ -35,10 +35,10 @@
     \let | U+ s => s.1 ∧ s.2 <= bottom || U s
          | lem1 {a b : L} (c : Cover {site} (a, a ∧ b) U+) : Cover {site} (a,b) U+
            => cover-trans* (cover-basic $ byLeft  (_, reg a, idp)) $ SetIm-elim $ later \lam {a'} a'<=<a =>
-             binCover-right (inv L.top-left =<= L.meet-monotone a'<=<a <=-refl <=∘ L.rdistr>=) (cover-refl $ byLeft $ L.meet-monotone <=-refl meet-left <=∘ L.meet-comm =<= L.eval) (cover-left (<=<_<= a'<=<a, <=-refl) c)
+             binCover-right (inv L.top-left =<= L.meet-monotone a'<=<a <=-refl <=∘ L.rdistr>=) (cover-refl $ byLeft $ L.meet-monotone <=-refl meet-left <=∘ L.meet-comm =<= L.<=-eval) (cover-left (<=<_<= a'<=<a, <=-refl) c)
          | lem2 {a b : L} (c : Cover {site} (a ∧ b, b) U+) : Cover {site} (a,b) U+
            => cover-trans* (cover-basic $ byRight (_, reg b, idp)) $ SetIm-elim $ later \lam {b'} b'<=<b =>
-             binCover-left (inv L.top-right =<= L.meet-monotone <=-refl b'<=<b <=∘ ldistr>=) (cover-refl $ byLeft $ L.meet-monotone meet-right <=-refl <=∘ L.eval) (cover-left (<=-refl, <=<_<= b'<=<b) c)
+             binCover-left (inv L.top-right =<= L.meet-monotone <=-refl b'<=<b <=∘ ldistr>=) (cover-refl $ byLeft $ L.meet-monotone meet-right <=-refl <=∘ L.<=-eval) (cover-left (<=-refl, <=<_<= b'<=<b) c)
     \in lem1 $ cover-trans* (cover-basic $ byRight (_, ab<=U, idp)) $ SetIm-elim $ SetIm-elim \lam {u} Uu =>
         lem2 $ cover-inj (meet-right <=∘ meet-left, meet-right) (byRight Uu)
 

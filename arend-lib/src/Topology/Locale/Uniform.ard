@@ -50,7 +50,7 @@
       => pmap Join $ ext \lam x =>
           \let a-->x : (open a).Subtype => (a L.--> x, (open a).nucleus-join>=)
           \in propExt
-            (\lam (Ux,a-->x>0) => (Ux, positive_<= ((open_IsPositive {L} {a} {a-->x}).2 a-->x>0) $ meet-univ meet-right L.eval))
+            (\lam (Ux,a-->x>0) => (Ux, positive_<= ((open_IsPositive {L} {a} {a-->x}).2 a-->x>0) $ meet-univ meet-right L.<=-eval))
             (\lam (Ux,ax>0) => (Ux, (open_IsPositive {L} {a} {a-->x}).1 $ positive_<= ax>0 $ meet-univ (L.<=-curry $ meet-left <=∘ meet-right) meet-left))
   }
 

@@ -17,7 +17,7 @@
   | func-ide => cancel_*-left (func ide) $ inv func-* *> pmap func ide-left *> inv ide-right
 
   \lemma func-inverse {a : Dom} : func (inverse a) = inverse (func a)
-    => MonoidHom.presInvElem \this (Group.makeInv a) (Group.makeInv (func a))
+    => func-InvElem (Group.makeInv a) (Group.makeInv (func a)) idp
 
   \func Kernel : NormalSubGroup Dom \cowith
     | contains x => func x = ide
