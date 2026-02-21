@@ -11,7 +11,16 @@
 \import Set.SetCategory
 
 -- | Presheaves valued in {D}
-\record VPresheaf.{o2,h2,o1,h1} (D : Precat.{o2,h2}) (C : Precat.{o1,h1}) (\coerce F : Functor C.op D)
+\record VPresheaf.{o2,h2,o1,h1} (D : Precat.{o2,h2}) (C : Precat.{o1,h1}) (\coerce F : Functor C.op D) {
+  \func toPresheaf.{s} (U : Functor D SetCat.{s}) : Presheaf.{s} C \cowith
+    | F => Comp U F
+} \where {
+    \func functor-at-point.{s,o2,h2,o1,h1} {D : Cat.{o2,h2}} {C : Precat.{o1,h1}} {J : Precat.{s,s}} (G : Functor J (VPresheafCat D C)) (c : C) : Functor J D \cowith
+      | F j => G j c
+      | Func f => G.Func f c
+      | Func-id {X} => rewrite (G.Func-id {X}) idp
+      | Func-o => rewrite G.Func-o idp
+  }
 
 -- | Presheaves valued in sets
 \func Presheaf.{s,o,h} (C : Precat.{o,h}) => VPresheaf.{\suc s, s, o, h} SetCat.{s} C
@@ -41,24 +50,42 @@
     | tupleBeta {_} {_} {j} => \case j
     | tupleEq _ => exts \lam a => D.terminal-unique
   }
+  | Bprod S T => \new Product {
+    | apex => BprodPresheaf S T
+    | proj => \case \elim __ \with {
+      | 0 => \new NatTrans {
+        | trans a => D.proj1
+        | natural f => D.beta1
+      }
+      | 1 => \new NatTrans {
+        | trans a => D.proj2
+        | natural f => D.beta2
+      }
+    }
+    | tupleMap h => \new NatTrans {
+      | trans a => D.pair (h 0 a) (h 1 a)
+      | natural f => D.pair-unique
+        (inv o-assoc *> pmap (`∘ _) D.beta1 *> (h 0).natural f *> pmap (_ ∘) (inv D.beta1) *> inv o-assoc *> pmap (`∘ _) (inv D.beta1) *> o-assoc)
+        (inv o-assoc *> pmap (`∘ _) D.beta2 *> (h 1).natural f *> pmap (_ ∘) (inv D.beta2) *> inv o-assoc *> pmap (`∘ _) (inv D.beta2) *> o-assoc)
+    }
+    | tupleBeta {z} {f} {j} => \case \elim j \with {
+      | 0 => exts \lam a => D.beta1
+      | 1 => exts \lam a => D.beta2
+    }
+    | tupleEq c => exts \lam a => D.pair-unique (path \lam i => c 0 i a) (path \lam i => c 1 i a)
+  }
   \where {
     \protected \func limit.{s,o2,h2,o1,h1} {D : CompleteCat.{s,o2,h2}} {C : Precat.{o1,h1}} {J : Precat.{s,s}} (G : Functor J (VPresheafCat D C)) : Limit G \cowith
       | apex => apex
       | coneMap => cone-nat-map
-      | coneCoh h => exts $ \lam _ => coneCoh h
+      | coneCoh h => exts \lam _ => coneCoh h
       | limMap => lim-nat-map
-      | limBeta {z} z-cone _ => exts $ \lam X => unfold $ unfold $ rewrite (limBeta {L X} (cone-at-point X z z-cone)) idp
-      | limUnique j-unique => exts $ \lam X => limUnique $ \lam j => path (\lam i => j-unique j i X)
+      | limBeta {z} z-cone _ => exts \lam X => rewrite (limBeta {L X} (cone-at-point X z z-cone)) idp
+      | limUnique j-unique => exts \lam X => limUnique $ \lam j => path (\lam i => j-unique j i X)
       \where {
-        \func functor-at-point (c : C) : Functor J D \cowith
-          | F j => G j c
-          | Func f => G.Func f c
-          | Func-id {X} => rewrite (G.Func-id {X}) idp
-          | Func-o => rewrite G.Func-o idp
+        \func L (c : C) => D.limit {J} (VPresheaf.functor-at-point G c)
 
-        \func L (c : C) => D.limit {J} (functor-at-point c)
-
-        \func cone {X Y : C} (f : Hom Y X) : Cone (functor-at-point Y) \cowith
+        \func cone {X Y : C} (f : Hom Y X) : Cone (VPresheaf.functor-at-point G Y) \cowith
           | apex => Cone.apex {L X}
           | coneMap j => Func f ∘ coneMap {L X} j
           | coneCoh h => rewriteI (coneCoh {L X} h, o-assoc, o-assoc)
@@ -79,7 +106,7 @@
           | natural {_} {Y} f => rewrite (limBeta {L Y} (cone f) j) idp
         }
 
-        \func cone-at-point (X : C) (H : VPresheaf D C) (z-cone : Cone {J} G H) : Cone (functor-at-point X) (H X) \cowith
+        \func cone-at-point (X : C) (H : VPresheaf D C) (z-cone : Cone {J} G H) : Cone (VPresheaf.functor-at-point G X) (H X) \cowith
           | coneMap j => coneMap {z-cone} j X
           | coneCoh h => path (\lam i => ((coneCoh {z-cone} h) i) X)
 
@@ -100,6 +127,14 @@
         | Func _ => D.terminalMap
         | Func-id => D.terminal-unique
         | Func-o => D.terminal-unique
+      }
+
+    \func BprodPresheaf (S T : VPresheaf D C) : VPresheaf D C \cowith
+      | F {
+        | F a => Bprod (S a) (T a)
+        | Func f => D.prodMap (S.F.Func f) (T.F.Func f)
+        | Func-id => pmap2 D.prodMap S.F.Func-id T.F.Func-id *> D.prod-id
+        | Func-o => pmap2 D.prodMap S.F.Func-o T.F.Func-o *> inv D.prodMap-comp
       }
   }
 

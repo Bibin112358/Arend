@@ -1,5 +1,6 @@
 \import Category
 \import Category.Functor
+\import Category.Limit
 \import Category.Subobj
 \import Category.Topos.Presheaf
 \import Category.Yoneda
@@ -14,19 +15,19 @@
 \import Relation.Equivalence
 \import Set.SetCategory
 
-\record PrelocalPredicate.{s,o,h} {C : Precat.{o,h}} (S : Functor C.op SetCat.{s}) (\coerce pred : \Pi {a : C} -> S a -> \Prop) {
-  | isPrelocalPredicate {a b : C} {f : Hom a b} {x : S b} : pred x -> pred (S.Func f x)
+\record PrelocalPredicate.{s,o,h} {C : Precat.{o,h}} (S : Presheaf.{s} C) (\coerce pred : \Pi {a : C} -> S a -> \Prop) {
+  | isPrelocalPredicate {a b : C} {f : Hom a b} {x : S b} : pred x -> pred (S.F.Func f x)
 
-  \func toFunctor : Functor C.op SetCat \cowith
+  \func toSubFunctor : Functor C.op SetCat \cowith
     | F a => \Sigma (x : S a) (pred x)
-    | Func f s => (S.Func f s.1, isPrelocalPredicate s.2)
-    | Func-id => ext \lam s => ext $ path \lam i => S.Func-id i s.1
-    | Func-o => ext \lam s => ext $ path \lam i => S.Func-o i s.1
+    | Func f s => (S.F.Func f s.1, isPrelocalPredicate s.2)
+    | Func-id => ext \lam s => ext $ path \lam i => S.F.Func-id i s.1
+    | Func-o => ext \lam s => ext $ path \lam i => S.F.Func-o i s.1
 
-  \func toPresheaf : Presheaf C \cowith
-    | F => toFunctor
+  \func toSubPresheaf : Presheaf C \cowith
+    | F => toSubFunctor
 
-  \func embedding : NatTrans toFunctor S \cowith
+  \func embedding : NatTrans toSubFunctor S \cowith
     | trans a s => s.1
     | natural _ => idp
 } \where {
@@ -45,7 +46,7 @@
 
 \func PrelocalPredicate_Subobj.{s,o,h} {C : Precat.{o,h}} (S : Presheaf.{s} C) : QEquiv {PrelocalPredicate S} {Subobj S} \cowith
   | f P => inso~ \new Mono {
-    | dom => P.toPresheaf
+    | dom => P.toSubPresheaf
     | f => P.embedding
     | isMono p => exts \lam a => ext \lam x => ext $ path \lam i => p i a x
   }
@@ -61,3 +62,11 @@
         | natural f => exts \lam x => ext $ path \lam i => m.f.natural f i x
       }, idp))
   }
+
+\lemma exists-prelocalPredicate.{s,o,h} {C : Precat.{o,h}} {S T : Presheaf.{s} C} (P : PrelocalPredicate (VPresheafComplete.BprodPresheaf {SetBicat} S T))
+  : PrelocalPredicate S \lam {a} x => ∃ (y : T a) (P (x,y)) \cowith
+  | isPrelocalPredicate {a} {b} {f} (inP (y,Pxy)) => inP (T.F.Func f y, P.isPrelocalPredicate Pxy)
+
+\lemma equality-prelocalPredicate.{s,o,h} {C : Precat.{o,h}} (S : Presheaf.{s} C)
+  : PrelocalPredicate (VPresheafComplete.BprodPresheaf {SetBicat} S S) (\lam s => s.1 = s.2) \cowith
+  | isPrelocalPredicate {a} {b} {f} p => pmap (S.F.Func f) p
