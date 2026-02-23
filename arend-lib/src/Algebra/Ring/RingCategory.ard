@@ -21,7 +21,7 @@
 \import Function.Meta
 \import Logic
 \import Logic.FirstOrder.Algebraic
-\import Logic.FirstOrder.Algebraic.Category
+\import Logic.FirstOrder.Algebraic.AlgModelCat
 \import Logic.FirstOrder.Term
 \import Logic.Meta
 \import Meta
@@ -141,8 +141,8 @@
                          | func-* => SetBicat.limit-elem-equals Cl \lam j => q *> func-* *> inv (pmap2 (*) q q) *> inv func-*
                        }, exts \lam j => ext $ path \lam i => (p i).coneMap j)
 
-        \sfunc preservesLimit {J : Precat} (H : Functor J CRingCat) : PreservesLimit forget H
-          => {?}
+        \lemma preservesLimit {J : Precat} (H : Functor J CRingCat) : PreservesLimit forget H
+          => (Adjunction.comp (ModelCat.ForgetToSetAdjunction {CRingBicat.theory}) CRingBicat.catEquiv.reverse).preservesLimits
       }
 
     \lemma Iso<->IsEquiv {R S : CRing} {f : RingHom R S} : Iso {CRingCat} f <-> IsEquiv f
@@ -215,17 +215,9 @@
           (\lam _ => Fin 3,  finSet, nil, equality (apply 3 (var 0 :: apply 2 (var 1 :: var 2 :: nil) :: nil)) (apply 2 (apply 3 (var 0 :: var 1 :: nil) :: apply 3 (var 0 :: var 2 :: nil) :: nil))) ::
           nil)
 
-    \func catEquiv : CatEquiv (ModelCat theory) CRingCat modToRing \cowith
-      | Func (f : ModelHom) => \new RingHom {
-        | func => f.funcs
-        | func-zro => f.func-op 0 nil
-        | func-ide => f.func-op 1 nil
-        | func-+ {x} {y} => f.func-op 2 (x :: y :: nil)
-        | func-* {x} {y} => f.func-op 3 (x :: y :: nil)
-      }
-      | Func-id => idp
-      | Func-o => idp
+    \func catEquiv : CatEquiv CRingCat (ModelCat theory) \cowith
       | LAdj => ringtoMod.functor
+      | RAdj => modToRing.functor
       | eta {
         | trans M => id M
         | natural f => idp
@@ -281,6 +273,18 @@
       | *-comm {x} {y} => M.isModel _ (inP (5,idp)) (\lam {_} => x :: y :: nil) (\case __)
       | negative-left {x} => M.isModel _ (inP (6,idp)) (\lam {_} _ => x) (\case __)
       | ldistr {x} {y} {z} => M.isModel _ (inP (7,idp)) (\lam {_} => x :: y :: z :: nil) (\case __)
+      \where {
+        \func functor : Functor (ModelCat theory) CRingCat modToRing \cowith
+          | Func f => \new RingHom {
+            | func => f.funcs
+            | func-zro => f.func-op 0 nil
+            | func-ide => f.func-op 1 nil
+            | func-+ {x} {y} => f.func-op 2 (x :: y :: nil)
+            | func-* {x} {y} => f.func-op 3 (x :: y :: nil)
+          }
+          | Func-id => idp
+          | Func-o => idp
+      }
 
     \func ringtoMod (R : CRing) : Model theory (\lam _ => R) \cowith
       | operation => \case \elim __ \with {

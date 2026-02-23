@@ -11,7 +11,7 @@
 \import Equiv
 \import Logic
 \import Logic.FirstOrder.Algebraic
-\import Logic.FirstOrder.Algebraic.Category
+\import Logic.FirstOrder.Algebraic.AlgModelCat
 \import Logic.FirstOrder.Term
 \import Logic.Meta
 \import Meta
@@ -89,15 +89,9 @@
           (\lam _ => Fin 3,  finSet, nil, equality (apply 1 (apply 1 (var 0 :: var 1 :: nil) :: var 2 :: nil)) (apply 1 (var 0 :: apply 1 (var 1 :: var 2 :: nil) :: nil))) ::
           nil)
 
-    \func catEquiv : CatEquiv (ModelCat theory) MonoidCat modToMonoid \cowith
-      | Func (f : ModelHom) => \new MonoidHom {
-        | func => f.funcs
-        | func-ide => f.func-op 0 nil
-        | func-* {x} {y} => f.func-op 1 (x :: y :: nil)
-      }
-      | Func-id => idp
-      | Func-o => idp
+    \func catEquiv : CatEquiv MonoidCat (ModelCat theory) \cowith
       | LAdj => monoidToMod.functor
+      | RAdj => modToMonoid.functor
       | eta {
         | trans M => id M
         | natural f => idp
@@ -139,6 +133,16 @@
       | ide-left {x} => M.isModel _ (inP (0,idp)) (\lam _ => x) (\case __)
       | ide-right {x} => M.isModel _ (inP (1,idp)) (\lam _ => x) (\case __)
       | *-assoc {x} {y} {z} => M.isModel _ (inP (2,idp)) (\lam {_} => x :: y :: z :: nil) (\case __)
+      \where {
+        \func functor : Functor (ModelCat theory) MonoidCat modToMonoid \cowith
+          | Func f => \new MonoidHom {
+            | func => f.funcs
+            | func-ide => f.func-op 0 nil
+            | func-* {x} {y} => f.func-op 1 (x :: y :: nil)
+          }
+          | Func-id => idp
+          | Func-o => idp
+      }
 
     \func monoidToMod (M : Monoid) : Model theory (\lam _ => M) \cowith
       | operation => \case \elim __ \with {

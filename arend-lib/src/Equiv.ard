@@ -157,13 +157,13 @@
     \lemma fromInjSurj {A B : \Set} {f : A -> B} (inj : IsInj f) (surj : IsSurj f) : IsEquiv f
       => inP (QEquiv.fromInjSurj inj surj)
 
-    \lemma trans {A B C : \Sort} {f : A -> B} {g : B -> C} (e : IsEquiv f) (e' : IsEquiv g) : IsEquiv \lam a => g (f a) \elim e, e'
+    \lemma trans {A B C : \Sort} {f : A -> B} (e : IsEquiv f) {g : B -> C} (e' : IsEquiv g) : IsEquiv \lam a => g (f a) \elim e, e'
       | inP e, inP e' => inP (transQEquiv e e')
 
-    \lemma leftFactor {A B C : \Sort} {f : A -> B} {g : B -> C} (e2 : IsEquiv g) (e3 : IsEquiv (g `o` f)) : IsEquiv f \elim e2, e3
+    \lemma leftFactor {A B C : \Sort} {f : A -> B} {g : B -> C} (e2 : IsEquiv g) (e3 : IsEquiv \lam a => g (f a)) : IsEquiv f \elim e2, e3
       | inP e2, inP e3 => inP (QEquiv.leftFactor e2 e3)
 
-    \lemma rightFactor {A B C : \Sort} {f : A -> B} (e1 : IsEquiv f) {g : B -> C} (e3 : IsEquiv (g `o` f)) : IsEquiv g \elim e1, e3
+    \lemma rightFactor {A B C : \Sort} {f : A -> B} (e1 : IsEquiv f) {g : B -> C} (e3 : IsEquiv \lam a => g (f a)) : IsEquiv g \elim e1, e3
       | inP e1, inP e3 => inP (QEquiv.rightFactor e1 e3)
 
     \lemma parallelEquiv {A B C D : \Sort} {ab : A -> B} {cd : C -> D} {ac : A -> C} {bd : B -> D}

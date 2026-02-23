@@ -55,34 +55,22 @@
       | f_hinv => e.f_hinv
   }
 
-\class ReflectiveSubPrecat \extends FullyFaithfulFunctor, RightAdjointUnit {
+\class ReflectiveSubPrecat \extends FullyFaithfulFunctor {
   | reflector : D -> C
   | reflectorMap (X : D) : Hom X (F (reflector X))
   \field isReflective {X : D} {Y : C} : QEquiv {Hom (reflector X) Y} {Hom X (F Y)} (Func __ ∘ reflectorMap X)
-  | LAdj {
-      | F => reflector
-      | Func {X} {Y} h => isReflective.ret (reflectorMap Y ∘ h)
-      | Func-id => rewrite id-right (unfold (rewrite (Func-id, id-left) idp) *> isReflective.ret_f (id _))
-      | Func-o => run {
-          isReflective.isInj,
-          unfold,
-          rewrite (isReflective.f_ret, Func-o, o-assoc, isReflective.f_ret),
-          rewriteI {2} o-assoc,
-          rewrite isReflective.f_ret,
-          inv o-assoc
-        }
-    }
-  | eta {
-    | trans => reflectorMap
-    | natural h => inv (isReflective.f_ret _)
-  }
-  | eta-adjoint => inP isReflective
+
+  \func toAdjunction : Adjunction.FromReflector D C \this \cowith
+    | LOb => reflector
+    | etaMap => reflectorMap _
+    | eta-adjoint => inP isReflective
 } \where {
-  \func fromRightAdjoint (F : RightAdjoint) {ff : FullyFaithfulFunctor { | Functor => F }} : ReflectiveSubPrecat \cowith
-    | FullyFaithfulFunctor => ff
-    | reflector => F.LAdj
-    | reflectorMap => F.eta
-    | isReflective => F.eta_epsilon-equiv
+  \func fromAdjunction (A : Adjunction) {ff : \Pi {X Y : A.D} -> IsEquiv (RAdj.Func {X} {Y})} : ReflectiveSubPrecat \cowith
+    | Functor => A.RAdj
+    | isFullyFaithful => ff
+    | reflector => A.LAdj
+    | reflectorMap => A.eta
+    | isReflective => A.eta_epsilon-equiv
 }
 
 \func reflectiveSubPrecatColimit {J : Precat} (I : ReflectiveSubPrecat) (F : Functor J I.C) (c : Colimit (Comp I F)) : Limit F.op \cowith

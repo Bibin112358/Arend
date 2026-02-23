@@ -1,4 +1,3 @@
-\import Category.Adjoint
 \import Category.CartesianClosed
 \import Category.Functor
 \import Equiv

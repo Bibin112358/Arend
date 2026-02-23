@@ -705,15 +705,15 @@
     | Precat => Precat.op
     | colimit (G : Functor) => limit G.op
 } \where {
-  \func applyEquiv.{s,o1,h1,o2,h2} {C : CompletePrecat.{s,o1,h1}} (E : CatEquiv.{o1,h1,o2,h2} C) {J : Precat.{s,s}} (G : Functor J E.D) : Limit G
+  \func applyEquiv.{s,o1,h1,o2,h2} {D : CompletePrecat.{s,o2,h2}} (E : CatEquiv.{o1,h1} { | D => D }) {J : Precat.{s,s}} (G : Functor J E.C) : Limit G
     => \have lim : Limit => limit (Comp E.LAdj G)
        \in \new Limit {
-        | apex => E lim
-        | coneMap j => E.eta-iso.hinv ∘ E.Func (lim.coneMap j)
-        | coneCoh h => rewrite (inv (pmap E.Func (lim.coneCoh h)), Func-o, inv o-assoc, inv o-assoc)
+        | apex => E.RAdj lim
+        | coneMap j => E.eta-iso.hinv ∘ E.RAdj.Func (lim.coneMap j)
+        | coneCoh h => rewrite (inv (pmap E.RAdj.Func (lim.coneCoh h)), E.RAdj.Func-o, inv o-assoc, inv o-assoc)
                                (pmap (`∘ _) (inv (NatTrans.natural {E.eta.iso-inv E.eta-iso} (G.Func h))))
         | limMap c => E.eta_epsilon-equiv $ lim.limMap (Cone.map E.LAdj c)
-        | limBeta c j => o-assoc *> pmap (_ ∘) (inv o-assoc *> pmap (`∘ _) (inv E.Func-o *> pmap E.Func (lim.limBeta (Cone.map E.LAdj c) j)) *> inv (E.eta.natural (coneMap j))) *> inv o-assoc *> pmap (`∘ _) E.eta-iso.hinv_f *> id-left
+        | limBeta c j => o-assoc *> pmap (_ ∘) (inv o-assoc *> pmap (`∘ _) (inv E.RAdj.Func-o *> pmap E.RAdj.Func (lim.limBeta (Cone.map E.LAdj c) j)) *> inv (E.eta.natural (coneMap j))) *> inv o-assoc *> pmap (`∘ _) E.eta-iso.hinv_f *> id-left
         | limUnique p => (symQEquiv E.eta_epsilon-equiv).isInj $ lim.limUnique \lam j => inv o-assoc *> pmap (`∘ _) (inv (E.epsilon.natural _)) *> o-assoc *> pmap (_ ∘) (inv Func-o *> pmap E.LAdj.Func (E.eta-iso.reverse.isMono (inv o-assoc *> p j *> o-assoc)) *> Func-o) *> inv o-assoc *> pmap (`∘ _) (E.epsilon.natural _) *> o-assoc
       }
 }
@@ -731,8 +731,8 @@
     | Precat => Precat.op
     | limit (G : Functor) => colimit G.op
 } \where {
-  \func applyEquiv.{s,o1,h1,o2,h2} {C : CocompletePrecat.{s,o1,h1}} (E : CatEquiv.{o1,h1,o2,h2} C) {J : Precat.{s,s}} (G : Functor J E.D) : Colimit G
-    => CompletePrecat.applyEquiv {C.op} E.op G.op
+  \func applyEquiv.{s,o1,h1,o2,h2} {D : CocompletePrecat.{s,o2,h2}} (E : CatEquiv.{o1,h1} { | D => D }) {J : Precat.{s,s}} (G : Functor J E.C) : Colimit G
+    => CompletePrecat.applyEquiv {D.op} E.op G.op
 }
 
 \class CocompleteCat.{s,o,h} \extends CocompletePrecat.{s,o,h}, Cat.{o,h} {

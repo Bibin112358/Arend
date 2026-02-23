@@ -1,6 +1,4 @@
 \import Category
-\import Category.Adjoint
-\import Category.Coreflection
 \import Category.Functor
 \import Category.Limit
 \import Category.Product

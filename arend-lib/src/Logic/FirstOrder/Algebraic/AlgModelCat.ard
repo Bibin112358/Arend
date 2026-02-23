@@ -1,5 +1,6 @@
 \import Algebra.Meta
 \import Category
+\import Category.Adjoint
 \import Category.Functor
 \import Category.Limit
 \import Data.Array
@@ -9,6 +10,7 @@
 \import Logic
 \import Logic.Classical
 \import Logic.FirstOrder.Algebraic
+\import Logic.FirstOrder.Algebraic.FreeModel
 \import Logic.FirstOrder.Term
 \import Logic.Meta
 \import Meta
@@ -18,10 +20,15 @@
 \import Set.SetCategory
 \import Set.Fin
 
-\record ModelHom {T : Theory} (Dom Cod : Model T)
+\record ModelHom {T : Theory} (Dom Cod : Model T) {
   | \coerce funcs {s : Sort} : Dom s -> Cod s
   | func-op {r : Sort} (h : Symb r) (d : DArray (\lam j => Dom (domain h j))) : funcs (operation h d) = operation h (\lam j => funcs (d j))
   | func-rel (P : PredSymb) (d : DArray (\lam j => Dom (predDomain P j))) : relation P d -> relation P (\lam j => funcs (d j))
+
+  \lemma funcs-interpret {V : T -> \Set} {rho : Dom.Env V} {s : T} (t : Term V s) : funcs (Dom.interpret rho t) = Cod.interpret (\lam v => funcs (rho v)) t \elim t
+    | var v => idp
+    | apply f d => func-op f _ *> pmap (operation f) (exts \lam j => funcs-interpret (d j))
+}
 
 \instance ModelCat (T : Theory) : BicompleteCat (Model T)
   | Precat => ModelPrecat T
@@ -58,6 +65,7 @@
   \where {
     \open Structure
     \open Theory
+    \open FreeStructure
     \open ColimitData \hiding (T,thExt,ColimitStr)
 
     \func emptyFin {S : \Set} : FinSet (\Sigma S Empty) \cowith
@@ -84,6 +92,44 @@
       | id-left => idp
       | id-right => idp
       | o-assoc => idp
+
+    \func Forget {T : Theory} : Functor (ModelPrecat T) (FamPrecat SetCat) \cowith
+      | F M => M
+      | Func f => f.funcs
+      | Func-id => idp
+      | Func-o => idp
+
+    \func ForgetAdjunction {T : Theory} : Adjunction.FromReflector (FamPrecat SetCat) (ModelPrecat T) Forget \cowith
+      | LOb => FreeModel
+      | etaMap x => qinj (var x)
+      | eta-adjoint => inP \new QEquiv {
+        | ret g => \new ModelHom {
+          | funcs => qinterpret g
+          | func-op h d => idp
+          | func-rel P d (inP (d',Pd',d'd)) => transport (relation P) (exts \lam j => pmap (qinterpret g) (d'd j)) $ Model.theoremIsTrue Pd' g (\case __)
+        }
+        | ret_f f => exts \lam {s} qt => \case qinj-surj qt \with {
+          | inP (t,t=qt) => rewriteI t=qt $ inv (f.funcs-interpret t) *> pmap (f {s}) (interpret=subst t *> pmap qinj (subst_var t))
+        }
+        | f_sec => idpe
+      }
+
+    \func ForgetToSetAdjunction {T : Theory (\Sigma)} : Adjunction SetCat (ModelPrecat T)
+      => Adjunction.comp (later \new Adjunction.FromReflector {
+        | RAdj {
+          | F M => M ()
+          | Func f => f
+          | Func-id => idp
+          | Func-o => idp
+        }
+        | LOb X _ => X
+        | etaMap x => x
+        | eta-adjoint => inP \new QEquiv {
+          | ret f x => f x
+          | ret_f => idpe
+          | f_sec => idpe
+        }
+      }) ForgetAdjunction
 
     \class ColimitData.{s} \noclassifying {J : Precat.{s,s}} {T : Theory.{s}} (G : Functor J (ModelPrecat T)) {
       \func sigExt : Signature \cowith
@@ -115,37 +161,37 @@
             (\Sigma (j j' : J) (h : Hom j j') (s : Sort) (x : G j s) (S = (\lam _ => Empty, emptyFin, nil, equality (apply (inr (in0 (j', G.Func h x))) nil) (apply (inr (in0 (j, x))) nil)))) :: nil)
 
       \instance ColimitStr : Structure T
-        | E => thExt.QTerm
+        | E => QTerm (\lam _ => Empty)
         | operation h args => qapply (inl h) args
         | relation P args => ∃ (args' : DArray (\lam i => Term (\lam _ => Empty) (predDomain P i)))
                                (isTheorem nil (predicate P args'))
-                               (\Pi (i : Fin (DArray.len {predDomain P})) -> qinj (args' i) = args i)
-
-      \lemma substInterpF {V : Sort -> \Set s} (rho : \Pi {s : Sort} -> V s -> Term (\lam _ => Empty) s) (phi : Formula {T} V)
-        : isFormulaTrue (\lam v => qinj (rho v)) phi = isTheorem nil (substF (liftFormula phi) (\lam {s} v => rho {s} v)) \elim phi
-        | equality t t' => pmap2 (=) (substInterpT _ t) (substInterpT _ t') *> qinj-equality
-        | predicate P d => propExt (\lam (inP (d',q,e)) => congruenceF (\lam j => propExt.dir qinj-equality (e j *> substInterpT rho (d j))) q) (\lam q => inP (\new DArray { | at j => subst (liftTerm (d j)) (\lam {s} => rho) }, q, \lam i => inv (substInterpT rho (d i))))
+                               (\Pi (i : Fin (predDomain P).len) -> qinj (args' i) = args i)
 
       \lemma substInterpT {V : Sort -> \Set s} (rho : \Pi {s : Sort} -> V s -> Term (\lam _ => Empty) s) {s : Sort} (t : Term {T} V s)
         : ColimitStr.interpret (\lam v => qinj (rho v)) t = qinj (subst (liftTerm t) rho) \elim t
         | var v => idp
         | apply f d => unfold $ cong (ext (\lam j => substInterpT rho (d j))) *> inv (path (qmerge _))
 
+      \lemma substInterpF {V : Sort -> \Set s} (rho : \Pi {s : Sort} -> V s -> Term (\lam _ => Empty) s) (phi : Formula {T} V)
+        : isFormulaTrue (\lam v => qinj (rho v)) phi <-> isTheorem nil (substF (liftFormula phi) (\lam {s} v => rho {s} v)) \elim phi
+        | equality t t' => <->trans (<->_=.2 $ pmap2 (=) (substInterpT _ t) (substInterpT _ t')) qinj-equality
+        | predicate P d => (\lam (inP (d',q,e)) => congruenceF (\lam j => qinj-equality.1 (e j *> substInterpT rho (d j))) q, \lam q => inP (\new DArray { | at j => subst (liftTerm (d j)) (\lam {s} => rho) }, q, \lam i => inv (substInterpT rho (d i))))
+
       \func Colimit : Model T \cowith
         | Structure => ColimitStr
         | isModel S ax => \lam rho phiT =>
-            \let | (inP (tau',p)) => Choice.liftDepSurj {S.2} (\lam {v} => qinj-surj {_} {v.1}) (\lam v => rho v.2)
+            \let | (inP (tau',p)) => Choice.liftDepSurj {S.2} (\lam {v} => qinj-surj {_} {\lam _ => Empty} {v.1}) (\lam v => rho v.2)
                  | tau {s'} v => tau' (s',v)
-                 | eq : \Pi (phi : Formula {T} S.1) -> isFormulaTrue rho phi = isTheorem nil (substF (liftFormula phi) tau)
-                 => rewrite (path (\lam i {s'} v => inv (p (s',v)) @ i)) (substInterpF tau)
-            \in propExt.conv (eq S.4) (axiom (liftSequent S) (inP (0,(S,ax,idp))) tau (\lam j => propExt.dir (eq (S.3 j)) (phiT j)) idp)
+                 | eq : \Pi (phi : Formula {T} S.1) -> isFormulaTrue rho phi <-> isTheorem nil (substF (liftFormula phi) tau)
+                      => rewrite (path (\lam i {s'} v => inv (p (s',v)) i)) (substInterpF tau)
+            \in (eq S.4).2 $ axiom (liftSequent S) (inP (0,(S,ax,idp))) tau (\lam j => (eq (S.3 j)).1 (phiT j)) idp
 
       \func colimitMap (j : J) : ModelHom {T} (G j) Colimit \cowith
         | funcs x => qapply (inr (in0 (j,x))) nil
         | func-op {s} h d =>
             \have args => \new DArray _ (\lam k => apply (inr (in0 (j, d k))) nil)
             \in inv (path (qmerge nil)) *> inv (path (qquot (axiom (\lam _ => Empty, emptyFin, nil, _) (inP (1,(j,s,h,_,idp))) (\lam {_} => absurd) (\case __) idp))) *>
-                path (qmerge args) *> path (\lam i => qapply (inl h) (\new DArray _ (\lam k => qmerge {_} {_} {inr (in0 (j, d k))} nil i)))
+                path (qmerge args) *> path (\lam i => qapply (inl h) (\new DArray _ (\lam k => qmerge {_} {_} {_} {inr (in0 (j, d k))} nil i)))
         | func-rel P d r => inP (\new DArray { | at i => apply (inr (in0 (j, d i))) nil }, axiom (\lam _ => Empty, emptyFin, nil, _) (inP (2,(j,P,d,r,idp))) (\lam {_} => absurd) (\case __) idp, \lam i => path (qmerge _))
 
       \func colimitCone : Cone G.op \cowith
@@ -180,9 +226,9 @@
         }
 
       \func modelExtHom {M : Model T} (C : Cone G.op M) : ModelHom {T} Colimit C \cowith
-        | funcs => Model.qinterpret {modelExt C}
+        | funcs => qinterpret0 {thExt} {modelExt C}
         | func-op h d => idp
-        | func-rel P d (inP (d',t,p)) => coe (\lam i => relation P (\new DArray _ (\lam j => Model.qinterpret {modelExt C} (p j @ i)))) (Model.theoremIsTrue {modelExt C} t (\lam {s} => absurd {modelExt C s}) (\case __)) right
+        | func-rel P d (inP (d',t,p)) => coe (\lam i => relation P (\new DArray _ (\lam j => qinterpret0 {thExt} {modelExt C} (p j @ i)))) (Model.theoremIsTrue {modelExt C} t (\lam {s} => absurd {modelExt C s}) (\case __)) right
 
       \lemma interpret=map {M : Model T} (f : ModelHom {T} Colimit M) {s : Sort} (t : Term (\lam _ => Empty) s)
         : Model.interpret {modelExt (conePullback {_} {_} {G.op} colimitCone M f)} (\lam {_} => absurd) t = f (qinj t) \elim t
@@ -190,9 +236,9 @@
         | apply (inl h) d => unfold (cong (ext (\lam j => interpret=map f (d j)))) *> inv (f.func-op h (\new DArray _ (\lam j => qinj (d j)))) *> pmap (f __) (inv (path (qmerge d)))
         | apply (inr (in0 (j,x))) nil => pmap (f __) (inv (path (qmerge nil)))
 
-      \lemma qinterpret=map {M : Model T} (f : ModelHom {T} Colimit M) {s : Sort} (t : QTerm s) : Model.qinterpret {modelExt (conePullback {_} {_} {G.op} colimitCone M f)} t = f t \elim t
+      \lemma qinterpret=map {M : Model T} (f : ModelHom {T} Colimit M) {s : Sort} (t : QTerm (\lam _ => Empty) s) : qinterpret0 {thExt} {modelExt (conePullback {_} {_} {G.op} colimitCone M f)} t = f t \elim t
         | qinj t => interpret=map f t
-        | qapply (inl h) d => unfold (cong (ext (\lam j => qinterpret=map f (d j)))) *> inv (f.func-op h d)
+        | qapply (inl h) d => unfold qinterpret0 (unfold $ cong $ ext \lam j => qinterpret=map f (d j)) *> inv (f.func-op h d)
         | qapply (inr (in0 (j,x))) d => idp
 
       \lemma isColimit (M : Model T) : IsEquiv (conePullback {_} {_} {G.op} colimitCone M) => inP \new QEquiv {
