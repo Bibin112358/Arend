@@ -67,6 +67,10 @@
   \lemma lift_inL {K : CMonoid} {f : MonoidHom B K} {l : \Pi {x : B} -> S x -> Inv (f x)} {x : B} : lift f l (inL x) = f x
     => inv ide-right *> pmap (_ *) (inv f.func-ide) *> lift_inL-quot contains_ide (pmap (_ *) inL.func-ide *> ide-right)
 
+  \lemma lift-inv {K : CMonoid} {f : MonoidHom B K} {l : \Pi {x : B} -> S x -> Inv (f x)}
+                  {a : L} {c x : B} (Sc : S c) (ac=x : a * inL c = inL x) (xi : Inv (f x)) : Inv (lift f l a)
+    => Inv.cfactor-left $ transportInv Inv (lift_inL-quot Sc ac=x) xi
+
   \func liftMonoidHom {K : CMonoid} (f : MonoidHom B K) (l : \Pi {x : B} -> S x -> Inv (f x)) : MonoidHom L K \cowith
     | func => lift f l
     | func-ide => pmap (lift f l) (inv inL.func-ide) *> lift_inL *> f.func-ide

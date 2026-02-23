@@ -141,7 +141,7 @@
                          | func-* => SetBicat.limit-elem-equals Cl \lam j => q *> func-* *> inv (pmap2 (*) q q) *> inv func-*
                        }, exts \lam j => ext $ path \lam i => (p i).coneMap j)
 
-        \lemma preservesLimit {J : Precat} (H : Functor J CRingCat) : PreservesLimit forget H
+        \lemma preservesLimit.{o,h,s} {J : Precat.{o,h}} (H : Functor J CRingCat.{s}) : PreservesLimit forget H
           => (Adjunction.comp (ModelCat.ForgetToSetAdjunction {CRingBicat.theory}) CRingBicat.catEquiv.reverse).preservesLimits
       }
 

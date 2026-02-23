@@ -1,11 +1,14 @@
 \import Algebra.Meta
 \import Algebra.Monoid
+\import Algebra.Monoid.MonoidHom
 \import Algebra.Pointed
+\import Algebra.Pointed.PointedHom
 \import Algebra.Ring.RingCategory
 \import Algebra.Ring.RingHom
 \import Category
 \import Category.Functor
 \import Category.Topos.Sheaf
+\import Category.Topos.Sheaf.LocalPredicate
 \import Equiv
 \import Equiv.Path
 \import Equiv.Sigma
@@ -18,8 +21,12 @@
 \import Order.PartialOrder
 \import Paths
 \import Paths.Meta
+\import Set.Subset
 \import Topology.Locale
 \import Topology.Locale.LocaleCat
+\import Topology.Locale.PreorderSite
+\open SiteLocale
+\open Monoid
 
 \record RingedLocale.{s,v} (\coerce L : Locale.{s}) (R : VSheaf CRingCat.{v} L)
   \where {
@@ -41,12 +48,34 @@
 
 \record LocallyRingedLocale \extends RingedLocale
   | isLRLNonTrivial (a : L) : 0 = {R.F a} 1 -> a <= bottom
-  | isLocallyRinged (a : L) (x : R.F a) : a <= Join (\lam b => \Sigma (p : b <= a) (Monoid.Inv (R.F.Func p x) || Monoid.Inv (R.F.Func p x + 1)))
+  | isLocallyRinged (a : L) (x : R.F a) : a <= Join (\lam b => \Sigma (p : b <= a) (Inv (R.F.Func p x) || Inv (R.F.Func p (x + 1))))
 
 \record LocallyRingedLocaleHom.{s,v} \extends RingedLocaleHom.{s,v} {
   \override Dom : LocallyRingedLocale.{s,v}
   \override Cod : LocallyRingedLocale.{s,v}
 
-  | isHomLocal {a : Dom} {b : Cod} (a<=fb : a <= f b) {x : Cod.R b} : Monoid.Inv (Dom.R.F.Func a<=fb (f# b x)) ->
-      ∃ (c : Cod) (a <= f c) (c<=b : c <= b) (Monoid.Inv (Cod.R.F.Func c<=b x))
+  | isHomLocal {a : Dom} {b : Cod} (a<=fb : a <= f b) {x : Cod.R b} : Inv (Dom.R.F.Func a<=fb (f# b x)) ->
+      ∃ (c : Cod) (a <= f c) (c<=b : c <= b) (Inv (Cod.R.F.Func c<=b x))
 }
+
+\record LocallyRingedSite.{s} (\coerce P : PreorderSite.{s}) (R : Functor P.op CRingBicat.{s}) (R-sheaf : IsPreorderSheaf R) {
+  | isNonTrivialPres (a : P) : 0 = {R a} 1 -> Cover a empty
+  | isLocallyRingedPres (a : P) (x : R a) : Cover a (\lam b => \Sigma (p : b <= a) (Inv (R.Func p x) || Inv (R.Func p (x + 1))))
+
+  \func toLocale : LocallyRingedLocale \cowith
+    | L => SiteLocale P
+    | R => SiteLocaleSheaf {_} {CRingBicat} R R-sheaf
+    | isLRLNonTrivial U p {x} Ux => Cover.cover-sub (isNonTrivialPres x $ pmap (__.1 (x,Ux)) p) empty-univ
+    | isLocallyRinged U a {x} Ux => Cover.cover-sub (isLocallyRingedPres x (a.1 (x,Ux))) \lam {y} s => inP (embed y, (embed-univ $ U.2 $ cover-inj s.1 Ux, \case s.2 \with {
+      | byLeft i => byLeft $ (LimitCRing.inv-char {_} {SiteLocaleSheaf.extend.limFunctor (embed y)}).2 \lam j =>
+        (inv-localPredicate {_} {IsPreorderSheaf.makeSheaf R-sheaf}).byCovering (Cover.toCovering j.2) $ later \lam {z} (inP (_,idp,z<=y)) => transport (Inv __) (
+          \let Uj : U.1 j.1 => _
+          \in inv (path \lam i => R.Func-o i _) *> a.2 {x,Ux} {z.1,_} (later $ z<=y <=∘ s.1) *> inv (a.2 {j.1,Uj} {z.1, U.2 $ cover-inj z.2 Uj} z.2))
+        ((R.Func z<=y).func-Inv i)
+      | byRight i => byRight $ (LimitCRing.inv-char {_} {SiteLocaleSheaf.extend.limFunctor (embed y)}).2 \lam j =>
+        (inv-localPredicate {_} {IsPreorderSheaf.makeSheaf R-sheaf}).byCovering (Cover.toCovering j.2) $ later \lam {z} (inP (_,idp,z<=y)) => transport (Inv __) (unfold $ unfold $
+          \let Uj : U.1 j.1 => _
+          \in inv (path \lam i => R.Func-o i _) *> func-+ *> pmap2 (+) (a.2 {x,Ux} {z.1,_} (later $ z<=y <=∘ s.1) *> inv (a.2 {j.1,Uj} {z.1, U.2 $ cover-inj z.2 Uj} z.2)) (func-ide *> inv func-ide) *> inv func-+)
+        ((R.Func z<=y).func-Inv i)
+    }), Cover.cover-refl idp)
+  }

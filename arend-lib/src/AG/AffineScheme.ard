@@ -1,5 +1,6 @@
 \import AG.RingedLocale
 \import AG.Spec
+\import Algebra.Group
 \import Algebra.Meta
 \import Algebra.Monoid
 \import Algebra.Monoid.Localization
@@ -32,19 +33,27 @@
 
 {- | The affine locally ringed locale corresponding to a ring {R}.
  -
- -   The underlying locale of {AffineLRL} is `Spec R` and the structure sheaf is constructed in {specSheaf}.
+ -   This locally ringed locale is constructed from a locally ringed site {site}.
+ -   The site itself is `SpecSite R` and its structure sheaf is constructed in {functor}.
  -   The sheaf condition is verified in {specPreorderSheaf}.
  -}
-\func AffineLRL (R : CRing) : LocallyRingedLocale \cowith
-  | L => Spec R
-  | R => specSheaf
-  | isLRLNonTrivial => {?}
-  | isLocallyRinged => {?}
+\func AffineLRL (R : CRing) : LocallyRingedLocale
+  => site.toLocale
   \where {
-    \lemma specSheaf : VSheaf CRingCat (Spec R) (SiteLocaleSheaf.extend {_} {CRingBicat} {functor})
-      => SiteLocaleSheaf {_} {CRingBicat} functor $ IsPreorderSheaf.fromSheaf $ sheaf-reflect CRingCat.forget CRingCat.forget.reflectsLimit $ IsPreorderSheaf.toSheaf specPreorderSheaf
+    \func site : LocallyRingedSite (SpecSite R) functor \cowith
+      | R-sheaf => IsPreorderSheaf.fromSheaf (sheaf-reflect CRingCat.forget CRingCat.forget.reflectsLimit $ IsPreorderSheaf.toSheaf specPreorderSheaf) __
+      | isNonTrivialPres a zro=ide => \case LR.loc-trivial-char.1 zro=ide \with {
+        | inP (n,p) => Cover.cover-trans1 (SpecSite.cover_pow n) $ transportInv (Cover __ _) p $ Cover.cover-basic $ later (byLeft (idp,idp))
+      }
+      | isLocallyRingedPres a (in~ (x, _, inP (n,idp))) => Cover.cover-trans1 (SpecSite.cover_pow (suc n)) $
+        cover-trans (byRight (a * negative x, a * (x + pow a n), equation.cRing, idp)) \lam {t} => \case \elim t, \elim __ \with {
+          | _, byLeft idp => cover-inj (inP $ LDiv.make (negative (pow a (suc n))) equation.cRing) (inP (LDiv.make x idp),
+            byLeft $ lift-inv (inP $ later (n,idp)) (~-lequiv1 *-assoc) $ LR.inv-char.2 $ inP $ later (a, inP (1, ide-left *> *-comm)))
+          | _, byRight idp => cover-inj (inP $ LDiv.make {_} {a * (x + pow a n)} (pow a (suc n)) equation.cRing) (inP (LDiv.make _ idp),
+            byRight $ lift-inv (inP $ later (n, inv ide-right)) (~-lequiv1 *-assoc) $ LR.inv-char.2 $ inP $ later (a, inP (1, equation.cRing)))
+        }
 
-    \func functor : Functor (SpecPres R).op CRingCat \cowith
+    \func functor : Functor (SpecSite R).op CRingCat \cowith
       | F a => LocRing (powers a)
       | Func c => LR.liftHom locR $ later (div-inv c)
       | Func-id => locR-isEpi $ exts \lam x => LR.lift_inL
@@ -142,12 +151,12 @@
                   }))
 
     \lemma pow-lin-comb {R : CRing} (a b : R) (n m : Nat) : ∃ (t s : R) (k : Nat) (pow (a + b) k = t * pow a n + s * pow b m)
-      => \have cover : Cover {SpecPres R} (a + b) (\lam z => (pow a n = z) || (pow b m = z)) => cover-trans (byRight (a,b,idp,idp)) \lam {t} e =>
+      => \have cover : Cover {SpecSite R} (a + b) (\lam z => (pow a n = z) || (pow b m = z)) => cover-trans (byRight (a,b,idp,idp)) \lam {t} e =>
               \case \elim t, \elim e \with {
-                | _, byLeft idp => Cover.cover-trans1 SpecPres.cover_*-left $ Cover.cover-trans1 (SpecPres.cover_pow n) $ Cover.cover-refl (byLeft idp)
-                | _, byRight idp => Cover.cover-trans1 SpecPres.cover_*-left $ Cover.cover-trans1 (SpecPres.cover_pow m) $ Cover.cover-refl (byRight idp)
+                | _, byLeft idp => Cover.cover-trans1 SpecSite.cover_*-left $ Cover.cover-trans1 (SpecSite.cover_pow n) $ Cover.cover-refl (byLeft idp)
+                | _, byRight idp => Cover.cover-trans1 SpecSite.cover_*-left $ Cover.cover-trans1 (SpecSite.cover_pow m) $ Cover.cover-refl (byRight idp)
               }
-         \in \case SpecPres.cover_ideal cover \with {
+         \in \case SpecSite.cover_ideal cover \with {
             | inP (k,t) => \case Ideal.sclosure2-lem.1 t \with {
               | inP (c,d,p) => inP (c, d, k, p *> pmap2 (+) *-comm *-comm)
             }

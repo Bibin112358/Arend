@@ -17,7 +17,7 @@
 \open Ideal
 \open Cover
 
-\func SpecPres (R : CRing) : PreorderSite R \cowith
+\func SpecSite (R : CRing) : PreorderSite R \cowith
   | <= a b => TruncP (LDiv b a)
   | <=-refl => inP LDiv.id-div
   | <=-transitive (inP y|x) (inP z|y) => inP (LDiv.trans z|y y|x)
@@ -33,9 +33,9 @@
     })
   }
   \where {
-    \func Cover1 {R : CRing} (x y : R) => Cover {SpecPres R} x (single y)
+    \func Cover1 {R : CRing} (x y : R) => Cover {SpecSite R} x (single y)
 
-    \lemma cover_ideal {R : CRing} {x : R} {U : Set R} (c : Cover {SpecPres R} x U) : (sclosure U).radical x \elim c
+    \lemma cover_ideal {R : CRing} {x : R} {U : Set R} (c : Cover {SpecSite R} x U) : (sclosure U).radical x \elim c
       | cover-inj {t} (inP t|x) Ut => inP (1, inP ((t|x.inv, (t,Ut)) :: nil, ide-left *> inv t|x.inv-right *> *-comm *> inv zro-right))
       | cover-trans (byLeft (x=0,idp)) _ => rewrite x=0 radical.contains_zro
       | cover-trans (byRight (a,b,x=a+b,idp)) h => radical_square $ transportInv radical (pmap (`* x) x=a+b *> rdistr) $
@@ -63,16 +63,16 @@
     \lemma cover_*-right {R : CRing} {x y : R} : Cover1 (x * y) y
       => transport (Cover1 __ y) *-comm cover_*-left
 
-    \lemma cover_bigSum {R : CRing} {l : Array R} : Cover {SpecPres R} (R.BigSum l) (TSetIm l) \elim l
+    \lemma cover_bigSum {R : CRing} {l : Array R} : Cover {SpecSite R} (R.BigSum l) (TSetIm l) \elim l
       | nil => cover-sub (cover-basic $ byLeft (idp,idp)) empty-univ
       | a :: l => cover-trans (byRight (a, R.BigSum l, idp, idp)) \lam {t} => \case \elim t, \elim __ \with {
         | _, byLeft idp => cover-left (inP $ LDiv.make _ idp) $ cover-refl $ TSetIm-con (later 0)
         | _, byRight idp => cover-left (inP $ LDiv.make _ idp) $ cover-sub cover_bigSum \lam {_} => TSetIm-elim \lam j => TSetIm-con $ later (suc j)
       }
 
-    \lemma ideal_cover {R : CRing} {x : R} {U : Set R} (p : radical {sclosure U} x) : Cover {SpecPres R} x U \elim p
+    \lemma ideal_cover {R : CRing} {x : R} {U : Set R} (p : radical {sclosure U} x) : Cover {SpecSite R} x U \elim p
       | inP (n, inP (l,p)) => cover-trans1 (cover_pow n) $ rewrite p $ cover-refine cover_bigSum $ TSetIm-elim \lam j => inP $ later (_, (l j).2.2, inP $ LDiv.make _ *-comm)
   }
 
 \func Spec (R : CRing) : Locale
-  => SiteLocale (SpecPres R)
+  => SiteLocale (SpecSite R)

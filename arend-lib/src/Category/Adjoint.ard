@@ -26,7 +26,7 @@
       | hinv_f => eta_epsilon-left
     }) e idp
 
-  \lemma preservesLimits {J : Precat} {G : Functor J D} : PreservesLimit RAdj G
+  \lemma preservesLimits.{o,h} {J : Precat.{o,h}} {G : Functor J D} : PreservesLimit RAdj G
     => \lam c cl z => IsEquiv.rightFactor (inP eta_epsilon-equiv) $ transport IsEquiv (ext \lam h => exts \lam j => pmap (`∘ _) Func-o *> o-assoc) $
         IsEquiv.trans (cl (LAdj z)) {\lam c' => conePullback {J} {_} {Comp RAdj G} (Cone.map RAdj c') z (eta z)} $ later $ inP \new QEquiv {
           | ret c' => \new Cone {

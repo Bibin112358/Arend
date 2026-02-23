@@ -52,9 +52,9 @@
   | PrelocalPredicate => equality-prelocalPredicate S
   | isLocalPredicate a<=U c => path \lam i => S.isSeparated a<=U (exts \lam j => ext \lam _ => c j.2) i ()
 
-\lemma inv-localPredicate.{s,v} {C : Site.{s,s}} {S : VPresheaf CRingCat.{v} C} (Ss : IsSheaf (Comp CRingCat.forget S.F))
-  : LocalPredicate (S.toPresheaf CRingCat.forget) Monoid.Inv
-  => transport {\Pi {a : C} -> S a -> \Prop} (LocalPredicate (S.toPresheaf CRingCat.forget)) (later $ ext \lam x => propExt (\lam (inP (y,xy=1)) => Monoid.Inv.lmake y xy=1) (\lam xi => inP (xi.inv,xi.inv-left))) $
+\lemma inv-localPredicate.{s,v} {C : Site.{s,s}} {S : VSheaf CRingCat.{v} C} : LocalPredicate (S.toPresheaf CRingCat.forget) Monoid.Inv
+  => \have Ss => sheaf-preserve CRingCat.forget CRingCat.forget.preservesLimit S
+     \in transport {\Pi {a : C} -> S a -> \Prop} (LocalPredicate (S.toPresheaf CRingCat.forget)) (later $ ext \lam x => propExt (\lam (inP (y,xy=1)) => Monoid.Inv.lmake y xy=1) (\lam xi => inP (xi.inv,xi.inv-left))) $
       exists-localPredicate {C} {S.toPresheaf CRingCat.forget} {\new Sheaf { | F => Comp CRingCat.forget S.F | isSheaf => Ss }} (\new LocalPredicate {
         | pred s => s.2 * s.1 = ide
         | isPrelocalPredicate p => inv func-* *> pmap (S.F.Func _) p *> func-ide
