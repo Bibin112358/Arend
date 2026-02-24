@@ -14,16 +14,16 @@
 \import Topology.Locale
 \import Topology.Locale.LocaleCat
 
-\func RingedLocalePrecat.{s,v} : Precat RingedLocale.{s,v} \cowith
+\func RingedLocalePrecat.{s} : Precat RingedLocale.{s} \cowith
   | Hom => RingedLocaleHom
-  | id (L : RingedLocale.{s,v}) : RingedLocaleHom L L \cowith {
+  | id (L : RingedLocale.{s}) : RingedLocaleHom L L \cowith {
     | f => FrameHom.id
     | f# => \new NatTrans {
       | trans x => Cat.id _
       | natural p => ext $ pmap (\lam x => (L.R.F.Func x).func) prop-pi
     }
   }
-  | o {L M N : RingedLocale.{s,v}} (g : RingedLocaleHom M N) (f : RingedLocaleHom L M) : RingedLocaleHom L N \cowith {
+  | o {L M N : RingedLocale.{s}} (g : RingedLocaleHom M N) (f : RingedLocaleHom L M) : RingedLocaleHom L N \cowith {
     | f => f.f FrameHom.∘ g.f
     | f# => \new NatTrans {
       | trans x => f.f#.trans (g x) ∘ g.f#.trans x

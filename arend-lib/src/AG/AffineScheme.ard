@@ -161,4 +161,13 @@
               | inP (c,d,p) => inP (c, d, k, p *> pmap2 (+) *-comm *-comm)
             }
           }
+
+    \lemma isAffineScheme : IsAffineScheme (AffineLRL R)
+      => inP (R,idp)
   }
+
+{- TODO: Prove that a scheme is affine iff the canonical map L -> AffineLRL L.GlobalSections is an iso.
+         This follows from the fact that the category of affine schemes is reflective in locally ringed locales, which is not proved yet.
+ -}
+\func IsAffineScheme.{s} (L : RingedLocale.{s}) : \Prop
+  => ∃ (R : CRing.{s}) (L = AffineLRL R)
