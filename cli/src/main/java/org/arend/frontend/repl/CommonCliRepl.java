@@ -105,7 +105,7 @@ public abstract class CommonCliRepl extends Repl {
   //endregion
 
   private FileSourceLibrary getNewFileSourceLibrary() {
-    return new FileSourceLibrary(REPL_NAME, true, -1, myServer.getLibraries().stream().filter(library -> !Objects.equals(library, REPL_NAME)).toList(), null, null, null, pwd, null, null, null);
+    return new FileSourceLibrary(REPL_NAME, true, -1, myServer.getLibraries().stream().filter(library -> !Objects.equals(library, REPL_NAME)).toList(), null, null, null, null, pwd, null, null, null);
   }
 
   public static final @NotNull String REPL_CONFIG_FILE = "repl-config.yaml";

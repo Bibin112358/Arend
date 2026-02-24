@@ -360,7 +360,7 @@ public class ConsoleMain {
       }
 
       requestedLibraries.add(new FileSourceLibrary("\\default", false, -1,
-          requestedLibraries.stream().map(SourceLibrary::getLibraryName).toList(), null, extMainClass, null,
+          requestedLibraries.stream().map(SourceLibrary::getLibraryName).toList(), null, null, extMainClass, null,
           sourceDir, outDir, null, extDir == null ? null : new FileClassLoaderDelegate(extDir)));
     }
 
