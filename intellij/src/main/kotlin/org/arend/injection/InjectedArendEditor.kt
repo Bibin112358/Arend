@@ -27,6 +27,7 @@ import org.arend.ext.core.ops.NormalizationMode
 import org.arend.ext.error.GeneralError
 import org.arend.ext.error.LocalError
 import org.arend.ext.prettyprinting.PrettyPrinterConfig
+import org.arend.ext.prettyprinting.PrettyPrinterConfig.MAX_LEN
 import org.arend.ext.prettyprinting.doc.Doc
 import org.arend.ext.prettyprinting.doc.DocFactory
 import org.arend.ext.reference.DataContainer
@@ -48,6 +49,7 @@ import org.arend.server.ArendServerService
 import org.arend.term.concrete.Concrete
 import org.arend.term.prettyprint.PrettyPrinterConfigWithRenamer
 import org.arend.term.prettyprint.TermWithSubtermDoc
+import org.arend.toolWindow.errors.ArendMessagesService
 import org.arend.toolWindow.errors.ArendPrintOptionsFilterAction
 import org.arend.toolWindow.errors.PrintOptionKind
 import org.arend.toolWindow.errors.tree.ArendErrorTreeElement
@@ -57,8 +59,11 @@ import org.arend.typechecking.error.mapToTypeDiffInfo
 import org.arend.util.ArendBundle
 import java.awt.BorderLayout
 import java.awt.Component
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.Timer
 
 abstract class InjectedArendEditor(
     val project: Project,
@@ -78,6 +83,14 @@ abstract class InjectedArendEditor(
     val verboseLevelMap: MutableMap<Expression, Int> = mutableMapOf()
     val verboseLevelParameterMap: MutableMap<DependentLink, Int> = mutableMapOf()
 
+    private val timer = Timer(0) {
+        if (editor != null && !editor.isDisposed) {
+            updateErrorText()
+        }
+    }.apply { isRepeats = false }
+
+    private var lastLineLength = MAX_LEN
+
     init {
         val psi = ArendPsiFactory(project, name).injected("")
         val virtualFile = psi.virtualFile
@@ -89,6 +102,11 @@ abstract class InjectedArendEditor(
                     settings.isRightMarginShown = false
                     putUserData(AREND_GOAL_EDITOR, this@InjectedArendEditor)
                     caretModel.addCaretListener(RevealingInformationCaretListener(this@InjectedArendEditor))
+                    component.addComponentListener(object : ComponentAdapter() {
+                        override fun componentResized(e: ComponentEvent?) {
+                            timer.restart()
+                        }
+                    })
                 }
             }
         } else null
@@ -108,6 +126,7 @@ abstract class InjectedArendEditor(
     }
 
     fun release() {
+        timer.stop()
         if (editor != null) {
             editor.putUserData(AREND_GOAL_EDITOR, null)
             EditorFactory.getInstance().releaseEditor(editor)
@@ -139,6 +158,12 @@ abstract class InjectedArendEditor(
         val treeElement = treeElement ?: return
 
         invokeLater {
+            val fontMetrics = editor.component.getFontMetrics(editor.colorsScheme.getFont(EditorFontType.PLAIN))
+            val charWidth = fontMetrics.charWidth(' ')
+            if (charWidth > 0) {
+                lastLineLength = (editor.scrollingModel.visibleArea.width / charWidth * 0.9).toInt().coerceAtLeast(25)
+            }
+
             val builder = StringBuilder()
             val visitor = CollectingDocStringBuilder(builder, treeElement.sampleError)
             var fileScope: Scope = EmptyScope.INSTANCE
@@ -349,14 +374,10 @@ abstract class InjectedArendEditor(
         }
 
         override fun getLineLength(): Int {
-            val editor = editor ?: return super.getLineLength()
-            val fontMetrics = editor.component.getFontMetrics(editor.colorsScheme.getFont(EditorFontType.PLAIN))
-            val charWidth = fontMetrics.charWidth(' ')
-            val width = editor.component.width
-            return if (charWidth > 0) {
-                (width / charWidth).coerceAtLeast(30)
+            return if (project.service<ArendMessagesService>().isAllowLayoutPanel.get()) {
+                lastLineLength
             } else {
-                super.getLineLength()
+                MAX_LEN
             }
         }
     }

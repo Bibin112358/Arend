@@ -30,7 +30,6 @@ import static org.arend.ext.prettyprinting.PrettyPrinterConfig.MAX_LEN;
 
 public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence, Void>, ConcreteLevelExpressionVisitor<Precedence, Void>, ConcreteResolvableDefinitionVisitor<Void, Void> {
   public static final int INDENT = 2;
-  public static final float SMALL_RATIO = (float) 0.1;
 
   protected final StringBuilder myBuilder;
   private final VariableTracker<Referable> myPVariables = new VariableTracker<>();
@@ -52,6 +51,11 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
 
   public PrettyPrintVisitor(StringBuilder builder, int indent) {
     this(builder, indent, true);
+  }
+
+  public int getCursorPos() {
+    int lastIdx = myBuilder.lastIndexOf("\n");
+    return lastIdx == -1 ? myBuilder.length() : myBuilder.length() - lastIdx - 1;
   }
 
   void printExpr(Concrete.Expression expr, Precedence prec) {
@@ -1752,7 +1756,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
           String separator = getSeparator();
 
           pp.myBuilder.append(separator.trim());
-          if (rem + strs[0].length() + separator.length() > MAX_LEN || splitMultiLineArgs) {
+          if (rem + strs[0].length() + separator.length() > pp.myLineLength || splitMultiLineArgs) {
             if (indent == 0) pp.myIndent += INDENT;
             indent = INDENT;
             pp.myBuilder.append('\n');
@@ -1787,12 +1791,8 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
     boolean doHyphenation(int leftLen, int rightLen, int lineLength) {
       if (leftLen == 0) leftLen = 1; if (leftLen > lineLength) leftLen = lineLength;
       if (rightLen == 0) rightLen = 1; if (rightLen > lineLength) rightLen = lineLength;
-      double ratio = ((double) rightLen) / leftLen;
-      if (ratio > 1.0) ratio = 1/ratio;
 
-      int myMaxLen = (ratio > SMALL_RATIO) ? lineLength : Math.round(lineLength * (1 + SMALL_RATIO));
-
-      return (leftLen + rightLen + getOpText().trim().length() + 1 > myMaxLen);
+      return (leftLen + rightLen + getOpText().trim().length() + 1 > lineLength);
     }
 
     boolean increaseIndent(List<String> rhs_strings) {
@@ -1832,6 +1832,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
       int rhs_sz = rhs_strings.size();
 
       int leftLen = lhs_sz == 0 ? 0 : lhs_strings.get(lhs_sz-1).trim().length();
+      if (lhs_sz <= 1) leftLen += ppv_default.getCursorPos();
       int rightLen = rhs_sz == 0 ? 0 : rhs_strings.getFirst().trim().length();
 
       boolean hyph = doHyphenation(leftLen, rightLen, ppv_default.myLineLength) && !(rhs_sz > 0 && rhs_strings.getFirst().isEmpty());

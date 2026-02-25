@@ -37,6 +37,14 @@ class ArendMessagesService(private val project: Project) {
                 afterChange { arendProjectSettings.data.isShowGoalsInErrorsPanel = it }
             }
 
+    var isAllowLayoutPanel: MutableBooleanProperty =
+            AtomicBooleanProperty(arendProjectSettings.data.goalPrintingOptions.allowLayout).apply {
+                afterChange {
+                    arendProjectSettings.data.goalPrintingOptions.allowLayout = it
+                    updateGoalText()
+                }
+            }
+
     fun activate(project: Project, selectFirst: Boolean) {
         runInEdt {
             ToolWindowManager.getInstance(project).getToolWindow(ArendMessagesFactory.TOOL_WINDOW_ID)?.activate(if (selectFirst) Runnable {

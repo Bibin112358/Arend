@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.EnumSet;
 
 public interface PrettyPrinterConfig {
-  int MAX_LEN = 120;
+  int MAX_LEN = 150;
 
   default boolean isSingleLine() {
     return false;
