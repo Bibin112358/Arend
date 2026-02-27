@@ -25,6 +25,8 @@
 \import Paths
 \import Paths.Meta
 \import Set.Fin
+\import Set.Fin.KFinSetOf
+\import Set.Subset
 \import Topology.RatherBelow
 \open MeetSemilattice
 \open JoinSemilattice
@@ -110,7 +112,24 @@
   \lemma IJoin-distr {J : \Sort} {f : J -> E} {g : J -> E} : IJoin f ∧ IJoin g = IJoin (\lam (s : \Sigma J J) => f s.1 ∧ g s.2)
     => <=-antisymmetric IJoin-distr>= $ IJoin-univ \lam s => meet-monotone (IJoin-cond s.1) (IJoin-cond s.2)
 
-  \type \infix 4 << (x y : E) => \Pi {C : E -> \Prop} -> y <= Join C -> ∃ (l : Array E) (∀ (a : l) (C a)) (x <= IJoin l)
+  \type \infix 4 << (x y : E) => \Pi {U : E -> \Prop} -> y <= Join U -> ∃ (l : Array E) (∀ (a : l) (U a)) (x <= IJoin l)
+
+  \lemma <<-char {x y : E} : x << y <-> ∀ {U : E -> \Prop} (y <= Join U) ∃ (V : KFinSetOf E) (V ⊆ U) (x <= Join V)
+    => (\lam x<<y y<=U => \case x<<y y<=U \with {
+      | inP (l,l<=U,x<=l) => inP (KFinSetOf.fromArray l, unfolds $ TSetIm-elim l<=U, x<=l)
+    }, \lam x<<y y<=U => \case x<<y y<=U \with {
+      | inP (V,V<=U,x<=V) => \case V.enumerate \with {
+        | inP (n,f,fs) => inP (\lam j => (f j).1, \lam j => V<=U (f j).2, x<=V <=∘ Join-univ \lam {y} Vy => \case fs (y,Vy) \with {
+          | inP (j,p) => Join-cond $ inP (j, pmap __.1 p)
+        })
+      }
+    })
+
+  \lemma <<_join {a b c d : E} (a<<b : a << b) (c<<d : c << d) : a ∨ c << b ∨ d
+    => <<-char.2 \lam bd<=U => \case <<-char.1 a<<b (join-left <=∘ bd<=U), <<-char.1 c<<d (join-right <=∘ bd<=U) \with {
+      | inP (Va,Va<=U,a<=Va), inP (Vb,Vb<=U,b<=Vb) => inP (KFinSetOf.union Va Vb, ||.rec' Va<=U Vb<=U __,
+        join-univ (a<=Va <=∘ Join-univ \lam Vw => Join-cond (byLeft Vw)) (b<=Vb <=∘ Join-univ \lam Vw => Join-cond (byRight Vw)))
+    }
 
   \lemma <<_IJoin {x y : E} (x<<y : x << y) {J : \Sort} {g : J -> E} (y<=g : y <= IJoin g) : ∃ (l : Array J) (x <= IJoin \lam j => g (l j))
     => \case x<<y y<=g \with {
@@ -119,9 +138,29 @@
       }
     }
 
-  \type IsCompact => top << top
+  \func IsCompactOpen (a : E) => a << a
+
+  \lemma compact_bottom : IsCompactOpen bottom
+    => \lam _ => inP (nil, \case __ \with {}, bottom-univ)
+
+  \lemma compact_join {a b : E} (ac : IsCompactOpen a) (bc : IsCompactOpen b) : IsCompactOpen (a ∨ b)
+    => <<_join ac bc
+
+  \lemma compact_IJoin {l : Array E} (ac : \Pi (j : Fin l.len) -> IsCompactOpen (l j)) : IsCompactOpen (IJoin l) \elim l
+    | nil => transport IsCompactOpen (<=-antisymmetric bottom-univ $ IJoin-univ $ later \case __) compact_bottom
+    | a :: l => transport IsCompactOpen (<=-antisymmetric
+      (join-univ (IJoin-cond $ later 0) $ IJoin-univ \lam j => IJoin-cond $ later (suc j)) $ IJoin-univ $ later \case \elim __ \with {
+        | 0 => join-left
+        | suc j => IJoin-cond j <=∘ join-right
+      }) $ compact_join (ac 0) $ compact_IJoin \lam j => ac (suc j)
+
+  \func IsCompact => IsCompactOpen top
 
   \type IsLocallyCompact => \Pi (x : E) -> x <= Join (`<< x)
+
+  \func IsAlgebraic => \Pi (a : E) -> a <= Join \lam b => \Sigma (b <= a) (IsCompactOpen b)
+
+  \func IsCoherent => Given IsAlgebraic ∀ {a b : IsCompactOpen} (IsCompactOpen (a ∧ b))
 
   -- | The "rather below" relation: `x <=< y` if and only if the closure of {x} is contained in {y}.
   \type \infix 4 <=< (x y : E) => top <= HeytingAlebra.neg x ∨ y
@@ -239,6 +278,15 @@
         | Func p => p
         | Func-id => idp
         | Func-o => idp
+
+      \lemma compact-char {b : restrict a} : (restrict a).IsCompactOpen b <-> IsCompactOpen b.1
+        => (\lam bc {U} b<=U => \case bc {\lam x => ∃ (y : U) (x.1 <= y)} (meet-univ <=-refl b<=U <=∘ Join-ldistr>= <=∘ SJoin-univ \lam {c} Uc => SJoin-conde (later (b.1 ∧ c, meet-left <=∘ b.2)) $ inP $ later (c, Uc, meet-right)) \with {
+          | inP (l,l<=U,b<=l) => \case FinSet.finiteAC l<=U \with {
+            | inP g => inP (\lam j => (g j).1, \lam j => (g j).2, b<=l <=∘ Join-univ (SetIm-elim $ TSetIm-elim \lam j => (g j).3 <=∘ IJoin-cond j))
+          }
+        }, \lam bc {U} b<=U => \case bc {\lam x => \Sigma (p : x <= a) (U (x,p))} (b<=U <=∘ SJoin-univ \lam {c} Uc => Join-cond $ later (c.2, Uc)) \with {
+          | inP (l,l<=U,b<=l) => inP (\new Array (restrict a) l.len \lam j => (l j, (l<=U j).1), \lam j => (l<=U j).2, b<=l <=∘ IJoin-univ \lam j => SJoin-cond (TSetIm-con j))
+        })
     }
 }
 

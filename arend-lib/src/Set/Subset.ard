@@ -73,6 +73,15 @@
 \lemma bottom-empty {A : \Type} {E : \Prop} {x : A} (b : (SetLattice A).bottom x) : E \elim b
   | inP (_,(),_)
 
+\func union \alias \infixl 6 ∪ {A : \Type} (U V : Set A) : Set A
+  => \lam x => U x || V x
+
+\lemma join_union {A : \Type} {U V : Set A} : U ∨ V = U ∪ V
+  => <=-antisymmetric (join-univ (byLeft __) (byRight __)) \case \elim __ \with {
+    | byLeft Ux => inP (U, byLeft idp, Ux)
+    | byRight Vx => inP (V, byRight idp, Vx)
+  }
+
 \func Refines {P : Preorder} (C D : Set P) : \Prop
   => ∀ {x : C} ∃ (y : D) (x <= y)
 
