@@ -325,7 +325,7 @@ public class ConsoleMain {
 
     // Collect modules and libraries for which typechecking was requested
     Collection<String> argFiles = cmdLine.getArgList();
-    Set<ModulePath> requestedModules = new LinkedHashSet<>();
+    Set<Pair<ModulePath, LongName>> requestedModules = new LinkedHashSet<>();
     List<SourceLibrary> requestedLibraries = new ArrayList<>();
     for (String fileName : argFiles) {
       Path path = Paths.get(fileName);
@@ -340,11 +340,21 @@ public class ConsoleMain {
           mySystemErrErrorReporter.report(new LibraryIOError(fileName, "not a library"));
         }
       } else if (!findLibrary(fileName, libDirs, requestedLibraries)) {
-        ModulePath modulePath = ModulePath.fromString(fileName);
-        if (FileUtils.isCorrectModulePath(modulePath)) {
-          requestedModules.add(modulePath);
+        int colonIndex = fileName.indexOf(':');
+        if (colonIndex >= 0) {
+          Pair<ModulePath, LongName> parsed = parseFullName(fileName);
+          if (parsed != null && parsed.proj2 != null) {
+            requestedModules.add(parsed);
+          } else if (parsed != null) {
+            mySystemErrErrorReporter.report(new GeneralError(GeneralError.Level.ERROR, "Definition name missing after ':' in " + fileName));
+          }
         } else {
-          mySystemErrErrorReporter.report(new GeneralError(GeneralError.Level.ERROR, "File " + fileName + " not found"));
+          ModulePath modulePath = ModulePath.fromString(fileName);
+          if (FileUtils.isCorrectModulePath(modulePath)) {
+            requestedModules.add(new Pair<>(modulePath, null));
+          } else {
+            mySystemErrErrorReporter.report(new GeneralError(GeneralError.Level.ERROR, "File " + fileName + " not found"));
+          }
         }
       }
     }
@@ -466,10 +476,21 @@ public class ConsoleMain {
         }
       }
     } else {
-      for (ModulePath modulePath : requestedModules) {
+      for (Pair<ModulePath, LongName> requested : requestedModules) {
+        ModulePath modulePath = requested.proj1;
+        LongName definitionName = requested.proj2;
         ModuleLocation module = server.findModule(modulePath, null, true, false);
         if (module == null) {
           mySystemErrErrorReporter.report(new ModuleNotFoundError(modulePath));
+        } else if (definitionName != null) {
+          System.out.println();
+          FullName fullName = new FullName(module, definitionName);
+          System.out.println("--- Typechecking " + fullName + " ---");
+          long time = System.currentTimeMillis();
+
+          server.getCheckerFor(Collections.singletonList(module)).typecheck(Collections.singletonList(fullName), myErrorReporter, UnstoppableCancellationIndicator.INSTANCE, progressReporter);
+
+          System.out.println("--- Done (" + TimedProgressReporter.timeToString(System.currentTimeMillis() - time) + ") ---");
         } else {
           System.out.println();
           System.out.println("--- Typechecking " + module + " ---");
