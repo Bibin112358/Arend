@@ -15,6 +15,7 @@
 \import Paths
 \import Paths.Meta
 \import Set.Fin
+\import Set.Fin.KFinSetOf
 \import Set.Subset
 \import Topology.Locale
 \open Cover
@@ -66,7 +67,7 @@
         \lam o a => cover-sub (o (embed a) (cover-refl idp)) \lam (inP (U,a>0,Ux)) => positive-site.2 a>0)
 
 
-  \protected \type \infix 4 << (x y : E) => ∀ {C : Cover y} ∃ (l : Array E) (∀ (a : l) (C a)) (Cover x (TSetIm l))
+  \protected \type \infix 4 << (x y : E) => ∀ {U : Cover y} ∃ (l : Array E) (∀ (a : l) (U a)) (Cover x (TSetIm l))
 
   \lemma <<-site {x y : E} : x << y <-> embed x Locale.<< {SiteLocale \this} embed y
     => (\lam x<<y y<=C => \case x<<y $ y<=C (cover-refl idp) \with {
@@ -85,6 +86,24 @@
   \lemma locallyCompact-locale : IsLocallyCompact <-> (SiteLocale \this).IsLocallyCompact
     => (\lam lc U {x} Ux => cover-sub (lc x) \lam {y} y<<x => inP (embed y, <<-left (<<-site.1 y<<x) (embed-univ Ux), cover-refl idp),
         \lam lc x => cover-sub (lc (embed x) (cover-refl idp)) \lam {y} (inP (U,U<<x,Uy)) => <<-site.2 $ <<-right (embed-univ Uy) U<<x)
+
+  \protected \func IsAlgebraic => ∀ {a} {U : isBasicCover a} ∃ (l : Array E) (∀ (x : l) (U x)) (Cover a (TSetIm l))
+
+  \lemma algebraic-char : IsAlgebraic <-> ∀ a (a << a)
+    => (\lam ca a a<=U => \case induction ca a<=U \with {
+      | inP (V,V<=U,a<=V) => \case V.isFinSubSet \with {
+        | inP (l,lc) => inP (l, \lam j => V<=U $ (lc _).2 $ TSetIm-con j, cover-sub a<=V \lam Vx => (lc _).1 Vx)
+      }
+    }, \lam c {a} a<=U => c a $ cover-basic a<=U)
+    \where {
+      \private \lemma induction (ca : IsAlgebraic) {a : E} {U : Set E} (a<=U : Cover a U) : ∃ (V : KFinSetOf E) (V ⊆ U) (Cover a V) \elim a<=U
+        | cover-inj {t} a<=t Ut => inP (KFinSetOf.single t, single_<= Ut, cover-inj a<=t idp)
+        | cover-trans a<=T T<=U => \case ca a<=T \with {
+          | inP (l,l<=T,a<=l) => \case FinSet.finiteAC (\lam j => induction ca $ T<=U (l<=T j)) \with {
+            | inP g => inP (KFinSetOf.BigUnion \lam j => (g j).1, \lam (inP (j,gx)) => (g j).2 gx, cover-trans* a<=l $ TSetIm-elim \lam j => cover-sub (g j).3 \lam gx => inP $ later (j,gx))
+          }
+        }
+    }
 }
 
 \func Cover1 {P : PreorderSite} (x y : P) => Cover x (single y)

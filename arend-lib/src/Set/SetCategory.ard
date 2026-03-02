@@ -4,7 +4,7 @@
 \import Category.Functor
 \import Category.Limit
 \import Equiv
-\import Function
+\import Function (IsInj)
 \import Function.Meta
 \import Logic.Unique
 \import Logic

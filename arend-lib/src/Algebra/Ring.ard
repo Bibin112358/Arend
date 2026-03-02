@@ -82,6 +82,9 @@
       | inv-right => negative_* *> j.inv-right
     }
 
+  \lemma Inv_negative {x : E} (j : Monoid.Inv (negative x)) : Monoid.Inv x
+    => transport Monoid.Inv negative-isInv (negative_inv j)
+
   \lemma geometric-partial-sum {n : Nat} {x : E} : (1 - x) * BigSum (\new Array E n (\lam j => pow x j)) = 1 - pow x n \elim n
     | 0 => zro_*-right *> inv negative-right
     | suc n => pmap (_ *) (AddMonoid.BigSum_suc-nat {_} {n} {pow x}) *> ldistr *> pmap2 (+) geometric-partial-sum rdistr *> +-assoc *> pmap (_ +) (inv +-assoc *> pmap (_ +) negative_*-left *> pmap (`+ _) (pmap (_ +) ide-left *> negative-left) *> zro-left *> pmap negative pow-left)

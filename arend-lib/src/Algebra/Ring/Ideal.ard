@@ -229,7 +229,7 @@
           }
         })
 
-  \func union {R : CRing} (I : Nat -> Ideal R) (\property inc : \Pi {n : Nat} {a : R} -> I n a -> I (suc n) a) : Ideal R \cowith
+  \func direct-union {R : CRing} (I : Nat -> Ideal R) (\property inc : \Pi {n : Nat} {a : R} -> I n a -> I (suc n) a) : Ideal R \cowith
     | contains a => ∃ (n : Nat) (I n a)
     | contains_zro => inP (0, contains_zro)
     | contains_+ (inP (n,c)) (inP (m,d)) => inP (n + m, contains_+ (include c) $ rewrite +-comm (include d))
@@ -244,7 +244,7 @@
                           (Id : \Pi (I : Ideal R) -> I.IsFinitelyGenerated -> \Pi (x : R) -> Dec (I x))
                           {I : Ideal R} (Ig : I.IsFinitelyGenerated) (Ip : Not (I 1))
     : \Sigma (M : Ideal R) M.IsMaximal (\Pi {a : R} -> I a -> M a)
-    => (union (\lam n => (ideal n).1) \lam {_} {a} c => mcases \with {
+    => (direct-union (\lam n => (ideal n).1) \lam {_} {a} c => mcases \with {
       | yes _ => c
       | no _ => inP (a, 0, c, simplify)
     }, (\lam (inP c) => ideal-proper c.1 c.2, \lam a => \case pointed-countable-surj R.zro c a \with {
