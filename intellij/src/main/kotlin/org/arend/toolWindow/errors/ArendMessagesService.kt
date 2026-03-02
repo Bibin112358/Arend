@@ -37,10 +37,10 @@ class ArendMessagesService(private val project: Project) {
                 afterChange { arendProjectSettings.data.isShowGoalsInErrorsPanel = it }
             }
 
-    var isAllowLayoutPanel: MutableBooleanProperty =
-            AtomicBooleanProperty(arendProjectSettings.data.goalPrintingOptions.allowLayout).apply {
+    var isEnabledWrapPanel: MutableBooleanProperty =
+            AtomicBooleanProperty(arendProjectSettings.data.goalPrintingOptions.enableWrap).apply {
                 afterChange {
-                    arendProjectSettings.data.goalPrintingOptions.allowLayout = it
+                    arendProjectSettings.data.goalPrintingOptions.enableWrap = it
                     updateGoalText()
                 }
             }

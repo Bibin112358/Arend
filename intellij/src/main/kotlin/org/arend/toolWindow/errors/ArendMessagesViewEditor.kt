@@ -47,7 +47,7 @@ class ArendMessagesViewEditor(project: Project, treeElement: ArendErrorTreeEleme
             actionGroup.addSeparator()
             actionGroup.add(createPrintOptionsActionGroup())
             actionGroup.add(ArendShowImplicitGoalsAction())
-            actionGroup.add(ArendAllowLayoutAction())
+            actionGroup.add(EnableWrapAction())
         } else {
             actionGroup.add(ActionManager.getInstance().getAction(ArendPinErrorAction.ID))
             actionGroup.addSeparator()

@@ -374,7 +374,7 @@ abstract class InjectedArendEditor(
         }
 
         override fun getLineLength(): Int {
-            return if (project.service<ArendMessagesService>().isAllowLayoutPanel.get()) {
+            return if (project.service<ArendMessagesService>().isEnabledWrapPanel.get()) {
                 lastLineLength
             } else {
                 MAX_LEN

@@ -30,6 +30,7 @@ import static org.arend.ext.prettyprinting.PrettyPrinterConfig.MAX_LEN;
 
 public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence, Void>, ConcreteLevelExpressionVisitor<Precedence, Void>, ConcreteResolvableDefinitionVisitor<Void, Void> {
   public static final int INDENT = 2;
+  public static final float SMALL_RATIO = (float) 0.25;
 
   protected final StringBuilder myBuilder;
   private final VariableTracker<Referable> myPVariables = new VariableTracker<>();
@@ -53,9 +54,35 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
     this(builder, indent, true);
   }
 
-  public int getCursorPos() {
-    int lastIdx = myBuilder.lastIndexOf("\n");
-    return lastIdx == -1 ? myBuilder.length() : myBuilder.length() - lastIdx - 1;
+  static boolean endsWithNewlineAndIndent(StringBuilder sb) {
+    int i = sb.length() - 1;
+    while (i >= 0) {
+      char c = sb.charAt(i);
+      if (c == ' ') {
+        i--;
+      } else {
+        break;
+      }
+    }
+    return i >= 0 && sb.charAt(i) == '\n';
+  }
+
+  static int charsSinceLastNewline(StringBuilder sb) {
+    for (int i = sb.length() - 1; i >= 0; i--) {
+      if (sb.charAt(i) == '\n') {
+        return sb.length() - i - 1;
+      }
+    }
+    return sb.length();
+  }
+
+  public void updateVisitor(PrettyPrintVisitor newVisitor, PrettyPrintVisitor oldVisitor) {
+    if ((charsSinceLastNewline(oldVisitor.myBuilder) + newVisitor.myBuilder.length() > oldVisitor.myLineLength || newVisitor.myBuilder.length() > oldVisitor.myLineLength) &&
+            !oldVisitor.myBuilder.isEmpty() &&
+            !endsWithNewlineAndIndent(oldVisitor.myBuilder)) {
+      oldVisitor.myBuilder.append('\n');
+    }
+    oldVisitor.myBuilder.append(newVisitor.myBuilder);
   }
 
   void printExpr(Concrete.Expression expr, Precedence prec) {
@@ -491,7 +518,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
     if (prec.priority > Concrete.LamExpression.PREC) myBuilder.append("(");
     myBuilder.append("\\lam ");
 
-    new BinOpLayout(){
+    new BinOpLayout() {
       @Override
       void printLeft(PrettyPrintVisitor pp) {
         if (expr instanceof Concrete.PatternLamExpression lamExpr) {
@@ -539,7 +566,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
   public Void visitPi(final Concrete.PiExpression expr, Precedence prec) {
     if (prec.priority > Concrete.PiExpression.PREC) myBuilder.append('(');
 
-    new BinOpLayout(){
+    new BinOpLayout() {
       @Override
       void printLeft(PrettyPrintVisitor pp) {
         if (expr.getParameters().size() == 1 && !(expr.getParameters().getFirst() instanceof Concrete.TelescopeParameter)) {
@@ -768,7 +795,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
 
     final AbstractLayout layout = i == elems.size() ? null : createBinOpLayout(elems.subList(i, elems.size()));
     final Expression finalLhs = lhs;
-    return new BinOpLayout(){
+    return new BinOpLayout() {
       @Override
       void printLeft(PrettyPrintVisitor pp) {
         if (finalLhs != null) pp.printExpr(finalLhs, new Precedence((byte) 10));
@@ -843,8 +870,10 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
     ppVisitor.myBuilder.append(' ');
     Precedence rightPrec = infixPrec.associativity != Precedence.Associativity.RIGHT_ASSOC ? new Precedence(Precedence.Associativity.NON_ASSOC, infixPrec.priority, infixPrec.isInfix) : infixPrec;
     if (right != null) {
-      ppVisitor.printExpr(right, rightPrec);
-      if (needParens) ppVisitor.myBuilder.append(')');
+      PrettyPrintVisitor rightVisitor = copy(new StringBuilder(), myIndent, !noIndent);
+      rightVisitor.printExpr(right, rightPrec);
+      if (needParens) rightVisitor.myBuilder.append(')');
+      updateVisitor(rightVisitor, ppVisitor);
       return leftPrec;
     } else {
       if (needParens) builder.append(')');
@@ -1731,6 +1760,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
 
       int rem = -1;
       int indent = 0;
+      int totalLength = 0;
       boolean isMultLine = false;
       boolean splitMultiLineArgs;
       for (E e : l) {
@@ -1741,6 +1771,11 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
         String[] strs = sb.toString().split("[\\r\\n]+");
         int sz = strs.length;
 
+        int strsLength = 0;
+        for (String str : strs) {
+          strsLength += str.trim().length();
+        }
+        totalLength += strsLength;
         splitMultiLineArgs = false;
         if (sz > 1) {
           //This heuristic enforces line break if both the present and the previous arguments were multi-line
@@ -1756,7 +1791,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
           String separator = getSeparator();
 
           pp.myBuilder.append(separator.trim());
-          if (rem + strs[0].length() + separator.length() > pp.myLineLength || splitMultiLineArgs) {
+          if (strsLength > pp.myLineLength || splitMultiLineArgs) {
             if (indent == 0) pp.myIndent += INDENT;
             indent = INDENT;
             pp.myBuilder.append('\n');
@@ -1768,15 +1803,24 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
         }
 
         for (int i = 0; i < sz; i++) {
-          String s = strs[i];
+          String str = strs[i];
           if (rem == 0) pp.printIndent();
-          pp.myBuilder.append(s);
-          rem += s.trim().length();
-          if (i < sz - 1) {
+          if ((charsSinceLastNewline(pp.myBuilder) + str.length() > pp.myLineLength || str.length() > pp.myLineLength) &&
+                  !pp.myBuilder.isEmpty() &&
+                  !endsWithNewlineAndIndent(pp.myBuilder)) {
+            pp.myBuilder.append('\n');
+            rem = 0;
+          }
+          pp.myBuilder.append(str);
+          rem += str.trim().length();
+          if (rem > pp.myLineLength && i < sz - 1) {
             pp.myBuilder.append('\n');
             rem = 0;
           }
         }
+      }
+      if (totalLength > pp.myLineLength && !endsWithNewlineAndIndent(pp.myBuilder)) {
+        pp.myBuilder.append('\n');
       }
     }
   }
@@ -1789,10 +1833,14 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
     boolean printSpaceAfter() {return true;}
 
     boolean doHyphenation(int leftLen, int rightLen, int lineLength) {
-      if (leftLen == 0) leftLen = 1; if (leftLen > lineLength) leftLen = lineLength;
-      if (rightLen == 0) rightLen = 1; if (rightLen > lineLength) rightLen = lineLength;
+      if (leftLen == 0) leftLen = 1; if (leftLen > lineLength) return true;
+      if (rightLen == 0) rightLen = 1; if (rightLen > lineLength) return true;
+      double ratio = ((double) rightLen) / leftLen;
+      if (ratio > 1.0) ratio = 1/ratio;
 
-      return (leftLen + rightLen + getOpText().trim().length() + 1 > lineLength);
+      int myMaxLen = (ratio > SMALL_RATIO) ? lineLength : Math.round(lineLength * (1 + SMALL_RATIO));
+
+      return (leftLen + rightLen + getOpText().trim().length() + 1 > myMaxLen);
     }
 
     boolean increaseIndent(List<String> rhs_strings) {
@@ -1832,7 +1880,6 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
       int rhs_sz = rhs_strings.size();
 
       int leftLen = lhs_sz == 0 ? 0 : lhs_strings.get(lhs_sz-1).trim().length();
-      if (lhs_sz <= 1) leftLen += ppv_default.getCursorPos();
       int rightLen = rhs_sz == 0 ? 0 : rhs_strings.getFirst().trim().length();
 
       boolean hyph = doHyphenation(leftLen, rightLen, ppv_default.myLineLength) && !(rhs_sz > 0 && rhs_strings.getFirst().isEmpty());

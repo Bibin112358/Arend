@@ -69,5 +69,5 @@ class ArendPrintingOptions {
     var showCaseResultType = false
     var showLevels = false
     var showProofs = false
-    var allowLayout = false
+    var enableWrap = false
 }
