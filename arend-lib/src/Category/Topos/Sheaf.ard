@@ -20,9 +20,7 @@
 \import Set.SetCategory
 \import Set.Subset
 \import Topology.Locale
-\import Topology.Locale.LocaleCat
 \import Topology.Locale.PreorderSite
-\open CompleteLattice
 
 \record MatchingFamily.{s,o1,h1,o2,h2} {C : Precat.{o1,h1}} {D : Precat.{o2,h2}} (F : Functor C.op D) {J : \Type s} (x : C) (P : J -> ObOver x) (d : D)
   | \coerce family (j : J) : Hom d (F (P j).1)
@@ -208,8 +206,13 @@
   \lemma sheaf-matchingFamily {J : \Type s} {x : C} {P : J -> ObOver x} (x<=U : Covering x (TSetIm P)) {d : D} : IsEquiv (MatchingFamily.matchingFamily F x P d)
     => IsEquiv.trans (sheaf-covering x<=U) $ MatchingFamily.map.isEquiv {C} {D} {F} {J} {\Sigma (px : ObOver x) (TSetIm P px)} {\lam j => (P j, inP (j,idp))} \lam (_, inP (j,idp)) => inP (j,idp)
 
+  \sfunc sheaf-matchingFamily-surj {J : \Type s} {x : C} {P : J -> ObOver x} (x<=U : Covering x (TSetIm P)) {d : D}
+    (mf : MatchingFamily F x P d) : Given (h : Hom d (F x)) ∀ j (F.Func (P j).2 ∘ h = mf j)
+    => \have r => IsEquiv.splitSurj (sheaf-matchingFamily x<=U) mf
+       \in (r.1, \lam j => path \lam i => r.2 i j)
+
   \lemma direct_image.{s'} {C' : Site.{s',s'}} (f : SiteHom C' C) : VSheaf D C' (Comp F f.op) \cowith
-    | isSheaf {x} {S} xS {d} => IsEquiv.trans (isSheaf (f.Func-cover xS)) $
+    | isSheaf {x} {S} xS {d} => IsEquiv.trans (sheaf-covering (f.Func-cover xS)) $
         IsEquiv.trans (MatchingFamily.map.isEquiv {C} {D} {F} {Given S} {Given (py : ObOver (f x)) ∃ (px : S) (py = (f px.1, Func px.2))} {\lam s => (_, inP (s.1,s.2,idp))} \lam (_, inP (px,Spx,idp)) => inP ((px,Spx),idp)) $
         inP \new QEquiv {
           | f mf => \new MatchingFamily {
@@ -227,7 +230,7 @@
 } \where {
   \func restrict.{s,o,h} {L : Locale.{s}} (a : L) (F : VSheaf.{s,o,h} { | C => L }) : VSheaf F.D (L.restrict a) \cowith
     | F => Comp F Locale.restrict.functor.op
-    | isSheaf {x} {S} x<=S {d} => IsEquiv.trans (F.isSheaf {x.1} {\lam px => S ((px.1, px.2 <=∘ x.2), px.2)} (x<=S <=∘ SJoin-univ \lam {b} s => Join-cond $ later (s.1, transport S (ext $ ext idp) s.2))) $ inP \new QEquiv {
+    | isSheaf {x} {S} x<=S {d} => IsEquiv.trans (F.isSheaf {x.1} {\lam px => S ((px.1, px.2 <=∘ x.2), px.2)} (x<=S <=∘ L.SJoin-univ \lam {b} s => Join-cond $ later (s.1, transport S (ext $ ext idp) s.2))) $ inP \new QEquiv {
       | f mf => \new MatchingFamily {
         | family j => mf ((j.1.1.1, j.1.2), \box transport S (ext $ ext idp) j.2)
         | isMatching {j} {j'} _ => mf.isMatching {(j.1.1.1, j.1.2), _} {(j'.1.1.1, j'.1.2), _} prop-pi
@@ -298,47 +301,6 @@
 
     \lemma fromSheaf.{o,h,s} {C : PreorderSite.{s}} {D : Precat.{o,h}} {F : Functor C.op D} (FS : IsSheaf F) : IsPreorderSheaf F
       => \lam {x} {S} x<=S S<=x => FS {x} {\lam px => S px.1} $ transport (isBasicCover x) (ext \lam y => propExt (\lam Sy => (S<=x Sy, Sy)) __.2) x<=S
-  }
-
-\lemma SiteLocaleSheaf.{s,o,h} {P : PreorderSite.{s}} {D : CompleteCat.{s,o,h}} (F : Functor P.op D) (FS : IsPreorderSheaf F) : VSheaf D (SiteLocale P) extend \cowith
-  | isSheaf {U} {S} U<=S {d} =>
-    \let | cover {a} (Ua : U.1 a) : Covering a (\lam b => ∃ (V : Opens P) (V<=U : V <= U) (S (V,V<=U)) (V.1 b.1))
-            => Cover.Cover_Covering $ Cover.cover-sub (Cover.cover-down (U<=S Ua)) \lam {y} (inP (z, inP (V, (V<=U, SV), Vz), y<=z, y<=a)) => (y<=a, inP (V, V<=U, SV, V.2 $ cover-inj y<=z Vz))
-         | lim {U} => extend.lim U
-    \in IsEquiv.fromInjSurj (\lam {h} {h'} p => limUnique \lam j => (IsPreorderSheaf.makeSheaf FS).separated-covering (cover j.2) \lam {y} (inP (V,V<=U,SV,Vy)) =>
-        \have | q => lim.coneCoh {j} {y.1, V<=U Vy} y.2
-              | r => lim.limBeta (extend.cone V<=U) (y.1,Vy)
-        \in inv o-assoc *> pmap (`∘ h) q *> pmap (`∘ h) (inv r) *> o-assoc *> path (\lam i => lim.coneMap (y.1,Vy) ∘ p i (_,SV)) *> inv o-assoc *> pmap (`∘ h') r *> pmap (`∘ h') (inv q) *> o-assoc)
-      \lam mf =>
-        \have | mf' {a} (Ua : U.1 a) : MatchingFamily F {\Sigma (pa : ObOver a) (V : Opens P) (V<=U : V <= U) (S (V,V<=U)) (V.1 pa.1)} a __.1 d (\lam s => lim.coneMap (s.1.1, s.5) ∘ mf (_, s.4)) => \new MatchingFamily {
-                | isMatching {j} {j'} {z} {g} {g'} _ =>
-                  \have t => pmap ((lim {embed z}).coneMap (z, Cover.cover-refl idp) ∘) $ mf.isMatching {_,j.4} {_,j'.4} {embed z} {embed-univ $ j.2.2 $ cover-inj g j.5} {embed-univ $ j'.2.2 $ cover-inj g' j'.5} prop-pi
-                  \in inv o-assoc *> pmap (`∘ _) (lim.coneCoh {j.1.1, j.5} g) *> pmap (`∘ _) (inv $ (lim {embed z}).limBeta (extend.cone (embed-univ _)) _) *> o-assoc *> t *> inv o-assoc *> pmap (`∘ _) ((lim {embed z}).limBeta (extend.cone (embed-univ _)) _) *> pmap (`∘ _) (inv $ lim.coneCoh {j'.1.1, j'.5} g') *> o-assoc
-              }
-              | e {a} (Ua : U.1 a) => IsEquiv.splitSurj ((IsPreorderSheaf.makeSheaf FS).sheaf-matchingFamily (Covering.covering-sub (cover Ua) \lam {b} (inP (V,V<=U,SV,Vb)) => TSetIm-con $ later (b,V,V<=U,SV,Vb))) (mf' Ua)
-        \in inP (lim.limMap \new Cone {
-          | coneMap a => (e a.2).1
-          | coneCoh {j} {j'} j'<=j => (IsPreorderSheaf.makeSheaf FS).separated-covering (cover j'.2) \lam {y} (inP (V,V<=U,SV,Vy)) => inv o-assoc *> pmap (`∘ _) (inv Func-o) *> path (\lam i => (e j.2).2 i ((y.1, y.2 <=∘ j'<=j), V, V<=U, SV, Vy)) *> inv (path \lam i => (e j'.2).2 i (y, V, V<=U, SV, Vy))
-        }, exts \lam (V,SV) => limUnique \lam (y,Vy) => inv o-assoc *> pmap (`∘ _) (lim.limBeta (extend.cone V.2) (y,Vy)) *> lim.limBeta _ (y, V.2 Vy) *> inv (pmap (`∘ _) Func-id *> id-left) *> path (\lam i => (e (\box V.2 Vy)).2 i (ObOver.id, V.1, V.2, SV, Vy)))
-  \where {
-    \open SiteLocale
-
-    \func extend : Functor (SiteLocale P).op D \cowith
-      | F b => lim b
-      | Func {a} {b} b<=a => (lim b).limMap (cone b<=a)
-      | Func-id {b} => (lim b).limUniqueBeta \lam j => inv id-right
-      | Func-o {a} {b} {c} {b<=c} {a<=b} => (lim c).limUniqueBeta {lim a} \lam j => inv (pmap (`∘ _) ((lim c).limBeta (cone b<=c) j) *> (lim b).limBeta (cone a<=b) (j.1, b<=c j.2)) *> o-assoc
-      \where {
-        \func limFunctor (b : Opens P)
-          => Comp F (subPrecat.embedding \lam (t : Set.Total b.1) => t.1).op
-
-        \func lim (b : Opens P)
-          => D.limit (limFunctor b)
-
-        \func cone {a b : Opens P} (b<=a : b <= a) : Cone (limFunctor b) (lim a) \cowith
-          | coneMap (x,x<=b) => coneMap (later (x, b<=a x<=b))
-          | coneCoh {j} {j'} => \case \elim j, \elim j' \with { | (_,_), (_,_) => \lam h => coneCoh $ later h }
-      }
   }
 
 \lemma sheaf-reflect.{s,o,h} {C : Site.{s,s}} {D E : Cat.{o,h}} (G : Functor D E)

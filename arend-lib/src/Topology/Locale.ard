@@ -441,7 +441,7 @@
     | Func => func-<=
     | Func-id => idp
     | Func-o => idp
-    | Func-cover p => func-<= p <=∘ func-Join>= <=∘ SJoin-univ \lam s => Join-cond $ later (func-<= s.1, inP (_, s.2, idp))
+    | Func-cover p => Covering.covering-basic $ func-<= p <=∘ func-Join>= <=∘ SJoin-univ \lam s => Join-cond $ later (func-<= s.1, inP (_, s.2, idp))
     | Func-flat-terminal => Covering.covering-id $ inP (top, top-univ <=∘ func-top>=)
     | Func-flat-pullback {x} {y1} {y2} {y1<=x} {y2<=x} {u} {u<=Fy1} {u<=Fy2} _ => Covering.covering-id $ inP (y1 ∧ y2, meet-left, meet-right, prop-pi, meet-univ u<=Fy1 u<=Fy2 <=∘ func-meet>=, prop-pi, prop-pi)
 } \where {

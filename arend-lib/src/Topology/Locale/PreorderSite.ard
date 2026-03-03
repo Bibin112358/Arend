@@ -261,7 +261,7 @@
   | Func => func-<=
   | Func-id => prop-pi
   | Func-o => prop-pi
-  | Func-cover x<=P => transport (isBasicCover _)
+  | Func-cover x<=P => Covering.covering-basic $ transport (isBasicCover _)
     (ext \lam y => propExt
       (SetIm-elim $ later \lam {y} (y<=x,Py) => (func-<= y<=x, inP ((y,y<=x), Py, idp)))
       (\lam (y<=fx, inP (px,Ppx,y=Fpx)) => inP ((px.1, (px.2, Ppx)), inv $ pmap __.1 y=Fpx)))

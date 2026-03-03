@@ -45,7 +45,7 @@
     \lemma covering-id {x : C} {U : Presieve x} (Uid : U ObOver.id) : Covering x U
       => covering-inj (id x) (id x) id-left Uid
 
-    \lemma covering-baisc {x : C} {U : Presieve x} (x<=U : isCover x U) : Covering x U
+    \lemma covering-basic {x : C} {U : Presieve x} (x<=U : isCover x U) : Covering x U
       => covering-trans x<=U \lam {y} Uy => covering-id $ inP (y, Uy, id y.1, idp)
 
     \lemma covering-sub {x : C} {V U : Presieve x} (x<=V : Covering x V) (V<=U : V ⊆ U) : Covering x U \elim x<=V
@@ -61,6 +61,11 @@
             inP ((pz.1, pt.2 ∘ pz.2), inP (v, Vv, z>v ∘ pz>z, inv o-assoc *> pmap (`∘ _) z>v_t *> o-assoc *> pmap (_ ∘) pz>z_pt>t *> inv o-assoc *> pmap (`∘ _) pt>t_h *> o-assoc), id pz.1, id-right)
         }
       }
+
+    \lemma covering-stable-retract {x : C} {y : C} (g : Hom y x) (h : Hom x y) (h_g : h ∘ g = id y) {V : Presieve y}
+      (c : Covering x (\lam px => ∃ (py : V) (f : Hom px.1 py.1) (py.2 ∘ f = h ∘ px.2))) : Covering y V
+      => covering-refine (covering-stable g c) \lam {py} (inP (px, inP (v,Vv,px_v,px_v_h), py_px, py_px_g)) =>
+        inP (v, Vv, px_v ∘ py_px, inv o-assoc *> pmap (`∘ _) px_v_h *> o-assoc *> pmap (h ∘) py_px_g *> inv o-assoc *> pmap (`∘ _) h_g *> id-left)
 
     \lemma covering-refine {x : C} {V U : Presieve x} (x<=V : Covering x V) (V<=U : Presieve.Refines V U) : Covering x U \elim x<=V
       | covering-inj s p ps=id Vp => \case V<=U Vp \with {
