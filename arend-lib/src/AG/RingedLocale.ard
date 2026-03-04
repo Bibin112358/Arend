@@ -9,6 +9,7 @@
 \import Category
 \import Category.Functor
 \import Category.Topos.Sheaf
+\import Category.Topos.Sheaf.DenseExtend
 \import Category.Topos.Sheaf.LocalPredicate
 \import Equiv
 \import Equiv.Path

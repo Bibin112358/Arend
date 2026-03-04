@@ -15,6 +15,7 @@
 \import Relation.Equivalence
 \import Set
 \open Monoid
+\open SubMonoid
 
 -- | An abstract characterization of monoid localizations.
 \record MonoidLocalization {B : CMonoid} (S : SubMonoid B) (\coerce L : CMonoid) (\coerce inL : MonoidHom B L) {
@@ -79,7 +80,7 @@
         lift_inL-quot (contains_* Sc1 Sc2) (equation.cMonoid {func-*, p1, p2} *> inv func-*) *> {_} {_} {f (y1 * y2)} func-* *> equation.cMonoid {func-*, lift_inL-quot Sc1 p1, lift_inL-quot Sc2 p2}
     }
 } \where {
-  \lemma factor-right {M : CMonoid} (A B : MonoidLocalization {M}) (f : MonoidHom A B) (f_inL : \Pi (x : M) -> f (A x) = B x) : MonoidLocalization (SubMonoid.image A B.S) B f \cowith
+  \lemma factor-right {M : CMonoid} (A B : MonoidLocalization {M}) (f : MonoidHom A B) (f_inL : \Pi (x : M) -> f (A x) = B x) : MonoidLocalization (image A B.S) B f \cowith
     | localization-inv {_} (inP (x,Sx,idp)) => rewrite f_inL (localization-inv Sx)
     | localization-inj {x} {y} fx=fy => \case A.localization-surj x, A.localization-surj y \with {
       | inP (a,c,Sc,p), inP (b,d,Sd,q) =>
@@ -94,6 +95,23 @@
     }
     | localization-surj z => \case B.localization-surj z \with {
       | inP (x,c,Sc,p) => inP (A x, A c, inP (c,Sc,idp), pmap (z *) (f_inL c) *> p *> inv (f_inL x))
+    }
+
+  \lemma comp1 {M : CMonoid} {a b : M} (A : MonoidLocalization (powers a)) (B : MonoidLocalization (powers (A b)))
+    : MonoidLocalization (powers (a * b)) B.L (B.inL MonoidHom.∘ A.inL) \cowith
+    | localization-inv {_} (inP (n,idp)) => transportInv Inv (B.inL MonoidHom.∘ A.inL).func-pow $ Inv.Inv_pow $
+      transportInv Inv (B.inL MonoidHom.∘ A.inL).func-* $ Inv.Inv_* (B.inL.func-Inv $ A.localization-inv $ inP (1, ide-left)) $ B.localization-inv (inP (1, ide-left))
+    | localization-inj BAx=Bay => \case B.localization-inj BAx=Bay \with {
+      | inP (_, inP (n,idp), p) => \case A.localization-inj $ func-* *> pmap (_ *) A.inL.func-pow *> p *> pmap (_ *) (inv inL.func-pow) *> inv func-* \with {
+        | inP (_, inP (k,idp), q) => inP (_, inP (n Nat.+ k, idp), equation.cMonoid {pow_+, M.pow_*-comm {a} {b} {n}, M.pow_*-comm {a} {b} {k}, q})
+      }
+    }
+    | localization-surj x => \case B.localization-surj x \with {
+      | inP (y, _, inP (n,idp), p) => \case A.localization-surj y \with {
+        | inP (z, _, inP (k,idp), q) => inP (z * pow b k * pow a n, _, inP (n Nat.+ k, idp), unfold $
+          rewrite (A.inL.func-*, A.inL.func-*, inv q, A.L.*-assoc {y}, inv A.inL.func-*, inv M.pow_*-comm, *-assoc, B.inL.func-*, inv p) $
+          pmap (x *) (pmap B (pmap A (pow_+ *> *-comm *> pmap (_ *) M.pow_*-comm) *> func-* *> pmap (_ *) func-* *> inv *-assoc *> pmap (_ *) A.inL.func-pow *> *-comm) *> B.inL.func-*) *> inv *-assoc)
+      }
     }
 
   \lemma lift-double {M K : CMonoid} (A : MonoidLocalization {M}) (B : MonoidLocalization {A}) (C : MonoidLocalization {M} { | L => B }) (AB=C : \Pi (x : M) -> B (A x) = C x)

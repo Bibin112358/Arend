@@ -114,7 +114,7 @@
 
   \type \infix 4 << (x y : E) => \Pi {U : E -> \Prop} -> y <= Join U -> ∃ (l : Array E) (∀ (a : l) (U a)) (x <= IJoin l)
 
-  \lemma <<-char {x y : E} : x << y <-> ∀ {U : E -> \Prop} (y <= Join U) ∃ (V : KFinSetOf E) (V ⊆ U) (x <= Join V)
+  \protected \lemma <<-char {x y : E} : x << y <-> ∀ {U : E -> \Prop} (y <= Join U) ∃ (V : KFinSetOf E) (V ⊆ U) (x <= Join V)
     => (\lam x<<y y<=U => \case x<<y y<=U \with {
       | inP (l,l<=U,x<=l) => inP (KFinSetOf.fromArray l, unfolds $ TSetIm-elim l<=U, x<=l)
     }, \lam x<<y y<=U => \case x<<y y<=U \with {

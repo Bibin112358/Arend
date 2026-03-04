@@ -1,0 +1,149 @@
+\import AG.RingedLocale
+\import AG.Scheme
+\import Algebra.Group
+\import Algebra.Group.GroupHom
+\import Algebra.Meta
+\import Algebra.Monoid
+\import Algebra.Monoid.Localization
+\import Algebra.Monoid.MonoidHom
+\import Algebra.Monoid.Sub
+\import Algebra.Pointed
+\import Algebra.Pointed.PointedHom
+\import Algebra.Ring
+\import Algebra.Ring.Localization
+\import Algebra.Ring.RingCategory
+\import Algebra.Ring.RingHom
+\import Category.Functor
+\import Category.Topos.Sheaf
+\import Equiv
+\import Function.Meta
+\import Logic
+\import Logic.Meta
+\import Logic.Unique
+\import Meta
+\import Order.PartialOrder
+\import Paths
+\import Paths.Meta
+\import Set.Subset
+\import Topology.Locale
+\import Topology.Locale.PreorderSite
+\open SubMonoid(powers)
+\open Monoid
+
+\record SchemeSite.{s} (\coerce P : Preorder.{s}) (R : Functor P.op CRingBicat.{s}) {
+  | loc-restrict {a b : P} (p : b <= a) : ∃ (x : R a) (RingLocalization (powers x) (R b) (R.Func p))
+  | loc-stable {a' a b : P} (r : a' <= a) (p : b <= a) {x : R a} : RingLocalization (powers x) (R b) (R.Func p) ->
+    ∃ (b' : P) (p' : b' <= a') (b' <= b) (RingLocalization (powers (R.Func r x)) (R b') (R.Func p'))
+  | loc-exists {a : P} (x : R a) : ∃ (b : P) (p : b <= a) (RingLocalization (powers x) (R b) (R.Func p))
+
+  \func toSite : PreorderSite \cowith
+    | Preorder => P
+    | isBasicCover a U => Given (0 = {R a} 1) (U = empty) || Given (x y : R a) (x + y = 1) (b c : P) (ba : b <= a) (ca : c <= a)
+      (RingLocalization (powers x) (R b) (R.Func ba)) (RingLocalization (powers y) (R c) (R.Func ca)) (U = \lam z => (b = z) || (c = z))
+    | basic-cover-stable {a'} {a} a'<=a {U} => \case \elim U, \elim __ \with {
+      | _, byLeft (at,idp) => inP (_, byLeft (inv func-zro *> pmap (R.Func a'<=a) at *> func-ide, idp), Refines-refl, absurd __)
+      | _, byRight (x,y,x+y=1,b,c,ba,ca,bl,cl,idp) => \case loc-stable a'<=a ba bl, loc-stable a'<=a ca cl \with {
+        | inP (b',b'a',b'b,b'l), inP (c',c'a',c'c,c'l) => inP (_, byRight (_, _, inv func-+ *> pmap (R.Func a'<=a) x+y=1 *> func-ide, b', c', b'a', c'a', b'l, c'l, idp), \lam {x} => \case \elim x, \elim __ \with {
+          | _, byLeft idp => inP (b, byLeft idp, b'b)
+          | _, byRight idp => inP (c, byRight idp, c'c)
+        }, \lam {t} => \case \elim t, \elim __ \with {
+          | _, byLeft idp => b'a'
+          | _, byRight idp => c'a'
+        })
+      }
+    }
+
+  \func toLRLSite : LocallyRingedSite toSite R \cowith
+    | R-sheaf => IsPreorderSheaf.fromSheaf (sheaf-reflect CRingCat.forget forget.reflectsLimit (IsPreorderSheaf.toSheaf setPreorderSheaf)) __
+    | isNonTrivialPres a at => Cover.cover-basic $ byLeft (at,idp)
+    | isLocallyRingedPres a x => \case loc-exists (negative x), loc-exists (x + 1) \with {
+      | inP (b,ba,bl), inP (c,ca,cl) => cover-trans (byRight (negative x, x + 1, equation.abGroup, b, c, ba, ca, bl, cl, idp))
+        \lam {t} e => Cover.cover-refl \case \elim t, \elim e \with {
+          | _, byLeft idp => (ba, byLeft $ Ring.Inv_negative $ transport Inv AddGroupHom.func-negative $ bl.localization-inv $ inP (1, ide-left))
+          | _, byRight idp => (ca, byRight $ cl.localization-inv $ inP (1, ide-left))
+        }
+    }
+    \where {
+      \private \lemma setPreorderSheaf : IsPreorderSheaf {toSite} (Comp forget.{s} R)
+        => \lam {a} {S} a<=S _ {D} => IsPreorderSheaf.SetSheafCond a S \case \elim S, \elim a<=S \with {
+          | _, byLeft (at,idp) => contr-equiv (pi-Contr _ \lam _ => Ring.trivial-char.1 at) $ later \new Contr {
+            | center => \new MatchingFamily {
+              | family j => \case j.2
+              | isMatching {j} => \case j.2
+            }
+            | contraction mf => exts \lam j => \case j.2
+          }
+          | _, byRight (x,y,x+y=1,b,c,ba,ca,bl,cl,idp) => IsEquiv.fromInjSurj
+            (\lam {h} {h'} p => ext \lam _ => localization-merge-unique x+y=1 bl cl
+              (path \lam i => p i ((b,ba), byLeft idp) ()) (path \lam i => p i ((c,ca), byRight idp) ()))
+            \lam mf => \case loc-stable ba ca cl \with {
+              | inP (d,db,dc,dl) => \case localization-merge x+y=1 bl cl dl (R.Func dc)
+                    (\lam z => inv (path \lam i => R.Func-o i z) *> pmap (R.Func __ z) prop-pi *> path \lam i => R.Func-o i z)
+                    (path \lam i => mf.isMatching prop-pi i ()) \with {
+                | inP (r,q1,q2) => inP (\lam _ => r, later $ exts \lam j =>
+                  \have je : (j = ((b,ba), byLeft idp)) || (j = ((c,ca), byRight idp)) => \case \elim j \with {
+                    | ((_,t), byLeft idp) => byLeft $ ext (ext idp)
+                    | ((_,t), byRight idp) => byRight $ ext (ext idp)
+                  }
+                  \in \case \elim j, \elim je \with {
+                    | _, byLeft idp => ext \lam _ => q1
+                    | _, byRight idp => ext \lam _ => q2
+                  })
+              }
+            }
+        }
+    }
+
+  \func toLocale : Locale
+    => SiteLocale toSite
+
+  \func toLRL : LocallyRingedLocale
+    => toLRLSite.toLocale
+} \where {
+  \open CRingCat(forget)
+
+  \lemma pow-lin-comb {R : CRing} (x y : R) (n m : Nat) : ∃ (t s : R) (k : Nat) (pow (x + y) k = t * pow x n + s * pow y m) \elim n
+    | 0 => inP (1, 0, 0, simplify)
+    | suc n => \case pow-lin-comb x y n m, sum-factor m \with {
+      | inP (t,s,k,p), inP (c,q) => inP (t * c, pow (x + y) k + s * c * x, k Nat.+ m, pow_+ *> equation.cRing {p,q})
+    }
+    \where {
+      \protected \lemma sum-factor (m : Nat) : ∃ (c : R) (pow (x + y) m = c * x + pow y m) \elim m
+        | 0 => inP (0, simplify)
+        | suc m => \case sum-factor m \with {
+          | inP (c,p) => inP (c * y + pow (x + y) m, equation.cRing {p})
+        }
+    }
+
+  \lemma pow-lin-comb1 {R : CRing} {x y : R} (x+y=1 : x + y = 1) (n m : Nat) : ∃ (t s : R) (t * pow x n + s * pow y m = 1)
+    => \case pow-lin-comb x y n m \with {
+      | inP (t,s,k,p) => inP (t, s, inv p *> pmap (pow __ k) x+y=1 *> pow_ide)
+    }
+
+  \lemma localization-merge-unique {R : CRing} {x0 y0 : R} (x0+y0=1 : x0 + y0 = 1) (A : RingLocalization (powers x0)) (B : RingLocalization (powers y0))
+                                   {x y : R} (Axy : A x = A y) (Bxy : B x = B y) : x = y
+    => \case localization-inj Axy, localization-inj Bxy \with {
+      | inP (_, inP (n,idp), p), inP (_, inP (m,idp), q) => \case pow-lin-comb1 x0+y0=1 n m \with {
+        | inP (t,s,r) => equation.cRing {inv r, p, q}
+      }
+    }
+
+  \lemma localization-merge {R : CRing} {x y : R} (x+y=1 : x + y = 1)
+    (A : RingLocalization (powers x)) (B : RingLocalization (powers y))
+    (T : RingLocalization (powers (A y))) (S : RingHom B.L T.L) (coh : \Pi (z : R) -> T (A z) = S (B z))
+    {a : A} {b : B} (Ta=Sb : T a = S b) : ∃ (r : R) (A r = a) (B r = b)
+    => \have | (inP (a', _, inP (n,idp), ax^n=a')) => localization-surj a
+             | (inP (b', _, inP (m,idp), by^m=b')) => localization-surj b
+             | am : T (A (a' * pow y m)) = T (A (b' * pow x n))
+                  => pmap T (func-* *> pmap (`* _) (inv ax^n=a')) *> func-* *> pmap (`* _) func-* *> *-assoc *>
+                     pmap2 (*) Ta=Sb (*-comm *> pmap2 (*) (coh _) (coh _)) *> inv *-assoc *> pmap (`* _) (inv func-*) *>
+                     inv func-* *> pmap S (pmap (`* _) by^m=b' *> inv func-*) *> inv (coh _)
+             | (inP (_, inP (k,idp), p)) => (RingLocalization.comp1 A T).localization-inj am
+             | (inP (t,s,q)) => pow-lin-comb1 x+y=1 (n Nat.+ k) (m Nat.+ k)
+       \in rewrite R.pow_*-comm at p $ rewrite (pow_+,pow_+) at q $
+           inP (t * a' * pow x k + s * b' * pow y k,
+                (A.localization-inv (inP (n,idp))).inv-cancel-right $ inv func-* *> (A.localization-inv (inP (k,idp))).inv-cancel-right
+                  (inv func-* *> pmap A (equation.cRing {inv p, q}) *> func-*) *> inv ax^n=a',
+                (B.localization-inv (inP (m,idp))).inv-cancel-right $ inv func-* *> (B.localization-inv (inP (k,idp))).inv-cancel-right
+                  (inv func-* *> pmap B (equation.cRing {p, q}) *> func-*) *> inv by^m=b')
+}

@@ -296,6 +296,10 @@
     \lemma Inv_* {M : Monoid} {x y : M} (xi : Inv x) (yi : Inv y) : Inv (x * y)
       => product xi yi
 
+    \lemma Inv_pow {M : Monoid} {x : M} (xi : Inv x) {n : Nat} : Inv (M.pow x n) \elim n
+      | 0 => ide-isInv
+      | suc n => Inv_* (Inv_pow xi) xi
+
     \lemma prod {M : Monoid} (i j : Inv {M}) : Inv (i * j) (j.inv * i.inv) => product.func
 
       \lemma factor-right {M : Monoid} {x y : M} (i : LInv x) (j : Inv (x * y)) : Inv y \cowith

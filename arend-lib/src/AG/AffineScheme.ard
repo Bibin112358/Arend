@@ -153,8 +153,8 @@
     \lemma pow-lin-comb {R : CRing} (a b : R) (n m : Nat) : ∃ (t s : R) (k : Nat) (pow (a + b) k = t * pow a n + s * pow b m)
       => \have cover : Cover {SpecSite R} (a + b) (\lam z => (pow a n = z) || (pow b m = z)) => cover-trans (byRight (a,b,idp,idp)) \lam {t} e =>
               \case \elim t, \elim e \with {
-                | _, byLeft idp => Cover.cover-trans1 SpecSite.cover_*-left $ Cover.cover-trans1 (SpecSite.cover_pow n) $ Cover.cover-refl (byLeft idp)
-                | _, byRight idp => Cover.cover-trans1 SpecSite.cover_*-left $ Cover.cover-trans1 (SpecSite.cover_pow m) $ Cover.cover-refl (byRight idp)
+                | _, byLeft idp => Cover.cover-left SpecSite.cover_*-left $ Cover.cover-trans1 (SpecSite.cover_pow n) $ Cover.cover-refl (byLeft idp)
+                | _, byRight idp => Cover.cover-left SpecSite.cover_*-left $ Cover.cover-trans1 (SpecSite.cover_pow m) $ Cover.cover-refl (byRight idp)
               }
          \in \case SpecSite.cover_ideal cover \with {
             | inP (k,t) => \case Ideal.sclosure2-lem.1 t \with {

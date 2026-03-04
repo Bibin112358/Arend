@@ -22,6 +22,7 @@
 \import Relation.Equivalence
 \import Set
 \open Monoid
+\open SubMonoid
 
 \record RingLocalization \extends MonoidLocalization {
   \override B : CRing
@@ -71,8 +72,12 @@
         }
     })
 } \where {
-  \lemma factor-right {R : CRing} (A B : RingLocalization {R}) (f : RingHom A.L B.L) (f_inL : \Pi (x : R) -> f (A x) = B x) : RingLocalization (SubMonoid.image A B.S) B.L f \cowith
+  \lemma factor-right {R : CRing} (A B : RingLocalization {R}) (f : RingHom A.L B.L) (f_inL : \Pi (x : R) -> f (A x) = B x) : RingLocalization (image A B.S) B.L f \cowith
     | MonoidLocalization => MonoidLocalization.factor-right A B f f_inL
+
+  \lemma comp1 {R : CRing} {a b : R} (A : RingLocalization (powers a)) (B : RingLocalization (powers (A b)))
+    : RingLocalization (powers (a * b)) B.L (B.inL RingHom.∘ A.inL) \cowith
+    | MonoidLocalization => MonoidLocalization.comp1 A B
 }
 
 \instance LocRing {R : CRing} (S : SubMonoid R) : CRing \cowith
