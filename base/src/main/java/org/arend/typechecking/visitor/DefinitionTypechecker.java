@@ -2589,7 +2589,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
         ClassDefinition originalSuperClass = null;
         PiExpression type = null;
         for (ClassDefinition superClass : typedDef.getSuperClasses()) {
-          PiExpression superType = superClass.getOverriddenType(field);
+          PiExpression superType = superClass.getOverriddenType(field, superClass.makeIdLevels());
           if (superType != null) {
             if (type == null) {
               originalSuperClass = superClass;
