@@ -1,71 +1,7 @@
-\import AG.AffineScheme
 \import AG.RingedLocale
-\import AG.RingedLocale.RingedLocaleCat
-\import Algebra.Monoid
-\import Algebra.Monoid.MonoidHom
-\import Algebra.Pointed
-\import Algebra.Pointed.PointedHom
-\import Algebra.Ring
-\import Algebra.Ring.RingCategory
-\import Algebra.Ring.RingHom
-\import Category
-\import Category.Topos.Sheaf
-\import Function.Meta
-\import Logic
-\import Meta
 \import Order.Lattice
 \import Order.Lattice.CompleteLattice
 \import Order.PartialOrder
-\import Paths
-\import Paths.Meta
-\import Topology.Locale
-\import Topology.Locale.LocaleCat
-\import Topology.Locale.PreorderSite
-\open Monoid
 
 \record Scheme \extends LocallyRingedLocale
-  | isLocallyAffine : top <= Join (\lam U => IsAffineScheme (VSheaf.restrict U R))
-  | isLRLNonTrivial a p => meet-univ (top-univ <=∘ isLocallyAffine) <=-refl <=∘ L.Join-rdistr>= <=∘ L.SJoin-univ (later \lam {b} (inP (R',q)) =>
-    \have t => transportInv (\lam (x : RingedLocale) => \Pi (a : x.L) -> 0 = {x.R.F a} 1 -> a <= bottom) q (AffineLRL R').isLRLNonTrivial
-    \in t (b ∧ a, meet-left) (inv func-zro *> pmap (R.F.Func (meet-right {_} {b})) p *> func-ide) <=∘ L.SJoin-univ (later \case __))
-  | isLocallyRinged a x => meet-univ (top-univ <=∘ isLocallyAffine) <=-refl <=∘ L.Join-rdistr>= <=∘ L.SJoin-univ (later \lam {b} (inP (R',q)) =>
-    \have t => transportInv (\lam (x : RingedLocale) => \Pi (a : x.L) (y : x.R.F a) -> a <= Join (\lam b => \Sigma (p : b <= a) (Inv (x.R.F.Func p y) || Inv (x.R.F.Func p (y + 1))))) q (AffineLRL R').isLocallyRinged
-    \in t (b ∧ a, meet-left) (R.F.Func meet-right x) <=∘ L.SJoin-univ (later \lam {(c,c<=b)} s => Join-cond (s.1 <=∘ meet-right, \case s.2 \with {
-      | byLeft e => byLeft $ transportInv (\lam (f : RingHom (R a) (R c)) => Inv (f x)) R.F.Func-o e
-      | byRight e => byRight $ transportInv (\lam (f : RingHom (R a) (R c)) => Inv (f (x + 1))) R.F.Func-o $ transportInv (\lam x => Inv (R.F.Func s.1 x)) (func-+ *> pmap (_ +) func-ide) e
-    })))
-
-\func AffineScheme (R : CRing) : Scheme \cowith
-  | RingedLocale => AffineLRL R
-  | isLocallyAffine {x} _ => Cover.cover-refl $ inP (top, transportInv IsAffineScheme (RingedLocaleCat.isotoid $ restrict_iso (AffineLRL R).R) AffineLRL.isAffineScheme, ())
-  \where {
-    \func locale_iso {L : Locale} : Iso {LocaleCat} {L.restrict L.top} {L} \cowith
-      | f => Locale.restrict.map
-      | hinv => \new FrameHom {
-        | func x => x.1
-        | func-top => idp
-        | func-meet => idp
-        | func-Join => idp
-      }
-      | hinv_f => exts \lam p => ext L.top-right
-      | f_hinv => exts \lam x => L.top-right
-
-    \func restrict_map.{s} {L : Locale.{s}} (a : L) (S : VSheaf CRingCat.{s} L) : RingedLocaleHom (\new RingedLocale (L.restrict a) (VSheaf.restrict a S)) (\new RingedLocale L S) \cowith
-      | f => Locale.restrict.map
-      | f# {
-        | trans b => S.F.Func meet-left
-        | natural h => inv S.F.Func-o *> pmap S.F.Func prop-pi *> S.F.Func-o
-      }
-
-    \func restrict_iso.{s} {L : Locale.{s}} (S : VSheaf CRingCat.{s} L) : Iso {RingedLocalePrecat.{s}} {VSheaf.restrict L.top S} {S} \cowith
-      | f => restrict_map L.top S
-      | hinv : RingedLocaleHom => \new RingedLocaleHom S (VSheaf.restrict L.top S) {
-        | f => locale_iso.hinv
-        | f# {
-          | trans p => id _
-          | natural h => id-left *> pmap S.F.Func prop-pi *> Paths.inv id-right
-        }
-      }
-      | hinv_f => RingedLocaleHom.ext (hinv RingedLocalePrecat.∘ restrict_map L.top S) _ locale_iso.hinv_f \lam p x => pmap (S.F.Func __ x) prop-pi
-      | f_hinv => RingedLocaleHom.ext (restrict_map L.top S RingedLocalePrecat.∘ hinv) _ locale_iso.f_hinv \lam a x => pmap (S.F.Func __ x) prop-pi
-  }
+  | isLocallyAffine : top <= Join IsAffineOpen

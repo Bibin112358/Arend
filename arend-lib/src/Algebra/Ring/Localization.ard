@@ -12,6 +12,7 @@
 \import Algebra.Ring
 \import Algebra.Ring.Local
 \import Algebra.Ring.RingHom
+\import Equiv
 \import Function.Meta
 \import Logic.Meta
 \import Logic.Unique
@@ -78,6 +79,28 @@
   \lemma comp1 {R : CRing} {a b : R} (A : RingLocalization (powers a)) (B : RingLocalization (powers (A b)))
     : RingLocalization (powers (a * b)) B.L (B.inL RingHom.∘ A.inL) \cowith
     | MonoidLocalization => MonoidLocalization.comp1 A B
+
+  \lemma equiv-transport {R S : CRing} (L : RingLocalization {}) (f : MonoidHom L.B R) (fe : IsEquiv f)
+                         (g : MonoidHom L.L S) (ge : IsEquiv g) {h : RingHom R S} (coh : \Pi (x : L.B) -> h (f x) = g (L x))
+    : RingLocalization (image f L.S) S h \cowith
+    | MonoidLocalization => MonoidLocalization.equiv-transport L f fe g ge coh
+    \where {
+      \protected \lemma reverse {B R T : CRing} (f : RingHom R B) (fe : IsEquiv f) {S : SubMonoid R} (L : RingLocalization (image f S))
+                                (g : RingHom T L.L) (ge : IsEquiv g) {h : RingHom R T} (coh : \Pi (x : R) -> L (f x) = g (h x))
+        : RingLocalization S T h \cowith
+        | MonoidLocalization => MonoidLocalization.equiv-transport.reverse f fe L g ge coh
+    }
+
+  \lemma equiv-transport1 {B R S : CRing} {x : B} (L : RingLocalization (powers x)) (f : MonoidHom B R) (fe : IsEquiv f)
+                          (g : MonoidHom L.L S) (ge : IsEquiv g) {h : RingHom R S} (coh : \Pi (x : B) -> h (f x) = g (L x))
+    : RingLocalization (powers (f x)) S h \cowith
+    | MonoidLocalization => MonoidLocalization.equiv-transport1 L f fe g ge coh
+    \where {
+      \protected \lemma reverse {B R S : CRing} {x : R} (f : MonoidHom R B) (fe : IsEquiv f) (L : RingLocalization (powers (f x)))
+                                (g : MonoidHom S L.L) (ge : IsEquiv g) {h : RingHom R S} (coh : \Pi (x : R) -> L (f x) = g (h x))
+        : RingLocalization (powers x) S h \cowith
+        | MonoidLocalization => MonoidLocalization.equiv-transport1.reverse f fe L g ge coh
+    }
 }
 
 \instance LocRing {R : CRing} (S : SubMonoid R) : CRing \cowith

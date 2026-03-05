@@ -4,6 +4,7 @@
 \import Algebra.Monoid.Sub
 \import Algebra.Pointed
 \import Algebra.Pointed.Sub
+\import Equiv
 \import Function
 \import Function.Meta
 \import Logic
@@ -112,6 +113,40 @@
           rewrite (A.inL.func-*, A.inL.func-*, inv q, A.L.*-assoc {y}, inv A.inL.func-*, inv M.pow_*-comm, *-assoc, B.inL.func-*, inv p) $
           pmap (x *) (pmap B (pmap A (pow_+ *> *-comm *> pmap (_ *) M.pow_*-comm) *> func-* *> pmap (_ *) func-* *> inv *-assoc *> pmap (_ *) A.inL.func-pow *> *-comm) *> B.inL.func-*) *> inv *-assoc)
       }
+    }
+
+  \lemma equiv-transport {M N : CMonoid} (L : MonoidLocalization {}) (f : MonoidHom L.B M) (fe : IsEquiv f)
+                         (g : MonoidHom L.L N) (ge : IsEquiv g) {h : MonoidHom M N} (coh : \Pi (x : L.B) -> h (f x) = g (L x))
+    : MonoidLocalization (image f L.S) N h \cowith
+    | localization-inv (inP (y,Sy,fy=x)) => rewrite (inv fy=x, coh y) $ g.func-Inv $ L.localization-inv Sy
+    | localization-inj {x} {y} hx=hy => \case L.localization-inj $ IsEquiv.isInj ge $ inv (coh _) *> pmap h (IsEquiv.f_ret fe) *> hx=hy *> pmap h (inv (IsEquiv.f_ret fe)) *> coh _ \with {
+      | inP (c,Sc,q) => inP (f c, inP (c,Sc,idp), inv (func-* *> pmap (`* _) (IsEquiv.f_ret fe)) *> pmap f q *> func-* *> pmap (`* _) (IsEquiv.f_ret fe))
+    }
+    | localization-surj z => \case L.localization-surj (IsEquiv.ret ge z) \with {
+      | inP (y,c,Sc,q) => inP (f y, f c, inP (c,Sc,idp), inv (func-* *> pmap2 (*) (IsEquiv.f_ret ge) (inv (coh c))) *> pmap g q *> inv (coh y))
+    }
+    \where {
+      \protected \lemma reverse {B M N : CMonoid} (f : MonoidHom M B) (fe : IsEquiv f) {S : SubMonoid M} (L : MonoidLocalization (image f S))
+                                (g : MonoidHom N L.L) (ge : IsEquiv g) {h : MonoidHom M N} (coh : \Pi (x : M) -> L (f x) = g (h x))
+        : MonoidLocalization S N h
+        => transport (MonoidLocalization __ N h) (exts \lam x => propExt (\lam (inP (_, inP (y,Sy,idp), p)) => transport S (inv (IsEquiv.ret_f fe) *> p) Sy) (\lam Sx => inP (_, inP (x,Sx,idp), IsEquiv.ret_f fe))) $
+            equiv-transport L (f.equiv-hom fe) (IsEquiv.ret-equiv fe) (g.equiv-hom ge) (IsEquiv.ret-equiv ge)
+              \lam x => IsEquiv.isInj ge $ inv (coh _) *> pmap L (IsEquiv.f_ret fe) *> inv (IsEquiv.f_ret ge)
+    }
+
+  \lemma equiv-transport1 {B M N : CMonoid} {x : B} (L : MonoidLocalization (powers x)) (f : MonoidHom B M) (fe : IsEquiv f)
+                          (g : MonoidHom L.L N) (ge : IsEquiv g) {h : MonoidHom M N} (coh : \Pi (x : B) -> h (f x) = g (L x))
+    : MonoidLocalization (powers (f x)) N h
+    => transport (MonoidLocalization __ N h)
+        (exts \lam y => propExt (\lam (inP (_, inP (n,idp), p)) => inP (n, inv f.func-pow *> p)) \lam (inP (n,p)) => inP (_, inP (n,idp), f.func-pow *> p))
+        (equiv-transport L f fe g ge coh)
+    \where {
+      \protected \lemma reverse {B M N : CMonoid} {x : M} (f : MonoidHom M B) (fe : IsEquiv f) (L : MonoidLocalization (powers (f x)))
+                                (g : MonoidHom N L.L) (ge : IsEquiv g) {h : MonoidHom M N} (coh : \Pi (x : M) -> L (f x) = g (h x))
+        : MonoidLocalization (powers x) N h
+        => transport (\lam y => MonoidLocalization (powers y) N h) (IsEquiv.ret_f fe) $
+            equiv-transport1 L (f.equiv-hom fe) (IsEquiv.ret-equiv fe) (g.equiv-hom ge) (IsEquiv.ret-equiv ge)
+              \lam x => IsEquiv.isInj ge $ inv (coh _) *> pmap L (IsEquiv.f_ret fe) *> inv (IsEquiv.f_ret ge)
     }
 
   \lemma lift-double {M K : CMonoid} (A : MonoidLocalization {M}) (B : MonoidLocalization {A}) (C : MonoidLocalization {M} { | L => B }) (AB=C : \Pi (x : M) -> B (A x) = C x)

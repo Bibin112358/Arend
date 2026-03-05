@@ -18,7 +18,7 @@
 \import Set.Subset
 \import Topology.Locale.PreorderSite
 
-\lemma denseSite-FF.{o,h,o1,h1,o2,h2} (f : DenseSitePrehom) {E : Precat.{o,h}} {F : Functor f.D.op E} {G : Functor f.D.op E} (G-sheaf : IsSheaf G)
+\lemma denseSite-FF.{o,h,o1,h1,o2,h2} (f : DenseSitePrehom.{o1,h1,o2,h2}) {E : Precat.{o,h}} {F : Functor f.D.op E} {G : Functor f.D.op E} (G-sheaf : IsSheaf G)
   : IsEquiv {NatTrans F G} {NatTrans (Comp F f.op) (Comp G f.op)} (\lam a => NatTrans.Comp-left a f.op)
   => \let GS => \new VSheaf E f.D G G-sheaf
      \in IsEquiv.fromInjSurj (\lam {alpha} {beta} p => exts \lam y => GS.separated-covering f.Func-dense-image \lam {py} (inP (x,py=fx)) => inv (alpha.natural py.2) *> pmap (`∘ _) (NatTrans.equals-mono {f.D.op} {E} {F} {G} (Iso.reverse {Iso.op {py=fx}}) $ unfold in path \lam i => p i x) *> beta.natural py.2)
@@ -36,6 +36,15 @@
                    | natural {y} {y'} g => GS.separated-covering f.Func-dense-image \lam {u} (inP (x,u=fx)) => (G.Func-iso $ Iso.reverse {Iso.op {u=fx}}).isMono $
                      inv o-assoc *> pmap (`∘ _) (inv G.Func-o) *> inv o-assoc *> pmap (`∘ _) ((e y').2 (x, _)) *> o-assoc *> pmap (_ ∘) (inv F.Func-o) *> inv ((e y).2 (x, _)) *> pmap (`∘ _) G.Func-o *> o-assoc *> pmap (`∘ _) G.Func-o *> o-assoc
                  }, exts \lam x => inv (pmap (`∘ _) G.Func-id *> id-left) *> (e (f x)).2 (x, id _) *> pmap (_ ∘) F.Func-id *> id-right)
+
+{-
+\func denseSite-sheaf.{s,o,h,o} (f : DenseSitePrehom.{s,s,o,s}) {D : CompletePrecat.{s,o,h}} (S : VSheaf D f.C) : VSheaf D f.D (RightKanExt D f.op S.F) \cowith
+  | isSheaf {c} {U} c<=U {d} =>
+    \have lim {b} => RightKanExt.lim {_} {_} {_} {f.op} S.F b
+    \in IsEquiv.fromInjSurj (\lam {h} {h'} p => limUnique \lam j => (unfolds,unfold) at j $
+      \let t => path (\lam i => p i {?})
+      \in unfold $ unfold {?}) {?}
+-}
 
 -- TODO: Genralize this from the map P -> SiteLocale P to a dense morphism of sites
 \lemma SiteLocaleSheaf.{s,o,h} {P : PreorderSite.{s}} {D : CompleteCat.{s,o,h}} (F : Functor P.op D) (FS : IsPreorderSheaf F) : VSheaf D (SiteLocale P) extend \cowith
@@ -77,4 +86,37 @@
           | coneMap (x,x<=b) => coneMap (later (x, b<=a x<=b))
           | coneCoh {j} {j'} => \case \elim j, \elim j' \with { | (_,_), (_,_) => \lam h => coneCoh $ later h }
       }
+
+    \func embedProj (a : P) : Hom (extend (embed a)) (F a)
+      => (extend.lim (embed a)).coneMap (a, Cover.cover-refl idp)
+
+    \lemma embed-natural {a b : P} (b<=a : b <= a)
+      : F.Func b<=a ∘ embedProj a = embedProj b ∘ extend.Func {embed a} (embed-univ (cover-inj b<=a idp))
+      => (extend.lim (embed a)).coneCoh b<=a *> inv ((extend.lim (embed b)).limBeta (extend.cone (embed-univ _)) _)
+
+    \sfunc cover-restrict (FS : IsPreorderSheaf F) {a b : P} (ba : Cover1 b a)
+      : Given (r : Hom (F a) (F b)) ∀ {x} (xb : x <= b) (xa : x <= a) (F.Func xb ∘ r = F.Func xa)
+      => \have | cov : Covering b (\lam u => u.1 <= a) => Cover.Cover_Covering $ Cover.cover-down-sub ba \lam {y} {_} (idp) p q => (q,p)
+               | r => IsEquiv.splitSurj ((IsPreorderSheaf.makeSheaf FS).sheaf-covering cov) \new MatchingFamily {
+                 | family j => F.Func j.2
+                 | isMatching _ => inv F.Func-o *> pmap F.Func prop-pi *> F.Func-o
+               }
+         \in (r.1, \lam {x} xb xa => path \lam i => r.2 i ((x,xb),xa))
+
+    \lemma embed-iso (FS : IsPreorderSheaf F) {a : P} : Iso (embedProj a)
+      => \let | cov {b} (ba : Cover1 b a) : Covering b (\lam u => u.1 <= a) => Cover.Cover_Covering $ Cover.cover-down-sub ba \lam {y} {_} (idp) p q => (q,p)
+              | lim => extend.lim (embed a)
+              | cone => \new Cone (extend.limFunctor (embed a)) (F a) {
+                          | coneMap j => (cover-restrict FS j.2).1
+                          | coneCoh {j} {j'} h => (IsPreorderSheaf.makeSheaf FS).separated-covering (cov j'.2) \lam {x} x<=a =>
+                            inv o-assoc *> pmap (`∘ _) (inv F.Func-o) *> (cover-restrict FS j.2).2 (x.2 <=∘ h) x<=a *> inv ((cover-restrict FS j'.2).2 x.2 x<=a)
+                        }
+         \in \new Iso {
+           | hinv => lim.limMap cone
+           | hinv_f => limUnique \lam j => inv o-assoc *> pmap (`∘ _) (lim.limBeta cone _) *>
+              (IsPreorderSheaf.makeSheaf FS).separated-covering (cov j.2) (\lam {x} x<=a => inv o-assoc *>
+                pmap (`∘ _) ((cover-restrict FS j.2).2 x.2 x<=a) *> lim.coneCoh {_} {x.1, Cover.cover-inj x<=a idp} x<=a *>
+                inv (lim.coneCoh {_} {x.1, Cover.cover-inj x<=a idp} x.2)) *> inv id-right
+           | f_hinv => lim.limBeta _ _ *> inv (pmap (`∘ _) F.Func-id *> id-left) *> (cover-restrict FS (Cover.cover-refl idp)).2 <=-refl <=-refl *> F.Func-id
+         }
   }

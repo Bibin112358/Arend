@@ -1,4 +1,5 @@
 \import AG.RingedLocale
+\import AG.Scheme
 \import AG.Spec
 \import Algebra.Group
 \import Algebra.Meta
@@ -161,13 +162,41 @@
               | inP (c,d,p) => inP (c, d, k, p *> pmap2 (+) *-comm *-comm)
             }
           }
-
-    \lemma isAffineScheme : IsAffineScheme (AffineLRL R)
-      => inP (R,idp)
   }
 
-{- TODO: Prove that a scheme is affine iff the canonical map L -> AffineLRL L.GlobalSections is an iso.
-         This follows from the fact that the category of affine schemes is reflective in locally ringed locales, which is not proved yet.
- -}
-\func IsAffineScheme.{s} (L : RingedLocale.{s}) : \Prop
-  => ∃ (R : CRing.{s}) (L = AffineLRL R)
+{-
+\func AffineScheme (R : CRing) : Scheme \cowith
+  | RingedLocale => AffineLRL R
+  | isLocallyAffine {x} _ => Cover.cover-refl $ inP (top, transportInv IsAffineScheme (RingedLocaleCat.isotoid $ restrict_iso (AffineLRL R).R) AffineLRL.isAffineScheme, ())
+  \where {
+    \func locale_iso {L : Locale} : Iso {LocaleCat} {L.restrict L.top} {L} \cowith
+      | f => Locale.restrict.map
+      | hinv => \new FrameHom {
+        | func x => x.1
+        | func-top => idp
+        | func-meet => idp
+        | func-Join => idp
+      }
+      | hinv_f => exts \lam p => ext L.top-right
+      | f_hinv => exts \lam x => L.top-right
+
+    \func restrict_map.{s} {L : Locale.{s}} (a : L) (S : VSheaf CRingCat.{s} L) : RingedLocaleHom (\new RingedLocale (L.restrict a) (VSheaf.restrict a S)) (\new RingedLocale L S) \cowith
+      | f => Locale.restrict.map
+      | f# {
+        | trans b => S.F.Func meet-left
+        | natural h => inv S.F.Func-o *> pmap S.F.Func prop-pi *> S.F.Func-o
+      }
+
+    \func restrict_iso.{s} {L : Locale.{s}} (S : VSheaf CRingCat.{s} L) : Iso {RingedLocalePrecat.{s}} {VSheaf.restrict L.top S} {S} \cowith
+      | f => restrict_map L.top S
+      | hinv : RingedLocaleHom => \new RingedLocaleHom S (VSheaf.restrict L.top S) {
+        | f => locale_iso.hinv
+        | f# {
+          | trans p => id _
+          | natural h => id-left *> pmap S.F.Func prop-pi *> Paths.inv id-right
+        }
+      }
+      | hinv_f => RingedLocaleHom.ext (hinv RingedLocalePrecat.∘ restrict_map L.top S) _ locale_iso.hinv_f \lam p x => pmap (S.F.Func __ x) prop-pi
+      | f_hinv => RingedLocaleHom.ext (restrict_map L.top S RingedLocalePrecat.∘ hinv) _ locale_iso.f_hinv \lam a x => pmap (S.F.Func __ x) prop-pi
+  }
+-}

@@ -219,6 +219,9 @@
           (\lam {x} Ux => cover-refl $ inP (embed x, SetIm-con Ux, cover-refl idp))
           ((SiteLocale P).SJoin-univ $ later \lam Ua => embed-univ Ua)
 
+    \lemma element_SJoin_<= {U : Opens P} {a : P} (U<=a : U <= embed a) : U <= (SiteLocale P).SJoin embed (\lam x => \Sigma (U.1 x) (x P.<= a))
+      => \lam Ux => cover-sub (cover-down (U<=a Ux)) \lam {y} (inP (_,idp,y<=a,y<=x)) => inP (_, SetIm-con (U.2 $ cover-inj y<=x Ux, y<=a), cover-refl idp)
+
     \lemma func-equality {L : Locale} {f g : LocaleHom L (SiteLocale P)} (p : \Pi (x : P) -> f (embed x) = g (embed x)) {U : Opens P} : f U = g U
       => pmap f element_SJoin *> f.func-SJoin *> pmap (SJoin __ U.1) (ext p) *> inv g.func-SJoin *> inv (pmap g element_SJoin)
 

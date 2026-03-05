@@ -97,8 +97,14 @@
   \func toLocale : Locale
     => SiteLocale toSite
 
-  \func toLRL : LocallyRingedLocale
-    => toLRLSite.toLocale
+  \lemma basis-affineOpen {a : P} : toLRLSite.toLocale.IsAffineOpen (SiteLocale.embed a)
+    => toLRLSite.affineOpen loc-exists \lam b<=a => Cover.cover-refl (<=-refl, \case loc-restrict b<=a \with {
+      | inP (x,l) => inP (x, transport (\lam r => RingLocalization _ _ (R.Func r)) prop-pi l)
+    })
+
+  \func toScheme : Scheme \cowith
+    | LocallyRingedLocale => toLRLSite.toLocale
+    | isLocallyAffine {x} _ => Cover.cover-refl $ inP (SiteLocale.embed x, basis-affineOpen, Cover.cover-refl idp)
 } \where {
   \open CRingCat(forget)
 

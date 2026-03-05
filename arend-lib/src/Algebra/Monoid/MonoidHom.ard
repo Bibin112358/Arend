@@ -1,5 +1,7 @@
 \import Algebra.Monoid
 \import Algebra.Pointed.PointedHom
+\import Equiv
+\import Function.Meta
 \import Logic
 \import Paths
 \import Paths.Meta
@@ -27,6 +29,10 @@
 
   \lemma func-InvElem (e : Inv {Dom}) (e' : Inv {Cod}) (p : func e = e') : func e.inv = e'.inv
     => inv ide-left *> pmap (`* _) (inv (pmap (_ *) p *> e'.inv-left)) *> *-assoc *> pmap (_ *) (inv func-* *> pmap func e.inv-right *> func-ide) *> ide-right
+
+  \lemma equiv-hom (e : IsEquiv func) : MonoidHom Cod Dom (IsEquiv.ret e) \cowith
+    | func-ide => IsEquiv.isInj e $ IsEquiv.f_ret e *> inv func-ide
+    | func-* => IsEquiv.isInj e $ IsEquiv.f_ret e *> inv (func-* *> pmap2 (*) (IsEquiv.f_ret e) (IsEquiv.f_ret e))
 } \where {
   \func equals {M N : Monoid} {f g : MonoidHom M N} (p : \Pi (x : M) -> f x = g x) : f = g
     => exts p
