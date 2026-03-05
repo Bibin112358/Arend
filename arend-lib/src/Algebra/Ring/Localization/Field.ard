@@ -29,14 +29,14 @@
                             (loc : ∀ {x} {y} (S (x + y)) ∃ (r : R) (S (x * r) || S (y * r)))
                             (fp : ∀ x (∀ r (Not (S (x * r)))) ∃ (s : R) (S s) (x * s = zro))
   : Field { | CRing => LocRing S } \cowith
-  | zro/=ide => \lam p => nt $ LR.trivial-char.1 p
+  | zro/=ide => \lam p => nt $ LR.loc-trivial-char.1 p
   | locality => LR.isLocal-char.2 loc
   | #0-tight {in~ x} x-ni => localization-zro-char.2 $ fp x.1 \lam r Sxr => x-ni $ localiaztion-inv-char.2 $ inP (r,Sxr)
 
 \func localization-isDiscreteField {R : CRing} (S : SubMonoid R) (nt : Not (S zro))
                                    (fp : \Pi (x : R) -> (\Sigma (s : R) (S s) (x * s = zro)) || (\Sigma (r : R) (S (x * r))))
   : DiscreteField { | CRing => LocRing S } \cowith
-  | zro/=ide => \lam p => nt $ LR.trivial-char.1 p
+  | zro/=ide => \lam p => nt $ LR.loc-trivial-char.1 p
   | eitherZeroOrInv (in~ x) => \case fp x.1 \with {
     | byLeft r => byLeft $ localization-zro-char.2 (inP r)
     | byRight r => byRight $ localiaztion-inv-char.2 (inP r)

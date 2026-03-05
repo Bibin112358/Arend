@@ -1,60 +1,34 @@
-\import AG.RingedLocale
 \import AG.Scheme
-\import AG.Spec
-\import Algebra.Group
+\import AG.SchemeSite
 \import Algebra.Meta
 \import Algebra.Monoid
 \import Algebra.Monoid.Localization
-\import Algebra.Monoid.MonoidHom
 \import Algebra.Monoid.Sub
 \import Algebra.Ring
-\import Algebra.Ring.Ideal
 \import Algebra.Ring.Localization
 \import Algebra.Ring.RingCategory
-\import Algebra.Ring.RingHom
-\import Category
 \import Category.Functor
-\import Category.Slice
-\import Category.Topos.Sheaf
-\import Equiv
 \import Function.Meta
 \import Logic
-\import Logic.Meta
-\import Logic.Unique
 \import Meta
+\import Order.PartialOrder
 \import Paths
 \import Paths.Meta
 \import Relation.Equivalence
-\import Set.SetCategory
-\import Topology.Locale.PreorderSite
-\open SubMonoid(powers)
-\open Ideal
 \open Monoid
+\open SubMonoid
 \open LocRing(isLocalization \as LR)
+\open Localization
 
-{- | The affine locally ringed locale corresponding to a ring {R}.
- -
- -   This locally ringed locale is constructed from a locally ringed site {site}.
- -   The site itself is `SpecSite R` and its structure sheaf is constructed in {functor}.
- -   The sheaf condition is verified in {specPreorderSheaf}.
- -}
-\func AffineLRL (R : CRing) : LocallyRingedLocale
-  => site.toLocale
+\func SpecPreorder (R : CRing) : Preorder R \cowith
+  | <= a b => TruncP (LDiv b a)
+  | <=-refl => inP LDiv.id-div
+  | <=-transitive (inP y|x) (inP z|y) => inP (LDiv.trans z|y y|x)
+
+\func Spec (R : CRing) : Scheme
+  => site.toScheme
   \where {
-    \func site : LocallyRingedSite (SpecSite R) functor \cowith
-      | R-sheaf => IsPreorderSheaf.fromSheaf (sheaf-reflect CRingCat.forget CRingCat.forget.reflectsLimit $ IsPreorderSheaf.toSheaf specPreorderSheaf) __
-      | isNonTrivialPres a zro=ide => \case LR.loc-trivial-char.1 zro=ide \with {
-        | inP (n,p) => Cover.cover-trans1 (SpecSite.cover_pow n) $ transportInv (Cover __ _) p $ Cover.cover-basic $ later (byLeft (idp,idp))
-      }
-      | isLocallyRingedPres a (in~ (x, _, inP (n,idp))) => Cover.cover-trans1 (SpecSite.cover_pow (suc n)) $
-        cover-trans (byRight (a * negative x, a * (x + pow a n), equation.cRing, idp)) \lam {t} => \case \elim t, \elim __ \with {
-          | _, byLeft idp => cover-inj (inP $ LDiv.make (negative (pow a (suc n))) equation.cRing) (inP (LDiv.make x idp),
-            byLeft $ lift-inv (inP $ later (n,idp)) (~-lequiv1 *-assoc) $ LR.inv-char.2 $ inP $ later (a, inP (1, ide-left *> *-comm)))
-          | _, byRight idp => cover-inj (inP $ LDiv.make {_} {a * (x + pow a n)} (pow a (suc n)) equation.cRing) (inP (LDiv.make _ idp),
-            byRight $ lift-inv (inP $ later (n, inv ide-right)) (~-lequiv1 *-assoc) $ LR.inv-char.2 $ inP $ later (a, inP (1, equation.cRing)))
-        }
-
-    \func functor : Functor (SpecSite R).op CRingCat \cowith
+    \func StructureSheaf : Functor (SpecPreorder R).op CRingCat \cowith
       | F a => LocRing (powers a)
       | Func c => LR.liftHom locR $ later (div-inv c)
       | Func-id => locR-isEpi $ exts \lam x => LR.lift_inL
@@ -64,139 +38,20 @@
           | inP a|b, inP (n,idp) => LR.inv-char.2 $ inP $ (pow a|b.inv n, later $ inP (n, pmap (pow __ n) (inv a|b.inv-right) *> R.pow_*-comm))
       }
 
-    {- | The sheaf condition for the structure sheaf.
-     -
-     -   To prove this, we need to check that, for every basic cover `U` of `x`, there is a bijection between R[x^-1] and the set of matching families on `U`.
-     -   There are two basic covers:
-     -   * 0 is covered by the empty family. This one is easy because both sets are contractible in this case.
-     -   * `a+b` is covered by `{ a*(a+b), b*(a+b) }`.
-     -     In this case, the existence of the amalgamation of a matching family is proved in {localization-merge}.
-     -     The uniqueness is proved in {localization-merge-unique}.
-     -     Both of these lemmas require a simple algebraic fact that we prove in {pow-lin-comb}.
-     -}
-    \lemma specPreorderSheaf : IsPreorderSheaf (Comp CRingCat.forget functor)
-      => \lam {e} {S} e<=S _ {D} => IsPreorderSheaf.SetSheafCond e S \case \elim e, \elim S, \elim e<=S \with {
-        | _, _, byLeft (idp,idp) => contr-equiv (pi-Contr _ \lam _ => later $ Ring.trivial-char.1 $ LR.loc-trivial-char.2 $ later $ inP (1,ide-left)) $ later \new Contr {
-          | center => \new MatchingFamily {
-            | family j => \case j.2
-            | isMatching {j} => \case j.2
-          }
-          | contraction mf => exts \lam j => \case j.2
-        }
-        | _, _, byRight (a,b,idp,idp) =>
-          \have | L0 => LR {_} {powers (a + b)}
-                | LG c => RingLocalization.factor-right L0 (LocRing.isLocalization {_} {powers (c * (a + b))}) (L0.liftHom locR $ functor.div-inv $ inP $ LDiv.make c *-comm) \lam x => L0.lift_inL
-                | lc : \Pi {x y : L0} -> (LG a).S x -> (LG b).S y -> ∃ (t s : L0) (t * x + s * y = L0.L.ide)
-                     => \lam {_} {_} (inP (_, inP (n,idp), idp)) (inP (_, inP (m,idp), idp)) => \case pow-lin-comb a b n m \with {
-                       | inP (t,s,k,p) => inP (inl~ (t, _, inP (k Nat.+ n, idp)), inl~ (s, _, inP (k Nat.+ m, idp)), ~-lequiv1 $ later $ rewrite (R.pow_*-comm, R.pow_*-comm, R.pow_+, R.pow_+) $ equation.cRing {inv p})
-                     }
-          \in IsEquiv.fromInjSurj (\lam {h} {h'} p => ext \lam _ => localization-merge-unique (LG a) (LG b) lc
-                  (path \lam i => p i ((_, inP $ LDiv.make a *-comm), byLeft idp) ())
-                  (path \lam i => p i ((_, inP $ LDiv.make b *-comm), byRight idp) ()))
-                \lam mf => \case localization-merge (LG a) (LG b) (LG (a * b)) lc
-                                   (\box (\lam {_} (inP (_, inP (n,idp), idp)) => (LG (a * b)).inv-char.2 $ inP (locR (pow b n), inP (_, inP (n,idp), pmap locR (pmap (pow __ n) equation.cMonoid *> R.pow_*-comm) *> locR.func-*))))
-                                   (\box (\lam {_} (inP (_, inP (n,idp), idp)) => (LG (a * b)).inv-char.2 $ inP (locR (pow a n), inP (_, inP (n,idp), pmap locR (pmap (pow __ n) equation.cMonoid *> R.pow_*-comm) *> locR.func-*))))
-                                   (\lam {_} (inP (_, inP (n,idp), idp)) => inP (_, _, inP (_, inP (n,idp), idp), inP (_, inP (n,idp), idp), LDiv.make (locR (pow (a + b) n)) $ inv locR.func-* *> pmap locR (inv R.pow_*-comm *> pmap (pow __ n) equation.cMonoid *> R.pow_*-comm) *> locR.func-*))
-                                   {mf ((_, inP $ LDiv.make a *-comm), byLeft idp) ()} {mf ((_, inP $ LDiv.make b *-comm), byRight idp) ()} (
-                    \have mfc => path \lam i => mf.isMatching {_} {_} {_} {inP $ LDiv.make b \box equation.cMonoid} {inP $ LDiv.make a \box equation.cMonoid} prop-pi i ()
-                    \in MonoidLocalization.lift-double L0 (LG a) LR (\lam x => lift_inL) *> mfc *> inv (MonoidLocalization.lift-double L0 (LG b) LR \lam x => lift_inL)
-                  ) \with {
-                  | inP (z,p,q) => inP (\lam _ => z, later $ exts \lam j =>
-                    \have je : (j = ((_, inP $ LDiv.make a *-comm), byLeft idp)) || (j = ((_, inP $ LDiv.make b *-comm), byRight idp)) => \case \elim j \with {
-                      | ((_,r), byLeft idp) => byLeft $ ext (ext idp)
-                      | ((_,r), byRight idp) => byRight $ ext (ext idp)
-                    }
-                    \in \case \elim j, \elim je \with {
-                      | _, byLeft idp => ext \lam _ => p
-                      | _, byRight idp => ext \lam _ => q
-                    })
-                }
-      }
+    \func site : SchemeSite \cowith
+      | P => SpecPreorder R
+      | R => StructureSheaf
+      | loc-restrict {a} {b} b<=a => inP (locR b, factor-right1 LR LR \lam x => LR.lift_inL)
+      | loc-stable {a'} {a} {b} (inP a|a') (inP a|b) => inP (a * (a|a'.inv * a|b.inv),
+        inP $ LDiv.make a|b.inv $ pmap (`* _) (inv a|a'.inv-right) *> *-assoc,
+        inP $ LDiv.make a|a'.inv $ pmap (`* _) (inv a|b.inv-right) *> *-assoc *> pmap (a *) *-comm, locR a|b.inv,
+        factor-right-div LR LR (\lam x => LR.lift_inL) a|b,
+        unfold $ rewrite LR.lift_inL $ factor-right-div LR LR (\lam x => LR.lift_inL) $ LDiv.make a|b.inv $ pmap (`* _) (inv a|a'.inv-right) *> *-assoc)
+      | loc-exists {a} (in~ (x, y, inP (n,p))) => inP (a * x, inP $ LDiv.make x idp, transportSubMonoid1 (later $ factor-right1 LR LR \lam x => LR.lift_inL)
+        (inP (1, LDiv.make (locR (a * y)) $ unfold $ ~-lequiv1 equation.cMonoid))
+        (\let ai => (LR {_} {powers a}).localization-inv $ inP (suc n, idp)
+         \in inP (1, LDiv.make ai.inv $ inv $ ai.rotate-inv-right $ unfold $ ~-lequiv1 $ equation.cMonoid {p})))
 
-    \open MonoidLocalization
-
-    \lemma localization-merge-unique {R : CRing} (A B : RingLocalization {R}) (lc : \Pi {a b : R} (A.S a) (B.S b) -> ∃ (t s : R) (t * a + s * b = R.ide))
-                                     {x y : R} (Axy : A x = A y) (Bxy : B x = B y) : x = y
-      => \case localization-inj Axy, localization-inj Bxy \with {
-        | inP (c,Ac,xc=yc), inP (d,Bd,xd=yd) => \case lc Ac Bd \with {
-          | inP (t,s,tc+sd=1) => equation.cRing {inv tc+sd=1, xc=yc, xd=yd}
-        }
-      }
-
-    \lemma localization-merge {R : CRing} (A B M : RingLocalization {R})
-                              (lc : \Pi {a b : R} (A.S a) (B.S b) -> ∃ (t s : R) (t * a + s * b = R.ide))
-                              (am : \Pi {a : R} -> A.S a -> Inv (M a)) (bm : \Pi {b : R} -> B.S b -> Inv (M b))
-                              (mab : ∀ {x} (M.S x) ∃ (a b : R) (A.S a) (B.S b) (LDiv x (a * b)))
-                              {a : A} {b : B} (m_a=b : A.lift M am a = B.lift M bm b) : ∃ (z : R) (A z = a) (B z = b)
-      => \have | (inP (x,c,ASc,ac=x)) => localization-surj a
-               | (inP (y,d,BSd,bd=y)) => localization-surj b
-               | m_ac=x => pmap (_ *) (inv A.lift_inL) *> inv (A.liftHom M.inL am).func-* *> pmap (A.lift M am) ac=x *> A.lift_inL
-               | m_ad=y => pmap2 (*) m_a=b (inv B.lift_inL) *> inv (B.liftHom M.inL bm).func-* *> pmap (B.lift M bm) bd=y *> B.lift_inL
-               | (inP (e,MSe,xde=yce)) => M.quot-equals (am ASc) (bm BSd) m_ac=x m_ad=y
-               | (inP (c',d',ASc',BSd',e|c'd')) => mab MSe
-               | (inP (t,s,tcc'+sdd'=1)) => lc (contains_* ASc ASc') (contains_* BSd BSd')
-         \in inP (t * x * c' + s * y * d',
-                  func-+ *> repeat {4} (rewrite A.inL.func-*) ((A.localization-inv ASc).inv-cancel-right $ (A.localization-inv ASc').inv-cancel-right $ equation.cRing {
-                    inv (inv func-* *> pmap A.inL e|c'd'.inv-right *> func-*),
-                    repeat {4} (rewrite A.inL.func-*) in pmap A.inL (inv xde=yce),
-                    inv func-* *> pmap A.inL e|c'd'.inv-right *> func-*,
-                    repeat {4} (rewrite A.inL.func-*) in inv func-+ *> pmap A.inL tcc'+sdd'=1 *> A.inL.func-ide,
-                    ac=x
-                  }),
-                  func-+ *> repeat {4} (rewrite B.inL.func-*) ((B.localization-inv BSd).inv-cancel-right $ (B.localization-inv BSd').inv-cancel-right $ equation.cRing {
-                    inv (inv func-* *> pmap B.inL e|c'd'.inv-right *> func-*),
-                    repeat {4} (rewrite B.inL.func-*) (pmap B.inL xde=yce),
-                    inv func-* *> pmap B.inL e|c'd'.inv-right *> func-*,
-                    repeat {4} (rewrite B.inL.func-*) in inv func-+ *> pmap B.inL tcc'+sdd'=1 *> B.inL.func-ide,
-                    bd=y
-                  }))
-
-    \lemma pow-lin-comb {R : CRing} (a b : R) (n m : Nat) : ∃ (t s : R) (k : Nat) (pow (a + b) k = t * pow a n + s * pow b m)
-      => \have cover : Cover {SpecSite R} (a + b) (\lam z => (pow a n = z) || (pow b m = z)) => cover-trans (byRight (a,b,idp,idp)) \lam {t} e =>
-              \case \elim t, \elim e \with {
-                | _, byLeft idp => Cover.cover-left SpecSite.cover_*-left $ Cover.cover-trans1 (SpecSite.cover_pow n) $ Cover.cover-refl (byLeft idp)
-                | _, byRight idp => Cover.cover-left SpecSite.cover_*-left $ Cover.cover-trans1 (SpecSite.cover_pow m) $ Cover.cover-refl (byRight idp)
-              }
-         \in \case SpecSite.cover_ideal cover \with {
-            | inP (k,t) => \case Ideal.sclosure2-lem.1 t \with {
-              | inP (c,d,p) => inP (c, d, k, p *> pmap2 (+) *-comm *-comm)
-            }
-          }
+    \lemma isAffineScheme : (Spec R).IsAffineScheme
+      => site.top-affine \lam x => inP (LDiv.make x ide-left)
   }
-
-{-
-\func AffineScheme (R : CRing) : Scheme \cowith
-  | RingedLocale => AffineLRL R
-  | isLocallyAffine {x} _ => Cover.cover-refl $ inP (top, transportInv IsAffineScheme (RingedLocaleCat.isotoid $ restrict_iso (AffineLRL R).R) AffineLRL.isAffineScheme, ())
-  \where {
-    \func locale_iso {L : Locale} : Iso {LocaleCat} {L.restrict L.top} {L} \cowith
-      | f => Locale.restrict.map
-      | hinv => \new FrameHom {
-        | func x => x.1
-        | func-top => idp
-        | func-meet => idp
-        | func-Join => idp
-      }
-      | hinv_f => exts \lam p => ext L.top-right
-      | f_hinv => exts \lam x => L.top-right
-
-    \func restrict_map.{s} {L : Locale.{s}} (a : L) (S : VSheaf CRingCat.{s} L) : RingedLocaleHom (\new RingedLocale (L.restrict a) (VSheaf.restrict a S)) (\new RingedLocale L S) \cowith
-      | f => Locale.restrict.map
-      | f# {
-        | trans b => S.F.Func meet-left
-        | natural h => inv S.F.Func-o *> pmap S.F.Func prop-pi *> S.F.Func-o
-      }
-
-    \func restrict_iso.{s} {L : Locale.{s}} (S : VSheaf CRingCat.{s} L) : Iso {RingedLocalePrecat.{s}} {VSheaf.restrict L.top S} {S} \cowith
-      | f => restrict_map L.top S
-      | hinv : RingedLocaleHom => \new RingedLocaleHom S (VSheaf.restrict L.top S) {
-        | f => locale_iso.hinv
-        | f# {
-          | trans p => id _
-          | natural h => id-left *> pmap S.F.Func prop-pi *> Paths.inv id-right
-        }
-      }
-      | hinv_f => RingedLocaleHom.ext (hinv RingedLocalePrecat.∘ restrict_map L.top S) _ locale_iso.hinv_f \lam p x => pmap (S.F.Func __ x) prop-pi
-      | f_hinv => RingedLocaleHom.ext (restrict_map L.top S RingedLocalePrecat.∘ hinv) _ locale_iso.f_hinv \lam a x => pmap (S.F.Func __ x) prop-pi
-  }
--}

@@ -10,7 +10,6 @@
 \import Algebra.Pointed
 \import Algebra.Pointed.PointedHom
 \import Algebra.Ring
-\import Algebra.Ring.Localization
 \import Algebra.Ring.RingCategory
 \import Algebra.Ring.RingHom
 \import Category.Functor
@@ -21,6 +20,7 @@
 \import Logic.Meta
 \import Logic.Unique
 \import Meta
+\import Order.Lattice
 \import Order.PartialOrder
 \import Paths
 \import Paths.Meta
@@ -31,18 +31,28 @@
 \open Monoid
 
 \record SchemeSite.{s} (\coerce P : Preorder.{s}) (R : Functor P.op CRingBicat.{s}) {
-  | loc-restrict {a b : P} (p : b <= a) : ∃ (x : R a) (RingLocalization (powers x) (R b) (R.Func p))
-  | loc-stable {a' a b : P} (r : a' <= a) (p : b <= a) {x : R a} : RingLocalization (powers x) (R b) (R.Func p) ->
-    ∃ (b' : P) (p' : b' <= a') (b' <= b) (RingLocalization (powers (R.Func r x)) (R b') (R.Func p'))
-  | loc-exists {a : P} (x : R a) : ∃ (b : P) (p : b <= a) (RingLocalization (powers x) (R b) (R.Func p))
+  | loc-restrict {a b : P} (p : b <= a) : ∃ (x : R a) (Localization (powers x) (R b) (R.Func p))
+  | loc-stable {a' a b : P} (r : a' <= a) (p : b <= a) : ∃ (b' : P) (p' : b' <= a') (b' <= b) (x : R a)
+    (Localization (powers x) (R b) (R.Func p)) (Localization (powers (R.Func r x)) (R b') (R.Func p'))
+  | loc-exists {a : P} (x : R a) : ∃ (b : P) (p : b <= a) (Localization (powers x) (R b) (R.Func p))
+
+  \lemma loc-stable-forall {a' a b : P} (r : a' <= a) (p : b <= a) {x : R a} (bx : Localization (powers x) (R b) (R.Func p))
+    : ∃ (b' : P) (p' : b' <= a') (b' <= b) (Localization (powers (R.Func r x)) (R b') (R.Func p'))
+    => \have | lem {x y : R a} (bx : Localization (powers x) (R b) (R.Func p)) (by : Localization (powers y) (R b) (R.Func p))
+               : ∃ (n : Nat) (LDiv (R.Func r x) (pow (R.Func r y) n))
+               => \case Localization.subMonoid-compare1 bx by \with {
+                    | inP (n,x|y^n) => inP (n, LDiv.make (R.Func r x|y^n.inv) $ inv func-* *> pmap (R.Func r) x|y^n.inv-right *> MonoidHom.func-pow)
+                  }
+             | (inP (b',p',b'b,y,by,b'l)) => loc-stable r p
+       \in inP (b', p', b'b, Localization.transportSubMonoid1 b'l (lem bx by) (lem by bx))
 
   \func toSite : PreorderSite \cowith
     | Preorder => P
     | isBasicCover a U => Given (0 = {R a} 1) (U = empty) || Given (x y : R a) (x + y = 1) (b c : P) (ba : b <= a) (ca : c <= a)
-      (RingLocalization (powers x) (R b) (R.Func ba)) (RingLocalization (powers y) (R c) (R.Func ca)) (U = \lam z => (b = z) || (c = z))
+      (Localization (powers x) (R b) (R.Func ba)) (Localization (powers y) (R c) (R.Func ca)) (U = \lam z => (b = z) || (c = z))
     | basic-cover-stable {a'} {a} a'<=a {U} => \case \elim U, \elim __ \with {
       | _, byLeft (at,idp) => inP (_, byLeft (inv func-zro *> pmap (R.Func a'<=a) at *> func-ide, idp), Refines-refl, absurd __)
-      | _, byRight (x,y,x+y=1,b,c,ba,ca,bl,cl,idp) => \case loc-stable a'<=a ba bl, loc-stable a'<=a ca cl \with {
+      | _, byRight (x,y,x+y=1,b,c,ba,ca,bl,cl,idp) => \case loc-stable-forall a'<=a ba bl, loc-stable-forall a'<=a ca cl \with {
         | inP (b',b'a',b'b,b'l), inP (c',c'a',c'c,c'l) => inP (_, byRight (_, _, inv func-+ *> pmap (R.Func a'<=a) x+y=1 *> func-ide, b', c', b'a', c'a', b'l, c'l, idp), \lam {x} => \case \elim x, \elim __ \with {
           | _, byLeft idp => inP (b, byLeft idp, b'b)
           | _, byRight idp => inP (c, byRight idp, c'c)
@@ -76,7 +86,7 @@
           | _, byRight (x,y,x+y=1,b,c,ba,ca,bl,cl,idp) => IsEquiv.fromInjSurj
             (\lam {h} {h'} p => ext \lam _ => localization-merge-unique x+y=1 bl cl
               (path \lam i => p i ((b,ba), byLeft idp) ()) (path \lam i => p i ((c,ca), byRight idp) ()))
-            \lam mf => \case loc-stable ba ca cl \with {
+            \lam mf => \case loc-stable-forall ba ca cl \with {
               | inP (d,db,dc,dl) => \case localization-merge x+y=1 bl cl dl (R.Func dc)
                     (\lam z => inv (path \lam i => R.Func-o i z) *> pmap (R.Func __ z) prop-pi *> path \lam i => R.Func-o i z)
                     (path \lam i => mf.isMatching prop-pi i ()) \with {
@@ -99,8 +109,11 @@
 
   \lemma basis-affineOpen {a : P} : toLRLSite.toLocale.IsAffineOpen (SiteLocale.embed a)
     => toLRLSite.affineOpen loc-exists \lam b<=a => Cover.cover-refl (<=-refl, \case loc-restrict b<=a \with {
-      | inP (x,l) => inP (x, transport (\lam r => RingLocalization _ _ (R.Func r)) prop-pi l)
+      | inP (x,l) => inP (x, transport (\lam r => Localization _ _ (R.Func r)) prop-pi l)
     })
+
+  \lemma top-affine {t : P} (tt : \Pi (x : P) -> x <= t) : toLRLSite.toLocale.IsAffineScheme
+    => transport toLRLSite.toLocale.IsAffineOpen (<=-antisymmetric top-univ $ later \lam {x} _ => cover-inj (tt x) idp) $ basis-affineOpen {_} {t}
 
   \func toScheme : Scheme \cowith
     | LocallyRingedLocale => toLRLSite.toLocale
@@ -126,7 +139,7 @@
       | inP (t,s,k,p) => inP (t, s, inv p *> pmap (pow __ k) x+y=1 *> pow_ide)
     }
 
-  \lemma localization-merge-unique {R : CRing} {x0 y0 : R} (x0+y0=1 : x0 + y0 = 1) (A : RingLocalization (powers x0)) (B : RingLocalization (powers y0))
+  \lemma localization-merge-unique {R : CRing} {x0 y0 : R} (x0+y0=1 : x0 + y0 = 1) (A : Localization (powers x0)) (B : Localization (powers y0))
                                    {x y : R} (Axy : A x = A y) (Bxy : B x = B y) : x = y
     => \case localization-inj Axy, localization-inj Bxy \with {
       | inP (_, inP (n,idp), p), inP (_, inP (m,idp), q) => \case pow-lin-comb1 x0+y0=1 n m \with {
@@ -135,16 +148,16 @@
     }
 
   \lemma localization-merge {R : CRing} {x y : R} (x+y=1 : x + y = 1)
-    (A : RingLocalization (powers x)) (B : RingLocalization (powers y))
-    (T : RingLocalization (powers (A y))) (S : RingHom B.L T.L) (coh : \Pi (z : R) -> T (A z) = S (B z))
-    {a : A} {b : B} (Ta=Sb : T a = S b) : ∃ (r : R) (A r = a) (B r = b)
+                            (A : Localization (powers x)) (B : Localization (powers y))
+                            (T : Localization (powers (A y))) (S : MonoidHom B.L T.L) (coh : \Pi (z : R) -> T (A z) = S (B z))
+                            {a : A} {b : B} (Ta=Sb : T a = S b) : ∃ (r : R) (A r = a) (B r = b)
     => \have | (inP (a', _, inP (n,idp), ax^n=a')) => localization-surj a
              | (inP (b', _, inP (m,idp), by^m=b')) => localization-surj b
              | am : T (A (a' * pow y m)) = T (A (b' * pow x n))
                   => pmap T (func-* *> pmap (`* _) (inv ax^n=a')) *> func-* *> pmap (`* _) func-* *> *-assoc *>
                      pmap2 (*) Ta=Sb (*-comm *> pmap2 (*) (coh _) (coh _)) *> inv *-assoc *> pmap (`* _) (inv func-*) *>
                      inv func-* *> pmap S (pmap (`* _) by^m=b' *> inv func-*) *> inv (coh _)
-             | (inP (_, inP (k,idp), p)) => (RingLocalization.comp1 A T).localization-inj am
+             | (inP (_, inP (k,idp), p)) => (Localization.comp1 A T).localization-inj am
              | (inP (t,s,q)) => pow-lin-comb1 x+y=1 (n Nat.+ k) (m Nat.+ k)
        \in rewrite R.pow_*-comm at p $ rewrite (pow_+,pow_+) at q $
            inP (t * a' * pow x k + s * b' * pow y k,
