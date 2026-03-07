@@ -196,3 +196,7 @@
 
 \lemma ratAlgebraTest2 {A : OrderedAAlgebra RatField} {x : A} : x = x * coefMap (ratio 1 2) + coefMap (ratio 1 2) * x
   => linarith
+
+\lemma leqToless {x y : Nat} (_ : x + 1 <= y) : x < y => linarith
+
+\lemma lessToleq {x y : Nat} (_ : x < y) : x + 1 <= y => linarith
