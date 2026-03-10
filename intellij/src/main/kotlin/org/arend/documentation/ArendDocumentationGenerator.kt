@@ -7,7 +7,6 @@ import com.intellij.lang.documentation.DocumentationMarkup.*
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.editor.colors.EditorColors
 import com.intellij.openapi.editor.colors.EditorColorsManager
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.JBPopupListener
 import com.intellij.openapi.ui.popup.LightweightWindowEvent
@@ -33,9 +32,7 @@ import org.cef.browser.CefBrowser
 import org.cef.browser.CefFrame
 import org.cef.handler.CefLoadHandlerAdapter
 import org.cef.handler.CefRequestHandlerAdapter
-import java.awt.Dimension
-import java.awt.MouseInfo
-import java.awt.Toolkit
+import java.awt.*
 import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
 import java.awt.event.WindowEvent
@@ -60,7 +57,7 @@ object ArendDocumentationGenerator {
     private var lastElement: PsiElement? = null
     private var lastOriginalElement: PsiElement? = null
 
-    fun generateDoc(element: PsiElement, originalElement: PsiElement?, withDocComments: Boolean = true, suggestedFont: Int? = null): String? {
+    fun generateDoc(element: PsiElement, originalElement: PsiElement?, withDocComments: Boolean = true, suggestedFont: Int? = null, withOpenInBrowserLink: Boolean = true, backgroundColor: Color? = null, textColor: Color? = null): String? {
         val ref = element as? PsiReferable ?: (element as? ArendDocComment)?.owner
         ?: return if (element.isArendKeyword()) generateDocForKeywords(element) else null
 
@@ -68,7 +65,8 @@ object ArendDocumentationGenerator {
             (UIManager.getDefaults().getFont("Label.font")
                 ?.size?.times(COEFFICIENT_HTML_FONT))?.roundToInt()
         val docCommentInfo = ArendDocCommentInfo(hasLatexCode = false, wasPrevRow = false,
-            suggestedFont = font?.times(COEFFICIENT_LATEX_FONT)?.toFloat() ?: DEFAULT_FONT)
+            suggestedFont = font?.times(COEFFICIENT_LATEX_FONT)?.toFloat() ?: DEFAULT_FONT,
+            backgroundColor = backgroundColor)
 
         val latexImagesDir = File(LATEX_IMAGES_DIR)
         if (latexImagesDir.exists()) latexImagesDir.deleteRecursively()
@@ -91,8 +89,10 @@ object ArendDocumentationGenerator {
             append("<body ")
             if (withDocComments) {
                 val scheme = EditorColorsManager.getInstance().globalScheme
-                append("style=\"color:${getHtmlRgbFormat(UIManager.getColor("Label.foreground").rgb)};" +
-                        "background-color:${getHtmlRgbFormat(scheme.getColor(EditorColors.DOCUMENTATION_COLOR)?.rgb ?: 0)};\">")
+                val htmlTextColor = if (textColor != null) getHtmlRgbFormat(textColor.rgb) else getHtmlRgbFormat(UIManager.getColor("Label.foreground").rgb)
+                val htmlBackgroundColor = if (backgroundColor != null) getHtmlRgbFormat(backgroundColor.rgb) else getHtmlRgbFormat(scheme.getColor(EditorColors.DOCUMENTATION_COLOR)?.rgb ?: 0)
+                append("style=\"color:$htmlTextColor;" +
+                        "background-color:$htmlBackgroundColor;\">")
             }
             offsetStartText = this.length
             wrap(DEFINITION_START, DEFINITION_END) {
@@ -120,7 +120,9 @@ object ArendDocumentationGenerator {
             popupCefBrowserHtml = htmlBuilder.toString()
             lastElement = element
             lastOriginalElement = originalElement
-            htmlBuilder.insert(offsetStartText, "<a href=\"${PSI_ELEMENT_PROTOCOL}${ACTION_PREFIX}$elementText\">Open in another browser</a>")
+            if (withOpenInBrowserLink) {
+                htmlBuilder.insert(offsetStartText, "<a href=\"${PSI_ELEMENT_PROTOCOL}${ACTION_PREFIX}$elementText\">Open in another browser</a>")
+            }
         }
         return htmlBuilder.toString()
     }
@@ -166,10 +168,7 @@ object ArendDocumentationGenerator {
         browser.loadHTML(popupCefBrowserHtml)
     }
 
-    fun showInCefBrowser(title: String, linkColor: String, project: Project?) {
-        val browser = JBCefBrowser()
-        browser.component.preferredSize = Dimension(1, 1)
-
+    fun addLinkHandlerToBrowser(browser: JBCefBrowser) {
         browser.jbCefClient.addRequestHandler(object : CefRequestHandlerAdapter() {
             override fun onBeforeBrowse(
                 browser: CefBrowser?,
@@ -186,6 +185,13 @@ object ArendDocumentationGenerator {
                 return false
             }
         }, browser.cefBrowser)
+    }
+
+    fun showInCefBrowser(title: String, linkColor: String) {
+        val browser = JBCefBrowser()
+        browser.component.preferredSize = Dimension(1, 1)
+
+        addLinkHandlerToBrowser(browser)
 
         val actions = mutableListOf<Pair<ActionListener, KeyStroke>>()
         actions.add(Pair(ActionListener {

@@ -36,3 +36,9 @@ fun GeneralError.satisfies(types: EnumSet<MessageType>) =
     level.toMessageType?.let { types.contains(it) } == true &&
     stage.toMessageType?.let { types.contains(it) } == true &&
     (types.contains(MessageType.SHORT) || !isShort)
+
+enum class EditorType {
+    GOAL,
+    ERROR,
+    INFO
+}

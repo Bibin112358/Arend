@@ -30,7 +30,7 @@ class ArendProjectSettingsState {
     var showParsing = false
 
     var isShowImplicitGoals = false
-    var isShowErrorsPanel = true
+    var isShowErrorsOrInfoPanel = true
     var isShowGoalsInErrorsPanel = false
 
     // Printing options

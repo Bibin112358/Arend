@@ -3,6 +3,7 @@ package org.arend.documentation
 import com.intellij.platform.backend.documentation.DocumentationLinkHandler
 import com.intellij.platform.backend.documentation.DocumentationTarget
 import com.intellij.platform.backend.documentation.LinkResolveResult
+import com.intellij.ui.JBColor.foreground
 
 class ArendDocumentationLinkHandler : DocumentationLinkHandler {
     override fun resolveLink(target: DocumentationTarget, url: String): LinkResolveResult? {
@@ -10,7 +11,7 @@ class ArendDocumentationLinkHandler : DocumentationLinkHandler {
         val element = target.element
         
         if (url.contains(ACTION_PREFIX)) {
-            ArendDocumentationGenerator.showInCefBrowser(url.substringAfter(ACTION_PREFIX), getHtmlRgbFormat(com.intellij.ui.JBColor.foreground().rgb), element.project)
+            ArendDocumentationGenerator.showInCefBrowser(url.substringAfter(ACTION_PREFIX), getHtmlRgbFormat(foreground().rgb))
             return null
         }
         

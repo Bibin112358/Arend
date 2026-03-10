@@ -28,9 +28,9 @@ class ArendMessagesService(private val project: Project) {
                 afterChange { arendProjectSettings.data.isShowImplicitGoals = it }
             }
 
-    var isShowErrorsPanel: MutableBooleanProperty =
-            AtomicBooleanProperty(arendProjectSettings.data.isShowErrorsPanel).apply {
-                afterChange { arendProjectSettings.data.isShowErrorsPanel = it }
+    var isShowErrorsOrInfoPanel: MutableBooleanProperty =
+            AtomicBooleanProperty(arendProjectSettings.data.isShowErrorsOrInfoPanel).apply {
+                afterChange { arendProjectSettings.data.isShowErrorsOrInfoPanel = it }
             }
     var isShowGoalsInErrorsPanel: MutableBooleanProperty =
             AtomicBooleanProperty(arendProjectSettings.data.isShowGoalsInErrorsPanel).apply {
@@ -69,7 +69,7 @@ class ArendMessagesService(private val project: Project) {
                 activate(project, true)
             }
         } else {
-            view.update(module)
+            view.update()
         }
     }
 

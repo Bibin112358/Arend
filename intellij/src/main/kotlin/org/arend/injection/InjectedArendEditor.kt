@@ -57,6 +57,8 @@ import org.arend.typechecking.error.DiffHyperlinkInfo
 import org.arend.typechecking.error.local.TypeMismatchWithSubexprError
 import org.arend.typechecking.error.mapToTypeDiffInfo
 import org.arend.util.ArendBundle
+import com.intellij.ui.JBColor
+import com.intellij.ui.border.CustomLineBorder
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.event.ComponentAdapter
@@ -117,12 +119,16 @@ abstract class InjectedArendEditor(
 
             val toolbar = ActionManager.getInstance().createActionToolbar("ArendEditor.toolbar", actionGroup, false)
             toolbar.targetComponent = panel
-            panel.add(toolbar.component, BorderLayout.WEST)
+            val toolbarComponent = toolbar.component
+            toolbarComponent.border = CustomLineBorder(JBColor.border(), 0, 0, 0, 1)
+            panel.add(toolbarComponent, BorderLayout.WEST)
         } else {
             panel = null
         }
 
-        updateErrorText()
+        if (treeElement != null) {
+            updateErrorText()
+        }
     }
 
     fun release() {
@@ -137,11 +143,12 @@ abstract class InjectedArendEditor(
         get() = panel
 
 
-    fun addEditorComponent() {
+    open fun addEditorComponent() {
         if (editor != null) {
             panel?.add(editor.component, BorderLayout.CENTER)
         }
     }
+
     fun removeUnnecessaryComponents(collection: Collection<Component>) {
         collection.forEach { panel?.remove(it) }
     }
@@ -161,7 +168,7 @@ abstract class InjectedArendEditor(
             val fontMetrics = editor.component.getFontMetrics(editor.colorsScheme.getFont(EditorFontType.PLAIN))
             val charWidth = fontMetrics.charWidth(' ')
             if (charWidth > 0) {
-                lastLineLength = (editor.scrollingModel.visibleArea.width / charWidth * 0.9).toInt().coerceAtLeast(25)
+                lastLineLength = (editor.scrollingModel.visibleArea.width / charWidth).coerceAtLeast(25)
             }
 
             val builder = StringBuilder()
