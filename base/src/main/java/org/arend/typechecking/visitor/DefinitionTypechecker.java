@@ -2594,10 +2594,10 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
             if (type == null) {
               originalSuperClass = superClass;
               TypedSingleDependentLink thisParam = new TypedSingleDependentLink(false, "this", new ClassCallExpression(typedDef, idLevels), true);
-              Expression codomain = superType.applyExpression(new ReferenceExpression(thisParam));
+              Expression codomain = superType.getCodomain().subst(new ExprSubstitution(superType.getParameters(), new ReferenceExpression(thisParam)), typedDef.levelSubstitutionFor(superClass));
               type = new PiExpression(thisParam, codomain);
             } else if (!overriddenHere.contains(field)) {
-              if (!CompareVisitor.compare(DummyEquations.getInstance(), CMP.EQ, type.getCodomain(), superType.applyExpression(new ReferenceExpression(type.getParameters())), UniverseExpression.OMEGA, def)) {
+              if (!CompareVisitor.compare(DummyEquations.getInstance(), CMP.EQ, type.getCodomain(), superType.getCodomain().subst(new ExprSubstitution(superType.getParameters(), new ReferenceExpression(type.getParameters())), typedDef.levelSubstitutionFor(superClass)), UniverseExpression.OMEGA, def)) {
                 if (!type.getCodomain().reportIfError(errorReporter, def) && !superType.getCodomain().reportIfError(errorReporter, def)) {
                   errorReporter.report(new TypecheckingError("The types of the field '" + field.getName() + "' differ in super classes '" + originalSuperClass.getName() + "' and '" + superClass.getName() + "'", def));
                 }

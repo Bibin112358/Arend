@@ -264,7 +264,6 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
       } else {
         instanceTypeOK = false;
         myLocalErrorReporter.report(def.getResultType() != null ? new NameResolverError("Expected a class", def.getResultType()) : new NameResolverError("The type of a function defined by copattern matching must be specified explicitly", def));
-        body.getCoClauseElements().clear();
       }
     }
     if (body instanceof Concrete.ElimFunctionBody) {
@@ -497,7 +496,6 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
         if (!(ref instanceof ErrorReference)) {
           myLocalErrorReporter.report(new NameResolverError("Expected a class", superClass));
         }
-        def.getSuperClasses().remove(i--);
       }
     }
   }
