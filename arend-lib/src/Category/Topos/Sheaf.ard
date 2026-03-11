@@ -21,6 +21,7 @@
 \import Set.Subset
 \import Topology.Locale
 \import Topology.Locale.PreorderSite
+\open CompleteLattice
 
 \record MatchingFamily.{s,o1,h1,o2,h2} {C : Precat.{o1,h1}} {D : Precat.{o2,h2}} (F : Functor C.op D) {J : \Type s} (x : C) (P : J -> ObOver x) (d : D)
   | \coerce family (j : J) : Hom d (F (P j).1)
@@ -133,6 +134,22 @@
                  o-assoc *> pmap (_ ∘) (pmap {MatchingFamily F x P d} (family {__} i) (IsEquiv.f_ret e {map mf})) *> inv o-assoc *> pmap (`∘ _) (inv Func-o) *> mf.isMatching (inv o-assoc *> pmap (`∘ f) (P<=Q i).3 *> f_Q)
              }
            }
+} \where {
+  \lemma separated-locale.{s,o,h} {L : Locale.{s}} (S : SeparatedVPresheaf.{s,o,h} { | C => L }) {U : Set L}
+    {d : S.D} {f g : Hom d (S (Join U))} (p : ∀ {y : L} (Uy : U y) (S.F.Func (Join-cond Uy) ∘ f = S.F.Func (Join-cond Uy) ∘ g)) : f = g
+    => separated-locale_<= S <=-refl \lam Uy zy zU => pmap (`∘ f) (pmap S.F.Func prop-pi *> S.F.Func-o) *> o-assoc *>
+        pmap (S.F.Func zy ∘) (p Uy) *> inv o-assoc *> pmap (`∘ _) (inv S.F.Func-o *> pmap S.F.Func prop-pi)
+
+  \lemma separated-locale_SJoin.{s,o,h} {L : Locale.{s}} (S : SeparatedVPresheaf.{s,o,h} { | C => L }) {J : \Sort} {h : J -> L} {P : J -> \Sort}
+    (d : S.D) {f g : Hom d (S (SJoin h P))} (p : ∀ {j : J} (Pj : P j) (S.F.Func (SJoin-cond Pj) ∘ f = S.F.Func (SJoin-cond Pj) ∘ g)) : f = g
+    => separated-locale_<= S <=-refl \lam {z} => SetIm-elim \lam Pa z<=ha z<=P => later $ pmap (`∘ f) (pmap S.F.Func prop-pi *> S.F.Func-o) *> o-assoc *>
+        pmap (S.F.Func z<=ha ∘) (p Pa) *> inv o-assoc *> pmap (`∘ g) (inv S.F.Func-o *> pmap S.F.Func prop-pi)
+
+  \lemma separated-locale_<=.{s,o,h} {L : Locale.{s}} (S : SeparatedVPresheaf.{s,o,h} { | C => L }) {x : L} {U : Set L} (x<=U : x <= Join U)
+    {d : S.D} {f g : Hom d (S x)} (p : ∀ {z : L} {y : U} (z <= y) (zx : z <= x) (S.F.Func zx ∘ f = S.F.Func zx ∘ g)) : f = g
+    => S.separated-covering {x} {\lam z => ∃ (y : U) (z.1 <= y)} (Covering.covering-basic $
+          L.meet-univ <=-refl x<=U <=∘ Join-ldistr>= <=∘ SJoin-univ \lam {a} Ua => Join-cond $ later (L.meet-left, inP (a, Ua, L.meet-right)))
+        \lam {u} (inP (y,Uy,u<=y)) => p Uy u<=y u.2
 }
 
 \func IsSheaf.{o2,h2,o1,h1} {C : Site.{o1,h1}} {D : Precat.{o2,h2}} (F : Functor C.op D)
@@ -245,6 +262,15 @@
 
   \lemma direct_image_locale.{s,o,h} {L L' : Locale.{s}} (f : FrameHom L' L) (S : VSheaf.{s,o,h} { | C => L }) : VSheaf S.D L' (Comp S f.functor.op)
     => S.direct_image f.functor
+
+  \lemma sheaf-locale.{s,o,h} {L : Locale.{s}} (S : VSheaf.{s,o,h} { | C => L }) {U : Set L} {d : S.D}
+    : IsEquiv (PresieveMatchingFamily.matchingFamily S.F (Join U) (\lam x => U x.1) d)
+    => S.isSheaf (Join-univ \lam Uw => Join-cond (Join-cond Uw, Uw)) {d}
+
+  \lemma sheaf-locale_SJoin.{s,o,h} {L : Locale.{s}} (S : VSheaf.{s,o,h} { | C => L }) {J : \Type s} {f : J -> L} {U : Set J} {d : S.D}
+    : IsEquiv (MatchingFamily.matchingFamily S.F {Set.Total U} (SJoin f U) (\lam j => (f j.1, SJoin-cond j.2)) d)
+    => IsEquiv.trans (sheaf-locale S) {MatchingFamily.map S (\lam j => later ((f j.1, SJoin-conde j.1 j.2), SetIm-cone j.1 j.2)) _ d} $
+        MatchingFamily.map.isEquiv $ later \lam (x, inP ((j,Uj),fj=x)) => inP ((j,Uj), ext $ ext fj=x)
 }
 
 \instance VSheafCat.{s,v} (D : Cat.{\suc v, v}) (C : Site.{s,s}) : Cat

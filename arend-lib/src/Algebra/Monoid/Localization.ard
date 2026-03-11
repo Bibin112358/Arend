@@ -9,6 +9,7 @@
 \import Function.Meta
 \import Logic
 \import Logic.Meta
+\import Logic.TFAE
 \import Logic.Unique
 \import Meta
 \import Paths
@@ -30,6 +31,17 @@
         | inP (s,Ss,q) => inP (y * s, transport S (q *> *-assoc) $ contains_* Sc Ss)
       }
     }, \lam (inP (y,Sxy)) => Inv.lmake (inL y * (localization-inv Sxy).inv) $ *-comm *> inv *-assoc *> pmap (`* _) (inv func-*) *> inv-right)
+
+  \lemma trivial-char {z : B} (za : \Pi {x : B} -> z * x = z) : TFAE (S z, ∀ {y : L} (y = 1), inL z = 1)
+    => TFAE.cycle (
+      \lam Sz {y} =>
+        \have | t {x} : inL x = 1 => (localization-inv Sz).inv-cancel-left $ inv func-* *> pmap inL za *> inv ide-right
+              | (inP (x,c,_,yc=x)) => localization-surj y
+        \in inv ide-right *> pmap (y *) (inv t) *> yc=x *> t,
+      \lam p => p,
+      \lam p => \case localization-inj $ p *> inv inL.func-ide \with {
+        | inP (c,Sc,q) => transport S (inv ide-left *> inv q *> za) Sc
+      })
 
   \lemma isEpi {K : CMonoid} (g h : MonoidHom L K) (d : \Pi (a : B) -> g (inL a) = h (inL a)) {x : L} : g x = h x
     => \case localization-surj x \with {
@@ -106,10 +118,23 @@
         (inP (1, LDiv.make (A x) (inv func-* *> pmap A (*-comm *> x|y.inv-right) *> inv ide-left)))
         (inP (1, LDiv.make (A.localization-inv powers-id).inv $ inv $ ide-left *> Inv.rotate-inv-right (inv func-* *> pmap A (*-comm *> x|y.inv-right))))
 
+  \lemma id1 {M : CMonoid} : Localization (powers 1) M MonoidHom.id \cowith
+    | localization-inv (inP (n,p)) => transport Inv (inv pow_ide *> p) Inv.ide-isInv
+    | localization-inj x=y => inP (1, powers-id, pmap (`* _) x=y)
+    | localization-surj x => inP (x, 1, powers-id, ide-right)
+
+  \lemma trivial1 {M : CMonoid} {z : M} (za : \Pi {x : M} -> z * x = z) {L : CMonoid} {f : MonoidHom M L}
+    : Localization (powers z) L f <-> ∀ {y : L} (y = 1)
+    => (\lam l => l.trivial-char za 0 1 powers-id, \lam t => \new Localization {
+          | localization-inv _ => transportInv Inv t Inv.ide-isInv
+          | localization-inj _ => inP (z, powers-id, *-comm *> za *> inv za *> *-comm)
+          | localization-surj x => inP (1, z, powers-id, t *> inv t)
+        })
+
   \lemma comp1 {M : CMonoid} {a b : M} (A : Localization (powers a)) (B : Localization (powers (A b)))
     : Localization (powers (a * b)) B.L (B.inL MonoidHom.∘ A.inL) \cowith
     | localization-inv {_} (inP (n,idp)) => transportInv Inv (B.inL MonoidHom.∘ A.inL).func-pow $ Inv.Inv_pow $
-    transportInv Inv (B.inL MonoidHom.∘ A.inL).func-* $ Inv.Inv_* (B.inL.func-Inv $ A.localization-inv $ inP (1, ide-left)) $ B.localization-inv (inP (1, ide-left))
+      transportInv Inv (B.inL MonoidHom.∘ A.inL).func-* $ Inv.Inv_* (B.inL.func-Inv $ A.localization-inv $ inP (1, ide-left)) $ B.localization-inv (inP (1, ide-left))
     | localization-inj BAx=Bay => \case B.localization-inj BAx=Bay \with {
       | inP (_, inP (n,idp), p) => \case A.localization-inj $ func-* *> pmap (_ *) A.inL.func-pow *> p *> pmap (_ *) (inv inL.func-pow) *> inv func-* \with {
         | inP (_, inP (k,idp), q) => inP (_, inP (n Nat.+ k, idp), equation.cMonoid {pow_+, M.pow_*-comm {a} {b} {n}, M.pow_*-comm {a} {b} {k}, q})

@@ -2,6 +2,7 @@
  -   Steven Vickers, Compactness in Locales and in Formal Topology, https://www.sciencedirect.com/science/article/pii/S0168007205000801
  -}
 
+\import Category
 \import Category.Topos.Sheaf.Site
 \import Category.Topos.Sheaf.SiteHom
 \import Data.Array
@@ -172,6 +173,11 @@
 
     \lemma Cover_Covering {x : P} {U : Presieve x} (x<=U : Cover x \lam y => \Sigma (p : y <= x) (U (y,p))) : Covering x U
       => Covering.covering-refine (toCovering x<=U) \lam {y} (inP (z,(z<=x,Uz),y<=z)) => inP ((z,z<=x), Uz, y<=z, prop-pi)
+
+    \lemma fromCovering {x : P} {S : Presieve x} (x<=S : Covering x S) : Cover x (SetIm __.1 S) \elim x<=S
+      | covering-inj x<=y _ _ Sy => cover-inj x<=y (SetIm-con Sy)
+      | covering-trans x<=T T<=S => cover-trans x<=T \lam (t<=x,Tt) => cover-refine (fromCovering (T<=S Tt))
+        \lam {_} => SetIm-elim $ later \lam (inP (u,Su,a<=u,_)) => inP (u.1, SetIm-con Su, a<=u)
   }
 
 {- | The underlying set of {SiteLocale} can be defined as the quotient of the set `P -> \Prop`
@@ -220,7 +226,12 @@
           ((SiteLocale P).SJoin-univ $ later \lam Ua => embed-univ Ua)
 
     \lemma element_SJoin_<= {U : Opens P} {a : P} (U<=a : U <= embed a) : U <= (SiteLocale P).SJoin embed (\lam x => \Sigma (U.1 x) (x P.<= a))
-      => \lam Ux => cover-sub (cover-down (U<=a Ux)) \lam {y} (inP (_,idp,y<=a,y<=x)) => inP (_, SetIm-con (U.2 $ cover-inj y<=x Ux, y<=a), cover-refl idp)
+      => \lam Ux => cover-down-sub (U<=a Ux) \lam {y} {_} (idp) y<=a y<=x => inP (_, SetIm-con (U.2 $ cover-inj y<=x Ux, y<=a), cover-refl idp)
+
+    \lemma element_SJoin_<=2 {U : Opens P} {a b : P} (U<=a : U <= embed a) (U<=b : U <= embed b)
+      : U <= (SiteLocale P).SJoin embed (\lam x => \Sigma (U.1 x) (x P.<= a) (x P.<= b))
+      => \lam Ux => cover-trans* (cover-down (U<=a Ux)) \lam {y} (inP (_,idp,y<=a,y<=x)) => cover-down-sub (cover-left y<=x (U<=b Ux))
+          \lam {z} {_} (idp) z<=b z<=y => inP (_, SetIm-cone z (U.2 $ cover-inj (z<=y <=∘ y<=x) Ux, z<=y <=∘ y<=a, z<=b), cover-refl idp)
 
     \lemma func-equality {L : Locale} {f g : LocaleHom L (SiteLocale P)} (p : \Pi (x : P) -> f (embed x) = g (embed x)) {U : Opens P} : f U = g U
       => pmap f element_SJoin *> f.func-SJoin *> pmap (SJoin __ U.1) (ext p) *> inv g.func-SJoin *> inv (pmap g element_SJoin)
@@ -248,6 +259,13 @@
         locale_cover (f.func-flat-meet meet-left meet-right) <=∘ SJoin-univ \lam {c} s =>
           SJoin-cond $ later (U.2 $ cover-inj s.1 Ua, V.2 $ cover-inj s.2 Vb))
       | func-Join>= => SJoin-univ \lam c => locale_cover (f.func-Cover c) <=∘ SJoin-univ (later \lam {b} (inP (U,CU,Ub)) => SJoin-cond Ub <=∘ SJoin-cond CU)
+
+    \func embedHom {P : PreorderSite} : PreorderSitePredenseHom P (LocaleSite (SiteLocale P)) \cowith
+      | func => embed
+      | func-<= p => embed-univ $ cover-inj p idp
+      | func-basicCover {x} {V} x<=V => embed-univ $ cover-trans x<=V \lam {v} Vv => cover-refl $ inP (embed v, SetIm-con Vv, cover-refl idp)
+      | func-dense-image {V} => cover-basic \lam {x} Vx => cover-refl $ inP (embed x, SetIm-con $ embed-univ Vx, cover-refl idp)
+      | func-dense-map p => p (cover-refl idp)
   }
 
 \record PreorderSiteHom \extends PreorderHom, SiteHom.{\lp,\lp,\lp,\lp} {
@@ -260,10 +278,6 @@
 
   | C => Dom
   | D => Cod
-  | F => func
-  | Func => func-<=
-  | Func-id => prop-pi
-  | Func-o => prop-pi
   | Func-cover x<=P => Covering.covering-basic $ transport (isBasicCover _)
     (ext \lam y => propExt
       (SetIm-elim $ later \lam {y} (y<=x,Py) => (func-<= y<=x, inP ((y,y<=x), Py, idp)))
@@ -292,6 +306,22 @@
     | func-flat-meet u<=gfx u<=gfy => Cover.cover-trans* (g.func-flat-meet u<=gfx u<=gfy) $ SetIm-elim $ later
         \lam a<=fxfy => transportInv (Cover _) SetIm_o $ g.func-Cover (f.func-flat-meet a<=fxfy.1 a<=fxfy.2)
 }
+
+\record PreorderSitePredenseHom \extends PreorderSiteHom, SiteDensePrehom.{\lp,\lp,\lp,\lp}
+  | func-dense-image {u : Cod} : Cover u (SetIm func \lam x => func x <= u)
+  | func-dense-map {a b : Dom} : func a <= func b -> Cover1 a b
+
+  | Func-dense-image => Cover_Covering $ cover-sub func-dense-image \lam {_} => SetIm-elim \lam {a} fa<=u => later (fa<=u, inP (a, \new Iso {
+    | f => <=-refl
+    | hinv => <=-refl
+    | hinv_f => prop-pi
+    | f_hinv => prop-pi
+  }))
+  | Func-dense-map fa<=fb => Cover_Covering $ cover-down-sub (func-dense-map fa<=fb) \lam {y} {_} (idp) y<=b y<=a => (y<=a, inP (y<=b, prop-pi))
+  | func-flat-top => cover-refine func-dense-image \lam {_} => SetIm-elim \lam {a} fa<=u => inP $ later (func a, TSetIm-con a, <=-refl)
+  | func-flat-meet u<=fx u<=fy => cover-trans* func-dense-image \lam {_} (inP ((a,fa<=u),idp)) => cover-sub
+    (fromCovering $ Func-covering $ toCovering $ cover-inter (func-dense-map (fa<=u <=∘ u<=fx)) (func-dense-map (fa<=u <=∘ u<=fy)))
+    \lam {_} => SetIm-elim $ later \lam {_} (inP (b, inP (c, inP (_,idp,_,idp,c<=x,c<=y), b<=c), idp)) => SetIm-con (b<=c <=∘ c<=x, b<=c <=∘ c<=y)
 
 \lemma sdense-site {P : PreorderSite} {L : Locale} {f : PreorderSiteHom P (LocaleSite L)}
                    (s : \Pi {Q : \Prop} {x : P} -> f x <= L.pHat Q -> Cover x (\lam _ => Q))

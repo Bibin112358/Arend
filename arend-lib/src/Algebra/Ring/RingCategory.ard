@@ -148,6 +148,10 @@
     \lemma Iso<->IsEquiv {R S : CRing} {f : RingHom R S} : Iso {CRingCat} f <-> IsEquiv f
       => <->trans (forgetToRing.Func-iso __, \lam e => later \new Iso e.f e.hinv e.hinv_f e.f_hinv) RingCat.Iso<->IsEquiv
 
+    \lemma Iso_QEquiv (e : Iso {CRingCat}) : QEquiv e.f e.hinv \cowith
+      | ret_f x => path \lam i => e.hinv_f i x
+      | f_sec y => path \lam i => e.f_hinv i y
+
     \func Image=Cod {R : Ring} {S : CRing} (f : RingHom R S) (p : IsSurj f) : (RingHom.ImageC f).ICRing = {CRing} S
       => ext CRing { | Ring => RingCat.Image=Cod f p }
   }
@@ -182,16 +186,17 @@
 
 \instance CRingBicat : BicompleteCat
   | Cat => CRingCat
-  | limit F => \new Limit {
-    | apex => LimitCRing F
-    | coneMap => LimitCRing.limProj
-    | coneCoh h => exts \lam l => l.2 h
-    | limMap => LimitCRing.limMap
-    | limBeta c j => idp
-    | limUnique p => exts \lam x => exts \lam j => path \lam i => p j i x
-  }
+  | limit => CRingLimit
   | colimit => CocompletePrecat.applyEquiv catEquiv
   \where {
+    \func CRingLimit.{s} {J : Precat.{s,s}} (F : Functor J CRingCat.{s}) : Limit F \cowith
+      | apex => LimitCRing F
+      | coneMap => LimitCRing.limProj
+      | coneCoh h => exts \lam l => l.2 h
+      | limMap => LimitCRing.limMap
+      | limBeta c j => idp
+      | limUnique p => exts \lam x => exts \lam j => path \lam i => p j i x
+
     \instance theory : Theory
       | Sort => \Sigma
       | Symb _ => Fin 5

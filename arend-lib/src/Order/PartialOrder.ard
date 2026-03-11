@@ -1,4 +1,5 @@
 \import Category
+\import Category.Functor
 \import Logic
 \import Paths.Meta
 \import Relation.Equivalence
@@ -91,11 +92,26 @@
   | <=-transitive => <=-transitive
   | <=-antisymmetric p q => ext (<=-antisymmetric p q)
 
-\record PreorderHom \extends SetHom {
+\record PreorderHom \extends SetHom, Functor.{\lp,\lp,\lp,\lp} {
   \override Dom : Preorder
   \override Cod : Preorder
 
   | func-<= {x y : Dom} : x <= y -> func x <= func y
+
+  | C => Dom
+  | D => Cod
+  | F => func
+  | Func => func-<=
+  | Func-id => prop-pi
+  | Func-o => prop-pi
+} \where {
+  \func id {P : Preorder} : PreorderHom P P \cowith
+    | func x => x
+    | func-<= p => p
+
+  \func \fixl 8 compose \alias \infixl 8 ∘ {P Q R : Preorder} (g : PreorderHom Q R) (f : PreorderHom P Q) : PreorderHom P R \cowith
+    | func x => g (f x)
+    | func-<= p => func-<= (func-<= p)
 }
 
 \record PosetHom \extends PreorderHom {

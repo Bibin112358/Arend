@@ -91,15 +91,12 @@
 
   \lemma equals-mono {C D : Precat} {F G : Functor C D} {a b : NatTrans F G} (e : SplitMono {C}) (p : a e.cod = b e.cod) : a e.dom = b e.dom
     => (G.Func-splitMono e).isMono $ inv (a.natural e.f) *> pmap (`∘ _) p *> b.natural e.f
-}
 
-\instance FunctorPrecat.{o1,h1,o2,h2} (C : Precat.{o1,h1}) (D : Precat.{o2,h2}) : Precat (Functor C D)
-  | Hom => NatTrans
-  | id F => \new NatTrans {
-    | trans X => id (F X)
+  \protected \func \fixl 8 id.{o1,h1,o2,h2} {C : Precat.{o1,h1}} {D : Precat.{o2,h2}} {F : Functor C D} : NatTrans F F \cowith
+    | trans X => D.id (F X)
     | natural f => id-left *> inv id-right
-  }
-  | o b a => \new NatTrans {
+
+  \protected \func \fixl 8 compose.{o1,h1,o2,h2} {C : Precat.{o1,h1}} {D : Precat.{o2,h2}} {F G H : Functor C D} (b : NatTrans G H) (a : NatTrans F G) : NatTrans F H \cowith
     | trans X => b X ∘ a X
     | natural f => run {
       rewrite (o-assoc, natural {a} f),
@@ -107,7 +104,12 @@
       rewrite (natural {b} f),
       o-assoc
     }
-  }
+}
+
+\instance FunctorPrecat.{o1,h1,o2,h2} (C : Precat.{o1,h1}) (D : Precat.{o2,h2}) : Precat (Functor C D)
+  | Hom => NatTrans
+  | id _ => NatTrans.id
+  | o => NatTrans.compose
   | id-left => exts (\lam X => id-left)
   | id-right => exts (\lam X => id-right)
   | o-assoc => exts (\lam X => o-assoc)

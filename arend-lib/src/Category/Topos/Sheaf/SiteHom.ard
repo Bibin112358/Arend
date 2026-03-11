@@ -34,7 +34,7 @@
     | Func-flat-pullback {x} {y1} {y2} {p1} {p2} {u} {f} {g} f_g => covering-id $ inP (u, f, g, f_g, C.id u, idp, idp)
 }
 
-\record DenseSitePrehom \extends SitePrehom {
+\record SiteDensePrehom \extends SitePrehom {
   | Func-dense-image {u : D} : Covering u \lam v => ∃ (x : C) (Iso {D} {v.1} {F x})
   | Func-dense-map {a b : C} (g : Hom (F a) (F b)) : Covering a \lam v => ∃ (h : Hom v.1 b) (g ∘ Func v.2 = Func h)
 
@@ -51,7 +51,7 @@
           inP ((_,_), inP ((_,_), inP (y.1, idIso, x>b ∘ y.2, id-right *> inv o-assoc *> inv o-assoc *> pmap (`∘ _) xbc *> inv Func-o, y>b', id-right *> inv o-assoc *> inv o-assoc *> yb'c), id _, id-right), id _, id-right)
 }
 
-\record DenseSiteHom \extends DenseSitePrehom, SiteHom
+\record SiteDenseHom \extends SiteDensePrehom, SiteHom
   | Func-dense-cover {x : C} {P : Presieve x} : Covering (F x) (Presieve.pushforward \this P) -> Covering x P
   | Func-dense-equal {a b : C} (f g : Hom a b) : Func f = Func g -> Covering a \lam pa => f ∘ pa.2 = g ∘ pa.2
 

@@ -33,6 +33,9 @@
   \lemma equiv-hom (e : IsEquiv func) : MonoidHom Cod Dom (IsEquiv.ret e) \cowith
     | func-ide => IsEquiv.isInj e $ IsEquiv.f_ret e *> inv func-ide
     | func-* => IsEquiv.isInj e $ IsEquiv.f_ret e *> inv (func-* *> pmap2 (*) (IsEquiv.f_ret e) (IsEquiv.f_ret e))
+
+  \lemma equiv-Inv (e : IsEquiv func) {a : Dom} (ai : Inv (func a)) : Inv a
+    => transport Inv (IsEquiv.ret_f e) $ (equiv-hom e).func-Inv ai
 } \where {
   \func equals {M N : Monoid} {f g : MonoidHom M N} (p : \Pi (x : M) -> f x = g x) : f = g
     => exts p

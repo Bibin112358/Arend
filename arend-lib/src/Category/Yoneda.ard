@@ -96,7 +96,7 @@
       }
     }
   | limBeta {Z} _ p0 => \case \elim p0 \with {
-    | (Y, p) => (Yoneda-lemma {_} {_} {Z}).isInj $ unfold $ rewrite P.F.Func-id idp
+    | (Y, p) => (Yoneda-lemma {_} {_} {Z}).isInj $ unfold $ unfold $ rewrite P.F.Func-id idp
   }
   | limUnique eq => exts \lam X => exts \lam p =>
     \let | elem : PrecategoryOfElements P => (X, p)

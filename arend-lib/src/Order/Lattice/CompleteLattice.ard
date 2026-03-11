@@ -76,13 +76,13 @@
   \func SJoin {A : \Sort} (f : A -> E) (P : A -> \Sort) : E
     => Join (SetIm f P)
 
-  \lemma SJoin-cond {A : \Sort} {f : A -> E} {P : A -> \Prop} {a : A} (Pa : P a) : f a <= SJoin f P
+  \lemma SJoin-cond {A : \Sort} {f : A -> E} {P : A -> \Sort} {a : A} (Pa : P a) : f a <= SJoin f P
     => Join-cond (SetIm-con Pa)
 
-  \lemma SJoin-conde {A : \Sort} {f : A -> E} {P : A -> \Prop} (a : A) (Pa : P a) : f a <= SJoin f P
+  \lemma SJoin-conde {A : \Sort} {f : A -> E} {P : A -> \Sort} (a : A) (Pa : P a) : f a <= SJoin f P
     => SJoin-cond Pa
 
-  \lemma SJoin-univ {A : \Sort} {f : A -> E} {P : A -> \Prop} {e : E} (p : ∀ {a : P} (f a <= e)) : SJoin f P <= e
+  \lemma SJoin-univ {A : \Sort} {f : A -> E} {P : A -> \Sort} {e : E} (p : ∀ {a : P} (f a <= e)) : SJoin f P <= e
     => Join-univ (SetIm-elim p)
 
   \lemma Join_SJoin {C : E -> \Prop} : Join C = SJoin (\lam x => x) C

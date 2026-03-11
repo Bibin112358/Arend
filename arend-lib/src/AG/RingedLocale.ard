@@ -1,3 +1,5 @@
+\import Algebra.Group
+\import Algebra.Group.GroupHom
 \import Algebra.Meta
 \import Algebra.Monoid
 \import Algebra.Monoid.Localization
@@ -12,7 +14,6 @@
 \import Category.Functor
 \import Category.Topos.Sheaf
 \import Category.Topos.Sheaf.DenseExtend
-\import Category.Topos.Sheaf.LocalPredicate
 \import Equiv
 \import Equiv.Path
 \import Equiv.Sigma
@@ -58,7 +59,7 @@
     \lemma ext {L M : RingedLocale} (f g : RingedLocaleHom L M) (p : f.f = g.f) (q : \Pi (a : M) (x : M.R a) -> L.R.F.Func (fromHomEq p a) (g.f# a x) = f.f# a x) : f = g
       => aux f.f# g.f# p q
       \where {
-        \lemma aux {L M : RingedLocale} {f g : LocaleHom L M} (f# : NatTrans M.R (VSheaf.direct_image_locale f L.R)) (g# : NatTrans M.R (VSheaf.direct_image_locale g L.R)) (p : f = g) (q : \Pi (a : M) (x : M.R a) -> L.R.F.Func (fromHomEq p a) (g# a x) = f# a x) : (\new RingedLocaleHom L M f f#) = (\new RingedLocaleHom L M g g#) \elim p
+        \private \lemma aux {L M : RingedLocale} {f g : LocaleHom L M} (f# : NatTrans M.R (VSheaf.direct_image_locale f L.R)) (g# : NatTrans M.R (VSheaf.direct_image_locale g L.R)) (p : f = g) (q : \Pi (a : M) (x : M.R a) -> L.R.F.Func (fromHomEq p a) (g# a x) = f# a x) : (\new RingedLocaleHom L M f f#) = (\new RingedLocaleHom L M g g#) \elim p
           | idp => cong $ exts $ \lam a => exts (\lam x => inv (q a x) *> pmap (\lam (h : RingHom (L.R (f a)) (L.R (f a))) => h (g# a x)) (L.R.F.Func-id {f a}))
       }
   }
@@ -66,6 +67,18 @@
 \record LocallyRingedLocale \extends RingedLocale {
   | isLRLNonTrivial (a : L) : 0 = {R.F a} 1 -> a <= bottom
   | isLocallyRinged (a : L) (x : R.F a) : a <= Join (\lam b => \Sigma (p : b <= a) (Inv (R.F.Func p x) || Inv (R.F.Func p (x + 1))))
+
+  \lemma locallyRinged-split_ide {a : L} {x y : R.F a} (x+y=1 : x + y = 1) : a <= Join (\lam b => \Sigma (p : b <= a) (Inv (R.F.Func p x) || Inv (R.F.Func p y)))
+    => isLocallyRinged a (negative x) <=∘ Join-univ \lam {b} => \case \elim __ \with {
+      | (b<=a, byLeft e) => Join-cond (b<=a, byLeft $ Ring.Inv_negative $ transport Inv AddGroupHom.func-negative e)
+      | (b<=a, byRight e) => Join-cond (b<=a, byRight $ transportInv (\lam r => Inv (R.F.Func b<=a r)) (equation.abGroup {x+y=1}) e)
+    }
+
+  \lemma locallyRinged-split_Inv {a : L} {x y : R.F a} (x+y-inv : Inv (x + y)) : a <= Join (\lam b => \Sigma (p : b <= a) (Inv (R.F.Func p x) || Inv (R.F.Func p y)))
+    => locallyRinged-split_ide {_} {a} {x * x+y-inv.inv} {y * x+y-inv.inv} (inv Ring.rdistr *> x+y-inv.inv-right) <=∘ Join-univ \lam {b} => \case \elim __ \with {
+      | (b<=a, byLeft e) => Join-cond (b<=a, byLeft $ Inv.cfactor-left $ transport Inv func-* e)
+      | (b<=a, byRight e) => Join-cond (b<=a, byRight $ Inv.cfactor-left $ transport Inv func-* e)
+    }
 
   \type IsAffineOpen (c : L) => Given
     (∀ (x : R c) ∃ (b : L) (p : b <= c) (Localization (SubMonoid.powers x) (R b) (R.F.Func p)))
@@ -79,30 +92,34 @@
   \override Dom : LocallyRingedLocale.{s}
   \override Cod : LocallyRingedLocale.{s}
 
-  | isHomLocal {a : Dom} {b : Cod} (a<=fb : a <= f b) {x : Cod.R b} : Inv (Dom.R.F.Func a<=fb (f# b x)) ->
-      ∃ (c : Cod) (a <= f c) (c<=b : c <= b) (Inv (Cod.R.F.Func c<=b x))
+  | isLRLHomLocal {c : Dom} {a : Cod} (c<=fa : c <= f a) {x : Cod.R a} : Inv (Dom.R.F.Func c<=fa (f# a x)) ->
+      c <= CompleteLattice.SJoin f \lam b => \Sigma (b<=a : b <= a) (Inv (Cod.R.F.Func b<=a x))
+} \where {
+  \protected \lemma equals {L M : LocallyRingedLocale} (f g : LocallyRingedLocaleHom L M)
+                           (p1 : \Pi (a : M) -> f.f a <= g.f a) (p2 : \Pi (a : M) -> g.f a <= f.f a)
+                           (q : \Pi (a : M) -> L.R.F.Func (p1 a) RingHom.∘ g.f# a = f.f# a) : f = g
+    => aux (exts \lam a => <=-antisymmetric (p1 a) (p2 a)) \lam a x => pmap (L.R.F.Func __ _) prop-pi *> path \lam i => q a i x
+    \where {
+      \private \lemma aux {f* g* : LocaleHom L M} (p : f* = g*) {f : LocallyRingedLocaleHom L M f*} {g : LocallyRingedLocaleHom L M g*}
+                          (q : \Pi (a : M) (x : M.R a) -> L.R.F.Func (=_<= (path \lam i => p i a)) (g.f# a x) = f.f# a x) : f = g \elim p
+        | idp => ext (idp, simp_coe $ simp_coe \lam a => exts \lam x => inv (q a x) *> path \lam i => L.R.F.Func-id i _)
+    }
 }
 
 \record LocallyRingedSite.{s} (\coerce P : PreorderSite.{s}) (R : Functor P.op CRingBicat.{s}) (R-sheaf : IsPreorderSheaf R) {
   | isNonTrivialPres (a : P) : 0 = {R a} 1 -> Cover a empty
   | isLocallyRingedPres (a : P) (x : R a) : Cover a (\lam b => \Sigma (p : b <= a) (Inv (R.Func p x) || Inv (R.Func p (x + 1))))
 
-  \func toLocale : LocallyRingedLocale \cowith
+  \protected \func toLocale : LocallyRingedLocale \cowith
     | L => SiteLocale P
-    | R => SiteLocaleSheaf {_} {CRingBicat} R R-sheaf
+    | R => SiteLocaleSheaf R R-sheaf
     | isLRLNonTrivial U p {x} Ux => Cover.cover-sub (isNonTrivialPres x $ pmap (__.1 (x,Ux)) p) empty-univ
-    | isLocallyRinged U a {x} Ux => Cover.cover-sub (isLocallyRingedPres x (a.1 (x,Ux))) \lam {y} s => inP (embed y, (embed-univ $ U.2 $ cover-inj s.1 Ux, \case s.2 \with {
-      | byLeft i => byLeft $ (LimitCRing.inv-char {_} {extend.limFunctor (embed y)}).2 \lam j =>
-        (inv-localPredicate {_} {IsPreorderSheaf.makeSheaf R-sheaf}).byCovering (Cover.toCovering j.2) $ later \lam {z} (inP (_,idp,z<=y)) => transport (Inv __) (
-          \let Uj : U.1 j.1 => _
-          \in inv (path \lam i => R.Func-o i _) *> a.2 {x,Ux} {z.1,_} (later $ z<=y <=∘ s.1) *> inv (a.2 {j.1,Uj} {z.1, U.2 $ cover-inj z.2 Uj} z.2))
-        ((R.Func z<=y).func-Inv i)
-      | byRight i => byRight $ (LimitCRing.inv-char {_} {extend.limFunctor (embed y)}).2 \lam j =>
-        (inv-localPredicate {_} {IsPreorderSheaf.makeSheaf R-sheaf}).byCovering (Cover.toCovering j.2) $ later \lam {z} (inP (_,idp,z<=y)) => transport (Inv __) (unfold $ unfold $
-          \let Uj : U.1 j.1 => _
-          \in inv (path \lam i => R.Func-o i _) *> func-+ *> pmap2 (+) (a.2 {x,Ux} {z.1,_} (later $ z<=y <=∘ s.1) *> inv (a.2 {j.1,Uj} {z.1, U.2 $ cover-inj z.2 Uj} z.2)) (func-ide *> inv func-ide) *> inv func-+)
-        ((R.Func z<=y).func-Inv i)
-    }), Cover.cover-refl idp)
+    | isLocallyRinged U a {x} Ux =>
+      \let proj => (extend {_} {CRingBicat}).Func (embed-univ Ux)
+      \in Cover.cover-sub (isLocallyRingedPres x ((extend.lim {_} {CRingBicat} (embed x)).coneMap (x, Cover.cover-refl idp) (proj a))) \lam {y} s => inP (embed y, (embed-univ $ U.2 $ cover-inj s.1 Ux, \case s.2 \with {
+        | byLeft ai => byLeft $ (embedProj {_} {CRingBicat} y).equiv-Inv (CRingCat.Iso<->IsEquiv.1 (embed-iso R-sheaf)) $ transport Inv (a.2 s.1) ai
+        | byRight ai => byRight $ (embedProj {_} {CRingBicat} y).equiv-Inv (CRingCat.Iso<->IsEquiv.1 (embed-iso R-sheaf)) $ transport Inv (func-+ *> pmap (_ +) func-ide *> pmap (`+ _) (a.2 s.1)) ai
+      }), Cover.cover-refl idp)
 
   \lemma affineOpen {a : P}
     (ap : ∀ (x : R a) ∃ (b : P) (p : b <= a) (Localization (SubMonoid.powers x) (R b) (R.Func p)))

@@ -10,6 +10,7 @@
 \import Algebra.Pointed.PointedHom
 \import Algebra.Pointed.Sub
 \import Algebra.Ring
+\import Algebra.Ring.Ideal
 \import Algebra.Ring.Local
 \import Algebra.Ring.RingHom
 \import Equiv
@@ -128,4 +129,19 @@
       | yes e => byLeft $ ~-lequiv1 $ ide-right *> e *> inv D.zro_*-left
       | no q => byRight $ Inv.lmake (inl~ (x.2, x.1, AddGroup.nonZeroApart q)) $ unfold $ ~-lequiv1 (simplify *-comm)
     }
+  }
+
+\func LocalizationIdeal (I : Ideal) {R : CRing} (f : RingHom I.S R) {S : SubMonoid I.S} (L : Localization S R f) : Ideal R \cowith
+  | contains a => ∃ (b : S.contains) (c : I.contains) (a * f b = f c)
+  | contains_zro => inP (1, contains_ide, 0, contains_zro, R.zro_*-left *> inv func-zro)
+  | contains_+ (inP (b,Sb,c,Ic,p)) (inP (b',Sb',c',Ic',p')) => inP (b * b', contains_* Sb Sb', c * b' + c' * b, contains_+ (ideal-right Ic) (ideal-right Ic'),
+    R.rdistr *> pmap2 (+) (pmap (_ *) func-* *> inv *-assoc *> pmap (`* _) p *> inv func-*) (pmap (_ *) (func-* *> *-comm) *> inv *-assoc *> pmap (`* _) p' *> inv func-*) *> inv func-+)
+  | ideal-left {r} (inP (b,Sb,c,Ic,p)) => \case L.localization-surj r \with {
+    | inP (r',d,Sd,q) => inP (b * d, contains_* Sb Sd, r' * c, ideal-left Ic, pmap (_ *) func-* *> *-assoc *> pmap (_ *) (inv *-assoc *> pmap (`* _) p *> *-comm) *> inv *-assoc *> pmap (`* _) q *> inv func-*)
+  }
+  \where {
+    \lemma unit-char (L : Localization S R f) : LocalizationIdeal I f L 1 <-> ∃ (x : I.S) (S x) (I x)
+      => (\lam (inP (b,Sb,c,Ic,p)) => \case L.localization-inj (inv ide-left *> p) \with {
+        | inP (d,Sd,bd=cd) => inP (b * d, contains_* Sb Sd, transportInv I bd=cd $ ideal-right Ic)
+      }, \lam (inP (x,Sx,Ix)) => inP (x, Sx, x, Ix, ide-left))
   }

@@ -10,6 +10,8 @@
 \import Algebra.Pointed
 \import Algebra.Pointed.PointedHom
 \import Algebra.Ring
+\import Algebra.Ring.Ideal
+\import Algebra.Ring.Localization
 \import Algebra.Ring.RingCategory
 \import Algebra.Ring.RingHom
 \import Category.Functor
@@ -29,6 +31,7 @@
 \import Topology.Locale.PreorderSite
 \open SubMonoid(powers)
 \open Monoid
+\open Cover
 
 \record SchemeSite.{s} (\coerce P : Preorder.{s}) (R : Functor P.op CRingBicat.{s}) {
   | loc-restrict {a b : P} (p : b <= a) : ∃ (x : R a) (Localization (powers x) (R b) (R.Func p))
@@ -36,9 +39,12 @@
     (Localization (powers x) (R b) (R.Func p)) (Localization (powers (R.Func r x)) (R b') (R.Func p'))
   | loc-exists {a : P} (x : R a) : ∃ (b : P) (p : b <= a) (Localization (powers x) (R b) (R.Func p))
 
-  \lemma loc-stable-forall {a' a b : P} (r : a' <= a) (p : b <= a) {x : R a} (bx : Localization (powers x) (R b) (R.Func p))
-    : ∃ (b' : P) (p' : b' <= a') (b' <= b) (Localization (powers (R.Func r x)) (R b') (R.Func p'))
-    => \have | lem {x y : R a} (bx : Localization (powers x) (R b) (R.Func p)) (by : Localization (powers y) (R b) (R.Func p))
+  \func IsLocalizationAt {a b : P} (ba : b <= a) (x : R a) : \Prop
+    => Localization (powers x) (R b) (R.Func ba)
+
+  \lemma loc-stable-forall {a' a b : P} (r : a' <= a) (p : b <= a) {x : R a} (bx : IsLocalizationAt p x)
+    : ∃ (b' : P) (p' : b' <= a') (b' <= b) (IsLocalizationAt p' (R.Func r x))
+    => \have | lem {x y : R a} (bx : IsLocalizationAt p x) (by : IsLocalizationAt p y)
                : ∃ (n : Nat) (LDiv (R.Func r x) (pow (R.Func r y) n))
                => \case Localization.subMonoid-compare1 bx by \with {
                     | inP (n,x|y^n) => inP (n, LDiv.make (R.Func r x|y^n.inv) $ inv func-* *> pmap (R.Func r) x|y^n.inv-right *> MonoidHom.func-pow)
@@ -48,8 +54,8 @@
 
   \func toSite : PreorderSite \cowith
     | Preorder => P
-    | isBasicCover a U => Given (0 = {R a} 1) (U = empty) || Given (x y : R a) (x + y = 1) (b c : P) (ba : b <= a) (ca : c <= a)
-      (Localization (powers x) (R b) (R.Func ba)) (Localization (powers y) (R c) (R.Func ca)) (U = \lam z => (b = z) || (c = z))
+    | isBasicCover a U => Given (0 = {R a} 1) (U = empty) || Given (x y : R a) (x + y = 1) (b c : P)
+      (ba : b <= a) (ca : c <= a) (IsLocalizationAt ba x) (IsLocalizationAt ca y) (U = \lam z => (b = z) || (c = z))
     | basic-cover-stable {a'} {a} a'<=a {U} => \case \elim U, \elim __ \with {
       | _, byLeft (at,idp) => inP (_, byLeft (inv func-zro *> pmap (R.Func a'<=a) at *> func-ide, idp), Refines-refl, absurd __)
       | _, byRight (x,y,x+y=1,b,c,ba,ca,bl,cl,idp) => \case loc-stable-forall a'<=a ba bl, loc-stable-forall a'<=a ca cl \with {
@@ -65,10 +71,10 @@
 
   \func toLRLSite : LocallyRingedSite toSite R \cowith
     | R-sheaf => IsPreorderSheaf.fromSheaf (sheaf-reflect CRingCat.forget forget.reflectsLimit (IsPreorderSheaf.toSheaf setPreorderSheaf)) __
-    | isNonTrivialPres a at => Cover.cover-basic $ byLeft (at,idp)
+    | isNonTrivialPres a at => cover-basic $ byLeft (at,idp)
     | isLocallyRingedPres a x => \case loc-exists (negative x), loc-exists (x + 1) \with {
       | inP (b,ba,bl), inP (c,ca,cl) => cover-trans (byRight (negative x, x + 1, equation.abGroup, b, c, ba, ca, bl, cl, idp))
-        \lam {t} e => Cover.cover-refl \case \elim t, \elim e \with {
+        \lam {t} e => cover-refl \case \elim t, \elim e \with {
           | _, byLeft idp => (ba, byLeft $ Ring.Inv_negative $ transport Inv AddGroupHom.func-negative $ bl.localization-inv $ inP (1, ide-left))
           | _, byRight idp => (ca, byRight $ cl.localization-inv $ inP (1, ide-left))
         }
@@ -104,11 +110,11 @@
         }
     }
 
-  \func toLocale : Locale
+  \protected \func toLocale : Locale
     => SiteLocale toSite
 
   \lemma basis-affineOpen {a : P} : toLRLSite.toLocale.IsAffineOpen (SiteLocale.embed a)
-    => toLRLSite.affineOpen loc-exists \lam b<=a => Cover.cover-refl (<=-refl, \case loc-restrict b<=a \with {
+    => toLRLSite.affineOpen loc-exists \lam b<=a => cover-refl (<=-refl, \case loc-restrict b<=a \with {
       | inP (x,l) => inP (x, transport (\lam r => Localization _ _ (R.Func r)) prop-pi l)
     })
 
@@ -117,7 +123,53 @@
 
   \func toScheme : Scheme \cowith
     | LocallyRingedLocale => toLRLSite.toLocale
-    | isLocallyAffine {x} _ => Cover.cover-refl $ inP (SiteLocale.embed x, basis-affineOpen, Cover.cover-refl idp)
+    | isLocallyAffine {x} _ => cover-refl $ inP (SiteLocale.embed x, basis-affineOpen, cover-refl idp)
+
+  \lemma inv-cover {a b c : P} (ca : c <= a) (ba : b <= a) {x : R a} (cl : IsLocalizationAt ca x) (xb : Inv (R.Func ba x)) : Cover1 {toSite} b c
+    => \case loc-stable-forall ba ca cl \with {
+      | inP (d,db,dc,dl) => \case loc-exists {_} {d} 0 \with {
+        | inP (t,td,tl) => cover-trans (byRight (1, 0, zro-right, d, t, db, td <=∘ db,
+          Localization.transportSubMonoid1 dl (inP (1, LDiv.ide-div)) (inP (1, transportInv (LDiv _) ide-left xb)),
+          (Localization.trivial1 Ring.zro_*-left).2 $ (Localization.trivial1 Ring.zro_*-left).1 tl, idp)) \lam {r} => \case \elim r, \elim __ \with {
+            | _, byLeft idp => cover-inj dc idp
+            | _, byRight idp => cover-inj (td <=∘ dc) idp
+          }
+      }
+    }
+
+  \lemma Cover_Ideal {a : P} {U : Set P} (a<=U : Cover {toSite} a U)
+    : Ideal.sclosure (\lam x => ∃ (b c : P) (b <= c) (U c) (ba : b <= a) (IsLocalizationAt ba x)) 1 \elim a<=U
+    | cover-inj {t} a<=t Ut => Ideal.sclosure-superset $ inP $ later (a, t, a<=t, Ut, <=-refl, transportInv (Localization _ _) R.Func-id Localization.id1)
+    | cover-trans (byLeft (at,idp)) _ => rewriteI at (Ideal.sclosure _).contains_zro
+    | cover-trans (byRight (x,y,x+y=1,b,c,b<=a,c<=a,bx,cy,idp)) bc<=U =>
+      \let | I a => Ideal.sclosure \lam x => ∃ (b c : P) (b <= c) (U c) (ba : b <= a) (IsLocalizationAt ba x)
+           | lem {d} (da : d <= a) {z} (dl : IsLocalizationAt da z) : I d ⊆ LocalizationIdeal (I a) (R.Func da) dl
+             => Ideal.sclosure-univ {_} {_} {LocalizationIdeal (I a) _ dl} (hiding (I,x+y=1,bc<=U,a,U,x,y,b,c,bx,cy,b<=a,c<=a) $ later \lam y (inP (b,c,bc,Uc,bd,bl)) => \case dl.localization-surj y \with {
+               | inP (r, _, inP (n,idp), q) => inP (_, inP (suc n, idp), z * r, Ideal.sclosure-superset $ inP $ later (b, c, bc, Uc, bd <=∘ da,
+                    transportInv (Localization _ _) R.Func-o $ Localization.comp1 dl $ Localization.transportSubMonoid1 bl
+                      (inP (1, LDiv.make (dl.localization-inv (inP (n,idp))).inv $ pmap (`* _) (inv q) *> *-assoc *> pmap (y *) LDiv.inv-right *> ide-right *> inv ide-left))
+                      (inP (1, LDiv.make _ $ q *> inv ide-left))),
+                  pmap (y *) func-* *> inv *-assoc *> pmap (`* _) q *> *-comm *> inv func-*)
+             }) __
+           | (inP (_, inP (n,idp), Ix^n)) => (LocalizationIdeal.unit-char {I a} bx).1 $ lem b<=a bx $ Cover_Ideal (bc<=U (byLeft idp))
+           | (inP (_, inP (m,idp), Iy^m)) => (LocalizationIdeal.unit-char {I a} cy).1 $ lem c<=a cy $ Cover_Ideal (bc<=U (byRight idp))
+           | (inP (t,s,tx^n+sy^m=1)) => pow-lin-comb1 x+y=1 n m
+      \in transport (I a) tx^n+sy^m=1 $ (I a).contains_+ ((I a).ideal-left Ix^n) ((I a).ideal-left Iy^m)
+
+  {-
+  \lemma sum-cover {a : P} {x y : R a} {b c d : P} (ba : b <= a) (ca : c <= a) (da : d <= a)
+                   (bl : IsLocalizationAt ba (x + y)) (cl : IsLocalizationAt ca x) (dl : IsLocalizationAt da y)
+    : Cover {toSite} b \lam z => (c = z) || (d = z)
+    => {?}
+
+  \lemma div-cover {a : P} {x y : R a} (y|x : LDiv y x) {b c : P} (ba : b <= a) (ca : c <= a)
+                   (bl : IsLocalizationAt ba x) (cl : IsLocalizationAt ca y)
+    : Cover1 {toSite} b c
+    => {?} -- follows from inv-cover
+
+  \lemma Ideal_Cover {a : P} {U : Set P} (c : Ideal.sclosure (\lam x => ∃ (b c : P) (b <= c) (U c) (ba : b <= a) (IsLocalizationAt ba x)) 1) : Cover {toSite} a U
+    => {?} -- follows from sum-cover and div-cover
+    -}
 } \where {
   \open CRingCat(forget)
 
