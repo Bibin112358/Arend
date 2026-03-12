@@ -1,13 +1,18 @@
 \import AG.RingedLocale
+\import Algebra.Monoid
+\import Algebra.Pointed
 \import Algebra.Ring.RingCategory
 \import Algebra.Ring.RingHom
 \import Category
 \import Category.Functor
+\import Category.Subcat
 \import Category.Topos.Sheaf
 \import Equiv
 \import Function.Meta
 \import Logic
 \import Meta
+\import Order.Lattice
+\import Order.Lattice.CompleteLattice
 \import Order.PartialOrder
 \import Paths
 \import Paths.Meta
@@ -16,20 +21,8 @@
 
 \func RingedLocalePrecat.{s} : Precat RingedLocale.{s} \cowith
   | Hom => RingedLocaleHom
-  | id (L : RingedLocale.{s}) : RingedLocaleHom L L \cowith {
-    | f => FrameHom.id
-    | f# => \new NatTrans {
-      | trans x => Cat.id _
-      | natural p => ext $ pmap (\lam x => (L.R.F.Func x).func) prop-pi
-    }
-  }
-  | o {L M N : RingedLocale.{s}} (g : RingedLocaleHom M N) (f : RingedLocaleHom L M) : RingedLocaleHom L N \cowith {
-    | f => f.f FrameHom.∘ g.f
-    | f# => \new NatTrans {
-      | trans x => f.f#.trans (g x) ∘ g.f#.trans x
-      | natural {x} {y} p => exts \lam x => path (\lam i => f.f# (g y) (g.f#.natural p i x)) *> path (\lam i => f.f#.natural _ i _)
-    }
-  }
+  | id _ => RingedLocaleHom.id
+  | o => RingedLocaleHom.∘
   | id-left => idp
   | id-right => idp
   | o-assoc => idp
@@ -76,3 +69,44 @@
             | f_hinv => path (\lam i => (gf i).f# a)
           }
     }
+
+\func LocallyRingedLocalePrecat : Precat LocallyRingedLocale \cowith
+  | Hom => LocallyRingedLocaleHom
+  | id _ => LocallyRingedLocaleHom.id
+  | o => LocallyRingedLocaleHom.∘
+  | id-left => idp
+  | id-right => idp
+  | o-assoc => idp
+  \where {
+    \func forget : FaithfulFunctor LocallyRingedLocalePrecat RingedLocalePrecat \cowith
+      | F L => L
+      | Func f => f
+      | Func-id => idp
+      | Func-o => idp
+      | isFaithful {X} {Y} {f} {g} p => path \lam i => \new LocallyRingedLocaleHom {
+        | f => (p i).f
+        | f# => (p i).f#
+        | isLRLHomLocal {c} {a} => prop-dpi (\lam i => \Pi (q : c <= p i a) {x : Y.R a} -> Monoid.Inv (X.R.F.Func q ((p i).f# a x)) -> c <= X.SJoin (p i) \lam b => \Sigma (ba : b <= a) (Monoid.Inv (Y.R.F.Func ba x))) f.isLRLHomLocal g.isLRLHomLocal i
+      }
+  }
+
+\instance LocallyRingedLocaleCat : Cat LocallyRingedLocale
+  | Hom => LocallyRingedLocaleHom
+  | id _ => LocallyRingedLocaleHom.id
+  | o => LocallyRingedLocaleHom.∘
+  | id-left => idp
+  | id-right => idp
+  | o-assoc => idp
+  | univalence => subCat.faithful-univalence LocallyRingedLocalePrecat.forget embedding
+  \where {
+    \protected \lemma embedding : Embedding {LocallyRingedLocale} {RingedLocale} (\lam L => L) \cowith
+      | isEmb L L' => later \new Retraction {
+        | sec p => path \lam i => \new LocallyRingedLocale {
+          | L => (p i).L
+          | R => (p i).R
+          | isLRLNonTrivial => prop-dpi (\lam i => \Pi (a : p i) -> 0 = {(p i).R a} 1 -> a <= bottom) L.isLRLNonTrivial L'.isLRLNonTrivial i
+          | isLocallyRinged => prop-dpi (\lam i => \Pi (a : p i) (x : (p i).R a) -> a <= Join (\lam b => \Sigma (q : b <= a) (Monoid.Inv ((p i).R.F.Func q x) || Monoid.Inv ((p i).R.F.Func q (x + 1))))) L.isLocallyRinged L'.isLocallyRinged i
+        }
+        | f_sec => idpe
+      }
+  }

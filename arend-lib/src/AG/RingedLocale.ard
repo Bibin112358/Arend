@@ -56,11 +56,25 @@
     \func fromHomEq {L M : Locale} {f g : LocaleHom L M} (p : f = g) (a : M) : f a <= g a
       => transport (\lam (h : LocaleHom L M) => f a <= h a) p <=-refl
 
-    \lemma ext {L M : RingedLocale} (f g : RingedLocaleHom L M) (p : f.f = g.f) (q : \Pi (a : M) (x : M.R a) -> L.R.F.Func (fromHomEq p a) (g.f# a x) = f.f# a x) : f = g
+    \lemma equals {L M : RingedLocale} (f g : RingedLocaleHom L M) (p : f.f = g.f) (q : \Pi (a : M) (x : M.R a) -> L.R.F.Func (fromHomEq p a) (g.f# a x) = f.f# a x) : f = g
       => aux f.f# g.f# p q
       \where {
         \private \lemma aux {L M : RingedLocale} {f g : LocaleHom L M} (f# : NatTrans M.R (VSheaf.direct_image_locale f L.R)) (g# : NatTrans M.R (VSheaf.direct_image_locale g L.R)) (p : f = g) (q : \Pi (a : M) (x : M.R a) -> L.R.F.Func (fromHomEq p a) (g# a x) = f# a x) : (\new RingedLocaleHom L M f f#) = (\new RingedLocaleHom L M g g#) \elim p
           | idp => cong $ exts $ \lam a => exts (\lam x => inv (q a x) *> pmap (\lam (h : RingHom (L.R (f a)) (L.R (f a))) => h (g# a x)) (L.R.F.Func-id {f a}))
+      }
+
+    \protected \func id {L : RingedLocale} : RingedLocaleHom L L \cowith
+      | f => FrameHom.id
+      | f# {
+        | trans x => Cat.id _
+        | natural p => ext $ pmap (\lam x => (L.R.F.Func x).func) prop-pi
+      }
+
+    \protected \func compose \alias \infixl 8 ∘ {L M N : RingedLocale} (g : RingedLocaleHom M N) (f : RingedLocaleHom L M) : RingedLocaleHom L N \cowith
+      | f => f.f FrameHom.∘ g.f
+      | f# {
+        | trans x => f.f#.trans (g x) RingHom.∘ g.f#.trans x
+        | natural {x} {y} p => exts \lam x => path (\lam i => f.f# (g y) (g.f#.natural p i x)) *> path (\lam i => f.f#.natural _ i _)
       }
   }
 
@@ -104,11 +118,24 @@
                           (q : \Pi (a : M) (x : M.R a) -> L.R.F.Func (=_<= (path \lam i => p i a)) (g.f# a x) = f.f# a x) : f = g \elim p
         | idp => ext (idp, simp_coe $ simp_coe \lam a => exts \lam x => inv (q a x) *> path \lam i => L.R.F.Func-id i _)
     }
+
+  \protected \func id {L : LocallyRingedLocale} : LocallyRingedLocaleHom L L \cowith
+    | RingedLocaleHom => RingedLocaleHom.id {L}
+    | isLRLHomLocal ca xi => CompleteLattice.SJoin-cond $ later (ca, xi)
+
+  \protected \func compose \alias \infixl 8 ∘ {L M N : LocallyRingedLocale} (g : LocallyRingedLocaleHom M N) (f : LocallyRingedLocaleHom L M) : LocallyRingedLocaleHom L N \cowith
+    | RingedLocaleHom => g RingedLocaleHom.∘ f
+    | isLRLHomLocal {c} {a} => unfold \lam c<=fga {x} xi => f.isLRLHomLocal c<=fga xi <=∘ L.L.SJoin-univ (later
+      \lam {b} (b<=ga,xi') => func-<= (g.isLRLHomLocal b<=ga xi') <=∘ f.f.func-SJoin>= <=∘ L.L.SJoin-univ \lam {a'} s => L.L.SJoin-cond s)
 }
 
 \record LocallyRingedSite.{s} (\coerce P : PreorderSite.{s}) (R : Functor P.op CRingBicat.{s}) (R-sheaf : IsPreorderSheaf R) {
   | isNonTrivialPres (a : P) : 0 = {R a} 1 -> Cover a empty
   | isLocallyRingedPres (a : P) (x : R a) : Cover a (\lam b => \Sigma (p : b <= a) (Inv (R.Func p x) || Inv (R.Func p (x + 1))))
+
+  \lemma R-equals {a : P} {U : Set P} (a<=U : Cover a U) {x y : R a} (p : ∀ {b} {c : U} (ba : b <= a) (b <= c) (R.Func ba x = R.Func ba y)) : x = y
+    => path \lam i => (IsSheaf.makeSheaf (sheaf-preserve CRingCat.forget CRingCat.forget.preservesLimit (IsPreorderSheaf.makeSheaf R-sheaf))).separated-covering
+        (Cover.toCovering a<=U) {\Sigma} {\lam _ => x} {\lam _ => y} (\lam {u} (inP (z,Uz,u<=z)) => exts \lam _ => p Uz u.2 u<=z) i ()
 
   \protected \func toLocale : LocallyRingedLocale \cowith
     | L => SiteLocale P

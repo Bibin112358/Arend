@@ -16,6 +16,7 @@
 \import Algebra.Ring.RingHom
 \import Category.Functor
 \import Category.Topos.Sheaf
+\import Category.Topos.Sheaf.DenseExtend
 \import Equiv
 \import Function.Meta
 \import Logic
@@ -113,6 +114,22 @@
   \protected \func toLocale : Locale
     => SiteLocale toSite
 
+  \sfunc Func-Cover1 {b a : P} (b<=a : Cover1 {toSite} b a) : RingHom (R a) (R b)
+    => (SiteLocaleSheaf.cover-restrict {toSite} toLRLSite.R-sheaf b<=a).1
+    \where {
+      \protected \lemma char (ba : Cover1 {toSite} b a) {c : P} (cb : c <= b) (ca : c <= a) {x : R a} : R.Func cb (Func-Cover1 ba x) = R.Func ca x
+        => rewrite (\peval Func-Cover1 ba) $ path \lam i => (SiteLocaleSheaf.cover-restrict {toSite} toLRLSite.R-sheaf ba).2 cb ca i x
+    }
+
+  \lemma Func-Cover1_<= {b a : P} {ba : b <= a} {x : R a} : Func-Cover1 (cover-inj ba idp) x = R.Func ba x
+    => inv (path \lam i => R.Func-id i _) *> pmap (\lam r => R.Func _ (Func-Cover1 r x)) prop-pi *> Func-Cover1.char (cover-inj ba idp) <=-refl ba
+
+  \lemma Func-Cover1-o {c b a : P} {cb : Cover1 {toSite} c b} {ba : Cover1 {toSite} b a} {x : R a}
+    : Func-Cover1 cb (Func-Cover1 ba x) = Func-Cover1 (cover-trans1 cb ba) x
+    => toLRLSite.R-equals cb \lam {d} {_} (idp) d<=c d<=b => Func-Cover1.char cb d<=c d<=b *>
+        toLRLSite.R-equals (cover-left d<=b ba) \lam {e} {_} (idp) e<=d e<=a => inv (path \lam i => R.Func-o i _) *>
+        Func-Cover1.char _ _ e<=a *> inv (Func-Cover1.char _ _ e<=a) *> path (\lam i => R.Func-o i _)
+
   \lemma basis-affineOpen {a : P} : toLRLSite.toLocale.IsAffineOpen (SiteLocale.embed a)
     => toLRLSite.affineOpen loc-exists \lam b<=a => cover-refl (<=-refl, \case loc-restrict b<=a \with {
       | inP (x,l) => inP (x, transport (\lam r => Localization _ _ (R.Func r)) prop-pi l)
@@ -136,6 +153,9 @@
           }
       }
     }
+
+  \lemma inv-cover1 {a b c : P} (ca : c <= a) (ba : Cover1 {toSite} b a) {x : R a} (cl : IsLocalizationAt ca x) (xb : Inv (Func-Cover1 ba x)) : Cover1 {toSite} b c
+    => cover-trans* (cover-down ba) \lam {b'} (inP (_,idp,b'<=a,b'<=b)) => inv-cover ca b'<=a cl $ transport Inv (Func-Cover1.char _ _ _) $ (R.Func b'<=b).func-Inv xb
 
   \lemma Cover_Ideal {a : P} {U : Set P} (a<=U : Cover {toSite} a U)
     : Ideal.sclosure (\lam x => ∃ (b c : P) (b <= c) (U c) (ba : b <= a) (IsLocalizationAt ba x)) 1 \elim a<=U

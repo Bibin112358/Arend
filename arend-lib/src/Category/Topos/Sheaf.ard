@@ -155,6 +155,9 @@
 \func IsSheaf.{o2,h2,o1,h1} {C : Site.{o1,h1}} {D : Precat.{o2,h2}} (F : Functor C.op D)
   => ∀ {x : C} ∀ {S : isCover x} {d : D} (SheafCond F S d)
   \where {
+    \lemma makeSheaf (p : IsSheaf F) : VSheaf D C F \cowith
+      | isSheaf => p
+
     \func SheafCond.{o2,h2,o1,h1} {C : Site.{o1,h1}} {D : Precat.{o2,h2}} (F : Functor C.op D) {x : C} (S : Presieve x) (d : D) : \Prop
       => IsEquiv {_} {PresieveMatchingFamily F x S d} (PresieveMatchingFamily.matchingFamily F x S d)
 
