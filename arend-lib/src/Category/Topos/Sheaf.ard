@@ -330,6 +330,16 @@
 
     \lemma fromSheaf.{o,h,s} {C : PreorderSite.{s}} {D : Precat.{o,h}} {F : Functor C.op D} (FS : IsSheaf F) : IsPreorderSheaf F
       => \lam {x} {S} x<=S S<=x => FS {x} {\lam px => S px.1} $ transport (isBasicCover x) (ext \lam y => propExt (\lam Sy => (S<=x Sy, Sy)) __.2) x<=S
+
+    \sfunc sheaf-map (FS : IsPreorderSheaf F) {a : C} {U : Set C} (a<=U : Cover a U) {B : D} (f : \Pi {b : C} -> U b -> Hom B (F b))
+                     (fc : \Pi {c b b' : C} (Ub : U b) (Ub' : U b') (cb : c <= b) (cb' : c <= b') -> F.Func cb ∘ f Ub = F.Func cb' ∘ f Ub')
+      : Given (h : Hom B (F a)) ∀ {c d} (Ud : U d) (ca : c <= a) (cd : c <= d) (F.Func ca ∘ h = F.Func cd ∘ f Ud)
+      => \have r => (makeSheaf FS).sheaf-matchingFamily-surj {Given (x : C) (y : U) (x <= a) (x <= y)} {a} {\lam s => (s.1,s.4)}
+                    (Cover.Cover_Covering $ Cover.cover-down-sub a<=U \lam {y} {z} Uz yz ya => (ya, TSetIm-con $ later (y,z,Uz,ya,yz))) {B} \new MatchingFamily {
+                      | family j => F.Func j.5 ∘ f j.3
+                      | isMatching {j} {j'} {z} {z<=j} {z<=j'} _ => inv o-assoc *> pmap (`∘ _) (inv F.Func-o) *> fc _ _ _ _ *> pmap (`∘ _) F.Func-o *> o-assoc
+                    }
+         \in (r.1, \lam {c} {d} Ud ca cd => r.2 (c,d,Ud,ca,cd))
   }
 
 \lemma sheaf-reflect.{s,o,h} {C : Site.{s,s}} {D E : Cat.{o,h}} (G : Functor D E)
