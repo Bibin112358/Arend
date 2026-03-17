@@ -1,13 +1,24 @@
+\import AG.RingedLocale
+\import AG.RingedLocale.RingedLocaleCat
 \import AG.SchemeSite
 \import AG.SchemeSite.SchemeSiteHom
+\import Algebra.Ring.RingHom
 \import Category
+\import Category.Functor
+\import Category.Topos.Sheaf
+\import Category.Topos.Sheaf.DenseExtend
+\import Equiv
 \import Function.Meta
 \import Logic
 \import Meta
+\import Order.Lattice.CompleteLattice
 \import Order.PartialOrder
 \import Paths
+\import Paths.Meta
+\import Topology.Locale.PreorderSite
 \open SchemeSitePrehom
 \open SchemeSiteHom
+\open Cover
 
 \func SchemeSitePrehomPrecat : Precat SchemeSite \cowith
   | Hom => SchemeSitePrehom
@@ -31,3 +42,12 @@
   | id-left => toSchemeSiteHom_o-left *> path (\lam i => (SchemeSitePrehomPrecat.id-left i).toSchemeSiteHom) *> toSchemeSiteHom-idemp
   | id-right => toSchemeSiteHom_o-right *> path (\lam i => (SchemeSitePrehomPrecat.id-right i).toSchemeSiteHom) *> toSchemeSiteHom-idemp
   | o-assoc => toSchemeSiteHom_o-left *> path (\lam i => (SchemeSitePrehomPrecat.o-assoc i).toSchemeSiteHom) *> inv toSchemeSiteHom_o-right
+
+\func SchemeSiteFunctor : FullyFaithfulFunctor SchemeSitePrecat LocallyRingedLocaleCat \cowith
+  | F S => S.toScheme
+  | Func f => f.toLRLSchemeSiteHom.toLRLHom
+  | Func-id {X} => later (path (\lam i => (id_toLRL i).toLRLHom)) *> LRLSchemeSiteHom.LRL-equiv.f_ret _
+  | Func-o {_} {_} {_} {g} {f} => path (\lam i => (toLRLSchemeSiteHom-natural i).toLRLHom) *>
+    inv (path \lam i => (toLRLSchemeSiteHom_toLRLHom {_} {_} {_} {f.toLRLSchemeSiteHom} i).toLRLHom) *>
+    inv (LRLSchemeSiteHom.toLRLHom-natural {_} {_} {_} {f.toLRLSchemeSiteHom.toLRLHom} {g.toLRLSchemeSiteHom})
+  | isFullyFaithful => IsEquiv.trans (inP LRL-equiv) (inP LRLSchemeSiteHom.LRL-equiv)

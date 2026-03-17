@@ -84,7 +84,7 @@
       | Func-id => idp
       | Func-o => idp
       | isFaithful {X} {Y} {f} {g} p => path \lam i => \new LocallyRingedLocaleHom {
-        | f => (p i).f
+        | f* => (p i).f
         | f# => (p i).f#
         | isLRLHomLocal {c} {a} => prop-dpi (\lam i => \Pi (q : c <= p i a) {x : Y.R a} -> Monoid.Inv (X.R.F.Func q ((p i).f# a x)) -> c <= X.SJoin (p i) \lam b => \Sigma (ba : b <= a) (Monoid.Inv (Y.R.F.Func ba x))) f.isLRLHomLocal g.isLRLHomLocal i
       }

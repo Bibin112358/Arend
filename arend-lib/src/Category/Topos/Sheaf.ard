@@ -263,7 +263,7 @@
       | f_sec mf => exts \lam j => cong $ ext $ ext (ext idp)
     }
 
-  \lemma direct_image_locale.{s,o,h} {L L' : Locale.{s}} (f : FrameHom L' L) (S : VSheaf.{s,o,h} { | C => L }) : VSheaf S.D L' (Comp S f.functor.op)
+  \lemma direct_image_locale.{s,o,h} {L L' : Locale.{s}} (f : FrameHom L' L) (S : VSheaf.{s,o,h} { | C => L }) : VSheaf S.D L' (Comp S f.op)
     => S.direct_image f.functor
 
   \lemma sheaf-locale.{s,o,h} {L : Locale.{s}} (S : VSheaf.{s,o,h} { | C => L }) {U : Set L} {d : S.D}
