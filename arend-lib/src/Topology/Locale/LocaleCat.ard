@@ -55,6 +55,9 @@
     \lemma iso_equiv (e : Iso {FrameCat}) : QEquiv e.f e.hinv \cowith
       | ret_f x => path \lam i => e.hinv_f i x
       | f_sec y => path \lam i => e.f_hinv i y
+
+    \lemma iso<->equiv {f : FrameHom} : Iso {FrameCat} f <-> IsEquiv f
+      => (\lam e => inP (iso_equiv e), \lam (inP e) => equiv_iso e)
   }
 
 \func PreorderSiteCat : Cat PreorderSite \cowith

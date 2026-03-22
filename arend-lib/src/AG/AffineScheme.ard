@@ -1,20 +1,30 @@
+\import AG.RingedLocale
 \import AG.Scheme
 \import AG.SchemeSite
+\import AG.SchemeSite.SchemeSiteHom
 \import Algebra.Meta
 \import Algebra.Monoid
 \import Algebra.Monoid.Localization
+\import Algebra.Monoid.MonoidHom
 \import Algebra.Monoid.Sub
+\import Algebra.Pointed
+\import Algebra.Pointed.PointedHom
 \import Algebra.Ring
 \import Algebra.Ring.Localization
 \import Algebra.Ring.RingCategory
 \import Category.Functor
+\import Category.Topos.Sheaf.LocalPredicate
 \import Function.Meta
 \import Logic
 \import Meta
+\import Order.Lattice
+\import Order.Lattice.CompleteLattice
 \import Order.PartialOrder
 \import Paths
 \import Paths.Meta
 \import Relation.Equivalence
+\import Topology.Locale
+\import Topology.Locale.PreorderSite
 \open Monoid
 \open SubMonoid
 \open LocRing(isLocalization \as LR)
@@ -24,11 +34,15 @@
   | <= a b => TruncP (LDiv b a)
   | <=-refl => inP LDiv.id-div
   | <=-transitive (inP y|x) (inP z|y) => inP (LDiv.trans z|y y|x)
+  \where {
+    \lemma *-monotone {a b c d : R} (ab : a <= {SpecPreorder R} b) (cd : c <= {SpecPreorder R} d) : a * c <= {SpecPreorder R} b * d \elim ab, cd
+      | inP (x,p), inP (y,q) => inP $ LDiv.make (x * y) $ equation.cMonoid {p,q}
+  }
 
 \func Spec (R : CRing) : Scheme
-  => site.toScheme
+  => (site R).toScheme
   \where {
-    \func StructureSheaf : Functor (SpecPreorder R).op CRingCat \cowith
+    \func StructureSheaf {R : CRing} : Functor (SpecPreorder R).op CRingCat \cowith
       | F a => LocRing (powers a)
       | Func c => LR.liftHom locR $ later (div-inv c)
       | Func-id => locR-isEpi $ exts \lam x => LR.lift_inL
@@ -38,7 +52,7 @@
           | inP a|b, inP (n,idp) => LR.inv-char.2 $ inP $ (pow a|b.inv n, later $ inP (n, pmap (pow __ n) (inv a|b.inv-right) *> R.pow_*-comm))
       }
 
-    \func site : SchemeSite \cowith
+    \func site (R : CRing) : SchemeSite \cowith
       | P => SpecPreorder R
       | R => StructureSheaf
       | loc-restrict {a} {b} b<=a => inP (locR b, factor-right1 LR LR \lam x => LR.lift_inL)
@@ -52,6 +66,40 @@
         (\let ai => (LR {_} {powers a}).localization-inv $ inP (suc n, idp)
          \in inP (1, LDiv.make ai.inv $ inv $ ai.rotate-inv-right $ unfold $ ~-lequiv1 $ equation.cMonoid {p})))
 
+    \func preSite {R : CRing} => (site R).toSite
+
+    \lemma cover_* {a : R} : Cover1 {preSite} a (a * a)
+      => SchemeSite.inv-cover {site R} (inP $ LDiv.make a idp) (SpecPreorder R).<=-refl
+          (transportSubMonoid1 (factor-right1 LocRing.isLocalization LocRing.isLocalization \lam x => later lift_inL)
+            (inP (1, LDiv.ide-div)) $ inP (0, LDiv.make (later $ inl~ (1, _, inP (2,idp))) $ later $ ~-lequiv1 simplify))
+          (transportInv Inv (StructureSheaf.Func _).func-ide Inv.ide-isInv)
+
     \lemma isAffineScheme : (Spec R).IsAffineScheme
-      => site.top-affine \lam x => inP (LDiv.make x ide-left)
+      => (site R).top-affine \lam x => inP (LDiv.make x ide-left)
+  }
+
+-- | The unit of the adjunction between affine schemes and locally ringed spaces
+\func specUnit {X : LocallyRingedLocale} : LocallyRingedLocaleHom X (Spec X.GlobalSections)
+  => siteHom.toLRLHom
+  \where {
+    \func siteHom : LRLSchemeSiteHom X (Spec.site X.GlobalSections) \cowith
+      | f* : PreorderHom (SpecPreorder X.GlobalSections) X \cowith {
+        | func x => Join \lam b => Inv (X.R.F.Func (top-univ {_} {b}) x)
+        | func-<= (inP y|x) => Join-univ \lam xi => Join-cond $ Inv.Inv_LDiv xi $ MonoidHom.func-LDiv y|x
+      }
+      | f# : NatTrans Spec.StructureSheaf (Comp X.R f*.op) \cowith {
+        | trans x => RingLocalization.liftHom1 LocRing.isLocalization (X.R.F.Func top-univ) \box
+          LocalPredicate.localPredicate_locale (inv-localPredicate {_} {X.R}) \lam Uy zy =>
+          later $ transport Inv (path \lam i => X.R.F.Func-o i _) (X.Inv-restrict zy Uy)
+        | natural {x} {y} (inP x|y) => LocRing.isLocalization.isEpiHom \lam z => pmap (lift _ _) lift_inL *> lift_inL *>
+          path (\lam i => X.R.F.Func-o i _) *> pmap (X.R.F.Func _) (inv lift_inL)
+      }
+      | isLRLSchemeSiteHom-top => Join-cond (transportInv Inv func-ide Inv.ide-isInv) <=∘ X.L.IJoin-cond 1
+      | isLRLSchemeSiteHom-meet {x} {y} => X.L.Join-distr>= <=∘ X.L.SJoin-univ \lam {s} si => later $
+        Join-cond (transportInv Inv func-* $ Inv.Inv_* (X.Inv-restrict meet-left si.1) (X.Inv-restrict meet-right si.2)) <=∘
+        X.L.SJoin-conde (x * y) (inP $ LDiv.make y idp, inP $ LDiv.make x *-comm)
+      | isLRLSchemeSiteHom-loc {x} {y} y<=x {z} zl {c} c<=x zi => Join-cond
+        \have yc => liftHom1 zl (X.R.F.Func c<=x MonoidHom.∘ f# x) zi
+        \in transport Inv (pmap (lift _ _) (inv lift_inL) *> zl.lift_inL *> unfold (pmap (X.R.F.Func _) lift_inL *>
+              inv (path \lam i => X.R.F.Func-o i _))) $ yc.func-Inv (LocRing.isLocalization.localization-inv powers-id)
   }

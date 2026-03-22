@@ -152,6 +152,9 @@
   \func isotoid {a b : Ob} (e : Iso {\this} {a} {b}) : a = b
     => IsEquiv.ret univalence e
 
+  \lemma idtoiso_isotoid {a b : Ob} {e : Iso {\this} {a} {b}} : (idtoiso (isotoid e)).f = e.f
+    => path \lam i => (IsEquiv.f_ret univalence i).f
+
   \lemma transport_iso (e : Iso {\this}) : transport (Hom e.dom) (isotoid e) (id e.dom) = e
     => Jl (\lam b p => transport (Hom e.dom) p (id e.dom) = idtoiso p) idp (isotoid e) *> path (\lam i => (IsEquiv.f_ret univalence i).f)
 

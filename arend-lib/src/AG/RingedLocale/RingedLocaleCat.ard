@@ -59,7 +59,7 @@
         }) \lam {x} => e x
 
       \lemma ring-iso {L : Locale} {R1 R2 : RingedLocale L} {f : RingedLocaleHom R1 R2 (id L)} (e : Iso {RingedLocalePrecat} f) (a : R2) : Iso (f.f# a)
-        => \have | ei=id => inv FrameCat.id-left *> path (\lam i => (e.hinv_f i).f)
+        => \have | ei=id => inv FrameCat.id-left *> path (\lam i => (e.hinv_f i).f*)
                  | gp : \Sigma (g : RingedLocaleHom R2 R1 (id L)) (g = e.hinv) => RingedLocaleHom.castOver e.hinv ei=id
                  | fg => RingedLocaleHom.eqCast $ pmap (f RingedLocalePrecat.∘) gp.2 *> e.f_hinv
                  | gf => RingedLocaleHom.eqCast $ pmap (RingedLocalePrecat.`∘ f) gp.2 *> e.hinv_f
@@ -68,6 +68,31 @@
             | hinv_f => path (\lam i => (fg i).f# a)
             | f_hinv => path (\lam i => (gf i).f# a)
           }
+
+      \lemma iso-char {f : RingedLocaleHom} : f.IsIso <-> Iso {RingedLocalePrecat} f
+        => (\lam (inP ef*, ef#) => iso-over-id (FrameCat.isotoid $ FrameCat.equiv_iso ef*) f.f* f.f# FrameCat.idtoiso_isotoid ef#,
+            \lam ef => transport (\lam r => r.IsIso) RingedLocaleCat.idtoiso_isotoid $ iso-from-id (RingedLocaleCat.isotoid ef))
+        \where {
+          \lemma iso-over-id.{s} {L M : Locale.{s}} (p : M = L) {X : RingedLocale L} {Y : RingedLocale M}
+              (f* : FrameHom M L) (f# : NatTrans Y.R (VSheaf.direct_image_locale f* X.R))
+              (pid : FrameCat.idtoiso p = {FrameHom M L} f*) (q : \Pi (b : M) -> IsEquiv (f# b))
+            : Iso {RingedLocalePrecat} (\new RingedLocaleHom X Y f* f#) \elim p, pid
+            | idp, idp => \have e {a} => CRingCat.Iso<->IsEquiv.2 (q a) \in \new Iso {
+              | hinv => \new RingedLocaleHom {
+                | f* => FrameHom.id
+                | f# => \new NatTrans {
+                  | trans a => e.hinv
+                  | natural {a} {b} b<=a => exts \lam x => pmap (\lam r => e.hinv (X.R.F.Func r x)) prop-pi *>
+                    path (\lam i => (f#.iso-inv e).natural b<=a i x) *> pmap (Y.R.F.Func __ _) prop-pi
+                }
+              }
+              | hinv_f => RingedLocaleHom.equals idp \lam a x => path (\lam i => X.R.F.Func-id i x) *> inv (path \lam i => e.f_hinv i x)
+              | f_hinv => RingedLocaleHom.equals idp \lam a y => path (\lam i => Y.R.F.Func-id i y) *> inv (path \lam i => e.hinv_f i y)
+            }
+
+          \lemma iso-from-id {X Y : RingedLocale} (p : X = Y) : (RingedLocalePrecat.idtoiso p).f.IsIso \elim p
+            | idp => (inP idEquiv, \lam a => inP idEquiv)
+        }
     }
 
 \func LocallyRingedLocalePrecat : Precat LocallyRingedLocale \cowith
@@ -84,7 +109,7 @@
       | Func-id => idp
       | Func-o => idp
       | isFaithful {X} {Y} {f} {g} p => path \lam i => \new LocallyRingedLocaleHom {
-        | f* => (p i).f
+        | f* => (p i).f*
         | f# => (p i).f#
         | isLRLHomLocal {c} {a} => prop-dpi (\lam i => \Pi (q : c <= p i a) {x : Y.R a} -> Monoid.Inv (X.R.F.Func q ((p i).f# a x)) -> c <= X.SJoin (p i) \lam b => \Sigma (ba : b <= a) (Monoid.Inv (Y.R.F.Func ba x))) f.isLRLHomLocal g.isLRLHomLocal i
       }
@@ -109,4 +134,7 @@
         }
         | f_sec => idpe
       }
+
+    \lemma iso-char {f : LocallyRingedLocaleHom} : f.IsIso <-> Iso {LocallyRingedLocalePrecat} f
+      => <->trans RingedLocaleCat.iso-char $ later (subCat.faithful-reflects-iso LocallyRingedLocalePrecat.forget embedding, LocallyRingedLocalePrecat.forget.Func-iso __)
   }

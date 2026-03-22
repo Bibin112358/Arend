@@ -214,7 +214,7 @@
     => cover-trans* (LocaleSite.locale_cover (toSchemeSiteHom.toLRLSchemeSiteHom.toPreorderSiteHom.func-Cover b<=U) (cover-refl a<=b))
         \lam {x} (inP (_, inP ((a',Ua'),idp), x<=a')) => cover-sub x<=a' \lam {y} y<=a' => inP (a', Ua', y<=a')
 
-  \lemma f#-cover_f# {b : Dom} {a : Cod} {b<<a : b toSchemeSiteHom.<=f* a} {b<=a : b <=f* a} {x : Cod.R a} : (f#-cover b<<a).1 x = f# b<=a x
+  \lemma f#-cover_f# {b : Dom} {a : Cod} {b<<a : b toSchemeSiteHom.<=f* a} (b<=a : b <=f* a) {x : Cod.R a} : (f#-cover b<<a).1 x = f# b<=a x
     => inv (path \lam i => Dom.R.Func-id i _) *> path (\lam i => (f#-cover b<<a).2 b<=a <=-refl <=-refl i x) *> path (\lam i => Dom.R.Func-id i _)
 } \where {
   \protected \func id {S : SchemeSite} : SchemeSitePrehom S S \cowith
@@ -271,6 +271,17 @@
     (p : \Pi (b : T) (a : S) -> b f.<=f* a <-> b g.<=f* a)
     (q : \Pi (a : S) (b : T) (b<=fa : b f.<=f* a) (b<=ga : b g.<=f* a) (x : S.R a) -> f.f# b<=fa x = g.f# b<=ga x) : f = g
     => exts (\lam b a => ext (p b a), \lam {a} {b} r => exts $ q a b r _)
+
+  \lemma toSchemeSiteHom-equals {T S : SchemeSite} {f g : SchemeSitePrehom T S}
+    (p1 : \Pi (b : T) (a : S) -> b f.<=f* a -> Cover {T.toSite} b (g.`<=f* a))
+    (p2 : \Pi (b : T) (a : S) -> b g.<=f* a -> Cover {T.toSite} b (f.`<=f* a))
+    (q : \Pi (a : S) (b : T) (b<=fa : b f.<=f* a) (b<=ga : b g.<=f* a) -> f.f# b<=fa = g.f# b<=ga)
+    : f.toSchemeSiteHom = g.toSchemeSiteHom
+    => SchemeSiteHom.equals {T} {S} (\lam b a => (cover-trans* __ \lam {c} => p1 c a, cover-trans* __ \lam {c} => p2 c a))
+        \lam a b b<=fa b<=ga x => T.toLRLSite.R-equals (cover-inter b<=fa b<=ga) \lam {d} {c} (inP (af,af<=a,ag,ag<=a,c<=af,c<=ag)) d<=b d<=c =>
+        path (\lam i => (SchemeSitePrehom.f#-cover b<=fa).2 (<=f*-left c<=af af<=a) d<=b d<=c i _) *>
+        pmap (T.R.Func d<=c) (path \lam i => q a c _ _ i x) *>
+        inv (path \lam i => (SchemeSitePrehom.f#-cover b<=ga).2 (<=f*-left c<=ag ag<=a) d<=b d<=c i _)
 }
 
 \record SchemeSiteHom \extends SchemeSitePrehom {
@@ -296,7 +307,7 @@
     }
 
   \lemma toSchemeSiteHom-idemp : toSchemeSiteHom = {SchemeSiteHom Dom Cod} \this
-    => equals {Dom} {Cod} (\lam b a => (<=f*-cover-left, cover-refl)) \lam a b b<<a b<=a x => f#-cover_f#
+    => equals {Dom} {Cod} (\lam b a => (<=f*-cover-left, cover-refl)) \lam a b b<<a b<=a x => f#-cover_f# _
 } \where {
   \func fromLRLSchemeSiteHom {T S : SchemeSite} (h : LRLSchemeSiteHom T.toScheme S) : SchemeSiteHom T S \cowith
     | <=f* b a => (h.f* a).1 b
@@ -367,7 +378,7 @@
          cover-trans* __ \lam {c} (inP (b,c<=b,b<=a)) => cover-refl $ inP (b, c<=b, cover-refl b<=a)))
         \lam a c c<=fa c<=ga x => S.toLRLSite.R-equals c<=ga \lam {c1} {c2} (inP (b,c2<=b,b<=a)) c1<=c c1<=c2 =>
           path (\lam i => (SchemeSitePrehom.f#-cover c<=fa).2 (inP (b, c2<=b, cover-refl b<=a)) c1<=c c1<=c2 i x) *>
-          pmap (S.R.Func _) (SchemeSitePrehom.compose.f#-eval *> pmap (f.f# _) g.f#-cover_f# *> inv SchemeSitePrehom.compose.f#-eval) *>
+          pmap (S.R.Func _) (SchemeSitePrehom.compose.f#-eval *> pmap (f.f# _) (g.f#-cover_f# _) *> inv SchemeSitePrehom.compose.f#-eval) *>
           inv (path (\lam i => (SchemeSitePrehom.f#-cover c<=ga).2 (inP (b, c2<=b, b<=a)) c1<=c c1<=c2 i x))
 
   \lemma toSchemeSiteHom_o-right {S T U : SchemeSite} {g : SchemeSitePrehom T U} {f : SchemeSitePrehom S T}
@@ -377,7 +388,7 @@
          cover-trans* __ \lam {c} (inP (b,c<=b,b<=a)) => cover-refl $ inP (b, cover-refl c<=b, b<=a)))
         \lam a c c<=fa c<=ga x => unfold $ unfolds at c<=fa $ unfolds at c<=ga $ S.toLRLSite.R-equals c<=ga \lam {c1} {c2} (inP (b,c2<=b,b<=a)) c1<=c c1<=c2 =>
           path (\lam i => (SchemeSitePrehom.f#-cover c<=fa).2 (inP (b, cover-refl c2<=b, b<=a)) c1<=c c1<=c2 i x) *>
-          pmap (S.R.Func _) (SchemeSitePrehom.compose.f#-eval *> f.f#-cover_f# *> inv SchemeSitePrehom.compose.f#-eval) *>
+          pmap (S.R.Func _) (SchemeSitePrehom.compose.f#-eval *> f.f#-cover_f# _ *> inv SchemeSitePrehom.compose.f#-eval) *>
           inv (path (\lam i => (SchemeSitePrehom.f#-cover c<=ga).2 (inP (b, c2<=b, b<=a)) c1<=c c1<=c2 i x))
 
   \lemma id_toLRL {S : SchemeSite} : (id {S}).toLRLSchemeSiteHom = LRLSchemeSiteHom.fromLRLHom LocallyRingedLocaleHom.id

@@ -336,11 +336,14 @@
         | inv-left => d.inv-left
         | inv-right => *-comm *> d.inv-left
 
-      \lemma cfactor-right {M : CMonoid} {x y : M} (i : Inv (x * y)) : Inv y =>
-        lmake (i.inv * x) (*-assoc *> i.inv-left)
+      \lemma cfactor-right {M : CMonoid} {x y : M} (i : Inv (x * y)) : Inv y
+        => lmake (i.inv * x) (*-assoc *> i.inv-left)
 
-      \lemma cfactor-left {M : CMonoid} {x y : M} (i : Inv (x * y)) : Inv x =>
-        cfactor-right (transport (Inv __) *-comm i)
+      \lemma cfactor-left {M : CMonoid} {x y : M} (i : Inv (x * y)) : Inv x
+        => cfactor-right (transport (Inv __) *-comm i)
+
+      \lemma Inv_LDiv {M : CMonoid} {x : M} (xi : Inv x) {y : M} (y|x : LDiv y x) : Inv y
+        => cfactor-left $ transportInv Inv y|x.inv-right xi
     }
 }
 

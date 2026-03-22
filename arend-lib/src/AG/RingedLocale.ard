@@ -14,6 +14,7 @@
 \import Category.Functor
 \import Category.Topos.Sheaf
 \import Category.Topos.Sheaf.DenseExtend
+\import Category.Topos.Sheaf.Site
 \import Equiv
 \import Equiv.Path
 \import Equiv.Sigma
@@ -39,12 +40,20 @@
     => R top
 
   \lemma R-equals {a : L} {U : Set L} (a<=U : a <= Join U) {x y : R a} (p : ∀ {b} {c : U} (ba : b <= a) (b <= c) (R.F.Func ba x = R.F.Func ba y)) : x = y
-    => {?}
+    => path \lam i => (IsSheaf.makeSheaf (sheaf-preserve CRingCat.forget CRingCat.forget.preservesLimit R)).separated-covering {a} {\lam b => ∃ (c : U) (b.1 <= c)}
+        (Covering.covering-basic $ meet-univ <=-refl a<=U <=∘ Join-ldistr>= <=∘ L.SJoin-univ \lam {c} Uc => Join-cond $ later (meet-left, inP (c, Uc, meet-right)))
+        (\lam {b} (inP (c,Uc,b<=c)) => ext \lam _ => p Uc b.2 b<=c) i ()
+
+  \lemma Inv-restrict {a b : L} (b<=a : b <= a) {x : GlobalSections} (xi : Inv (R.F.Func (top-univ {_} {a}) x)) : Inv (R.F.Func (top-univ {_} {b}) x)
+    => transport Inv (inv (path \lam i => R.F.Func-o i x) *> pmap (R.F.Func __ x) prop-pi) $ (R.F.Func b<=a).func-Inv xi
 } \where {
   \use \coerce fromSheaf.{s} {L : Locale.{s}} (S : VSheaf CRingCat.{s} L) => \new RingedLocale L S
 }
 
-\record RingedLocaleHom.{s} (Dom Cod : RingedLocale.{s}) (\coerce f* : FrameHom Cod Dom) (f# : NatTrans Cod.R (VSheaf.direct_image_locale f* Dom.R))
+\record RingedLocaleHom.{s} (Dom Cod : RingedLocale.{s}) (\coerce f* : FrameHom Cod Dom) (f# : NatTrans Cod.R (VSheaf.direct_image_locale f* Dom.R)) {
+  \func IsIso : \Prop
+    => Given (IsEquiv f*) ∀ (b : Cod) (IsEquiv (f# b))
+}
   \where {
     \lemma eqSigma {L M : RingedLocale} {g h : RingedLocaleHom L M} (q : g = h) : \Sigma (p : g.f* = h.f*) (transport (\lam f => NatTrans M.R (VSheaf.direct_image_locale f L.R)) p g.f# = h.f#) \elim q
       | idp => (idp,idp)
@@ -59,7 +68,7 @@
     \func fromHomEq {L M : Locale} {f g : LocaleHom L M} (p : f = g) (a : M) : f a <= g a
       => transport (\lam (h : LocaleHom L M) => f a <= h a) p <=-refl
 
-    \lemma equals {L M : RingedLocale} (f g : RingedLocaleHom L M) (p : f.f* = g.f*) (q : \Pi (a : M) (x : M.R a) -> L.R.F.Func (fromHomEq p a) (g.f# a x) = f.f# a x) : f = g
+    \lemma equals {L M : RingedLocale} {f g : RingedLocaleHom L M} (p : f.f* = g.f*) (q : \Pi (a : M) (x : M.R a) -> L.R.F.Func (fromHomEq p a) (g.f# a x) = f.f# a x) : f = g
       => aux f.f# g.f# p q
       \where {
         \private \lemma aux {L M : RingedLocale} {f g : LocaleHom L M} (f# : NatTrans M.R (VSheaf.direct_image_locale f L.R)) (g# : NatTrans M.R (VSheaf.direct_image_locale g L.R)) (p : f = g) (q : \Pi (a : M) (x : M.R a) -> L.R.F.Func (fromHomEq p a) (g# a x) = f# a x) : (\new RingedLocaleHom L M f f#) = (\new RingedLocaleHom L M g g#) \elim p
@@ -97,9 +106,9 @@
       | (b<=a, byRight e) => Join-cond (b<=a, byRight $ Inv.cfactor-left $ transport Inv func-* e)
     }
 
-  \type IsAffineOpen (c : L) => Given
-    (∀ (x : R c) ∃ (b : L) (p : b <= c) (Localization (SubMonoid.powers x) (R b) (R.F.Func p)))
-    (∀ {b} (p : b <= c) (b <= Join \lam d => Given (q : d <= b) ∃ (x : R c) (Localization (SubMonoid.powers x) (R d) (R.F.Func (q <=∘ p)))))
+  \type IsAffineOpen (a : L) => Given
+    (∀ (x : R a) ∃ (b : L) (p : b <= a) (Localization (SubMonoid.powers x) (R b) (R.F.Func p)))
+    (∀ {b} (p : b <= a) (b <= Join \lam c => Given (q : c <= b) ∃ (x : R a) (Localization (SubMonoid.powers x) (R c) (R.F.Func (q <=∘ p)))))
 
   \func IsAffineScheme : \Prop
     => IsAffineOpen top

@@ -195,4 +195,8 @@
 
   \lemma inverse-o {x y z : C} {g : Hom (F y) (F z)} {f : Hom (F x) (F y)} : inverse (g ∘ f) = inverse g ∘ inverse f
     => inv (pmap inverse Func-o *> cong inverse-right inverse-right) *> inverse-left
+} \where {
+  \func Comp {C D E : Precat} (G : FullyFaithfulFunctor D E) (F : FullyFaithfulFunctor C D) : FullyFaithfulFunctor C E \cowith
+    | Functor => Category.Functor.Comp G F
+    | isFullyFaithful => IsEquiv.trans F.isFullyFaithful G.isFullyFaithful
 }

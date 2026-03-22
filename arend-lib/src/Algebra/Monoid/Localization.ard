@@ -148,6 +148,12 @@
       }
     }
 
+  \lemma comp1' {M : CMonoid} {a : M} (A : Localization (powers a)) {b : A.L} (B : Localization (powers b))
+    : ∃ (c : M) (Localization (powers c) B.L (B.inL MonoidHom.∘ A.inL))
+    => \case A.localization-surj b \with {
+      | inP (x,y,ya,p) => inP (a * x, comp1 A $ transportSubMonoid1 B (inP (1, \let yi => A.localization-inv ya \in LDiv.make yi.inv $ inv $ yi.rotate-inv-right $ *-assoc *> ide-left *> p)) (inP (1, LDiv.make (A y) (p *> inv ide-left))))
+    }
+
   \lemma transportSubMonoid (A : Localization {}) {S : SubMonoid A.B}
     (S<=A : ∀ {x : A.B} (S x) ∃ (y : A.B) (A.S (x * y))) (A<=S : ∀ {x : A.B} (A.S x) ∃ (y : A.B) (S (x * y)))
     : Localization S A.L A.inL \cowith
@@ -218,6 +224,9 @@
     {b : B} : B.lift (A.liftMonoidHom f l1) l2 b = C.lift f l3 b
     => B.isEpi (B.liftMonoidHom (A.liftMonoidHom f l1) l2) (C.liftMonoidHom f l3) \lam a => B.lift_inL *>
       A.isEpi (A.liftMonoidHom f l1) (C.liftMonoidHom f l3 MonoidHom.∘ B.inL) \lam x => A.lift_inL *> unfold (rewrite AB=C $ inv C.lift_inL)
+
+  \func liftHom1 {B : CMonoid} {a : B} (L : Localization (powers a)) {T : CMonoid} (f : MonoidHom B T) (ai : Inv (f a)) : MonoidHom L.L T
+    => L.liftMonoidHom f \box (\lam {_} (inP (n,idp)) => transportInv Inv f.func-pow $ Inv.Inv_pow ai)
 }
 
 -- | The type of elements of {LocMonoid}.

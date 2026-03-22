@@ -42,6 +42,11 @@
       => Cat.makeUnivalence \lam j =>
         \have (t,r) => Cat.univalenceToTransport (F.Func-iso j)
         \in ((e.isEmb j.dom j.cod).sec t, F.isFaithful $ inv id-right *> inv (Functor.transport_Hom-right _ F) *> pmap (transport (Hom (e j.dom)) __ _) ((e.isEmb j.dom j.cod).f_sec t) *> r)
+
+    \lemma faithful-reflects-iso {C : Precat} {D : Cat} (F : FaithfulFunctor C D) (e : Embedding F) {a b : C} {f : Hom a b} (fi : Iso (F.Func f)) : Iso f
+      => \let | coh => Jl (\lam b p => F.Func (C.=_hom p) = D.=_hom (pmap e p)) F.Func-id
+              | p => (e.isEmb a b).sec (D.isotoid fi)
+         \in transport (Iso __) (F.isFaithful $ coh p *> pmap D.=_hom ((e.isEmb a b).f_sec (D.isotoid fi)) *> D.idtoiso_isotoid) (C.idtoiso p)
   }
 
 \lemma subCat-iso.{obj,hom} {C : Precat.{obj,hom}} {X : \Type obj} {f : X -> C} (e : Iso {subPrecat f}) : Iso {C} {f e.dom} {f e.cod} e \cowith
