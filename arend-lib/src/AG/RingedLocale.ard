@@ -8,12 +8,14 @@
 \import Algebra.Pointed
 \import Algebra.Pointed.PointedHom
 \import Algebra.Ring
+\import Algebra.Ring.Ideal
 \import Algebra.Ring.RingCategory
 \import Algebra.Ring.RingHom
 \import Category
 \import Category.Functor
 \import Category.Topos.Sheaf
 \import Category.Topos.Sheaf.DenseExtend
+\import Category.Topos.Sheaf.LocalPredicate
 \import Category.Topos.Sheaf.Site
 \import Equiv
 \import Equiv.Path
@@ -91,8 +93,8 @@
   }
 
 \record LocallyRingedLocale \extends RingedLocale {
-  | isLRLNonTrivial (a : L) : 0 = {R.F a} 1 -> a <= bottom
-  | isLocallyRinged (a : L) (x : R.F a) : a <= Join (\lam b => \Sigma (p : b <= a) (Inv (R.F.Func p x) || Inv (R.F.Func p (x + 1))))
+  | isLRLNonTrivial (a : L) : 0 = {R a} 1 -> a <= bottom
+  | isLocallyRinged (a : L) (x : R a) : a <= Join (\lam b => \Sigma (p : b <= a) (Inv (R.F.Func p x) || Inv (R.F.Func p (x + 1))))
 
   \lemma locallyRinged-split_ide {a : L} {x y : R.F a} (x+y=1 : x + y = 1) : a <= Join (\lam b => \Sigma (p : b <= a) (Inv (R.F.Func p x) || Inv (R.F.Func p y)))
     => isLocallyRinged a (negative x) <=∘ Join-univ \lam {b} => \case \elim __ \with {
@@ -106,12 +108,30 @@
       | (b<=a, byRight e) => Join-cond (b<=a, byRight $ Inv.cfactor-left $ transport Inv func-* e)
     }
 
+  \protected \func IsPrincipalOpenAt {a b : L} (ba : b <= a) (x : R a) : \Prop
+    => Given (Inv (R.F.Func ba x)) ∀ {c} (ca : c <= a) (Inv (R.F.Func ca x)) (c <= b)
+
+  \lemma IsPrincipalOpenAt-Inv {a b : L} {ba : b <= a} {x : R a} (p : IsPrincipalOpenAt ba x) {c : L} (cb : c <= b) : Inv (R.F.Func (cb <=∘ ba) x)
+    => transportInv Inv (path \lam i => R.F.Func-o i _) $ (R.F.Func cb).func-Inv p.1
+
+  \lemma IsPrincipalOpenAt-char {a b : L} {ba : b <= a} {x : R a}
+    : IsPrincipalOpenAt ba x <-> b = Join (\lam c => \Sigma (ca : c <= a) (Inv (R.F.Func ca x)))
+    => (\lam xp => <=-antisymmetric (Join-cond (ba, transport (\lam r => Inv (R.F.Func r x)) prop-pi xp.1)) $ Join-univ \lam s => xp.2 s.1 s.2,
+        \lam p => (transport Inv (inv (path \lam i => R.F.Func-o i _) *> pmap (R.F.Func __ x) prop-pi) $
+                     (R.F.Func (=_<= p)).func-Inv $ LocalPredicate.localPredicate_locale inv-localPredicate {_} {R.F.Func (=_<= (inv p) <=∘ ba) x} \lam Uy zy =>
+                     transport Inv (inv (path \lam i => R.F.Func-o i _) *> pmap (R.F.Func __ x) prop-pi *> path \lam i => R.F.Func-o i _) $ (R.F.Func zy).func-Inv Uy.2,
+                   \lam ca xc => Join-cond (later (ca, xc)) <=∘ =_<= (inv p)))
+
   \type IsAffineOpen (a : L) => Given
-    (∀ (x : R a) ∃ (b : L) (p : b <= a) (Localization (SubMonoid.powers x) (R b) (R.F.Func p)))
-    (∀ {b} (p : b <= a) (b <= Join \lam c => Given (q : c <= b) ∃ (x : R a) (Localization (SubMonoid.powers x) (R c) (R.F.Func (q <=∘ p)))))
+    (∀ {b} (ba : b <= a) (x : R a) (IsPrincipalOpenAt ba x) {U} (b<=U : b <= Join U)
+      ((Ideal.sclosure \lam y => ∃ (d : U) (c : L) (c <= d) (cb : c <= b) (Localization (SubMonoid.powers y) (R c) (R.F.Func (cb <=∘ ba)))).radical x))
+    (∀ {b} (ba : b <= a) (b <= Join \lam c => Given (cb : c <= b) ∃ (x : R a) (IsPrincipalOpenAt (cb <=∘ ba) x)))
 
   \func IsAffineScheme : \Prop
     => IsAffineOpen top
+
+  \lemma principal-localization {a b : L} (aff : IsAffineOpen a) {ba : b <= a} {x : R a} (bp : IsPrincipalOpenAt ba x) : Localization (powers x) (R b) (R.F.Func ba)
+    => {?}
 }
 
 \record LocallyRingedLocaleHom.{s} \extends RingedLocaleHom.{s} {

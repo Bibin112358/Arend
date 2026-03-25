@@ -14,11 +14,13 @@
 \import Arith.Int
 \import Arith.Nat
 \import Category
+\import Data.Array
 \import Function (IsInj, IsSurj)
 \import Function.Meta
 \import Logic.Unique
 \import Logic
 \import Logic.Meta
+\import Meta
 \import Paths
 \import Paths.Meta
 
@@ -85,6 +87,9 @@
       | func-ide => pmap g f.func-ide *> g.func-ide
       | func-+ => pmap g f.func-+ *> g.func-+
       | func-* => pmap g f.func-* *> g.func-*
+
+    \func func-Ideal_sclosure {R S : CRing} (f : RingHom R S) {U : R -> \Prop} {x : R} (Ux : Ideal.sclosure U x) : Ideal.sclosure (SetIm f U) (f x) \elim Ux
+      | inP (l,p) => inP (map (\lam s => later (f s.1, (f s.2.1, SetIm-con s.2.2))) l, pmap f p *> f.func-BigSum *> pmap S.BigSum (exts \lam j => f.func-*))
 
     \lemma contr-isTerm {R S : Ring} (c : Contr S) : Contr (RingHom R S) \cowith
       | center => \new RingHom {

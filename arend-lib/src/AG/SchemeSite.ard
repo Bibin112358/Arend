@@ -14,9 +14,11 @@
 \import Algebra.Ring.Localization
 \import Algebra.Ring.RingCategory
 \import Algebra.Ring.RingHom
+\import Algebra.Semiring
 \import Category.Functor
 \import Category.Topos.Sheaf
 \import Category.Topos.Sheaf.DenseExtend
+\import Data.Array
 \import Equiv
 \import Function.Meta
 \import Logic
@@ -30,7 +32,7 @@
 \import Set.Subset
 \import Topology.Locale
 \import Topology.Locale.PreorderSite
-\open SubMonoid(powers)
+\open SubMonoid
 \open Monoid
 \open Cover
 
@@ -177,19 +179,42 @@
       \in transport (I a) tx^n+sy^m=1 $ (I a).contains_+ ((I a).ideal-left Ix^n) ((I a).ideal-left Iy^m)
 
   {-
-  \lemma sum-cover {a : P} {x y : R a} {b c d : P} (ba : b <= a) (ca : c <= a) (da : d <= a)
+  \lemma cover-sum {a : P} {x y : R a} {b c d : P} (ba : b <= a) (ca : c <= a) (da : d <= a)
                    (bl : IsLocalizationAt ba (x + y)) (cl : IsLocalizationAt ca x) (dl : IsLocalizationAt da y)
     : Cover {toSite} b \lam z => (c = z) || (d = z)
-    => {?}
+    => \case loc-stable-forall ba ca cl, loc-stable-forall ba da dl \with {
+      | inP (c',c'b,c'c,c'x), inP (d',d'b,d'd,d'y) =>
+        \let x+y-inv => bl.localization-inv powers-id
+        \in cover-trans (byRight (R.Func ba x * x+y-inv.inv, R.Func ba y * x+y-inv.inv, inv rdistr *> pmap (`* _) (inv func-+) *> x+y-inv.inv-right,
+                                  c', d', c'b, d'b, {?}, {?}, idp)) {?}
+    }
+  -}
 
-  \lemma div-cover {a : P} {x y : R a} (y|x : LDiv y x) {b c : P} (ba : b <= a) (ca : c <= a)
-                   (bl : IsLocalizationAt ba x) (cl : IsLocalizationAt ca y)
-    : Cover1 {toSite} b c
-    => {?} -- follows from inv-cover
+  \lemma cover-div {a : P} {x y : R a} (y|x : LDiv y x) {b c : P} (ba : b <= a) (ca : c <= a)
+                   (bl : IsLocalizationAt ba x) (cl : IsLocalizationAt ca y) : Cover1 {toSite} b c
+    => inv-cover ca ba cl $ Inv.Inv_LDiv (bl.localization-inv powers-id) $ (R.Func ba).func-LDiv y|x
 
-  \lemma Ideal_Cover {a : P} {U : Set P} (c : Ideal.sclosure (\lam x => ∃ (b c : P) (b <= c) (U c) (ba : b <= a) (IsLocalizationAt ba x)) 1) : Cover {toSite} a U
-    => {?} -- follows from sum-cover and div-cover
-    -}
+  \lemma cover-BigSum {a : P} {n : Nat} {l : Array (R a) n} (p : AddMonoid.BigSum l = 1) {U : Set P}
+                      (lU : ∀ (x : l) ∃ (b : P) (Cover {toSite} b U) (ba : b <= a) (IsLocalizationAt ba x)) : Cover {toSite} a U \elim n, l
+    | 0, nil => cover-trans (byLeft (p, idp)) \case __
+    | suc n, x :: l => \case lU 0, loc-exists (AddMonoid.BigSum l) \with {
+      | inP (b,b<=U,ba,bl), inP (c,ca,cl) => cover-trans (byRight (x, AddMonoid.BigSum l, p, b, c, ba, ca, bl, cl, idp)) \lam {e} => \case \elim e, \elim __ \with {
+        | _, byLeft idp => b<=U
+        | _, byRight idp =>
+          \let xi => cl.localization-inv powers-id
+          \in cover-BigSum {_} {c} {n} (inv Semiring.BigSum-rdistr *> pmap (`* _) (inv AddMonoidHom.func-BigSum) *> xi.inv-right)
+            \lam j => \case lU (suc j) \with {
+              | inP (d,d<=U,da,dl) => \case loc-stable-forall ca da dl \with {
+                | inP (d',d'c,d'd,d'l) => inP (d', cover-left d'd d<=U, d'c, Localization.transportSubMonoid1 d'l (inP (1, LDiv.make _ $ *-assoc *> pmap (_ *) xi.inv-left *> ide-right *> inv ide-left)) (inP (1, LDiv.make xi.inv $ inv ide-left)))
+              }
+            }
+      }
+    }
+
+  \lemma Ideal_Cover {a : P} {U : Set P} (c : Ideal.sclosure (\lam x => ∃ (b : P) (c : U) (b <= c) (ba : b <= a) (IsLocalizationAt ba x)) 1) : Cover {toSite} a U \elim c
+    | inP (l,p) => cover-BigSum (inv p) \lam j => \case (l j).2.2, loc-exists ((l j).1 * (l j).2.1) \with {
+      | inP (b,c,Uc,bc,ba,bl), inP (d,da,dl) => inP (d, cover-trans1 (cover-div (LDiv.make _ *-comm) da ba dl bl) $ cover-inj bc Uc, da, dl)
+    }
 } \where {
   \open CRingCat(forget)
 

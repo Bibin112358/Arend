@@ -10,12 +10,15 @@
 \import Algebra.Pointed
 \import Algebra.Pointed.PointedHom
 \import Algebra.Ring
+\import Algebra.Ring.Ideal
 \import Algebra.Ring.Localization
 \import Algebra.Ring.RingCategory
 \import Category.Functor
 \import Category.Topos.Sheaf.LocalPredicate
+\import Equiv
 \import Function.Meta
 \import Logic
+\import Logic.Meta
 \import Meta
 \import Order.Lattice
 \import Order.Lattice.CompleteLattice
@@ -23,6 +26,7 @@
 \import Paths
 \import Paths.Meta
 \import Relation.Equivalence
+\import Set.Subset
 \import Topology.Locale
 \import Topology.Locale.PreorderSite
 \open Monoid
@@ -74,6 +78,13 @@
             (inP (1, LDiv.ide-div)) $ inP (0, LDiv.make (later $ inl~ (1, _, inP (2,idp))) $ later $ ~-lequiv1 simplify))
           (transportInv Inv (StructureSheaf.Func _).func-ide Inv.ide-isInv)
 
+    \lemma Ideal_Cover {a : R} {U : Set R} (a<=U : (Ideal.sclosure U).radical a) : Cover {preSite} a U \elim a<=U
+      | inP (n,Ua) => SchemeSite.Ideal_Cover {site R} $ Ideal.sclosure-univ {_} {_} {Ideal.sclosure _}
+        (later \lam _ => SetIm-elim \lam {c} Uc => Ideal.sclosure-superset $ inP $ later (a * c, c, Uc, inP $ LDiv.make a *-comm, inP $ LDiv.make c idp,
+          Localization.factor-right-div LocRing.isLocalization LocRing.isLocalization (\lam x => lift_inL) $ LDiv.make c idp)) $
+        (LocalizationIdeal.sclosure-char LocRing.isLocalization).1 $ later $ (LocalizationIdeal.unit-char {Ideal.sclosure U} LocRing.isLocalization).2 $
+        inP (pow a n, later $ inP (n,idp), Ua)
+
     \lemma isAffineScheme : (Spec R).IsAffineScheme
       => (site R).top-affine \lam x => inP (LDiv.make x ide-left)
   }
@@ -103,3 +114,19 @@
         \in transport Inv (pmap (lift _ _) (inv lift_inL) *> zl.lift_inL *> unfold (pmap (X.R.F.Func _) lift_inL *>
               inv (path \lam i => X.R.F.Func-o i _))) $ yc.func-Inv (LocRing.isLocalization.localization-inv powers-id)
   }
+
+\lemma IsAffineScheme-char {X : LocallyRingedLocale} : X.IsAffineScheme <-> (specUnit {X}).IsIso
+  => (\lam ta => (IsEquiv.fromInjSurj
+          (\lam {U} {V} p =>
+            \have lem {U} {V} (p : adjointMap {_} {X} specUnit.siteHom.toPreorderSiteHom U <= adjointMap specUnit.siteHom.toPreorderSiteHom V) : U <= V
+                  => \lam {x} Ux => V.2 $ Spec.Ideal_Cover $ (Ideal.sclosure V.1).radical-univ (Ideal.sclosure-univ {_} {_} {(Ideal.sclosure V.1).radical} $ later \lam y (inP (_, inP ((z,Vz),idp), c, cd, cx, cl)) =>
+                      \have (inP (e, inP (n,q))) => cl.inv-char.1 $ X.IsPrincipalOpenAt-Inv ((X.IsPrincipalOpenAt-char {_} {_} {top-univ}).2 idp) $ cd <=∘ Join-univ \lam zi => Join-cond (top-univ, zi)
+                      \in inP (n, transportInv (Ideal.sclosure V.1) q $ ideal-right $ Ideal.sclosure-superset Vz)) $
+                    ta.1 top-univ x (LocallyRingedLocale.IsPrincipalOpenAt-char.2 $ <=-antisymmetric (Join-univ \lam xi => Join-cond $ later (top-univ, xi)) (Join-univ \lam s => later $ Join-cond $ transport Inv (pmap (X.R.F.Func __ x) prop-pi) s.2)) (X.L.SJoin-cond Ux <=∘ p)
+            \in <=-antisymmetric (lem $ =_<= p) (lem $ =_<= $ inv p))
+          (\lam b => inP (CompleteLattice.SJoin SiteLocale.embed \lam x => ∃ (c : X.L) (cb : c <= b) (X.IsPrincipalOpenAt (cb <=∘ top-univ) x), FrameHom.func-SJoin *> <=-antisymmetric
+            (X.L.SJoin-univ $ later \lam {x} (inP (c,cb,cp)) => =_<= adjointMap_embed <=∘ Join-univ \lam xi => cp.2 top-univ xi <=∘ cb)
+            (ta.2 top-univ <=∘ Join-univ \lam {c} (cb, inP (x,cp)) => unfold (Join-cond cp.1) <=∘ =_<= (inv adjointMap_embed) <=∘ X.L.SJoin-cond (inP $ later (c,cb,cp))))),
+        \lam _ => specUnit.siteHom.toLRLHom_f#-equiv \lam x => {?}),
+      \lam XA => (\lam {b} b<=top x xl {U} b<=U => {?}, {?}))
+  \where \open LocaleSite
