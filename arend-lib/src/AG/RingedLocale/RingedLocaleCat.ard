@@ -137,4 +137,7 @@
 
     \lemma iso-char {f : LocallyRingedLocaleHom} : f.IsIso <-> Iso {LocallyRingedLocalePrecat} f
       => <->trans RingedLocaleCat.iso-char $ later (subCat.faithful-reflects-iso LocallyRingedLocalePrecat.forget embedding, LocallyRingedLocalePrecat.forget.Func-iso __)
+
+    \lemma iso-affine.{s} {X Y : LocallyRingedLocale.{s}} (f : LocallyRingedLocaleHom X Y) (iso : f.IsIso) (aff : Y.IsAffineScheme) : X.IsAffineScheme
+      => transportInv (\lam Z => Z.IsAffineScheme) (LocallyRingedLocaleCat.isotoid $ iso-char.1 iso) aff
   }

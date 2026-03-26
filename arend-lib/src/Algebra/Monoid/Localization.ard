@@ -118,6 +118,18 @@
         (inP (1, LDiv.make (A x) (inv func-* *> pmap A (*-comm *> x|y.inv-right) *> inv ide-left)))
         (inP (1, LDiv.make (A.localization-inv powers-id).inv $ inv $ ide-left *> Inv.rotate-inv-right (inv func-* *> pmap A (*-comm *> x|y.inv-right))))
 
+  \lemma localizations-equiv {M : CMonoid} (A B : Localization {M}) {f : MonoidHom A B}
+                             (f_inL : \Pi (x : M) -> f (A x) = B x) (p : ∀ {x : B.S.contains} ∃ (y : M) (A.S (x * y))) : IsEquiv f
+    => inP \new QEquiv {
+      | ret => B.lift A \lam Sx => A.inv-char.2 (p Sx)
+      | ret_f x => A.isEpi (B.liftMonoidHom A _ MonoidHom.∘ f) MonoidHom.id \lam a => pmap (B.lift A _) (f_inL a) *> B.lift_inL
+      | f_sec y => B.isEpi (f MonoidHom.∘ B.liftMonoidHom A _) MonoidHom.id \lam a => pmap f B.lift_inL *> f_inL a
+    }
+
+  \lemma localizations-equiv1 {M : CMonoid} (A : Localization {M}) {x : M} (B : Localization (powers x)) {f : MonoidHom A B}
+                              (f_inL : \Pi (x : M) -> f (A x) = B x) (p : ∃ (y : M) (A.S (x * y))) : IsEquiv f \elim p
+    | inP (c,Sxc) => localizations-equiv A B f_inL \lam {_} (inP (n,idp)) => inP (pow c n, transport A.S M.pow_*-comm $ A.S.contains_pow Sxc)
+
   \lemma id1 {M : CMonoid} : Localization (powers 1) M MonoidHom.id \cowith
     | localization-inv (inP (n,p)) => transport Inv (inv pow_ide *> p) Inv.ide-isInv
     | localization-inj x=y => inP (1, powers-id, pmap (`* _) x=y)
@@ -218,6 +230,16 @@
             equiv-transport1 L (f.equiv-hom fe) (IsEquiv.ret-equiv fe) (g.equiv-hom ge) (IsEquiv.ret-equiv ge)
               \lam x => IsEquiv.isInj ge $ inv (coh _) *> pmap L (IsEquiv.f_ret fe) *> inv (IsEquiv.f_ret ge)
     }
+
+  \lemma equiv-transport2 {B : CMonoid} (L M : Localization {B})
+                          (g : MonoidHom L M) (gc : \Pi (x : B) -> g (L x) = M x)
+                          (h : MonoidHom M L) (hc : \Pi (x : B) -> h (M x) = L x)
+    : Localization L.S M M
+    => transportSubMonoid (equiv-transport L MonoidHom.id (inP idEquiv) g (inP \new QEquiv {
+      | ret => h
+      | ret_f x => L.isEpi (h MonoidHom.∘ g) MonoidHom.id \lam b => pmap h (gc b) *> hc b
+      | f_sec y => M.isEpi (g MonoidHom.∘ h) MonoidHom.id \lam b => pmap g (hc b) *> gc b
+    }) (\lam x => inv (gc x))) (\lam {x} Sx => inP (1, inP (x, Sx, inv ide-right))) (\lam {x} (inP (_,Sx,idp)) => inP (1, transportInv L.S ide-right Sx))
 
   \lemma lift-double {M K : CMonoid} (A : Localization {M}) (B : Localization {A}) (C : Localization {M} { | L => B }) (AB=C : \Pi (x : M) -> B (A x) = C x)
     {f : MonoidHom M K} {l1 : \Pi {x : M} -> A.S x -> Inv (f x)} {l2 : \Pi {x : A} -> B.S x -> Inv (A.lift f l1 x)} {l3 : \Pi {x : M} -> C.S x -> Inv (f x)}

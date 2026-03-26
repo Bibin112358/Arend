@@ -17,6 +17,7 @@
 \import Category.Topos.Sheaf.DenseExtend
 \import Category.Topos.Sheaf.LocalPredicate
 \import Category.Topos.Sheaf.Site
+\import Data.Array
 \import Equiv
 \import Equiv.Path
 \import Equiv.Sigma
@@ -36,6 +37,8 @@
 \open SiteLocale
 \open Monoid
 \open SubMonoid(powers)
+\open CompleteLattice
+\open Cover
 
 \record RingedLocale.{s} (\coerce L : Locale.{s}) (R : VSheaf CRingCat.{s} L) {
   \func GlobalSections : CRing
@@ -124,7 +127,7 @@
 
   \type IsAffineOpen (a : L) => Given
     (∀ {b} (ba : b <= a) (x : R a) (IsPrincipalOpenAt ba x) {U} (b<=U : b <= Join U)
-      ((Ideal.sclosure \lam y => ∃ (d : U) (c : L) (c <= d) (cb : c <= b) (Localization (SubMonoid.powers y) (R c) (R.F.Func (cb <=∘ ba)))).radical x))
+      ((Ideal.sclosure \lam y => ∃ (d : U) (c : L) (c <= d) (cb : c <= b) (Localization (powers y) (R c) (R.F.Func (cb <=∘ ba)))).radical x))
     (∀ {b} (ba : b <= a) (b <= Join \lam c => Given (cb : c <= b) ∃ (x : R a) (IsPrincipalOpenAt (cb <=∘ ba) x)))
 
   \func IsAffineScheme : \Prop
@@ -139,7 +142,7 @@
   \override Cod : LocallyRingedLocale.{s}
 
   | isLRLHomLocal {c : Dom} {a : Cod} (c<=fa : c <= f* a) {x : Cod.R a} : Inv (Dom.R.F.Func c<=fa (f# a x)) ->
-      c <= CompleteLattice.SJoin f* \lam b => \Sigma (b<=a : b <= a) (Inv (Cod.R.F.Func b<=a x))
+      c <= SJoin f* \lam b => \Sigma (b<=a : b <= a) (Inv (Cod.R.F.Func b<=a x))
 } \where {
   \protected \lemma equals {L M : LocallyRingedLocale} {f g : LocallyRingedLocaleHom L M}
                            (p1 : \Pi (a : M) -> f.f* a <= g.f* a) (p2 : \Pi (a : M) -> g.f* a <= f.f* a)
@@ -153,7 +156,7 @@
 
   \protected \func id {L : LocallyRingedLocale} : LocallyRingedLocaleHom L L \cowith
     | RingedLocaleHom => RingedLocaleHom.id {L}
-    | isLRLHomLocal ca xi => CompleteLattice.SJoin-cond $ later (ca, xi)
+    | isLRLHomLocal ca xi => SJoin-cond $ later (ca, xi)
 
   \protected \func compose \alias \infixl 8 ∘ {L M N : LocallyRingedLocale} (g : LocallyRingedLocaleHom M N) (f : LocallyRingedLocaleHom L M) : LocallyRingedLocaleHom L N \cowith
     | RingedLocaleHom => g RingedLocaleHom.∘ f
@@ -167,31 +170,51 @@
 
   \lemma R-equals {a : P} {U : Set P} (a<=U : Cover a U) {x y : R a} (p : ∀ {b} {c : U} (ba : b <= a) (b <= c) (R.Func ba x = R.Func ba y)) : x = y
     => path \lam i => (IsSheaf.makeSheaf (sheaf-preserve CRingCat.forget CRingCat.forget.preservesLimit (IsPreorderSheaf.makeSheaf R-sheaf))).separated-covering
-        (Cover.toCovering a<=U) {\Sigma} {\lam _ => x} {\lam _ => y} (\lam {u} (inP (z,Uz,u<=z)) => exts \lam _ => p Uz u.2 u<=z) i ()
+        (toCovering a<=U) {\Sigma} {\lam _ => x} {\lam _ => y} (\lam {u} (inP (z,Uz,u<=z)) => exts \lam _ => p Uz u.2 u<=z) i ()
 
   \protected \func toLocale : LocallyRingedLocale \cowith
     | L => SiteLocale P
     | R => SiteLocaleSheaf R R-sheaf
-    | isLRLNonTrivial U p {x} Ux => Cover.cover-sub (isNonTrivialPres x $ pmap (__.1 (x,Ux)) p) empty-univ
+    | isLRLNonTrivial U p {x} Ux => cover-sub (isNonTrivialPres x $ pmap (__.1 (x,Ux)) p) empty-univ
     | isLocallyRinged U a {x} Ux =>
       \let proj => (extend {_} {CRingBicat}).Func (embed-univ Ux)
-      \in Cover.cover-sub (isLocallyRingedPres x ((extend.lim {_} {CRingBicat} (embed x)).coneMap (x, Cover.cover-refl idp) (proj a))) \lam {y} s => inP (embed y, (embed-univ $ U.2 $ cover-inj s.1 Ux, \case s.2 \with {
+      \in cover-sub (isLocallyRingedPres x ((extend.lim {_} {CRingBicat} (embed x)).coneMap (x, cover-refl idp) (proj a))) \lam {y} s => inP (embed y, (embed-univ $ U.2 $ cover-inj s.1 Ux, \case s.2 \with {
         | byLeft ai => byLeft $ (embedProj {_} {CRingBicat} y).equiv-Inv (CRingCat.Iso<->IsEquiv.1 (embed-iso R-sheaf)) $ transport Inv (a.2 s.1) ai
         | byRight ai => byRight $ (embedProj {_} {CRingBicat} y).equiv-Inv (CRingCat.Iso<->IsEquiv.1 (embed-iso R-sheaf)) $ transport Inv (func-+ *> pmap (_ +) func-ide *> pmap (`+ _) (a.2 s.1)) ai
-      }), Cover.cover-refl idp)
+      }), cover-refl idp)
+
+  \protected \func IsPrincipalOpenAt {a b : P} (ba : b <= a) (x : R a) : \Prop
+    => Given (Inv (R.Func ba x)) ∀ {c} (ca : c <= a) (Inv (R.Func ca x)) (Cover1 c b)
+
+  \lemma IsPrincipalOpenAt_toLocale {a b : P} (ba : b <= a) (b<=a : embed b <= embed a) {y : extend {P} {CRingBicat} {R} (embed a)}
+    (bp : IsPrincipalOpenAt ba (embedProj {P} {CRingBicat} a y)) : toLocale.IsPrincipalOpenAt b<=a y
+    => ((embedProj {P} {CRingBicat} b).equiv-Inv (CRingCat.Iso<->IsEquiv.1 (embed-iso R-sheaf)) $ transport Inv (y.2 ba) bp.1,
+        \lam {U} U<=a Uy => element_SJoin_<= U<=a <=∘ SJoin-univ (later \lam {c} (Uc,ca) => embed-univ $ bp.2 ca $
+          transportInv Inv (y.2 ca) $ ((extend.lim {P} {CRingBicat} U).coneMap (c,Uc)).func-Inv Uy))
 
   \lemma affineOpen {a : P}
-    (ap : ∀ (x : R a) ∃ (b : P) (p : b <= a) (Localization (SubMonoid.powers x) (R b) (R.Func p)))
-    (aq : ∀ {b} (p : b <= a) (Cover b \lam d => Given (q : d <= b) ∃ (x : R a) (Localization (SubMonoid.powers x) (R d) (R.Func (q <=∘ p)))))
+    (ae : ∀ (x : R a) ∃ (b : P) (ba : b <= a) (IsPrincipalOpenAt ba x))
+    (ap : ∀ {b} (ba : b <= a) (x : R a) (IsPrincipalOpenAt ba x) {U} (b<=U : Cover b U)
+      ((Ideal.sclosure \lam y => ∃ (d : U) (c : P) (c <= d) (cb : c <= b) (Localization (powers y) (R c) (R.Func (cb <=∘ ba)))).radical x))
+    (aq : ∀ {b} (ba : b <= a) (Cover b \lam c => Given (cb : c <= b) ∃ (x : R a) (IsPrincipalOpenAt (cb <=∘ ba) x)))
     : toLocale.IsAffineOpen (embed a)
-    => \let | proj c => embedProj {_} {CRingBicat} c
+    => \let | proj c => embedProj {_} {CRingBicat} {R} c
             | proj-eq c => CRingCat.Iso<->IsEquiv.1 (embed-iso R-sheaf {c})
-       \in (\lam x => \case ap (proj a x) \with {
-              | inP (b,b<=a,bl) => inP (embed b, embed-univ $ cover-inj b<=a idp, Localization.equiv-transport1.reverse (proj a) (proj-eq a) bl (proj b) (proj-eq b) \lam x => later $ path \lam i => embed-natural {_} {CRingBicat} b<=a i x)
-            }, \lam {U} U<=a => element_SJoin_<= U<=a <=∘ CompleteLattice.SJoin-univ (later \lam {y} (Uy,y<=a) => embed-univ $
-                Cover.cover-sub (aq y<=a) \lam {z} (z<=y, inP (x,zl)) => inP (embed z, (embed-univ $ U.2 $ cover-inj z<=y Uy,
-                  inP (IsEquiv.ret (proj-eq a) x, Localization.equiv-transport1.reverse (proj a) (proj-eq a)
-                    (transportInv (\lam r => Localization (powers r) _ _) (IsEquiv.f_ret (proj-eq a)) zl) (proj z) (proj-eq z)
-                    \lam x => later $ path \lam i => embed-natural {_} {CRingBicat} _ i x)), Cover.cover-refl idp))
-       )
-} \where \open SiteLocaleSheaf
+       \in (\lam {V} V<=a x xp {U} V<=U => \case ae (proj a x) \with {
+        | inP (b,ba,bx) =>
+          \have b<=V => xp.2 (embed-univ $ cover-inj ba idp) ((proj b).equiv-Inv (proj-eq b) $ transport Inv (x.2 ba) bx.1)
+          \in ideal-iso (embed-iso R-sheaf) (later \lam (inP (d, inP (W,UW,Wd), c, cd, cb, cl)) =>
+                inP (W, UW, embed c, embed-univ $ W.2 $ cover-inj cd Wd, embed-univ (cover-inj cb idp) <=∘ b<=V,
+                     Localization.equiv-transport1.reverse (proj a) (proj-eq a) cl (proj c) (proj-eq c) \lam z => z.2 _)) $
+              ap ba (proj a x) bx $ (b<=V <=∘ V<=U) (cover-refl idp)
+      }, \lam {U} U<=a => element_SJoin_<= U<=a <=∘ SJoin-univ (later \lam {b} (Ub,ba) => embed-univ $ cover-sub (aq ba)
+          \lam {c} (cb, inP (x,xp)) => inP (embed c, (embed-univ $ U.2 $ cover-inj cb Ub, inP (IsEquiv.ret (proj-eq a) x,
+            IsPrincipalOpenAt_toLocale (cb <=∘ ba) (_ <=∘ U<=a) $ transportInv (IsPrincipalOpenAt _) (IsEquiv.f_ret (proj-eq a)) xp)), cover-refl idp)))
+} \where {
+  \open SiteLocaleSheaf
+
+  \private \lemma ideal-iso {R S : CRing} (iso : Iso {CRingCat} {R} {S}) {U : Set R} {V : Set S} (p : ∀ {x} (V (iso.f x)) (U x)) {x : R}
+                            (Ufx : (Ideal.sclosure V).radical (iso.f x)) : (Ideal.sclosure U).radical x \elim Ufx
+    | inP (n, inP (l,q)) => inP (n, inP (map (\lam s => later (iso.hinv s.1, (iso.hinv s.2.1, p $ transportInv V ((CRingCat.Iso_QEquiv iso).f_ret _) s.2.2))) l,
+      IsEquiv.isInj (CRingCat.Iso<->IsEquiv.1 iso) $ RingHom.func-pow *> q *> pmap S.BigSum (exts \lam j => inv $ func-* *> pmap2 (*) ((CRingCat.Iso_QEquiv iso).f_ret _) ((CRingCat.Iso_QEquiv iso).f_ret _)) *> inv RingHom.func-BigSum))
+}

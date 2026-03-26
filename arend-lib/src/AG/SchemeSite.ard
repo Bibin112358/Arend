@@ -132,10 +132,34 @@
         toLRLSite.R-equals (cover-left d<=b ba) \lam {e} {_} (idp) e<=d e<=a => inv (path \lam i => R.Func-o i _) *>
         Func-Cover1.char _ _ e<=a *> inv (Func-Cover1.char _ _ e<=a) *> path (\lam i => R.Func-o i _)
 
+  \lemma loc-principal {a b : P} {ba : b <= a} {x : R a} : toLRLSite.IsPrincipalOpenAt ba x <-> IsLocalizationAt ba x
+    => (\lam xp => \case loc-exists x, loc-restrict ba \with {
+      | inP (c,ca,cl), inP (y,by) => Localization.equiv-transport2 cl by
+        (Localization.liftHom1 cl (R.Func ba) xp.1) (\lam y => cl.lift_inL) (Func-Cover1 $ xp.2 ca $ cl.localization-inv powers-id)
+        \lam y => pmap (Func-Cover1 _) (inv Func-Cover1_<=) *> Func-Cover1-o *> pmap (Func-Cover1 __ y) prop-pi *> Func-Cover1_<=
+    }, \lam bl => (bl.localization-inv powers-id, \lam ca => inv-cover ba ca bl))
+
   \lemma basis-affineOpen {a : P} : toLRLSite.toLocale.IsAffineOpen (SiteLocale.embed a)
-    => toLRLSite.affineOpen loc-exists \lam b<=a => cover-refl (<=-refl, \case loc-restrict b<=a \with {
-      | inP (x,l) => inP (x, transport (\lam r => Localization _ _ (R.Func r)) prop-pi l)
-    })
+    => toLRLSite.affineOpen
+      (\lam x => \case loc-exists x \with {
+        | inP (b,ba,bl) => inP (b, ba, loc-principal.2 bl)
+      })
+      (\lam {b} ba x bp {U} b<=U =>
+        \let (inP (_, inP (n,idp), Wx)) => (LocalizationIdeal.unit-char {Ideal.sclosure _} (loc-principal.1 bp)).1 $
+              (LocalizationIdeal.sclosure-char (loc-principal.1 bp)).2 $ Ideal.sclosure-univ {_} {_} {Ideal.sclosure _}
+              (later \lam y (inP (d,c,dc,Uc,db,dl)) => \case (loc-principal.1 bp).localization-surj y \with {
+                | inP (z, _, inP (n,idp), q) =>
+                  \have ei => (loc-principal.1 bp).localization-inv (inP (suc n, idp))
+                  \in transportInv (Ideal.sclosure _) (ei.rotate-inv-right $ pmap (y *) func-* *> inv *-assoc *> pmap (`* _) q *> *-comm *> inv func-*) $
+                      ideal-right $ Ideal.sclosure-superset $ SetIm-con $ inP $ later (c, Uc, d, dc, db,
+                        transportInv (Localization _ _) R.Func-o $ Localization.comp1 (loc-principal.1 bp) $ Localization.transportSubMonoid1 dl
+                        (inP (1, LDiv.make _ $ inv (((loc-principal.1 bp).localization-inv (inP (n, idp))).rotate-inv-right q) *> inv ide-left))
+                        (inP (1, LDiv.make _ $ q *> inv ide-left)))
+              }) (Cover_Ideal b<=U)
+        \in inP (n, Wx))
+      (\lam ba => \case loc-restrict ba \with {
+        | inP (x,bl) => cover-refl (<=-refl, inP (x, loc-principal.2 $ transport (IsLocalizationAt __ x) prop-pi bl))
+      })
 
   \lemma top-affine {t : P} (tt : \Pi (x : P) -> x <= t) : toLRLSite.toLocale.IsAffineScheme
     => transport toLRLSite.toLocale.IsAffineOpen (<=-antisymmetric top-univ $ later \lam {x} _ => cover-inj (tt x) idp) $ basis-affineOpen {_} {t}

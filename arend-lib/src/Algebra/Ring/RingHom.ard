@@ -91,7 +91,13 @@
     \func func-Ideal_sclosure {R S : CRing} (f : RingHom R S) {U : R -> \Prop} {x : R} (Ux : Ideal.sclosure U x) : Ideal.sclosure (SetIm f U) (f x) \elim Ux
       | inP (l,p) => inP (map (\lam s => later (f s.1, (f s.2.1, SetIm-con s.2.2))) l, pmap f p *> f.func-BigSum *> pmap S.BigSum (exts \lam j => f.func-*))
 
-    \lemma contr-isTerm {R S : Ring} (c : Contr S) : Contr (RingHom R S) \cowith
+    \func func-Ideal {R S : CRing} (f : RingHom R S) (I : Ideal S) : Ideal R \cowith
+      | contains x => I (f x)
+      | contains_zro => transportInv I f.func-zro I.contains_zro
+      | contains_+ Ifx Ify => transportInv I f.func-+ $ I.contains_+ Ifx Ify
+      | ideal-left Ifa => transportInv I f.func-* $ I.ideal-left Ifa
+
+  \lemma contr-isTerm {R S : Ring} (c : Contr S) : Contr (RingHom R S) \cowith
       | center => \new RingHom {
         | func _ => c.center
         | func-+ => c.contraction _
