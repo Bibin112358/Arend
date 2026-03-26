@@ -51,6 +51,10 @@
 
   \lemma Inv-restrict {a b : L} (b<=a : b <= a) {x : GlobalSections} (xi : Inv (R.F.Func (top-univ {_} {a}) x)) : Inv (R.F.Func (top-univ {_} {b}) x)
     => transport Inv (inv (path \lam i => R.F.Func-o i x) *> pmap (R.F.Func __ x) prop-pi) $ (R.F.Func b<=a).func-Inv xi
+
+  \protected \func restrict (a : L) : RingedLocale \cowith
+    | L => L.restrict a
+    | R => VSheaf.restrict a R
 } \where {
   \use \coerce fromSheaf.{s} {L : Locale.{s}} (S : VSheaf CRingCat.{s} L) => \new RingedLocale L S
 }
@@ -135,6 +139,31 @@
 
   \lemma principal-localization {a b : L} (aff : IsAffineOpen a) {ba : b <= a} {x : R a} (bp : IsPrincipalOpenAt ba x) : Localization (powers x) (R b) (R.F.Func ba)
     => {?}
+
+  \protected \func restrict (a : L) : LocallyRingedLocale \cowith
+    | RingedLocale => RingedLocale.restrict a
+    | isLRLNonTrivial b bt => isLRLNonTrivial b.1 bt <=∘ bottom-univ
+    | isLocallyRinged b x => isLocallyRinged b.1 x <=∘ Join-univ \lam {c} => \case \elim __ \with {
+      | (c<=b, byLeft e) => SJoin-conde (later (c, c<=b <=∘ b.2)) $ later (c<=b, byLeft e)
+      | (c<=b, byRight e) => SJoin-conde (later (c, c<=b <=∘ b.2)) $ later (c<=b, byRight e)
+    }
+
+  \lemma restrict-affine {a : L} : (restrict a).IsAffineScheme <-> IsAffineOpen a
+    => (\lam aa => (\lam {b} ba x bl {U} b<=U =>
+          \let (inP (n,p)) => aa.1 {b,ba} ba x (restrict-principal.2 bl) {\lam y => ∃ (u : U) (y.1 <= u)} $ meet-univ <=-refl b<=U <=∘
+            Join-ldistr>= <=∘ SJoin-univ \lam {u} Uu => SJoin-conde (later (b ∧ u, meet-left <=∘ ba)) $ inP $ later (u, Uu, meet-right)
+          \in inP (n, Ideal.sclosure-mono (later \lam {y} (inP (d, inP (u,Uu,du), c, cd, cb, cl)) => inP $ later (u, Uu, c.1, cd <=∘ du, cb, cl)) p),
+          \lam {b} ba => aa.2 {b,ba} ba <=∘ SJoin-univ (later \lam {c} (cb, inP (x,xp)) => Join-cond (cb, inP (x, restrict-principal.1 xp)))),
+        \lam aa => (\lam {b} ba x bl {U} b<=U =>
+          \let (inP (n,p)) => aa.1 ba x (restrict-principal.1 bl) {\lam y => \Sigma (ya : y <= a) (U (y,ya))} $ b<=U <=∘ SJoin-univ \lam {c} Uc => Join-cond $ later (c.2, Uc)
+          \in inP (n, Ideal.sclosure-mono (later \lam {y} (inP (c,(ca,Uc),d,dc,db,dl)) => inP ((c,ca), Uc, (d, db <=∘ ba), dc, db, dl)) p),
+          \lam {b} ba => aa.2 ba <=∘ Join-univ \lam {c} (cb, inP (x,xp)) => SJoin-conde (later (c, cb <=∘ ba)) $ later (cb, inP (x, restrict-principal.2 xp))))
+    \where {
+      \lemma restrict-principal {a b : L} {ba : b <= a} {x : R a}
+        : (restrict a).IsPrincipalOpenAt {a,<=-refl} {b,ba} ba x <-> IsPrincipalOpenAt ba x
+        => (\lam xp => (xp.1, \lam {c} ca xi => xp.2 {c,ca} ca xi),
+            \lam xp => (xp.1, \lam ca xi => xp.2 ca xi))
+    }
 }
 
 \record LocallyRingedLocaleHom.{s} \extends RingedLocaleHom.{s} {

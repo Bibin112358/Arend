@@ -147,7 +147,7 @@
       (\lam {b} ba x bp {U} b<=U =>
         \let (inP (_, inP (n,idp), Wx)) => (LocalizationIdeal.unit-char {Ideal.sclosure _} (loc-principal.1 bp)).1 $
               (LocalizationIdeal.sclosure-char (loc-principal.1 bp)).2 $ Ideal.sclosure-univ {_} {_} {Ideal.sclosure _}
-              (later \lam y (inP (d,c,dc,Uc,db,dl)) => \case (loc-principal.1 bp).localization-surj y \with {
+              (later \lam {y} (inP (d,c,dc,Uc,db,dl)) => \case (loc-principal.1 bp).localization-surj y \with {
                 | inP (z, _, inP (n,idp), q) =>
                   \have ei => (loc-principal.1 bp).localization-inv (inP (suc n, idp))
                   \in transportInv (Ideal.sclosure _) (ei.rotate-inv-right $ pmap (y *) func-* *> inv *-assoc *> pmap (`* _) q *> *-comm *> inv func-*) $
@@ -190,7 +190,7 @@
     | cover-trans (byRight (x,y,x+y=1,b,c,b<=a,c<=a,bx,cy,idp)) bc<=U =>
       \let | I a => Ideal.sclosure \lam x => ∃ (b c : P) (b <= c) (U c) (ba : b <= a) (IsLocalizationAt ba x)
            | lem {d} (da : d <= a) {z} (dl : IsLocalizationAt da z) : I d ⊆ LocalizationIdeal (I a) (R.Func da) dl
-             => Ideal.sclosure-univ {_} {_} {LocalizationIdeal (I a) _ dl} (hiding (I,x+y=1,bc<=U,a,U,x,y,b,c,bx,cy,b<=a,c<=a) $ later \lam y (inP (b,c,bc,Uc,bd,bl)) => \case dl.localization-surj y \with {
+             => Ideal.sclosure-univ {_} {_} {LocalizationIdeal (I a) _ dl} (hiding (I,x+y=1,bc<=U,a,U,x,y,b,c,bx,cy,b<=a,c<=a) $ later \lam {y} (inP (b,c,bc,Uc,bd,bl)) => \case dl.localization-surj y \with {
                | inP (r, _, inP (n,idp), q) => inP (_, inP (suc n, idp), z * r, Ideal.sclosure-superset $ inP $ later (b, c, bc, Uc, bd <=∘ da,
                     transportInv (Localization _ _) R.Func-o $ Localization.comp1 dl $ Localization.transportSubMonoid1 bl
                       (inP (1, LDiv.make (dl.localization-inv (inP (n,idp))).inv $ pmap (`* _) (inv q) *> *-assoc *> pmap (y *) LDiv.inv-right *> ide-right *> inv ide-left))

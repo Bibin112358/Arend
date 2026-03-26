@@ -154,5 +154,5 @@
     \lemma sclosure-char {T R : CRing} {U : T -> \Prop} {f : RingHom T R} {S : SubMonoid T} (L : Localization S R f) {x : R}
       : LocalizationIdeal (Ideal.sclosure U) f L x <-> Ideal.sclosure (SetIm f U) x
       => (\lam (inP (b,Sb,c,Uc,p)) => transportInv (Ideal.sclosure _) ((L.localization-inv Sb).rotate-inv-right p) $ ideal-right $ RingHom.func-Ideal_sclosure f Uc,
-          Ideal.sclosure-univ \lam _ => SetIm-elim \lam {a} Ua => inP $ later (1, contains_ide, a, Ideal.sclosure-superset Ua, pmap (_ *) func-ide *> ide-right))
+          Ideal.sclosure-univ $ SetIm-elim \lam {a} Ua => inP $ later (1, contains_ide, a, Ideal.sclosure-superset Ua, pmap (_ *) func-ide *> ide-right))
   }

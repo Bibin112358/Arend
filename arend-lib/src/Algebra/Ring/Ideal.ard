@@ -133,8 +133,11 @@
   \lemma closure-univ {R : CRing} {J : \Set} {g : J -> R} {I : Ideal R} (c : \Pi (j : J) -> I (g j)) {x : R} (d : closure g x) : I x \elim d
     | inP (l,p) => transportInv I p $ bigSum _ \lam i => later $ ideal-left (c (l i).2)
 
-  \lemma sclosure-univ {R : CRing} {U : R -> \Prop} {I : Ideal R} (c : \Pi (x : R) -> U x -> I x) {x : R} (d : sclosure U x) : I x
-    => closure-univ {R} {\Sigma (x : R) (U x)} {__.1} (\lam j => c j.1 j.2) d
+  \lemma sclosure-univ {R : CRing} {U : R -> \Prop} {I : Ideal R} (c : \Pi {x : R} -> U x -> I x) {x : R} (d : sclosure U x) : I x
+    => closure-univ {R} {\Sigma (x : R) (U x)} {__.1} (\lam j => c j.2) d
+
+  \lemma sclosure-mono {R : CRing} {U V : R -> \Prop} (c : \Pi {x : R} -> U x -> V x) {x : R} (d : sclosure U x) : sclosure V x
+    => sclosure-univ {_} {_} {sclosure V} (\lam Ux => sclosure-superset (c Ux)) d
 
   \func closure1 {R : CRing} (a : R) : Ideal R
     => closure (\lam (_ : \Sigma) => a)
@@ -158,7 +161,7 @@
             \lam (inP (c, d, a=fc)) => h (inP (if __ c d, a=fc *> inv (FinSum_char2 BoolFin.equiv *> equation))))
 
   \lemma sclosure2-lem {R : CRing} {a x y : R} : sclosure (\lam z => (x = z) || (y = z)) a <-> ∃ (c d : R) (a = x * c + y * d)
-    => <->trans (sclosure-univ {_} {_} {closure (if __ x y)} \lam z => later \case \elim __ \with {
+    => <->trans (sclosure-univ {_} {_} {closure (if __ x y)} \lam {z} => later \case \elim __ \with {
       | byLeft p => inP ((1,true) :: nil, inv p *> inv ide-left *> inv zro-right)
       | byRight p => inP ((1,false) :: nil, inv p *> inv ide-left *> inv zro-right)
     }, closure-univ {_} {_} {if __ x y} {sclosure _} $ later \case \elim __ \with {

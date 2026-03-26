@@ -80,8 +80,8 @@
           (transportInv Inv (StructureSheaf.Func _).func-ide Inv.ide-isInv)
 
     \lemma Ideal_Cover {a : R} {U : Set R} (a<=U : (Ideal.sclosure U).radical a) : Cover {preSite} a U \elim a<=U
-      | inP (n,Ua) => SchemeSite.Ideal_Cover {site R} $ Ideal.sclosure-univ {_} {_} {Ideal.sclosure _}
-        (later \lam _ => SetIm-elim \lam {c} Uc => Ideal.sclosure-superset $ inP $ later (a * c, c, Uc, inP $ LDiv.make a *-comm, inP $ LDiv.make c idp,
+      | inP (n,Ua) => SchemeSite.Ideal_Cover {site R} $ Ideal.sclosure-mono
+        (SetIm-elim \lam {c} Uc => inP $ later (a * c, c, Uc, inP $ LDiv.make a *-comm, inP $ LDiv.make c idp,
           Localization.factor-right-div LocRing.isLocalization LocRing.isLocalization (\lam x => lift_inL) $ LDiv.make c idp)) $
         (LocalizationIdeal.sclosure-char LocRing.isLocalization).1 $ later $ (LocalizationIdeal.unit-char {Ideal.sclosure U} LocRing.isLocalization).2 $
         inP (pow a n, later $ inP (n,idp), Ua)
@@ -120,7 +120,7 @@
   => (\lam ta => (IsEquiv.fromInjSurj
           (\lam {U} {V} p =>
             \have lem {U} {V} (p : adjointMap {_} {X} specUnit.siteHom.toPreorderSiteHom U <= adjointMap specUnit.siteHom.toPreorderSiteHom V) : U <= V
-                  => \lam {x} Ux => V.2 $ Spec.Ideal_Cover $ (Ideal.sclosure V.1).radical-univ (Ideal.sclosure-univ {_} {_} {(Ideal.sclosure V.1).radical} $ later \lam y (inP (_, inP ((z,Vz),idp), c, cd, cx, cl)) =>
+                  => \lam {x} Ux => V.2 $ Spec.Ideal_Cover $ (Ideal.sclosure V.1).radical-univ (Ideal.sclosure-univ {_} {_} {(Ideal.sclosure V.1).radical} $ later \lam {y} (inP (_, inP ((z,Vz),idp), c, cd, cx, cl)) =>
                       \have (inP (e, inP (n,q))) => cl.inv-char.1 $ X.IsPrincipalOpenAt-Inv ((X.IsPrincipalOpenAt-char {_} {_} {top-univ}).2 idp) $ cd <=∘ Join-univ \lam zi => Join-cond (top-univ, zi)
                       \in inP (n, transportInv (Ideal.sclosure V.1) q $ ideal-right $ Ideal.sclosure-superset Vz)) $ ta.1 top-univ x specUnit-principal (X.L.SJoin-cond Ux <=∘ p)
             \in <=-antisymmetric (lem $ =_<= p) (lem $ =_<= $ inv p))
