@@ -139,11 +139,13 @@ fun correspondedSubExpr(range: TextRange, file: PsiFile, project: Project): SubE
     }
     val concreteDef = psiDef.tcReferable?.let { arendServer.getResolvedDefinition(it) }?.definition as? Concrete.Definition
 
+    /*
     val extension = concreteDef?.data?.getLocation()?.libraryName?.let { arendServer.getLibrary(it) as? ArendLibraryImpl }?.extension
     getReferableConcreteGroup(psiDef)?.let { concreteGroup ->
         DefinitionResolveNameVisitor(SimpleConcreteProvider(ArendServerImpl.updateDefinitions(concreteGroup)), TypingInfo.EMPTY, DummyErrorReporter.INSTANCE, extension?.literalTypechecker, resolver)
             .resolveGroup(concreteGroup, getReferableScope(psiDef), ArendInstances(), LinkedHashMap())
     }
+    */
     val body = concreteDef?.let { it to psiDef }
 
     val errors: List<SubExprError>
