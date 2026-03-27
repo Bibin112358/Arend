@@ -287,3 +287,32 @@
                 (B.localization-inv (inP (m,idp))).inv-cancel-right $ inv func-* *> (B.localization-inv (inP (k,idp))).inv-cancel-right
                   (inv func-* *> pmap B (equation.cRing {p, q}) *> func-*) *> inv by^m=b')
 }
+
+\func LRL->SchemeSite {L : RingedLocale} (C : L -> \Prop) (Ca : ∀ {a : C} (L.IsAffineOpen a))
+    (Cc : ∀ {a : C} {b} (ba : b <= a) {x : L.R a} (L.IsPrincipalOpenAt ba x) (C b)) : SchemeSite \cowith
+  | P => preorder
+  | R => Comp L.R embedding.op
+  | loc-restrict {a} ba => \case ba.2 \with {
+    | inP r => inP (r.1, transport (Localization _ _) (pmap Func prop-pi) $ L.principal-localization (Ca a.2) r.2)
+  }
+  | loc-stable {a'} {a} {b} (a'<=a, inP (y,yl)) (b<=a, inP (x,xl)) =>
+    \have xp => L.principal_meet-left a'<=a b<=a xl
+    \in inP ((a'.1 ∧ b.1, Cc a'.2 meet-left xp), (meet-left, inP (_, xp)), (meet-right, inP (_, L.principal_meet-right a'<=a yl b<=a)),
+             x, transport (Localization _ _) (pmap L.R.F.Func prop-pi) $ L.principal-localization (Ca a.2) xl,
+             transport (\lam r => Localization (powers (L.R.F.Func r x)) _ _) prop-pi $ L.principal-localization (Ca a'.2) xp)
+  | loc-exists {a} x => inP ((L.principalOpen x, Cc a.2 L.principalOpen_<= {x} L.principalOpen-principal),
+    (L.principalOpen_<=, inP (x, L.principalOpen-principal)), L.principal-localization (Ca a.2) L.principalOpen-principal)
+  \where {
+    \func preorder : Preorder \cowith
+      | E => \Sigma (a : L) (C a)
+      | <= a b => Given (p : a.1 <= b.1) ∃ (x : L.R b.1) (L.IsPrincipalOpenAt p x)
+      | <=-refl => (<=-refl, inP (1, L.principal-id))
+      | <=-transitive {c} {b} {a} (cb, inP (y,yl)) (ba, inP (x,xl)) => (cb <=∘ ba, L.principal-o (Ca a.2) yl xl)
+
+    \func embedding : PreorderHom preorder L \cowith
+      | func s => s.1
+      | func-<= s => s.1
+  }
+
+\func maxSchemeSite (L : RingedLocale) : SchemeSite
+  => LRL->SchemeSite L.IsAffineOpen (\lam p => p) \lam aff ba => L.principal-affine aff
