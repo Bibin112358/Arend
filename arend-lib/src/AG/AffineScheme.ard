@@ -117,17 +117,14 @@
   }
 
 \lemma IsAffineScheme-char {X : LocallyRingedLocale} : X.IsAffineScheme <-> (specUnit {X}).IsIso
-  => (\lam ta => (IsEquiv.fromInjSurj
-          (\lam {U} {V} p =>
-            \have lem {U} {V} (p : adjointMap {_} {X} specUnit.siteHom.toPreorderSiteHom U <= adjointMap specUnit.siteHom.toPreorderSiteHom V) : U <= V
-                  => \lam {x} Ux => V.2 $ Spec.Ideal_Cover $ (Ideal.sclosure V.1).radical-univ (Ideal.sclosure-univ {_} {_} {(Ideal.sclosure V.1).radical} $ later \lam {y} (inP (_, inP ((z,Vz),idp), c, cd, cx, cl)) =>
-                      \have (inP (e, inP (n,q))) => cl.inv-char.1 $ X.IsPrincipalOpenAt-Inv ((X.IsPrincipalOpenAt-char {_} {_} {top-univ}).2 idp) $ cd <=∘ Join-univ \lam zi => Join-cond (top-univ, zi)
-                      \in inP (n, transportInv (Ideal.sclosure V.1) q $ ideal-right $ Ideal.sclosure-superset Vz)) $ ta.1 top-univ x specUnit-principal (X.L.SJoin-cond Ux <=∘ p)
-            \in <=-antisymmetric (lem $ =_<= p) (lem $ =_<= $ inv p))
-          (\lam b => inP (CompleteLattice.SJoin SiteLocale.embed \lam x => ∃ (c : X.L) (cb : c <= b) (X.IsPrincipalOpenAt (cb <=∘ top-univ) x), FrameHom.func-SJoin *> <=-antisymmetric
-            (X.L.SJoin-univ $ later \lam {x} (inP (c,cb,cp)) => =_<= adjointMap_embed <=∘ Join-univ \lam xi => cp.2 top-univ xi <=∘ cb)
-            (ta.2 top-univ <=∘ Join-univ \lam {c} (cb, inP (x,cp)) => unfold (Join-cond cp.1) <=∘ =_<= (inv adjointMap_embed) <=∘ X.L.SJoin-cond (inP $ later (c,cb,cp))))),
-        \lam _ => specUnit.siteHom.toLRLHom_f#-equiv \lam x => Localization.localizations-equiv1 LocRing.isLocalization (X.principal-localization ta specUnit-principal) {specUnit.siteHom.f# x} (\lam y => lift_inL) $ inP (1, inP (1, simplify))),
+  => (\lam ta => specUnit.siteHom.toLRLHom-iso (\lam {x} {U} _ x<=U => Spec.Ideal_Cover $ (Ideal.sclosure U).radical-univ
+        (Ideal.sclosure-univ {_} {_} {(Ideal.sclosure U).radical} $ later \lam {y} (inP (_, inP ((z,Vz),idp), c, cd, cx, cl)) =>
+          \have (inP (e, inP (n,q))) => cl.inv-char.1 $ X.IsPrincipalOpenAt-Inv ((X.IsPrincipalOpenAt-char {_} {_} {top-univ}).2 idp) $ cd <=∘ Join-univ \lam zi => Join-cond (top-univ, zi)
+          \in inP (n, transportInv (Ideal.sclosure U) q $ ideal-right $ Ideal.sclosure-superset Vz)) $ ta.1 top-univ x specUnit-principal x<=U)
+      (\lam b => inP (\lam x => ∃ (c : X.L) (cb : c <= b) (X.IsPrincipalOpenAt (cb <=∘ top-univ) x), <=-antisymmetric
+        (ta.2 top-univ <=∘ Join-univ \lam {c} (cb, inP (x,cp)) => Join-cond cp.1 <=∘ X.L.SJoin-cond (inP $ later (c, cb, cp)))
+        (X.L.SJoin-univ $ later \lam {x} (inP (c,cb,cp)) => Join-univ \lam xi => cp.2 top-univ xi <=∘ cb)))
+      \lam x => Localization.localizations-equiv1 LocRing.isLocalization (X.principal-localization ta specUnit-principal) {specUnit.siteHom.f# x} (\lam y => lift_inL) $ inP (1, inP (1, simplify)),
       \lam XA => LocallyRingedLocaleCat.iso-affine specUnit XA Spec.isAffineScheme)
   \where {
     \open LocaleSite
