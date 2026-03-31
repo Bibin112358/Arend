@@ -15,6 +15,27 @@ import org.arend.util.ArendBundle
 open class ArendMessagesViewEditor(project: Project, treeElement: ArendErrorTreeElement?, private val editorType: EditorType)
     : InjectedArendEditor(project, "Arend Messages", treeElement) {
 
+    private val goalPrintOptionsActionGroup = ArendPrintOptionsActionGroup(project, PrintOptionKind.GOAL_PRINT_OPTIONS) {
+        project.service<ArendMessagesService>().updateGoalText()
+    }
+    private val errorPrintOptionsActionGroup = ArendPrintOptionsActionGroup(project, PrintOptionKind.ERROR_PRINT_OPTIONS) {
+        project.service<ArendMessagesService>().updateErrorText()
+    }
+    private val showImplicitGoalsAction = ArendShowImplicitGoalsAction()
+    private val enableWrapAction = EnableWrapAction()
+    private val showGoalsInErrorsPanelAction = ArendShowGoalsInErrorsPanelAction()
+
+    private val zoomInAction = object : DumbAwareAction(ArendBundle.message("arend.info.zoom.in.name"), ArendBundle.message("arend.info.zoom.in.description"), ZoomIn) {
+        override fun actionPerformed(e: AnActionEvent) {
+            (this@ArendMessagesViewEditor as? ArendInfoViewEditor)?.zoomIn()
+        }
+    }
+    private val zoomOutAction = object : DumbAwareAction(ArendBundle.message("arend.info.zoom.out.name"), ArendBundle.message("arend.info.zoom.out.description"), ZoomOut) {
+        override fun actionPerformed(e: AnActionEvent) {
+            (this@ArendMessagesViewEditor as? ArendInfoViewEditor)?.zoomOut()
+        }
+    }
+
     override val printOptionKind: PrintOptionKind
         get() = when (treeElement?.highestError?.level) {
             GeneralError.Level.GOAL -> PrintOptionKind.GOAL_PRINT_OPTIONS
@@ -51,37 +72,21 @@ open class ArendMessagesViewEditor(project: Project, treeElement: ArendErrorTree
                 actionGroup.add(ActionManager.getInstance().getAction(ArendPinGoalAction.ID))
                 actionGroup.add(ActionManager.getInstance().getAction(ArendClearGoalAction.ID))
                 actionGroup.addSeparator()
-                actionGroup.add(createPrintOptionsActionGroup())
-                actionGroup.add(ArendShowImplicitGoalsAction())
-                actionGroup.add(EnableWrapAction())
+                actionGroup.add(goalPrintOptionsActionGroup)
+                actionGroup.add(showImplicitGoalsAction)
+                actionGroup.add(enableWrapAction)
             }
             EditorType.ERROR -> {
                 actionGroup.add(ActionManager.getInstance().getAction(ArendPinErrorAction.ID))
                 actionGroup.addSeparator()
-                actionGroup.add(createPrintOptionsActionGroup())
-                actionGroup.add(ArendShowGoalsInErrorsPanelAction())
+                actionGroup.add(if (printOptionKind == PrintOptionKind.GOAL_PRINT_OPTIONS) goalPrintOptionsActionGroup else errorPrintOptionsActionGroup)
+                actionGroup.add(showGoalsInErrorsPanelAction)
             }
             EditorType.INFO -> {
-                actionGroup.add(object : DumbAwareAction(ArendBundle.message("arend.info.zoom.in.name"), ArendBundle.message("arend.info.zoom.in.description"), ZoomIn) {
-                    override fun actionPerformed(e: AnActionEvent) {
-                        (this@ArendMessagesViewEditor as? ArendInfoViewEditor)?.zoomIn()
-                    }
-                })
-                actionGroup.add(object : DumbAwareAction(ArendBundle.message("arend.info.zoom.out.name"), ArendBundle.message("arend.info.zoom.out.description"), ZoomOut) {
-                    override fun actionPerformed(e: AnActionEvent) {
-                        (this@ArendMessagesViewEditor as? ArendInfoViewEditor)?.zoomOut()
-                    }
-                })
+                actionGroup.add(zoomInAction)
+                actionGroup.add(zoomOutAction)
             }
         }
     }
 
-    private fun createPrintOptionsActionGroup(): ArendPrintOptionsActionGroup {
-        return ArendPrintOptionsActionGroup(project, printOptionKind) {
-            when (printOptionKind) {
-                PrintOptionKind.GOAL_PRINT_OPTIONS -> project.service<ArendMessagesService>().updateGoalText()
-                else -> project.service<ArendMessagesService>().updateErrorText()
-            }
-        }
-    }
 }
