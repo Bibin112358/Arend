@@ -216,7 +216,7 @@ class ArendMessagesView(private val project: Project, private val toolWindow: To
         }
     }
 
-    override fun valueChanged(e: TreeSelectionEvent?) = updateEditors()
+    override fun valueChanged(e: TreeSelectionEvent?) = updateEditors(updateCursor = false)
 
     private fun updateCursor(canClear: Boolean) {
         val editor = FileEditorManager.getInstance(project).selectedTextEditor ?: return
@@ -246,7 +246,7 @@ class ArendMessagesView(private val project: Project, private val toolWindow: To
             isCursorOnDocComment = false
             ApplicationManager.getApplication().executeOnPooledThread {
                 val moduleLocation = runReadAction { file.moduleLocation }
-                project.service<ArendServerService>().server.errorMap[moduleLocation]
+                val error = project.service<ArendServerService>().server.errorMap[moduleLocation]
                     ?.find { (it.cause as? PsiElement)?.textRange?.containsOffset(offset) == true }
                     ?: return@executeOnPooledThread
 
@@ -256,6 +256,7 @@ class ArendMessagesView(private val project: Project, private val toolWindow: To
                     if (newEditor != editor || newOffset != offset) return@runInEdt
 
                     isCursorOnError = true
+                    tree.select(error)
                     updateEditors(canClear, updateCursor = false)
                 }
             }
