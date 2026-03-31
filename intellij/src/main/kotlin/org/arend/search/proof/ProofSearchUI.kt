@@ -54,6 +54,7 @@ import com.intellij.util.concurrency.annotations.RequiresEdt
 import com.intellij.util.ui.*
 import net.miginfocom.swing.MigLayout
 import org.arend.ArendIcons
+import org.arend.proof.ProofSearchQuery
 import org.arend.psi.ext.ArendDefinition
 import org.arend.psi.ArendFile
 import org.arend.psi.ext.ArendCompositeElement
@@ -328,18 +329,19 @@ class ProofSearchUI(private val project: Project, private val caret: Caret?) : B
             tryHighlightKeyword(i, text, markupModel, "\\and")
             tryHighlightKeyword(i, text, markupModel, "->")
         }
-        val parsingResult = ProofSearchQuery.fromString(text) as? ParsingResult.Error<ProofSearchQuery>
+        val parsingResult = ProofSearchQuery.fromString(text) as? ProofSearchQuery.ParsingResult.Error<ProofSearchQuery>
         hasErrors = parsingResult != null
         if (parsingResult == null) return true
-        val (msg, range) = parsingResult
+        val msg = parsingResult.message
+        val range = parsingResult.range
         this.progressIndicator?.cancel()
         val info = HighlightInfo.newHighlightInfo(HighlightInfoType.ERROR)
             .descriptionAndTooltip(msg)
             .textAttributes(CodeInsightColors.ERRORS_ATTRIBUTES)
-            .range(range.first, range.last)
+            .range(range.proj1, range.proj2)
             .create()
 
-        UpdateHighlightersUtil.setHighlightersToEditor(project, editor.document, range.first, range.last, listOf(info), null, -1)
+        UpdateHighlightersUtil.setHighlightersToEditor(project, editor.document, range.proj1, range.proj2, listOf(info), null, -1)
         if (text.isNotEmpty()) {
             adjustLoadingIcon(LoadingIconState.SYNTAX_ERROR, msg)
         } else {

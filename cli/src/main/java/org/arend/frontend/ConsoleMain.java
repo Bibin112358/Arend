@@ -19,13 +19,17 @@ import org.arend.library.classLoader.FileClassLoaderDelegate;
 import org.arend.library.error.LibraryIOError;
 import org.arend.ext.module.FullName;
 import org.arend.ext.module.ModuleLocation;
+import org.arend.proof.ArendExpressionMatcher;
+import org.arend.proof.ProofSearchQuery;
 import org.arend.module.error.DefinitionNotFoundError;
 import org.arend.module.error.ModuleNotFoundError;
 import org.arend.naming.reference.GlobalReferable;
 import org.arend.naming.reference.LocatedReferable;
 import org.arend.naming.reference.TCDefReferable;
 import org.arend.naming.scope.EmptyScope;
+import org.arend.naming.scope.Scope;
 import org.arend.prelude.Prelude;
+import org.arend.util.Triple;
 import org.arend.server.ArendServer;
 import org.arend.server.ProgressReporter;
 import org.arend.server.impl.ArendServerImpl;
@@ -47,6 +51,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+
+import static org.arend.proof.Utils.getSignatures;
 
 public class ConsoleMain {
   private boolean myExitWithError;
@@ -74,6 +80,7 @@ public class ConsoleMain {
       cmdOptions.addOption(Option.builder("c").longOpt("double-check").desc("double check correctness of the result").build());
       cmdOptions.addOption(Option.builder("i").longOpt("interactive").hasArg().optionalArg(true).argName("type").desc("start an interactive REPL, type can be plain or jline (default)").build());
       cmdOptions.addOption(Option.builder("p").longOpt("print").hasArg().argName("target").desc("print a definition or a module").build());
+      cmdOptions.addOption(Option.builder("ps").longOpt("proof-search").hasArgs().argName("pattern").desc("search for definitions matching the pattern").build());
       cmdOptions.addOption("t", "test", false, "run tests");
       cmdOptions.addOption("v", "version", false, "print language version");
       cmdOptions.addOption(Option.builder().longOpt(SHOW_TIMES).build());
@@ -402,6 +409,10 @@ public class ConsoleMain {
       return false;
     }
 
+    if (cmdLine.hasOption("ps")) {
+      return matchAndPrint(server, requestedLibraries, String.join(" ", cmdLine.getOptionValues("ps")));
+    }
+
     TimedProgressReporter timedProgressReporter = cmdLine.hasOption(SHOW_TIMES) ? new TimedProgressReporter() : null;
     ProgressReporter<List<? extends Concrete.ResolvableDefinition>> progressReporter = timedProgressReporter != null ? timedProgressReporter : ProgressReporter.empty();
 
@@ -641,6 +652,61 @@ public class ConsoleMain {
     } else {
       myExitWithError = true;
     }
+  }
+
+  private boolean matchAndPrint(ArendServer server, List<SourceLibrary> requestedLibraries, String pattern) {
+    ProofSearchQuery.ParsingResult<ProofSearchQuery> queryResult = ProofSearchQuery.fromString(pattern);
+    if (queryResult == null) return false;
+    if (queryResult instanceof ProofSearchQuery.ParsingResult.Error<ProofSearchQuery> error) {
+      System.err.println("Search pattern error at " + error.range + ": " + error.message);
+      return false;
+    }
+    ProofSearchQuery query = ((ProofSearchQuery.ParsingResult.OK<ProofSearchQuery>) queryResult).value;
+    ArendExpressionMatcher matcher = new ArendExpressionMatcher(query);
+
+    for (SourceLibrary library : requestedLibraries) {
+      System.out.println("[INFO] Resolving " + library.getLibraryName());
+      long time = System.currentTimeMillis();
+      server.getCheckerFor(library.findModules(false).stream().map(modulePath -> new ModuleLocation(library.getLibraryName(), ModuleLocation.LocationKind.SOURCE, modulePath)).toList())
+              .resolveAll(UnstoppableCancellationIndicator.INSTANCE, ProgressReporter.empty());
+      System.out.println("[INFO] " + "Resolved " + library.getLibraryName() + " (" + TimedProgressReporter.timeToString(System.currentTimeMillis() - time) + ")");
+    }
+
+    for (ModuleLocation moduleLocation : server.getModules()) {
+      for (DefinitionData data : server.getResolvedDefinitions(moduleLocation)) {
+        for (Triple<Concrete.GeneralDefinition, List<Concrete.Expression>, Concrete.Expression> signature : getSignatures(data.definition(), query.shouldConsiderParameters())) {
+          String refName = signature.first().getData().getRefName();
+          List<Concrete.Expression> parameters = signature.second();
+          Concrete.Expression codomain = signature.third();
+
+          Scope scope = server.getReferableScope(data.definition().getData());
+
+          ArendExpressionMatcher.ProofSearchMatchingResult result = matcher.match(parameters, codomain, scope);
+          if (result == null) continue;
+          if (!result.inPattern().isEmpty()) {
+            for (Pair<Concrete.Expression, List<Concrete.Expression>> parameterData : result.inPattern()) {
+              for (Concrete.Expression expression : parameterData.proj2) {
+                if (data.definition() instanceof Concrete.FunctionDefinition) {
+                  System.out.println("\"" + refName + " : " + parameterData.proj1.toString() + ":" + expression.toString() + "\" of " + moduleLocation);
+                } else {
+                  System.out.println("\"" + data.definition().getData().getRefName() + ":" + parameterData.proj1.toString() + ":" + refName + " : " + expression + "\" of " + moduleLocation);
+                }
+              }
+            }
+          }
+          if (!result.inCodomain().isEmpty()) {
+            for (Concrete.Expression expression : result.inCodomain()) {
+              if (data.definition() instanceof Concrete.FunctionDefinition) {
+                System.out.println("\"" + refName + " : " + expression.toString() + "\" of " + moduleLocation);
+              } else {
+                System.out.println("\"" + data.definition().getData().getRefName() + ":" + refName + " : " + expression + "\" of " + moduleLocation);
+              }
+            }
+          }
+        }
+      }
+    }
+    return true;
   }
 
   public static void main(String[] args) {

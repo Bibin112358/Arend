@@ -6,22 +6,23 @@ The Arend console app uses Apache Commons CLI for argument parsing. Below is the
 
 #### Named Options
 
-| Short | Long | Has Arg | Description |
-|-------|------|---------|-------------|
-| `-h` | `--help` | No | Print help message and exit |
-| `-v` | `--version` | No | Print language version and exit |
-| `-L` | `--libdir` | Yes (`dir`) | Directory containing libraries (can be specified multiple times) |
-| `-s` | `--sources` | Yes (`dir`) | Project source directory |
-| `-e` | `--extensions` | Yes (`dir`) | Language extensions directory |
-| `-m` | `--extension-main` | Yes (`class`) | Main extension class name |
-| `-c` | `--double-check` | No | Double-check correctness of the typechecking result |
-| `-i` | `--interactive` | Optional (`type`) | Start an interactive REPL; `type` can be `plain` or `jline` (default is `jline`) |
-| `-p` | `--print` | Yes (`target`) | Print a definition or a module; format: `Module.Path` or `Module.Path:DefinitionName` |
-| `-t` | `--test` | No | Run tests |
-| *(none)* | `--show-times` | No | Show typechecking times per definition |
-| *(none)* | `--show-sizes` | No | Show sizes (expression node counts) of typechecked definitions, sorted descending |
-| *(none)* | `--show-modules` | No | Show module dependency cycles |
-| *(none)* | `--show-modules-with-instances` | No | Show module dependency cycles, filtered to modules that contain instances |
+| Short    | Long                            | Has Arg | Description                                                                          |
+|----------|---------------------------------|---------|--------------------------------------------------------------------------------------|
+| `-h`     | `--help`                        | No | Print help message and exit                                                          |
+| `-v`     | `--version`                     | No | Print language version and exit                                                      |
+| `-L`     | `--libdir`                      | Yes (`dir`) | Directory containing libraries (can be specified multiple times)                     |
+| `-s`     | `--sources`                     | Yes (`dir`) | Project source directory                                                             |
+| `-e`     | `--extensions`                  | Yes (`dir`) | Language extensions directory                                                        |
+| `-m`     | `--extension-main`              | Yes (`class`) | Main extension class name                                                            |
+| `-c`     | `--double-check`                | No | Double-check correctness of the typechecking result                                  |
+| `-i`     | `--interactive`                 | Optional (`type`) | Start an interactive REPL; `type` can be `plain` or `jline` (default is `jline`)     |
+| `-p`     | `--print`                       | Yes (`target`) | Print a definition or a module; format: `Module.Path` or `Module.Path:DefinitionName` |
+| `-ps`    | `--proof-search`                | Yes (`pattern`) | Run proof searcher                                                                   |
+| `-t`     | `--test`                        | No | Run tests                                                                            |
+| *(none)* | `--show-times`                  | No | Show typechecking times per definition                                               |
+| *(none)* | `--show-sizes`                  | No | Show sizes (expression node counts) of typechecked definitions, sorted descending    |
+| *(none)* | `--show-modules`                | No | Show module dependency cycles                                                        |
+| *(none)* | `--show-modules-with-instances` | No | Show module dependency cycles, filtered to modules that contain instances            |
 
 ---
 

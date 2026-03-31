@@ -204,7 +204,8 @@ public abstract class Repl {
     removeNotLoadedStatements(group, true);
 
     var scope = ScopeFactory.forGroup(group, moduleScopeProvider);
-    new DefinitionResolveNameVisitor(new SimpleConcreteProvider(Collections.emptyMap()), TypingInfo.EMPTY, errorReporter).resolveGroup(group, scope, new ArendInstances(), null);
+    new DefinitionResolveNameVisitor(new SimpleConcreteProvider(Collections.emptyMap()), TypingInfo.EMPTY, errorReporter)
+            .resolveGroup(group, scope, new ArendInstances(), null);
     if (!checkErrors()) {
       typecheckStatements(group);
       updateReplModule(group, false);
