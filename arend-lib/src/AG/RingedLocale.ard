@@ -107,6 +107,7 @@
                    \lam ca xc => Join-cond (later (ca, xc)) <=∘ =_<= (inv p)))
 
   \type IsAffineOpen (a : L) => Given
+    (∀ {x : R a} {b} (ba : b <= a) (IsPrincipalOpenAt ba x) (Localization (powers x) (R b) (R.F.Func ba)))
     (∀ {b} (ba : b <= a) (x : R a) (IsPrincipalOpenAt ba x) {U} (b<=U : b <= Join U)
       ((Ideal.sclosure \lam y => ∃ (d : U) (c : L) (c <= d) (cb : c <= b) (Localization (powers y) (R c) (R.F.Func (cb <=∘ ba)))).radical x))
     (∀ {b} (ba : b <= a) (b <= Join \lam c => Given (cb : c <= b) ∃ (x : R a) (IsPrincipalOpenAt (cb <=∘ ba) x)))
@@ -115,29 +116,37 @@
     => IsAffineOpen top
 
   \lemma principal-localization {a b : L} (aff : IsAffineOpen a) {ba : b <= a} {x : R a} (bp : IsPrincipalOpenAt ba x) : Localization (powers x) (R b) (R.F.Func ba)
-    => {?}
+    => aff.1 ba bp
 
   \lemma principal-affine {a b : L} (aff : IsAffineOpen a) {ba : b <= a} {x : R a} (xp : IsPrincipalOpenAt ba x) : IsAffineOpen b
-    => (\lam {c} cb y yp c<=U =>
+    => (\lam {y} {c} cb yp => \case (principal-localization aff xp).localization-surj y \with {
+          | inP (z, w, inP (n,idp), q) => Localization.transportSubMonoid1 (Localization.factor-right1 (principal-localization aff xp) (principal-localization aff (principal-o.aux yp xp q)) \lam x => inv $ path \lam i => R.F.Func-o i x)
+            (inP (1, LDiv.make (R.F.Func ba w * R.F.Func ba x) $ inv *-assoc *> pmap (`* _) q *> inv func-* *> inv ide-left))
+            (inP (1, \let e => (principal-localization aff xp).localization-inv (inP (suc n, idp))
+                     \in LDiv.make e.inv $ inv $ ide-left *> Inv.rotate-inv-right (pmap (y *) func-* *> inv *-assoc *> pmap (`* _) q *> inv func-*)))
+        },
+        \lam {c} cb y yp c<=U =>
           \let | (inP (z, _, inP (n,idp), yx=z)) => (principal-localization aff xp).localization-surj y
-               | (inP (m,q)) => aff.1 (cb <=∘ ba) (z * x) (principal-o.aux yp xp yx=z) c<=U
+               | (inP (m,q)) => aff.2 (cb <=∘ ba) (z * x) (principal-o.aux yp xp yx=z) c<=U
           \in inP (m, Ideal.sclosure-mono (SetIm-elim $ later \lam {y} (inP r) => inP (r.1, r.2, r.3, r.4, r.5,
                 Localization.factor-right1 (principal-localization aff xp) r.6 \lam y => inv $ pmap (R.F.Func __ y) prop-pi *> path \lam i => R.F.Func-o i y)) $
               (LocalizationIdeal.sclosure-char (principal-localization aff xp)).1 $ inP (_, inP (n Nat.* m Nat.+ m, idp), _, q,
                 pmap (_ *) (pmap (R.F.Func ba) pow_+ *> func-* *> pmap2 (*) (MonoidHom.func-pow *> pow_* *> pmap (pow __ m) (inv MonoidHom.func-pow)) MonoidHom.func-pow) *>
                 inv *-assoc *> pmap (`* _) (inv CMonoid.pow_*-comm) *> pmap (pow __ m * pow (R.F.Func ba x) m) yx=z *> inv (MonoidHom.func-pow *> pmap (pow __ m) func-* *> CMonoid.pow_*-comm))),
-        \lam {c} cb => aff.2 (cb <=∘ ba) <=∘ Join-univ \lam {d} (dc, inP (y,yp)) => Join-cond (dc, inP (R.F.Func ba y, principal-factor-right $ transport (IsPrincipalOpenAt __ y) prop-pi yp)))
+        \lam {c} cb => aff.3 (cb <=∘ ba) <=∘ Join-univ \lam {d} (dc, inP (y,yp)) => Join-cond (dc, inP (R.F.Func ba y, principal-factor-right $ transport (IsPrincipalOpenAt __ y) prop-pi yp)))
 
   \lemma restrict-affine {a : L} : (restrict a).IsAffineScheme <-> IsAffineOpen a
-    => (\lam aa => (\lam {b} ba x bl {U} b<=U =>
-          \let (inP (n,p)) => aa.1 {b,ba} ba x (restrict-principal.2 bl) {\lam y => ∃ (u : U) (y.1 <= u)} $ meet-univ <=-refl b<=U <=∘
-            Join-ldistr>= <=∘ SJoin-univ \lam {u} Uu => SJoin-conde (later (b ∧ u, meet-left <=∘ ba)) $ inP $ later (u, Uu, meet-right)
-          \in inP (n, Ideal.sclosure-mono (later \lam {y} (inP (d, inP (u,Uu,du), c, cd, cb, cl)) => inP $ later (u, Uu, c.1, cd <=∘ du, cb, cl)) p),
-          \lam {b} ba => aa.2 {b,ba} ba <=∘ SJoin-univ (later \lam {c} (cb, inP (x,xp)) => Join-cond (cb, inP (x, restrict-principal.1 xp)))),
-        \lam aa => (\lam {b} ba x bl {U} b<=U =>
-          \let (inP (n,p)) => aa.1 ba x (restrict-principal.1 bl) {\lam y => \Sigma (ya : y <= a) (U (y,ya))} $ b<=U <=∘ SJoin-univ \lam {c} Uc => Join-cond $ later (c.2, Uc)
-          \in inP (n, Ideal.sclosure-mono (later \lam {y} (inP (c,(ca,Uc),d,dc,db,dl)) => inP ((c,ca), Uc, (d, db <=∘ ba), dc, db, dl)) p),
-          \lam {b} ba => aa.2 ba <=∘ Join-univ \lam {c} (cb, inP (x,xp)) => SJoin-conde (later (c, cb <=∘ ba)) $ later (cb, inP (x, restrict-principal.2 xp))))
+    => (\lam aff => (\lam {x} {b} ba bp => aff.1 {x} {b,ba} ba (bp.1, \lam ca => bp.2 ca),
+          \lam {b} ba x bl {U} b<=U =>
+            \let (inP (n,p)) => aff.2 {b,ba} ba x (restrict-principal.2 bl) {\lam y => ∃ (u : U) (y.1 <= u)} $ meet-univ <=-refl b<=U <=∘
+              Join-ldistr>= <=∘ SJoin-univ \lam {u} Uu => SJoin-conde (later (b ∧ u, meet-left <=∘ ba)) $ inP $ later (u, Uu, meet-right)
+            \in inP (n, Ideal.sclosure-mono (later \lam {y} (inP (d, inP (u,Uu,du), c, cd, cb, cl)) => inP $ later (u, Uu, c.1, cd <=∘ du, cb, cl)) p),
+          \lam {b} ba => aff.3 {b,ba} ba <=∘ SJoin-univ (later \lam {c} (cb, inP (x,xp)) => Join-cond (cb, inP (x, restrict-principal.1 xp)))),
+        \lam aff => (\lam ba bp => aff.1 ba (bp.1, \lam {c} ca => bp.2 {c,ca} ca),
+          \lam {b} ba x bl {U} b<=U =>
+            \let (inP (n,p)) => aff.2 ba x (restrict-principal.1 bl) {\lam y => \Sigma (ya : y <= a) (U (y,ya))} $ b<=U <=∘ SJoin-univ \lam {c} Uc => Join-cond $ later (c.2, Uc)
+            \in inP (n, Ideal.sclosure-mono (later \lam {y} (inP (c,(ca,Uc),d,dc,db,dl)) => inP ((c,ca), Uc, (d, db <=∘ ba), dc, db, dl)) p),
+          \lam {b} ba => aff.3 ba <=∘ Join-univ \lam {c} (cb, inP (x,xp)) => SJoin-conde (later (c, cb <=∘ ba)) $ later (cb, inP (x, restrict-principal.2 xp))))
     \where {
       \lemma restrict-principal {a b : L} {ba : b <= a} {x : R a}
         : (restrict a).IsPrincipalOpenAt {a,<=-refl} {b,ba} ba x <-> IsPrincipalOpenAt ba x
@@ -269,15 +278,23 @@
           transportInv Inv (y.2 ca) $ ((extend.lim {P} {CRingBicat} U).coneMap (c,Uc)).func-Inv Uy))
 
   \lemma affineOpen {a : P}
-    (ae : ∀ (x : R a) ∃ (b : P) (ba : b <= a) (IsPrincipalOpenAt ba x))
+    (ae : ∀ (x : R a) ∃ (b : P) (ba : b <= a) (IsPrincipalOpenAt ba x) (Localization (powers x) (R b) (R.Func ba)))
     (ap : ∀ {b} (ba : b <= a) (x : R a) (IsPrincipalOpenAt ba x) {U} (b<=U : Cover b U)
       ((Ideal.sclosure \lam y => ∃ (d : U) (c : P) (c <= d) (cb : c <= b) (Localization (powers y) (R c) (R.Func (cb <=∘ ba)))).radical x))
     (aq : ∀ {b} (ba : b <= a) (Cover b \lam c => Given (cb : c <= b) ∃ (x : R a) (IsPrincipalOpenAt (cb <=∘ ba) x)))
     : toLocale.IsAffineOpen (embed a)
     => \let | proj c => embedProj {_} {CRingBicat} {R} c
             | proj-eq c => CRingCat.Iso<->IsEquiv.1 (embed-iso R-sheaf {c})
-       \in (\lam {V} V<=a x xp {U} V<=U => \case ae (proj a x) \with {
-        | inP (b,ba,bx) =>
+       \in (\lam {x} {U} U<=a Up => \case ae (proj a x) \with {
+        | inP (b,ba,bp,bl) =>
+          \have t : (embed b, embed-univ $ cover-inj ba idp) = {\Sigma (V : SiteLocale P) (V <= embed a)} (U,U<=a) => ext $ <=-antisymmetric
+            (Up.2 (embed-univ $ cover-inj ba idp) $ (proj b).equiv-Inv (proj-eq b) $ transport Inv (x.2 _) bp.1)
+            (element_SJoin_<= U<=a <=∘ SJoin-univ (later \lam {c} (Uc,ca) => embed-univ $ bp.2 ca $
+              transportInv Inv (x.2 _) $ (proj c).func-Inv $ ((extend {P} {CRingBicat}).Func (embed-univ Uc)).func-Inv Up.1))
+          \in transport (\lam r => Localization (powers {extend {P} {CRingBicat} (embed a)} x) (extend {P} {CRingBicat} r.1) ((extend {P} {CRingBicat}).Func r.2)) t $
+                Localization.equiv-transport1.reverse (proj a) (proj-eq a) bl (proj b) (proj-eq b) \lam z => z.2 _
+      }, \lam {V} V<=a x xp {U} V<=U => \case ae (proj a x) \with {
+        | inP (b,ba,bx,_) =>
           \have b<=V => xp.2 (embed-univ $ cover-inj ba idp) ((proj b).equiv-Inv (proj-eq b) $ transport Inv (x.2 ba) bx.1)
           \in ideal-iso (embed-iso R-sheaf) (later \lam (inP (d, inP (W,UW,Wd), c, cd, cb, cl)) =>
                 inP (W, UW, embed c, embed-univ $ W.2 $ cover-inj cd Wd, embed-univ (cover-inj cb idp) <=∘ b<=V,

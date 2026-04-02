@@ -34,6 +34,7 @@
 \open SubMonoid
 \open LocRing(isLocalization \as LR)
 \open Localization
+\open Cover
 
 \func SpecPreorder (R : CRing) : Preorder R \cowith
   | <= a b => TruncP (LDiv b a)
@@ -79,6 +80,14 @@
             (inP (1, LDiv.ide-div)) $ inP (0, LDiv.make (later $ inl~ (1, _, inP (2,idp))) $ later $ ~-lequiv1 simplify))
           (transportInv Inv (StructureSheaf.Func _).func-ide Inv.ide-isInv)
 
+    \lemma cover_*-univ {a b c : R} (a<=b : Cover1 {preSite} a b) (a<=c : Cover1 {preSite} a c) : Cover1 {preSite} a (b * c)
+      => cover-trans* (cover-down a<=b) \lam {a1} (inP (_,idp,a1b,a1a)) => cover-trans* (cover-down (cover-left a1a a<=c))
+          \lam {a2} (inP (_,idp,a2c,a2a1)) => cover-trans1 cover_* $ cover-inj (SpecPreorder.*-monotone (a2a1 <=∘ a1b) a2c) idp
+
+    \lemma cover_pow {a : R} {n : Nat} : Cover1 {preSite} a (pow a n) \elim n
+      | 0 => cover-inj (inP LDiv.ide-div) idp
+      | suc n => cover_*-univ cover_pow (cover-refl idp)
+
     \lemma Ideal_Cover {a : R} {U : Set R} (a<=U : (Ideal.sclosure U).radical a) : Cover {preSite} a U \elim a<=U
       | inP (n,Ua) => SchemeSite.Ideal_Cover {site R} $ Ideal.sclosure-mono
         (SetIm-elim \lam {c} Uc => inP $ later (a * c, c, Uc, inP $ LDiv.make a *-comm, inP $ LDiv.make c idp,
@@ -120,9 +129,9 @@
   => (\lam ta => specUnit.siteHom.toLRLHom-iso (\lam {x} {U} _ x<=U => Spec.Ideal_Cover $ (Ideal.sclosure U).radical-univ
         (Ideal.sclosure-univ {_} {_} {(Ideal.sclosure U).radical} $ later \lam {y} (inP (_, inP ((z,Vz),idp), c, cd, cx, cl)) =>
           \have (inP (e, inP (n,q))) => cl.inv-char.1 $ X.IsPrincipalOpenAt-Inv ((X.IsPrincipalOpenAt-char {_} {_} {top-univ}).2 idp) $ cd <=∘ Join-univ \lam zi => Join-cond (top-univ, zi)
-          \in inP (n, transportInv (Ideal.sclosure U) q $ ideal-right $ Ideal.sclosure-superset Vz)) $ ta.1 top-univ x specUnit-principal x<=U)
+          \in inP (n, transportInv (Ideal.sclosure U) q $ ideal-right $ Ideal.sclosure-superset Vz)) $ ta.2 top-univ x specUnit-principal x<=U)
       (\lam b => inP (\lam x => ∃ (c : X.L) (cb : c <= b) (X.IsPrincipalOpenAt (cb <=∘ top-univ) x), <=-antisymmetric
-        (ta.2 top-univ <=∘ Join-univ \lam {c} (cb, inP (x,cp)) => Join-cond cp.1 <=∘ X.L.SJoin-cond (inP $ later (c, cb, cp)))
+        (ta.3 top-univ <=∘ Join-univ \lam {c} (cb, inP (x,cp)) => Join-cond cp.1 <=∘ X.L.SJoin-cond (inP $ later (c, cb, cp)))
         (X.L.SJoin-univ $ later \lam {x} (inP (c,cb,cp)) => Join-univ \lam xi => cp.2 top-univ xi <=∘ cb)))
       \lam x => Localization.localizations-equiv1 LocRing.isLocalization (X.principal-localization ta specUnit-principal) {specUnit.siteHom.f# x} (\lam y => lift_inL) $ inP (1, inP (1, simplify)),
       \lam XA => LocallyRingedLocaleCat.iso-affine specUnit XA Spec.isAffineScheme)

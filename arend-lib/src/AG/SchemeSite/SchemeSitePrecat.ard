@@ -65,7 +65,7 @@
   | f* => LRL->SchemeSite.embedding {S} {S.IsAffineOpen} {\lam p => p}
   | f# => NatTrans.id
   | isLRLSchemeSiteHom-top => isLocallyAffine <=∘ Join-univ \lam {a} aff => S.L.IJoin-cond (later (a,aff))
-  | isLRLSchemeSiteHom-meet {a} {b} => meet-univ (a.2.2 meet-left) (b.2.2 meet-right) <=∘ S.L.Join-distr>= <=∘ S.L.SJoin-univ
+  | isLRLSchemeSiteHom-meet {a} {b} => meet-univ (a.2.3 meet-left) (b.2.3 meet-right) <=∘ S.L.Join-distr>= <=∘ S.L.SJoin-univ
     (later \lam {c} ((c1<=ab, inP (x,xp)), (c2<=ab, inP (y,yp))) =>
       \have | (inP ca) => S.principal-o a.2 {meet-left} {S.R.F.Func (c1<=ab <=∘ meet-right) y} (S.principal_meet-left _ _ yp) xp
             | cb => S.principal-o b.2 {meet-right} {S.R.F.Func (c2<=ab <=∘ meet-left) x} (S.principal_meet-right _ xp _) yp
@@ -83,9 +83,9 @@
                 | inP (w, inP (k,y^k=zw)) => inP (k, transportInv (Ideal.sclosure _) y^k=zw $ ideal-right $ Ideal.sclosure-superset $ inP $ later
                   (d, d, Ud, (<=-refl, inP (1, S.principal-id)), (da, inP (z,dp)), transport (\lam r => Localization _ _ (S.R.F.Func r)) prop-pi $ S.principal-localization a.2 dp))
               }
-            }) $ Ideal.radical_ide $ a.2.1 <=-refl 1 S.principal-id a<=U)
+            }) $ Ideal.radical_ide $ a.2.2 <=-refl 1 S.principal-id a<=U)
           (\lam b => inP (\lam c => c.1 <= b, <=-antisymmetric (meet-univ <=-refl (top-univ <=∘ isLocallyAffine) <=∘
-            S.L.Join-ldistr>= <=∘ S.L.SJoin-univ \lam {c} aff => later $ aff.2 meet-right <=∘ Join-univ \lam {d} (d<=bc, inP (x,dp)) =>
+            S.L.Join-ldistr>= <=∘ S.L.SJoin-univ \lam {c} aff => later $ aff.3 meet-right <=∘ Join-univ \lam {d} (d<=bc, inP (x,dp)) =>
             S.L.SJoin-conde (later (d, S.principal-affine aff dp)) (d<=bc <=∘ meet-left)) $ S.L.SJoin-univ \lam p => p))
           (\lam a => inP idEquiv)
   }

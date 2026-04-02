@@ -142,7 +142,7 @@
   \lemma basis-affineOpen {a : P} : toLRLSite.toLocale.IsAffineOpen (SiteLocale.embed a)
     => toLRLSite.affineOpen
       (\lam x => \case loc-exists x \with {
-        | inP (b,ba,bl) => inP (b, ba, loc-principal.2 bl)
+        | inP (b,ba,bl) => inP (b, ba, loc-principal.2 bl, bl)
       })
       (\lam {b} ba x bp {U} b<=U =>
         \let (inP (_, inP (n,idp), Wx)) => (LocalizationIdeal.unit-char {Ideal.sclosure _} (loc-principal.1 bp)).1 $
