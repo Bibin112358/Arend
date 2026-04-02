@@ -127,7 +127,10 @@ abstract class BasePass(protected open val file: IArendFile, editor: Editor, nam
     open fun applyInformationLater() {
         runReadAction {
             if (isValid) {
-                UpdateHighlightersUtil.setHighlightersToEditor(myProject, document, textRange.startOffset, textRange.endOffset, highlights, colorsScheme, id)
+                val deduplicatedHighlights = highlights.distinctBy {
+                    Triple(it.startOffset, it.endOffset, it.description)
+                }
+                UpdateHighlightersUtil.setHighlightersToEditor(myProject, document, textRange.startOffset, textRange.endOffset, deduplicatedHighlights, colorsScheme, id)
             }
         }
     }
