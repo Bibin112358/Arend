@@ -30,7 +30,7 @@ class ArendServerService(val project: Project) : Disposable {
             val preludeText = String(
                 ArendServerService::class.java.getResourceAsStream("/lib/$preludeFileName")!!.readBytes(),
                 StandardCharsets.UTF_8
-            )
+            ).replace("\r\n", "\n")
             preludeField = runReadAction {
                 val prelude = PsiFileFactory.getInstance(project)
                     .createFileFromText(preludeFileName, ArendLanguage.INSTANCE, preludeText) as? ArendFile
