@@ -9,26 +9,20 @@ import java.util.Collections;
 import java.util.List;
 
 public class Utils {
-    public static List<Triple<Concrete.GeneralDefinition, List<Concrete.Expression>, Concrete.Expression>> getSignatures(Concrete.ResolvableDefinition def, Boolean shouldConsiderParameters) {
+    public static List<Triple<Concrete.GeneralDefinition, List<Concrete.Expression>, Concrete.Expression>> getSignatures(Concrete.ResolvableDefinition def) {
         List<Triple<Concrete.GeneralDefinition, List<Concrete.Expression>, Concrete.Expression>> result = new ArrayList<>();
         if (def instanceof Concrete.FunctionDefinition funcDef) {
             Concrete.Expression resultType = funcDef.getResultType();
             if (resultType != null) {
-                List<Concrete.Expression> parameters = new ArrayList<>();
-                Concrete.Expression codomain;
-                if (shouldConsiderParameters) {
-                    List<Concrete.Expression> temporaryParameters = new ArrayList<>();
-                    for (Concrete.Parameter param : funcDef.getParameters()) {
-                        if (param.getType() != null) {
-                            temporaryParameters.add(param.getType());
-                        }
+                List<Concrete.Expression> temporaryParameters = new ArrayList<>();
+                for (Concrete.Parameter param : funcDef.getParameters()) {
+                    if (param.getType() != null) {
+                        temporaryParameters.add(param.getType());
                     }
-                    Pair<List<Concrete.Expression>, Concrete.Expression> deconstructed = deconstructPi(new Concrete.PiExpression(null, temporaryParameters.stream().map(param -> new Concrete.TypeParameter(true, param, false)).toList(), resultType));
-                    parameters.addAll(deconstructed.proj1);
-                    codomain = deconstructed.proj2;
-                } else {
-                    codomain = resultType;
                 }
+                Pair<List<Concrete.Expression>, Concrete.Expression> deconstructed = deconstructPi(new Concrete.PiExpression(null, temporaryParameters.stream().map(param -> new Concrete.TypeParameter(true, param, false)).toList(), resultType));
+                List<Concrete.Expression> parameters = new ArrayList<>(deconstructed.proj1);
+                Concrete.Expression codomain = deconstructed.proj2;
                 result.add(new Triple<>(def, parameters, codomain));
                 return result;
             }

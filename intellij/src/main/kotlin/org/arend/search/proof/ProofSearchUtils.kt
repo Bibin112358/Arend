@@ -26,6 +26,7 @@ import org.arend.proof.Utils.getSignatures
 import org.arend.psi.ArendFile
 import org.arend.psi.ext.*
 import org.arend.psi.stubs.index.ArendDefinitionIndex
+import org.arend.refactoring.psiOfConcrete
 import org.arend.refactoring.rangeOfConcrete
 import org.arend.search.collectSearchScopes
 import org.arend.server.ArendServerRequesterImpl
@@ -75,7 +76,7 @@ fun generateProofSearchResults(
                 if (!settings.checkAllowed(def)) return@processElements true
                 if (def !is ReferableBase<*>) return@processElements true
 
-                val signatures = getSignatures(getTcDefReferable(def)?.let { server.getResolvedDefinition(it) }?.definition, query.shouldConsiderParameters())
+                val signatures = getSignatures(getTcDefReferable(def)?.let { server.getResolvedDefinition(it) }?.definition)
                     ?: return@processElements true
                 for (signature in signatures) {
                     val psi = (signature.first.data as? LocatedReferableImpl)?.data as? ReferableBase<*> ?: continue
@@ -92,6 +93,7 @@ fun generateProofSearchResults(
                     val codomainResults = result.inCodomain
 
                     val parameterRangesRegistry = mutableMapOf<Int, List<TextRange>>()
+                    val parameterExpressionRegistry = mutableMapOf<Int, Concrete.Expression>()
                     val rangeComputer = caching { e : Concrete.Expression -> rangeOfConcrete(e) }
                     for (result in parameterResults) {
                         val parameterConcrete = result.proj1
@@ -99,12 +101,17 @@ fun generateProofSearchResults(
                         val index = parameters.indexOf(parameterConcrete)
                         val existing = parameterRangesRegistry.getOrDefault(index, emptyList())
                         parameterRangesRegistry[index] = existing + ranges.map { rangeComputer(it).shiftLeft(rangeComputer(parameterConcrete).startOffset) }
+                        parameterExpressionRegistry[index] = parameterConcrete
                     }
-                    val codomainRange = codomainResults.map { rangeComputer(it).shiftLeft(rangeComputer(codomain).startOffset) }
+                    val rangeOfCodomain = rangeComputer(codomain)
+                    val codomainRange = codomainResults.map { rangeComputer(it).shiftLeft(rangeOfCodomain.startOffset) }
+
+                    val text = psi.containingFile.text
                     list.add(ProofSearchEntry(psi,
                         info.value.copy(
-                            parameters = info.value.parameters.mapIndexedNotNull { index, data -> data.takeIf { index in parameterRangesRegistry }?.copy(match = parameterRangesRegistry[index]!!) },
-                            codomain = info.value.codomain.copy(match = codomainRange))))
+                            parameters = info.value.parameters.mapIndexedNotNull { index, data -> data.takeIf { index in parameterRangesRegistry && index in parameterExpressionRegistry }
+                                ?.copy(typeRep = text.substring(rangeComputer(parameterExpressionRegistry[index]!!).startOffset, rangeComputer(parameterExpressionRegistry[index]!!).endOffset), match = parameterRangesRegistry[index]!!) },
+                            codomain = info.value.codomain.copy(typeRep = text.substring(rangeOfCodomain.startOffset, rangeOfCodomain.endOffset), match = codomainRange))))
                 }
                 true
             }

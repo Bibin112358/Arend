@@ -197,6 +197,13 @@ private fun everyExprOf(concrete: Concrete.Expression): Sequence<Any?> = sequenc
         for (arg in concrete.sequence) yieldAll(everyExprOf(arg.component))
         concrete.clauses?.let { yield(it.data) }
     }
+    if (concrete is Concrete.SigmaExpression) {
+        for (arg in concrete.parameters) yieldAll(everyExprOf(arg.type))
+    }
+    if (concrete is Concrete.PiExpression) {
+        for (arg in concrete.parameters) yieldAll(everyExprOf(arg.type))
+        yieldAll(everyExprOf(concrete.codomain))
+    }
 }
 
 fun rangeOfConcrete(subConcrete: Concrete.Expression): TextRange {

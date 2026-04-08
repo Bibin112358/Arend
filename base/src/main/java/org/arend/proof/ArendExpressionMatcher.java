@@ -40,7 +40,22 @@ public class ArendExpressionMatcher {
                 .collect(Collectors.groupingBy(Referable::getRefName));
 
         List<Concrete.Expression> codomainResult = matchDisjunct(query.codomain, codomain, cachingScope, qualifiedReferables);
-        if (codomainResult == null) return null;
+        if (codomainResult == null) {
+            if (!parameters.isEmpty() && query.parameters.isEmpty()) {
+                List<Pair<Concrete.Expression, List<Concrete.Expression>>> parameterResults = new ArrayList<>();
+                for (Concrete.Expression matchParameter : parameters) {
+                    List<Concrete.Expression> match = matchDisjunct(query.codomain, matchParameter, cachingScope, qualifiedReferables);
+                    if (match != null) {
+                        parameterResults.add(new Pair<>(matchParameter, match));
+                    }
+                }
+                if (parameterResults.isEmpty()) {
+                    return null;
+                }
+                return new ProofSearchMatchingResult(parameterResults, new ArrayList<>());
+            }
+            return null;
+        }
 
         if (parameters.isEmpty()) {
             if (query.parameters.isEmpty()) {

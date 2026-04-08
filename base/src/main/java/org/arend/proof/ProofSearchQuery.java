@@ -18,10 +18,6 @@ public class ProofSearchQuery {
         this.codomain = codomain;
     }
 
-    public boolean shouldConsiderParameters() {
-        return !parameters.isEmpty();
-    }
-
     public static class ProofSearchJointPattern {
         public final List<PatternTree> patterns;
 

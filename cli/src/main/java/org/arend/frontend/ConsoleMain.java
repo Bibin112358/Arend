@@ -674,7 +674,7 @@ public class ConsoleMain {
 
     for (ModuleLocation moduleLocation : server.getModules()) {
       for (DefinitionData data : server.getResolvedDefinitions(moduleLocation)) {
-        for (Triple<Concrete.GeneralDefinition, List<Concrete.Expression>, Concrete.Expression> signature : getSignatures(data.definition(), query.shouldConsiderParameters())) {
+        for (Triple<Concrete.GeneralDefinition, List<Concrete.Expression>, Concrete.Expression> signature : getSignatures(data.definition())) {
           String refName = signature.first().getData().getRefName();
           List<Concrete.Expression> parameters = signature.second();
           Concrete.Expression codomain = signature.third();
