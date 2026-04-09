@@ -42,17 +42,12 @@ public class ArendExpressionMatcher {
         List<Concrete.Expression> codomainResult = matchDisjunct(query.codomain, codomain, cachingScope, qualifiedReferables);
         if (codomainResult == null) {
             if (!parameters.isEmpty() && query.parameters.isEmpty()) {
-                List<Pair<Concrete.Expression, List<Concrete.Expression>>> parameterResults = new ArrayList<>();
                 for (Concrete.Expression matchParameter : parameters) {
                     List<Concrete.Expression> match = matchDisjunct(query.codomain, matchParameter, cachingScope, qualifiedReferables);
                     if (match != null) {
-                        parameterResults.add(new Pair<>(matchParameter, match));
+                        return new ProofSearchMatchingResult(List.of(new Pair<>(matchParameter, match)), new ArrayList<>());
                     }
                 }
-                if (parameterResults.isEmpty()) {
-                    return null;
-                }
-                return new ProofSearchMatchingResult(parameterResults, new ArrayList<>());
             }
             return null;
         }

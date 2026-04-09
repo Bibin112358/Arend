@@ -8,7 +8,6 @@ import org.arend.ext.error.ErrorReporter;
 import org.arend.ext.error.GeneralError;
 import org.arend.ext.module.LongName;
 import org.arend.ext.module.ModulePath;
-import org.arend.ext.prettyprinting.PrettyPrinterConfig;
 import org.arend.ext.prettyprinting.PrettyPrinterFlag;
 import org.arend.ext.util.Pair;
 import org.arend.frontend.library.*;
@@ -46,12 +45,15 @@ import org.arend.typechecking.error.local.GoalError;
 import org.arend.typechecking.order.MapTarjanSCC;
 import org.arend.util.FileUtils;
 
+import org.arend.ext.reference.Precedence;
+import org.arend.term.prettyprint.PrettyPrintVisitor;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+import static org.arend.ext.prettyprinting.PrettyPrinterConfig.DEFAULT;
 import static org.arend.proof.Utils.getSignatures;
 
 public class ConsoleMain {
@@ -62,6 +64,54 @@ public class ConsoleMain {
   private final static String SHOW_SIZES = "show-sizes";
   private final static String SHOW_MODULES = "show-modules";
   private final static String SHOW_MODULES_WITH_INSTANCES = "show-modules-with-instances";
+  private final static String PRINT_FULL = "print-full";
+  private final static String ANSI_GREEN = "\u001B[32m";
+  private final static String ANSI_RESET = "\u001B[0m";
+
+  private static class HighlightingPrettyPrintVisitor extends PrettyPrintVisitor {
+    private final Set<Concrete.SourceNode> highlightedNodes;
+    private int highlightCount = 0;
+
+    public HighlightingPrettyPrintVisitor(StringBuilder builder, int indent, Set<Concrete.SourceNode> highlightedNodes) {
+      super(builder, indent);
+      this.highlightedNodes = highlightedNodes;
+    }
+
+    @Override
+    protected PrettyPrintVisitor copy(StringBuilder builder, int indent, boolean doIndent) {
+      return new HighlightingPrettyPrintVisitor(builder, indent, highlightedNodes);
+    }
+
+    @Override
+    public void printExpr(Concrete.Expression expr, Precedence prec) {
+      if (highlightedNodes.contains(expr)) {
+        myBuilder.append(ANSI_GREEN);
+        highlightCount++;
+      }
+      super.printExpr(expr, prec);
+      if (highlightedNodes.contains(expr)) {
+        highlightCount--;
+        if (highlightCount == 0) {
+          myBuilder.append(ANSI_RESET);
+        }
+      }
+    }
+
+    @Override
+    public void prettyPrintParameter(Concrete.Parameter parameter) {
+      if (highlightedNodes.contains(parameter)) {
+        myBuilder.append(ANSI_GREEN);
+        highlightCount++;
+      }
+      super.prettyPrintParameter(parameter);
+      if (highlightedNodes.contains(parameter)) {
+        highlightCount--;
+        if (highlightCount == 0) {
+          myBuilder.append(ANSI_RESET);
+        }
+      }
+    }
+  }
 
   private final ErrorReporter mySystemErrErrorReporter = error -> {
     System.err.println(error);
@@ -198,7 +248,7 @@ public class ConsoleMain {
             if (definition != null) {
               System.out.println();
               StringBuilder builder = new StringBuilder();
-              ToAbstractVisitor.convert(definition, PrettyPrinterConfig.DEFAULT).prettyPrint(builder, PrettyPrinterConfig.DEFAULT);
+              ToAbstractVisitor.convert(definition, DEFAULT).prettyPrint(builder, DEFAULT);
               System.out.println(builder);
             }
 
@@ -410,7 +460,25 @@ public class ConsoleMain {
     }
 
     if (cmdLine.hasOption("ps")) {
-      return matchAndPrint(server, requestedLibraries, String.join(" ", cmdLine.getOptionValues("ps")));
+      String[] psArgs = cmdLine.getOptionValues("ps");
+      boolean printFull = false;
+      List<String> patterns = new ArrayList<>();
+      for (String arg : psArgs) {
+        if (arg.equals(PRINT_FULL)) {
+          printFull = true;
+        } else {
+          patterns.add(arg);
+        }
+      }
+      if (patterns.isEmpty()) {
+        System.err.println("[ERROR] Missing proof search pattern");
+        return false;
+      }
+      if (patterns.size() > 1) {
+        System.err.println("[ERROR] Only one proof search pattern is allowed. Use quotes if the pattern contains spaces.");
+        return false;
+      }
+      return matchAndPrint(server, requestedLibraries, patterns.getFirst(), printFull);
     }
 
     TimedProgressReporter timedProgressReporter = cmdLine.hasOption(SHOW_TIMES) ? new TimedProgressReporter() : null;
@@ -654,7 +722,7 @@ public class ConsoleMain {
     }
   }
 
-  private boolean matchAndPrint(ArendServer server, List<SourceLibrary> requestedLibraries, String pattern) {
+  private boolean matchAndPrint(ArendServer server, List<SourceLibrary> requestedLibraries, String pattern, boolean printFull) {
     ProofSearchQuery.ParsingResult<ProofSearchQuery> queryResult = ProofSearchQuery.fromString(pattern);
     if (queryResult == null) return false;
     if (queryResult instanceof ProofSearchQuery.ParsingResult.Error<ProofSearchQuery> error) {
@@ -675,7 +743,7 @@ public class ConsoleMain {
     for (ModuleLocation moduleLocation : server.getModules()) {
       for (DefinitionData data : server.getResolvedDefinitions(moduleLocation)) {
         for (Triple<Concrete.GeneralDefinition, List<Concrete.Expression>, Concrete.Expression> signature : getSignatures(data.definition())) {
-          String refName = signature.first().getData().getRefName();
+          TCDefReferable referable = signature.first().getData();
           List<Concrete.Expression> parameters = signature.second();
           Concrete.Expression codomain = signature.third();
 
@@ -683,26 +751,40 @@ public class ConsoleMain {
 
           ArendExpressionMatcher.ProofSearchMatchingResult result = matcher.match(parameters, codomain, scope);
           if (result == null) continue;
-          if (!result.inPattern().isEmpty()) {
+          if (referable.getData() != null) {
+            System.out.println(referable.getRefName() + " " + referable.getData().toString());
+          } else {
+            System.out.println(referable.getRefFullName().toString());
+          }
+
+          Set<Concrete.SourceNode> highlightedNodes = new HashSet<>(result.inCodomain());
+          if (result.inPattern() != null) {
             for (Pair<Concrete.Expression, List<Concrete.Expression>> parameterData : result.inPattern()) {
-              for (Concrete.Expression expression : parameterData.proj2) {
-                if (data.definition() instanceof Concrete.FunctionDefinition) {
-                  System.out.println("\"" + refName + " : " + parameterData.proj1.toString() + ":" + expression.toString() + "\" of " + moduleLocation);
-                } else {
-                  System.out.println("\"" + data.definition().getData().getRefName() + ":" + parameterData.proj1.toString() + ":" + refName + " : " + expression + "\" of " + moduleLocation);
-                }
-              }
+              highlightedNodes.addAll(parameterData.proj2);
             }
           }
-          if (!result.inCodomain().isEmpty()) {
-            for (Concrete.Expression expression : result.inCodomain()) {
-              if (data.definition() instanceof Concrete.FunctionDefinition) {
-                System.out.println("\"" + refName + " : " + expression.toString() + "\" of " + moduleLocation);
-              } else {
-                System.out.println("\"" + data.definition().getData().getRefName() + ":" + refName + " : " + expression + "\" of " + moduleLocation);
+          highlightedNodes.addAll(result.inCodomain());
+
+          if (printFull) {
+            StringBuilder builder = new StringBuilder();
+            HighlightingPrettyPrintVisitor visitor = new HighlightingPrettyPrintVisitor(builder, 0, highlightedNodes);
+            data.definition().accept(visitor, null);
+            System.out.println(builder);
+          } else {
+            if (result.inPattern() != null) {
+              for (Pair<Concrete.Expression, List<Concrete.Expression>> parameterData : result.inPattern()) {
+                StringBuilder builder = new StringBuilder();
+                HighlightingPrettyPrintVisitor visitor = new HighlightingPrettyPrintVisitor(builder, 0, highlightedNodes);
+                parameterData.proj1.prettyPrint(visitor, null);
+                System.out.print("(" + builder + ") -> ");
               }
             }
+            StringBuilder builder = new StringBuilder();
+            HighlightingPrettyPrintVisitor visitor = new HighlightingPrettyPrintVisitor(builder, 0, highlightedNodes);
+            codomain.prettyPrint(visitor, null);
+            System.out.println(builder);
           }
+          System.out.println();
         }
       }
     }
