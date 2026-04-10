@@ -78,8 +78,11 @@
   \lemma isEpiHom {T : CRing} {g h : RingHom L T} (d : \Pi (a : B) -> g (inL a) = h (inL a)) : g = h
     => exts \lam x => isEpi g h d
 } \where {
+  \func fromLocalization {B R : CRing} {f : RingHom B R} (L : Localization {B} { | L => R | inL => f }) : RingLocalization \cowith
+    | Localization => L
+
   \func liftHom1 {B R : CRing} {f : RingHom B R} {a : B} (L : Localization (powers a) R f) {T : CRing} (f : RingHom B T) (ai : Inv (f a)) : RingHom R T
-    => (\new RingLocalization { | Localization => L }).liftHom f \box (\lam {_} (inP (n,idp)) => transportInv Inv f.func-pow $ Inv.Inv_pow ai)
+    => (fromLocalization L).liftHom f \box (\lam {_} (inP (n,idp)) => transportInv Inv f.func-pow $ Inv.Inv_pow ai)
 }
 
 \instance LocRing {R : CRing} (S : SubMonoid R) : CRing \cowith

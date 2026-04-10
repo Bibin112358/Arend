@@ -157,6 +157,13 @@
     \lemma fromInjSurj {A B : \Set} {f : A -> B} (inj : IsInj f) (surj : IsSurj f) : IsEquiv f
       => inP (QEquiv.fromInjSurj inj surj)
 
+    \lemma fromInjInv {A B : \Set} {f : A -> B} (g : B -> A) (inj : IsInj g) (surj : \Pi (a : A) -> g (f a) = a) : IsEquiv f
+      => inP \new QEquiv {
+        | ret => g
+        | ret_f => surj
+        | f_sec b => inj (surj (g b))
+      }
+
     \lemma trans {A B C : \Sort} {f : A -> B} (e : IsEquiv f) {g : B -> C} (e' : IsEquiv g) : IsEquiv \lam a => g (f a) \elim e, e'
       | inP e, inP e' => inP (transQEquiv e e')
 

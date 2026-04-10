@@ -249,6 +249,10 @@
 
   \func liftHom1 {B : CMonoid} {a : B} (L : Localization (powers a)) {T : CMonoid} (f : MonoidHom B T) (ai : Inv (f a)) : MonoidHom L.L T
     => L.liftMonoidHom f \box (\lam {_} (inP (n,idp)) => transportInv Inv f.func-pow $ Inv.Inv_pow ai)
+
+  \lemma localization1-equiv {M : CMonoid} (L : Localization (powers M.ide)) : QEquiv L.inL (liftHom1 L MonoidHom.id Inv.ide-isInv) \cowith
+    | ret_f a => L.lift_inL
+    | f_sec b => L.isEpi (L MonoidHom.∘ liftHom1 L MonoidHom.id Inv.ide-isInv) MonoidHom.id \lam x => pmap L L.lift_inL
 }
 
 -- | The type of elements of {LocMonoid}.

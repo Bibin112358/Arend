@@ -1,0 +1,104 @@
+\import AG.AffineScheme
+\import AG.RingedLocale
+\import AG.RingedLocale.RingedLocaleCat
+\import AG.SchemeSite
+\import AG.SchemeSite.SchemeSiteHom
+\import AG.SchemeSite.SchemeSitePrecat
+\import Algebra.Monoid
+\import Algebra.Monoid.Localization
+\import Algebra.Monoid.MonoidHom
+\import Algebra.Monoid.Sub
+\import Algebra.Pointed
+\import Algebra.Ring
+\import Algebra.Ring.Localization
+\import Algebra.Ring.RingCategory
+\import Algebra.Ring.RingHom
+\import Category
+\import Category.Functor
+\import Category.Subcat
+\import Category.Topos.Sheaf
+\import Equiv
+\import Function.Meta
+\import Logic
+\import Meta
+\import Order.Lattice
+\import Order.Lattice.CompleteLattice
+\import Order.PartialOrder
+\import Paths
+\import Paths.Meta
+\import Topology.Locale.PreorderSite
+\open Monoid
+\open SubMonoid
+\open Localization
+\open Cover
+\open CompleteLattice
+
+\func SpecFunctor : FullyFaithfulFunctor CRingCat.op SchemeSitePrecat \cowith
+  | F => Spec.site
+  | Func f => (sitePrehom f).toSchemeSiteHom
+  | Func-id {R} => SchemeSitePrehom.toSchemeSiteHom-equals {Spec.site R} {Spec.site R}
+    (\lam b a => cover-refl) (\lam b a => cover-refl)
+    \lam a b a|b a|b' => LocRing.isLocalization.isEpiHom \lam x =>
+      pmap (Spec.StructureSheaf.Func _) lift_inL *> lift_inL *> inv lift_inL
+  | Func-o {R} {S} {T} {g} {f} => inv $ SchemeSiteHom.toSchemeSiteHom_o-left *> SchemeSiteHom.toSchemeSiteHom_o-right *>
+    SchemeSitePrehom.toSchemeSiteHom-equals {Spec.site R} {Spec.site T}
+    (\lam c a (inP (b, inP fb|c, inP ga|b)) => cover-refl $ inP $ LDiv.trans (f.func-LDiv ga|b) fb|c)
+    (\lam c a c<=fga => cover-refl $ inP (g a, c<=fga, inP LDiv.id-div))
+    \lam a c (inP c<=fa) c<=ga => LocRing.isLocalization.isEpiHom \lam x => SchemeSitePrehom.compose.f#-eval *>
+      pmap (Spec.StructureSheaf.Func _) (pmap (RingLocalization.liftHom1 LocRing.isLocalization (locR RingHom.∘ f) _) (pmap (Spec.StructureSheaf.Func _) lift_inL *> lift_inL) *> lift_inL) *>
+      lift_inL *> inv (pmap (Spec.StructureSheaf.Func _) lift_inL *> lift_inL)
+  | isFullyFaithful {R} {S} => IsEquiv.fromInjInv
+    (\lam f => RingLocalization.liftHom1 LocRing.isLocalization RingHom.id Inv.ide-isInv RingHom.∘ f.f# (\box f.<=f*-cover-left $ cover-sub f.<=f*-top \lam (inP (a,x<=a)) => <=f*-right x<=a $ inP LDiv.ide-div) RingHom.∘ locR)
+    (\lam {f} {g} p => SchemeSiteHom.equals-affine2 1 (\lam b => inP LDiv.ide-div) 1 (\lam a => inP LDiv.ide-div) \lam {p1} {p2} => LocRing.isLocalization.isEpiHom \lam x =>
+      inv ((Localization.localization1-equiv LocRing.isLocalization).f_ret _ *> pmap (f.f# __ _) prop-pi) *> path (\lam i => locR (p i x)) *> (Localization.localization1-equiv LocRing.isLocalization).f_ret _ *> pmap (g.f# __ _) prop-pi)
+    (\lam f => exts \lam x => pmap (lift _ _) (SchemeSitePrehom.f#-cover_f# $ inP $ LDiv.make 1 $ ide-right *> f.func-ide) *> pmap (\lam r => lift _ _ (lift _ _ r)) lift_inL *> pmap (lift _ _) lift_inL *> lift_inL)
+  \where {
+    \func sitePrehom {R S : CRing} (f : RingHom S R) : SchemeSitePrehom (Spec.site R) (Spec.site S) \cowith
+      | <=f* b a => b <= {SpecPreorder R} f a
+      | <=f*-left p q => p <=∘ {SpecPreorder R} q
+      | <=f*-right (inP fa|b) (inP a'|a) => inP $ LDiv.trans (f.func-LDiv a'|a) fa|b
+      | f# {a : S} {b : R} (fa|b : TruncP (LDiv (f a) b)) : RingHom (LocRing (powers a)) (LocRing (powers b))
+        => Spec.StructureSheaf.Func fa|b RingHom.∘ RingLocalization.liftHom1 LocRing.isLocalization (locR RingHom.∘ f) (LocRing.isLocalization.localization-inv $ later powers-id)
+      | f#-left b'<=b b<=fa b'<=fa => LocRing.isLocalization.isEpi (Spec.StructureSheaf.Func b'<=b RingHom.∘ f# b<=fa) (f# b'<=fa) \lam x =>
+        pmap (lift _ _) (pmap (Spec.StructureSheaf.Func _) lift_inL *> lift_inL) *> lift_inL *> inv lift_inL *> pmap (Spec.StructureSheaf.Func b'<=fa) (inv lift_inL)
+      | f#-right a<=a' b<=fa b<=fa' => LocRing.isLocalization.isEpi (f# b<=fa RingHom.∘ Spec.StructureSheaf.Func a<=a') (f# b<=fa') \lam x =>
+        pmap (f# b<=fa) lift_inL *> pmap (Spec.StructureSheaf.Func b<=fa) lift_inL *> lift_inL *> inv lift_inL *> pmap (Spec.StructureSheaf.Func b<=fa') (inv lift_inL)
+      | <=f*-top {b} => cover-refl $ inP (1, inP $ LDiv.make b $ pmap (`* b) f.func-ide *> ide-left)
+      | <=f*-meet {a1} {a2} b<=fa1 b<=fa2 => cover-trans1 Spec.cover_* $ cover-refl $
+        inP (a1 * a2, inP $ LDiv.make a2 idp, inP $ LDiv.make a1 *-comm, later $ rewrite f.func-* $ SpecPreorder.*-monotone b<=fa1 b<=fa2)
+      | <=f*-loc (inP ((x,ax=a') \as a|a')) {b} b<=fa => inP (b * f x, inP $ LDiv.make (f x) idp,
+        rewrite (inv ax=a', f.func-*) $ SpecPreorder.*-monotone b<=fa (SpecPreorder R).<=-refl, locR x,
+        factor-right-div LocRing.isLocalization LocRing.isLocalization (\lam y => lift_inL) a|a',
+        transportInv (SchemeSite.IsLocalizationAt {Spec.site R} _) (pmap (Spec.StructureSheaf.Func _) lift_inL *> lift_inL) $
+          factor-right-div LocRing.isLocalization LocRing.isLocalization (\lam y => lift_inL) $ LDiv.make (f x) idp)
+  }
+
+\func SpecLRLFunctor : ReflectiveSubPrecat CRingCat.op LocallyRingedLocaleCat \cowith
+  | FullyFaithfulFunctor => FullyFaithfulFunctor.Comp SchemeSiteFunctor SpecFunctor
+  | reflector X => X.GlobalSections
+  | reflectorMap X => specUnit
+  | isReflective {X} {R} => transportInv (QEquiv __) (path \lam i f => LRLSchemeSiteHom.toLRLHom-natural {_} {_} {_} {specUnit} {(SpecFunctor.Func f).toLRLSchemeSiteHom} i)
+    \have e => transportInv (QEquiv __) (path (\lam i f => SchemeSiteHom.toLRLSchemeSiteHom_toLRLHom {_} {_} {_} {specUnit.siteHom} {SpecFunctor.Func f} i) *>
+                                         path (\lam i f => SchemeSitePrehom.toSchemeSiteHom_compose-right {_} {_} {_} {SpecFunctor.sitePrehom f} {specUnit.siteHom} i) *>
+                                         inv (path \lam i f => spec_adjoint-equals f i)) adjointEquiv
+    \in transQEquiv e LRLSchemeSiteHom.LRL-equiv
+  \where {
+    \lemma spec_adjoint-equals.{s} {X : LocallyRingedLocale.{s}} {R : CRing.{s}} (f : RingHom R X.GlobalSections)
+      : specUnit.adjoint f = SpecFunctor.sitePrehom f LRLSchemeSiteHom.∘r specUnit.siteHom
+      => LRLSchemeSiteHom.equals.byRingHom {X} {Spec.site R}
+          (\lam a => SJoin-cond $ later $ inP LDiv.id-div)
+          (\lam a => SJoin-univ $ later \lam {b} (inP fa|b) => Join-univ \lam s => Join-cond (s.1, Inv.Inv_LDiv s.2 $ MonoidHom.func-LDiv fa|b))
+          (\lam a => LocRing.isLocalization.isEpiHom {X.R _} \lam x =>
+            path (\lam i => IsEquiv.f_ret (VSheaf.sheaf-locale_SJoin X.R) {LRLSchemeSiteHom.compose-right.matchingFaimly {X} {_} {_} {_} {specUnit.siteHom} a} i (f a, inP LDiv.id-div) (locR x)) *>
+            pmap (\lam r => lift _ _ (lift _ _ r)) lift_inL *> pmap (lift _ _) lift_inL *> lift_inL *> inv lift_inL)
+
+    \func adjointEquiv.{s} {X : LocallyRingedLocale.{s}} {R : CRing.{s}} : QEquiv {RingHom R X.GlobalSections} {LRLSchemeSiteHom X (Spec.site R)} \cowith
+      | f => specUnit.adjoint
+      | ret g => X.R.F.Func (\box g.isLRLSchemeSiteHom-top <=∘ IJoin-univ \lam x => func-<= $ later $ inP LDiv.ide-div) RingHom.∘ g.f# 1 RingHom.∘ locR
+      | ret_f f => exts \lam x => pmap (X.R.F.Func _) LocRing.isLocalization.lift_inL *> inv (path \lam i => X.R.F.Func-o i _) *> pmap (X.R.F.Func __ _) prop-pi *> path \lam i => X.R.F.Func-id i _
+      | f_sec g => inv $ LRLSchemeSiteHom.equals.byRingHom {X} {Spec.site R}
+        (\lam a => \box Join-cond (top-univ, transport Inv (path \lam i => X.R.F.Func-o i _) $ transport Inv (pmap (g.f# a) (inv lift_inL) *> path \lam i => g.f#.natural (inP LDiv.ide-div) i _) $ MonoidHom.func-Inv $ LocRing.isLocalization.localization-inv $ later powers-id))
+        (\lam a => \box Join-univ \lam {b} s => g.isLRLSchemeSiteHom-loc (inP LDiv.ide-div) (Localization.factor-right1 LocRing.isLocalization LocRing.isLocalization \lam x => lift_inL) (\box top-univ <=∘ g.isLRLSchemeSiteHom-top <=∘ IJoin-univ \lam x => func-<= $ later $ inP LDiv.ide-div) $ transportInv Inv (path \lam i => X.R.F.Func-o i _) s.2)
+        (\lam a => LocRing.isLocalization.isEpiHom {X.R _} \lam x => pmap (X.R.F.Func _) lift_inL *> inv (path \lam i => X.R.F.Func-o i _) *> inv (path \lam i => X.R.F.Func-o i _) *>
+          inv (path \lam i => g.f#.natural (inP LDiv.ide-div) i (locR x)) *> pmap (g.f# a) lift_inL)
+  }
