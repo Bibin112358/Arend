@@ -69,10 +69,16 @@
         inP $ LDiv.make a|a'.inv $ pmap (`* _) (inv a|b.inv-right) *> *-assoc *> pmap (a *) *-comm, locR a|b.inv,
         factor-right-div LR LR (\lam x => LR.lift_inL) a|b,
         unfold $ rewrite LR.lift_inL $ factor-right-div LR LR (\lam x => LR.lift_inL) $ LDiv.make a|b.inv $ pmap (`* _) (inv a|a'.inv-right) *> *-assoc)
-      | loc-exists {a} (in~ (x, y, inP (n,p))) => inP (a * x, inP $ LDiv.make x idp, transportSubMonoid1 (later $ factor-right1 LR LR \lam x => LR.lift_inL)
-        (inP (1, LDiv.make (locR (a * y)) $ unfold $ ~-lequiv1 equation.cMonoid))
-        (\let ai => (LR {_} {powers a}).localization-inv $ inP (suc n, idp)
-         \in inP (1, LDiv.make ai.inv $ inv $ ai.rotate-inv-right $ unfold $ ~-lequiv1 $ equation.cMonoid {p})))
+      | loc-exists {a} (in~ (x, y, inP (n,p))) => inP (a * x, inP $ LDiv.make x idp, loc-exists-aux)
+      \where {
+        \protected \lemma loc-exists-aux {a : R} {z : \Sigma (x y : R) (powers a y)} : Localization (powers (inl~ z)) (StructureSheaf (a * z.1)) (StructureSheaf.Func (inP (LDiv.make z.1 idp)))
+          => \case z.3 \with {
+            | inP (n,p) => transportSubMonoid1 (later $ factor-right1 LR LR \lam x => LR.lift_inL)
+              (inP (1, LDiv.make (locR (a * z.2)) $ unfold $ ~-lequiv1 equation.cMonoid))
+              \let ai => (LR {_} {powers a}).localization-inv $ inP (suc n, idp)
+              \in inP (1, LDiv.make ai.inv $ inv $ ai.rotate-inv-right $ unfold $ ~-lequiv1 $ equation.cMonoid {p})
+          }
+      }
 
     \func preSite {R : CRing} => (site R).toSite
 

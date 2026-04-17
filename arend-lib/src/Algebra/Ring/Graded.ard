@@ -38,7 +38,7 @@
   \lemma homogen-negative {n : Nat} {x : E} (xh : isHomogen x n) : isHomogen (negative x) n
     => transport (isHomogen __ n) equation (homogen-* homogen-negative_ide xh)
 
-  \lemma homogen-pow {a : E} {n m : Nat} (ah : isHomogen a n) : isHomogen (pow a m) (n Nat.* m) \elim m
+  \lemma homogen-pow {a : E} {n : Nat} (ah : isHomogen a n) {m : Nat} : isHomogen (pow a m) (n Nat.* m) \elim m
     | 0 => homogen-ide
     | suc m => homogen-* (homogen-pow ah) ah
 
@@ -50,6 +50,18 @@
     => \case FinSum_char a \with {
       | inP (e,q) => transportInv (isHomogen __ n) q $ homogen-BigSum \lam j => p (e j)
     }
+
+  \func IsHomogen (a : E) : \Prop
+    => ∃ (n : Nat) (isHomogen a n)
+
+  \lemma IsHomogen_ide : IsHomogen 1
+    => inP (0, homogen-ide)
+
+  \lemma IsHomogen_* {a b : E} (ah : IsHomogen a) (bh : IsHomogen b) : IsHomogen (a * b) \elim ah, bh
+    | inP (n,ah), inP (m,bh) => inP (_, homogen-* ah bh)
+
+  \lemma IsHomogen_pow {a : E} (ah : IsHomogen a) {k : Nat} : IsHomogen (pow a k) \elim ah
+    | inP (n,ah) => inP (_, homogen-pow ah)
 
   \lemma homogen-similar {l l' : Array E} (lh : isHomogenArray l) (l'h : isHomogenArray l') (p : BigSum l = BigSum l') : Similar l l'
     => diff=0->similar $ homogen-unique (diff l l') (diff-homogen l l' 0 lh l'h) (diff-sum l l' *> toZero p)
@@ -165,12 +177,12 @@
         | a :: l, 0 => lh 0
         | a :: l, suc j => aux (suc n) (\lam j => lh (suc j)) l'h j
 
-  \lemma homogen-factor {a b c : E} (b=ac : b = a * c) {n m : Nat} (bh : isHomogen b n) (ah : isHomogen a m)
-    : ∃ (c' : E) (k : Nat) (isHomogen c' k) (b = a * c')
-    => TruncP.map (homogen-decomp c) \lam (l,lh,+l=c) => aux n m 0 lh $ homogen-similar
+  \lemma homogen-factor {a b : E} (a|b : Monoid.LDiv a b) (bh : IsHomogen b) (ah : IsHomogen a)
+    : ∃ (c : E) (k : Nat) (isHomogen c k) (b = a * c) \elim bh, ah
+    | inP (n,bh), inP (m,ah) => TruncP.map (homogen-decomp a|b.inv) \lam (l,lh,+l=c) => aux n m 0 lh $ homogen-similar
          (homogen-++ (\lam j => homogen-zro) $ later \lam (0) => bh)
          (homogen-++ (\lam j => homogen-zro) $ later \lam j => homogen-* ah (lh j))
-         (BigSum_++ *> pmap (`+ _) BigSum_replicate0 *> later (simplify $ b=ac *> pmap (a *) (inv +l=c) *> BigSum-ldistr) *> inv (BigSum_++ *> pmap (`+ _) BigSum_replicate))
+         (BigSum_++ *> pmap (`+ _) BigSum_replicate0 *> later (simplify $ inv a|b.inv-right *> pmap (a *) (inv +l=c) *> BigSum-ldistr) *> inv (BigSum_++ *> pmap (`+ _) BigSum_replicate))
     \where {
       \func aux {a b : E} (s t n : Nat) {l : Array E} (lh : \Pi (j : Fin l.len) -> isHomogen (l j) (n Nat.+ j)) (p : Similar (replicate s zro ++ b :: nil) (replicate t zro ++ map (a *) l))
         : \Sigma (c : E) (k : Nat) (isHomogen c k) (b = a * c) \elim s, t, l, p

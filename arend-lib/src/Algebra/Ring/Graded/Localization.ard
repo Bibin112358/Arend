@@ -1,4 +1,5 @@
 \import Algebra.Group
+\import Algebra.Meta
 \import Algebra.Monoid
 \import Algebra.Monoid.Localization
 \import Algebra.Monoid.Sub
@@ -8,11 +9,16 @@
 \import Algebra.Ring.Localization
 \import Algebra.Ring.Sub
 \import Arith.Nat
+\import Data.Or
 \import Function.Meta
 \import Logic
 \import Logic.Meta
+\import Meta
 \import Paths
 \import Paths.Meta
+\import Relation.Equivalence
+\open Monoid
+\open SubMonoid
 
 \func HomogenLocRing {R : GradedCRing} (S : SubMonoid R) : CRing
   => SubRing.cStruct subRing
@@ -31,4 +37,19 @@
         \lemma equality (x : LocRing S) (x=[y] : x = inl~ y) : fromSType y y1h y2h = (x, inP (y,x=[y],n,y1h,y2h))
           => ext (inv x=[y])
       }
+
+    \lemma homogen-Inv {S : SubMonoid R} (Sh : ∀ {y : S.contains} ∃ (k : Nat) (isHomogen y k)) {x : HomogenLocRing S} (xi : Inv x.1) : Inv {HomogenLocRing S} x \elim x, xi
+      | (_, inP (x,idp,n,x1h,x2h)), (in~ y, yp, _) => \case ~-unlequiv yp \with {
+        | inP (c,Sc,cp) => \case Sh y.3, Sh Sc \with {
+          | inP (y2n,y2h), inP (cn,ch) => \case R.homogen-factor (LDiv.make y.1 $ *-comm *> inv *-assoc *> (simplify in cp)) (inP (_, homogen-* (homogen-* y2h x2h) ch)) (inP (_, homogen-* x1h ch)) \with {
+            | inP (z,zn,zh,zp) => \case R.degree-unique {y.2 * x.2 * c} {y2n + n + cn} {n + cn + zn} (homogen-* (homogen-* y2h x2h) ch) $ transportInv (isHomogen __ _) zp $ homogen-* (homogen-* x1h ch) zh \with {
+              | inl q => Inv.lmake 0 $ ext $ LocRing.isLocalization.trivial-char R.zro_*-left 0 1 $ transport S q $ contains_* (contains_* y.3 x.3) Sc
+              | inr e => Inv.lmake (later (_, inP ((z, y.2, y.3), idp, zn, zh, transport (isHomogen _) (NatSemiring.cancel-left cn $ +-comm *> NatSemiring.cancel-left n (inv +-assoc *> pmap (`+ _) +-comm *> e *> +-assoc)) y2h))) $ ext $ ~-lequiv c Sc $ equation.cMonoid {zp}
+            }
+          }
+        }
+      }
+
+    \lemma homogen-Inv1 {a : R} (ah : ∃ (k : Nat) (isHomogen a k)) {x : HomogenLocRing (powers a)} (xi : Inv x.1) : Inv {HomogenLocRing (powers a)} x \elim ah
+      | inP (k,ah) => homogen-Inv (later \lam {_} (inP (n,idp)) => inP (k * n, R.homogen-pow ah)) xi
   }

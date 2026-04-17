@@ -75,8 +75,12 @@
     => TruncP.map lift.contr.center.2 \lam s => (s.1, s.2, s.3, s.4, pmap (`* _) (\peval lift f l a) *> s.5)
 
   \lemma lift_inL-quot {K : CMonoid} {f : MonoidHom B K} {l : \Pi {x : B} -> S x -> Inv (f x)}
-                       {a : L} {c x : B} (Sc : S c) (ac=x : a * inL c = inL x) : lift f l a * f c = f x
+                       {a : L} {c : B} (Sc : S c) {x : B} (ac=x : a * inL c = inL x) : lift f l a * f c = f x
     => inv $ (l Sc).rotate-right $ inv $ (\peval lift f l a) *> pmap __.1 (lift.contr.contraction (f x * (l Sc).inv, inP (x, c, Sc, ac=x, *-assoc *> pmap (_ *) inv-left *> ide-right)))
+
+  \lemma lift-quot-char {K : CMonoid} {f : MonoidHom B K} {l : \Pi {x : B} -> S x -> Inv (f x)}
+                        {a : L} (x c : B) (Sc : S c) (ac=x : a * inL c = inL x) {r : K} (rc=x : r * f c = f x) : lift f l a = r
+    => (l Sc).inv-cancel-right $ lift_inL-quot Sc ac=x *> inv rc=x
 
   \lemma lift_inL {K : CMonoid} {f : MonoidHom B K} {l : \Pi {x : B} -> S x -> Inv (f x)} {x : B} : lift f l (inL x) = f x
     => inv ide-right *> pmap (_ *) (inv f.func-ide) *> lift_inL-quot contains_ide (pmap (_ *) inL.func-ide *> ide-right)
