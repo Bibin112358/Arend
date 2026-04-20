@@ -765,6 +765,7 @@ public class ConsoleMain {
           }
           highlightedNodes.addAll(result.inCodomain());
 
+          Precedence topPrec = new Precedence(Concrete.Expression.PREC);
           if (printFull) {
             StringBuilder builder = new StringBuilder();
             HighlightingPrettyPrintVisitor visitor = new HighlightingPrettyPrintVisitor(builder, 0, highlightedNodes);
@@ -775,13 +776,13 @@ public class ConsoleMain {
               for (Pair<Concrete.Expression, List<Concrete.Expression>> parameterData : result.inPattern()) {
                 StringBuilder builder = new StringBuilder();
                 HighlightingPrettyPrintVisitor visitor = new HighlightingPrettyPrintVisitor(builder, 0, highlightedNodes);
-                parameterData.proj1.prettyPrint(visitor, null);
+                parameterData.proj1.prettyPrint(visitor, topPrec);
                 System.out.print("(" + builder + ") -> ");
               }
             }
             StringBuilder builder = new StringBuilder();
             HighlightingPrettyPrintVisitor visitor = new HighlightingPrettyPrintVisitor(builder, 0, highlightedNodes);
-            codomain.prettyPrint(visitor, null);
+            codomain.prettyPrint(visitor, topPrec);
             System.out.println(builder);
           }
           System.out.println();
