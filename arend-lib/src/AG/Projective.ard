@@ -94,12 +94,9 @@
     \func site (R : GradedCRing) : SchemeSite \cowith
       | P => ProjPreorder R
       | R => StructureSheaf
-      | loc-restrict {a} {b} ba => \case homogen-factor a b ba, a.2 \with {
-        | inP (c,k,ch,b=ac), inP (m,ah) => inP (HomogenLocRing.fromSType (pow c (suc m), pow a.1 k, later $ inP (k,idp)) (R.homogen-pow ch {suc m}) $ transport (isHomogen _) *-comm $ R.homogen-pow ah,
-          StructureSheaf-loc $ unfold HomogenLocRing.fromSType $ transportSubMonoid1 (factor-right1 LR LR \lam x => later LR.lift_inL)
-          (inP (suc m, LDiv.make (locR $ pow a.1 k * pow a.1 (suc m)) $ unfold (~-lequiv1 $ equation.cMonoid {b=ac, pmap (pow __ m) b=ac *> R.pow_*-comm}) *> pmap (`* _) locR.func-pow))
-          (inP (1, LDiv.make (inl~ (pow c m, _, later $ inP (suc k, idp))) $ unfold $ ~-lequiv1 $ equation.cMonoid {b=ac})))
-      }
+      | loc-exists {a} (in~ (x, y, inP (n,p)), inP (z,xyz,k,z1h,z2h)) => inP ((a.1 * z.1, \case a.2 \with {
+        | inP (an,ah) => inP (an + k, homogen-* ah z1h)
+      }), inP $ LDiv.make z.1 idp, StructureSheaf-loc $ transportInv (\lam r => Localization (powers r) _ _) xyz Spec.site.loc-exists-aux)
       | loc-stable {a'} {a} {b} (inP a|a') (inP a|b) => \case a.2, R.homogen-factor a|a' (ProjCarrier.homogen a') (ProjCarrier.homogen a), R.homogen-factor a|b (ProjCarrier.homogen b) (ProjCarrier.homogen a) \with {
         | inP (an,ah), inP (c,cn,ch,a'=ac), inP (d,dn,dh,b=ad) => inP ((a.1 * (c * d), inP (an + (cn + dn), homogen-* ah $ homogen-* ch dh)),
           inP $ LDiv.make d $ pmap (`* d) a'=ac *> *-assoc,
@@ -117,7 +114,4 @@
               LR.lift-quot-char (pow d (suc an)) _ (later $ inP (dn,idp)) (~-lequiv1 simplify)
                 (later $ ~-lequiv1 $ simplify $ equation.cMonoid {a'=ac, pmap (pow __ dn) a'=ac *> R.pow_*-comm}))))
       }
-      | loc-exists {a} (in~ (x, y, inP (n,p)), inP (z,xyz,k,z1h,z2h)) => inP ((a.1 * z.1, \case a.2 \with {
-        | inP (an,ah) => inP (an + k, homogen-* ah z1h)
-      }), inP $ LDiv.make z.1 idp, StructureSheaf-loc $ transportInv (\lam r => Localization (powers r) _ _) xyz Spec.site.loc-exists-aux)
   }

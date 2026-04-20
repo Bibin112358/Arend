@@ -235,7 +235,7 @@
     | <=f*-top => cover-sub <=f*-top \lam {a} (inP (c,a<=c)) => inP (c, cover-refl a<=c)
     | <=f*-meet b<=a1 b<=a2 => cover-trans* (cover-inter b<=a1 b<=a2) \lam {x} (inP (a1',a1'<=a1,a2',a2'<=a2,x<=a1',x<=a2')) =>
       cover-sub (<=f*-meet (<=f*-left x<=a1' a1'<=a1) (<=f*-left x<=a2' a2'<=a2)) \lam {y} (inP (z,z<=a1,z<=a2,y<=z)) => inP (z, z<=a1, z<=a2, cover-refl y<=z)
-    | <=f*-loc a'<=a b<=a => \case loc-restrict a'<=a \with {
+    | <=f*-loc a'<=a b<=a => \case Cod.loc-restrict a'<=a \with {
       | inP (x,xl) => \case loc-exists $ (f#-cover b<=a).1 x \with {
         | inP (b',b'<=b,xb') => inP (b', b'<=b, cover-trans* (cover-down $ cover-left b'<=b b<=a) \lam {y} (inP (z,z<=a,y<=z,y<=b')) => \case <=f*-loc-forall a'<=a z<=a xl \with {
           | inP (z',z'<=z,z'<=a',xz') => cover-sub (Dom.inv-cover z'<=z y<=z xz' $ transport Inv (inv (path \lam i => Dom.R.Func-o i _) *> path \lam i => (f#-cover b<=a).2 z<=a _ y<=z i x) $ (Dom.R.Func y<=b').func-Inv (xb'.localization-inv SubMonoid.powers-id)) (single_<= z'<=a')
@@ -357,7 +357,7 @@
     => equals {Dom} {Cod} (\lam b a => (<=f*-cover-left, cover-refl)) \lam a b b<<a b<=a x => f#-cover_f# _
 
   \lemma <=f*-restrict {b : Dom} {a a' : Cod} (aa' : a <= a') : b <=f* a <-> Given (b<=a' : b <=f* a') ∃ (x : Cod.R a') (Cod.IsLocalizationAt aa' x) (Inv (f# b<=a' x))
-    => (\lam ba => (<=f*-right ba aa', \case loc-restrict aa' \with {
+    => (\lam ba => (<=f*-right ba aa', \case Cod.loc-restrict aa' \with {
           | inP (x,xl) => inP (x, xl, transport Inv f#_f*-right $ (f# ba).func-Inv $ xl.localization-inv SubMonoid.powers-id)
         }),
         \lam (ba', inP (x,xl,xi)) => \case <=f*-loc-forall aa' ba' xl \with {
@@ -374,7 +374,7 @@
     | f#-right {a} {a'} a<=a' {b} b<=ha b<=ha' {x} => path \lam i => (SiteLocaleSheaf.extend.lim {T.toSite} {CRingBicat} (h a)).coneMap (b,b<=ha) (h.f#.natural a<=a' i x)
     | <=f*-top => cover-sub (h.isLRLSchemeSiteHom-top ()) \lam {y} (inP (_, inP (x,idp), y<=hx)) => inP (x,y<=hx)
     | <=f*-meet b<=ha1 b<=ha2 => cover-sub (h.isLRLSchemeSiteHom-meet (b<=ha1,b<=ha2)) \lam {y} (inP (_, inP (x,idp), y<=hx)) => inP (x.1, x.2.1, x.2.2, y<=hx)
-    | <=f*-loc {a} {a'} a'<=a {b} b<=a => \case loc-restrict a'<=a \with {
+    | <=f*-loc {a} {a'} a'<=a {b} b<=a => \case S.loc-restrict a'<=a \with {
       | inP (x,xl) => unfold $ unfold \case loc-exists $ (h.f# a x).1 (b,b<=a) \with {
         | inP (b',b'<=b,xb') => inP (b', b'<=b, h.isLRLSchemeSiteHom-loc a'<=a xl (embed-univ $ (h a).2 $ cover-inj b'<=b b<=a) ((SiteLocaleSheaf.embedProj {_} {CRingBicat} b').equiv-Inv (CRingCat.Iso<->IsEquiv.1 (SiteLocaleSheaf.embed-iso {T.toSite} T.toLRLSite.R-sheaf)) $ transport Inv ((h.f# a x).2 b'<=b) $ xb'.localization-inv SubMonoid.powers-id) (cover-refl idp), x, xl, xb')
       }
@@ -445,7 +445,7 @@
               })
              }
        \in equalsHom (\lam b a => (lem p q, lem (\lam Mm => <->sym (p Mm)) \lam Mm {p1} {p2} {x} => inv (q Mm))) \lam a b b<=fa b<=ga => \case Mt a \with {
-         | inP (m,Mm,am) => \case loc-restrict am \with {
+         | inP (m,Mm,am) => \case S.loc-restrict am \with {
            | inP (y,yl) => (RingLocalization.fromLocalization yl).isEpiHom \lam x => f.f#_f*-right *> q Mm *> inv g.f#_f*-right
          }
        }

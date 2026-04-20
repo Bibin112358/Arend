@@ -63,13 +63,12 @@
     \func site (R : CRing) : SchemeSite \cowith
       | P => SpecPreorder R
       | R => StructureSheaf
-      | loc-restrict {a} {b} b<=a => inP (locR b, factor-right1 LR LR \lam x => LR.lift_inL)
+      | loc-exists {a} (in~ (x, y, inP (n,p))) => inP (a * x, inP $ LDiv.make x idp, loc-exists-aux)
       | loc-stable {a'} {a} {b} (inP a|a') (inP a|b) => inP (a * (a|a'.inv * a|b.inv),
         inP $ LDiv.make a|b.inv $ pmap (`* _) (inv a|a'.inv-right) *> *-assoc,
         inP $ LDiv.make a|a'.inv $ pmap (`* _) (inv a|b.inv-right) *> *-assoc *> pmap (a *) *-comm, locR a|b.inv,
         factor-right-div LR LR (\lam x => LR.lift_inL) a|b,
         unfold $ rewrite LR.lift_inL $ factor-right-div LR LR (\lam x => LR.lift_inL) $ LDiv.make a|b.inv $ pmap (`* _) (inv a|a'.inv-right) *> *-assoc)
-      | loc-exists {a} (in~ (x, y, inP (n,p))) => inP (a * x, inP $ LDiv.make x idp, loc-exists-aux)
       \where {
         \protected \lemma loc-exists-aux {a : R} {z : \Sigma (x y : R) (powers a y)} : Localization (powers (inl~ z)) (StructureSheaf (a * z.1)) (StructureSheaf.Func (inP (LDiv.make z.1 idp)))
           => \case z.3 \with {

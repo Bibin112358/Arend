@@ -37,13 +37,17 @@
 \open Cover
 
 \record SchemeSite.{s} (\coerce P : Preorder.{s}) (R : Functor P.op CRingBicat.{s}) {
-  | loc-restrict {a b : P} (p : b <= a) : ∃ (x : R a) (Localization (powers x) (R b) (R.Func p))
+  | loc-exists {a : P} (x : R a) : ∃ (b : P) (p : b <= a) (Localization (powers x) (R b) (R.Func p))
   | loc-stable {a' a b : P} (r : a' <= a) (p : b <= a) : ∃ (b' : P) (p' : b' <= a') (b' <= b) (x : R a)
     (Localization (powers x) (R b) (R.Func p)) (Localization (powers (R.Func r x)) (R b') (R.Func p'))
-  | loc-exists {a : P} (x : R a) : ∃ (b : P) (p : b <= a) (Localization (powers x) (R b) (R.Func p))
 
   \func IsLocalizationAt {a b : P} (ba : b <= a) (x : R a) : \Prop
     => Localization (powers x) (R b) (R.Func ba)
+
+  \lemma loc-restrict {a b : P} (ba : b <= a) : ∃ (x : R a) (Localization (powers x) (R b) (R.Func ba))
+    => \case loc-stable <=-refl ba \with {
+      | inP (_,_,_,x,xl,_) => inP (x,xl)
+    }
 
   \lemma loc-stable-forall {a' a b : P} (r : a' <= a) (p : b <= a) {x : R a} (bx : IsLocalizationAt p x)
     : ∃ (b' : P) (p' : b' <= a') (b' <= b) (IsLocalizationAt p' (R.Func r x))
@@ -292,16 +296,13 @@
     (Cc : ∀ {a : C} {b} (ba : b <= a) {x : L.R a} (L.IsPrincipalOpenAt ba x) (C b)) : SchemeSite \cowith
   | P => preorder
   | R => Comp L.R embedding.op
-  | loc-restrict {a} ba => \case ba.2 \with {
-    | inP r => inP (r.1, transport (Localization _ _) (pmap Func prop-pi) $ L.principal-localization (Ca a.2) r.2)
-  }
+  | loc-exists {a} x => inP ((L.principalOpen x, Cc a.2 L.principalOpen_<= {x} L.principalOpen-principal),
+    (L.principalOpen_<=, inP (x, L.principalOpen-principal)), L.principal-localization (Ca a.2) L.principalOpen-principal)
   | loc-stable {a'} {a} {b} (a'<=a, inP (y,yl)) (b<=a, inP (x,xl)) =>
     \have xp => L.principal_meet-left a'<=a b<=a xl
     \in inP ((a'.1 ∧ b.1, Cc a'.2 meet-left xp), (meet-left, inP (_, xp)), (meet-right, inP (_, L.principal_meet-right a'<=a yl b<=a)),
              x, transport (Localization _ _) (pmap L.R.F.Func prop-pi) $ L.principal-localization (Ca a.2) xl,
              transport (\lam r => Localization (powers (L.R.F.Func r x)) _ _) prop-pi $ L.principal-localization (Ca a'.2) xp)
-  | loc-exists {a} x => inP ((L.principalOpen x, Cc a.2 L.principalOpen_<= {x} L.principalOpen-principal),
-    (L.principalOpen_<=, inP (x, L.principalOpen-principal)), L.principal-localization (Ca a.2) L.principalOpen-principal)
   \where {
     \func preorder : Preorder \cowith
       | E => \Sigma (a : L) (C a)
