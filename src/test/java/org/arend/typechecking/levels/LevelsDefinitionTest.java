@@ -16,7 +16,7 @@ public class LevelsDefinitionTest extends TypeCheckingTestCase {
   public void defTest() {
     typeCheckModule(
       "\\plevels p1,p2\n" +
-      "\\func test (A : \\Type p2) : \\Type p1 => A");
+      "\\func test (A : \\Type p2) : \\Type p1 => A", 1);
   }
 
   @Test
@@ -33,7 +33,7 @@ public class LevelsDefinitionTest extends TypeCheckingTestCase {
   public void alreadyWithVarsError() {
     typeCheckModule(
       "\\plevels p1,p2\n" +
-      "\\func test.{p3} (A : \\Type p2) : \\Type p1 => A", 1);
+      "\\func test.{p3} (A : \\Type p2) => A", 1);
   }
 
   @Test
@@ -44,7 +44,7 @@ public class LevelsDefinitionTest extends TypeCheckingTestCase {
           \\plevels p1,p2
         }
         \\open M
-        \\func test (A : \\Type p2) : \\Type p1 => A
+        \\func test (A : \\Type p2) (B : \\Type p1) => A
         """);
   }
 
@@ -56,7 +56,7 @@ public class LevelsDefinitionTest extends TypeCheckingTestCase {
           \\plevels p1,p2
         }
         \\open M (\\plevel p1, \\plevel p2)
-        \\func test (A : \\Type p2) : \\Type p1 => A
+        \\func test (A : \\Type p2) (B : \\Type p1) => A
         """);
   }
 

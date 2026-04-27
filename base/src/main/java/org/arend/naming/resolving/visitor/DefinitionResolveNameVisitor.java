@@ -480,7 +480,7 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
     }
   }
 
-  private void resolveSuperClasses(Concrete.ClassDefinition def, Scope scope, boolean resolveLevels) {
+  private void resolveSuperClasses(Concrete.ClassDefinition def, Scope scope, boolean resolveLevels, boolean reportErrors) {
     if (def.getSuperClasses().isEmpty()) {
       return;
     }
@@ -493,7 +493,7 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
       if (resolved == superClass && myTypingInfo.getBodyDynamicScopeProvider(ref) != null && ref instanceof GlobalReferable globalRef && globalRef.getKind().isRecord()) {
         superClass.setReferent(ref);
       } else {
-        if (!(ref instanceof ErrorReference)) {
+        if ((reportErrors || resolved != superClass) && !(ref instanceof ErrorReference)) {
           myLocalErrorReporter.report(new NameResolverError("Expected a class", superClass));
         }
       }
@@ -528,7 +528,7 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
       }
     }
 
-    resolveSuperClasses(def, scope, true);
+    resolveSuperClasses(def, scope, true, true);
 
     List<TypedReferable> context = new ArrayList<>();
     ExpressionResolveNameVisitor exprVisitor = new ExpressionResolveNameVisitor(scope, context, myTypingInfo, myLocalErrorReporter, myLiteralTypechecker, myResolverListener, visitLevelParameters(def.getLevelParameters()));
@@ -626,7 +626,7 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
     LocalErrorReporter localErrorReporter = new LocalErrorReporter(groupRef, myErrorReporter);
     myLocalErrorReporter = localErrorReporter;
     if (def instanceof Concrete.ClassDefinition) {
-      resolveSuperClasses((Concrete.ClassDefinition) def, new PrivateFilteredScope(cachedScope), false);
+      resolveSuperClasses((Concrete.ClassDefinition) def, new PrivateFilteredScope(cachedScope), false, false);
     }
 
     for (ParameterReferable parameter : group.externalParameters()) {

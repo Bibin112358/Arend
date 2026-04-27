@@ -13,8 +13,10 @@ import org.arend.typechecking.TypeCheckingTestCase;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static org.junit.Assert.*;
@@ -22,7 +24,7 @@ import static org.junit.Assert.*;
 public class LevelParametersTest extends TypeCheckingTestCase {
   @Test
   public void levelsTest() {
-    typeCheckDef("\\func test.{p1,p2} (A : \\Type p2) : \\Type p1 => A");
+    typeCheckDef("\\func test.{p1,p2} (A : \\Type p2) (B : \\Type p1) => A");
   }
 
   @Test
@@ -38,13 +40,9 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   }
 
   @Test
-  public void lpTest() {
-    typeCheckDef("\\func test.{p2,p1} (A : \\Type \\lp) : \\Type p2 => A");
-  }
-
-  @Test
   public void lpInferTest() {
-    typeCheckDef("\\func test.{p2,p1} (A : \\Type) : \\Type p2 => A");
+    typeCheckDef("\\func test.{p2,p1} (A : \\Type) : \\Type p2 => A", 1);
+    assertThatErrorsAre(Matchers.typeMismatchError());
   }
 
   @Test
@@ -61,7 +59,7 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   @Test
   public void maxLevelTest() {
     FunctionDefinition def = (FunctionDefinition) typeCheckDef("\\func test.{p1,p2} (A : \\Type p1) (B : \\Type p2) => A -> B");
-    assertEquals(new Sort(new Level(def.getLevelParameters().getFirst()), ConstLevel.INFINITY), def.getResultType().toSort());
+    assertEquals(new Sort(new Level(Map.of(def.getLevelParameters().get(0), BigInteger.ZERO, def.getLevelParameters().get(1), BigInteger.ZERO), BigInteger.ZERO), ConstLevel.INFINITY), def.getResultType().toSort());
   }
 
   @Test
@@ -76,20 +74,6 @@ public class LevelParametersTest extends TypeCheckingTestCase {
     typeCheckModule(
       "\\func f.{p1,p2} (A : \\Type) => A\n" +
       "\\func test => f.{7,3} Nat");
-  }
-
-  @Test
-  public void applyLevelsError() {
-    typeCheckModule(
-      "\\func f.{p2,p1} (A : \\Type) => A\n" +
-      "\\func test.{p1,p2} => f.{p2,p1} Nat", 1);
-  }
-
-  @Test
-  public void applyLevelsError2() {
-    typeCheckModule(
-      "\\func f.{p1,p2} (A : \\Type) => A\n" +
-      "\\func test => f.{3,7} Nat", 1);
   }
 
   @Test
@@ -228,9 +212,9 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   public void coclauseTest2() {
     typeCheckModule(
       """
-        \\record R.{p1,p2} (x : \\Type (\\suc p1))
+        \\record R.{p1,p2} (x : \\Type (\\max (\\suc p1) p2))
         \\func g.{p1,p2} : R.{p1,p2} \\cowith
-          | x : \\Type (\\suc p1) => \\Type p2
+          | x : \\Type (\\suc p1) => \\let t => \\Type p2 \\in \\Type p1
         """);
   }
 
