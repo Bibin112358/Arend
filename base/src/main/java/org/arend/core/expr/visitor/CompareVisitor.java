@@ -269,10 +269,11 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
     }
     if (useType && myNormalCompare && !myOnlySolveVars) {
       Expression normType = type == null ? null : type.getUnderlyingExpression();
-      boolean allowProp = normType instanceof DataCallExpression && ((DataCallExpression) normType).getDefinition().getConstructors().isEmpty() || !expr1.canBeConstructor() && !expr2.canBeConstructor();
-      if (normType instanceof SigmaExpression && !((SigmaExpression) normType).getParameters().hasNext() ||
-          normType instanceof ClassCallExpression && (((ClassCallExpression) normType).getNumberOfNotImplementedFields() == 0 || Boolean.TRUE.equals(ConstructorExpressionPattern.isArrayEmpty(normType)) && ((ClassCallExpression) normType).isImplemented(Prelude.ARRAY_ELEMENTS_TYPE)) ||
-          allowProp && normType != null && normType.isTypeProp()) {
+      Expression withoutPi = normType == null ? null : normType.getPiParameters(null, false);
+      boolean allowProp = withoutPi instanceof DataCallExpression && ((DataCallExpression) withoutPi).getDefinition().getConstructors().isEmpty() || !expr1.canBeConstructor() && !expr2.canBeConstructor();
+      if (withoutPi instanceof SigmaExpression && !((SigmaExpression) withoutPi).getParameters().hasNext() ||
+          withoutPi instanceof ClassCallExpression && (((ClassCallExpression) withoutPi).getNumberOfNotImplementedFields() == 0 || Boolean.TRUE.equals(ConstructorExpressionPattern.isArrayEmpty(withoutPi)) && ((ClassCallExpression) withoutPi).isImplemented(Prelude.ARRAY_ELEMENTS_TYPE)) ||
+          allowProp && withoutPi != null && withoutPi.isTypeProp()) {
         myOnlySolveVars = true;
       }
 
