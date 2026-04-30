@@ -254,7 +254,6 @@ public class TypecheckingOrderingListener extends BooleanComputationRunner imple
       if (typechecked == null) {
         typechecked = newDefinition(definition);
       }
-      clearLemma(typechecked);
       if (!(typechecked instanceof TopLevelDefinition || typechecked instanceof MetaTopDefinition)) {
         throw new IllegalStateException();
       }
@@ -273,6 +272,7 @@ public class TypecheckingOrderingListener extends BooleanComputationRunner imple
       if (definition instanceof Concrete.Definition def && def.isRecursive() && typechecked instanceof FunctionDefinition) {
         checkRecursiveFunctions(Collections.singletonMap((FunctionDefinition) typechecked, def), clauses == null ? Collections.emptyMap() : Collections.singletonMap((FunctionDefinition) typechecked, clauses));
       }
+      clearLemma(typechecked);
 
       typecheckingUnitFinished(definition.getData(), typechecked);
       typecheckedList.add(typechecked);

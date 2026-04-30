@@ -472,4 +472,12 @@ public class TerminationCheckTest extends TypeCheckingTestCase {
         | con4 f p1 p2 => a4 Ad1 Ad2 (\\lam n => foo B a1 a2 a3 a4 (f n)) p1 p2
       """);
   }
+
+  @Test
+  public void testClearLemmaBodies() {
+    typeCheckModule("""
+      \\lemma foobar : Nat => foobar
+    """, 1);
+    assertThatErrorsAre(Matchers.typecheckingError(TerminationCheckError.class));
+  }
 }

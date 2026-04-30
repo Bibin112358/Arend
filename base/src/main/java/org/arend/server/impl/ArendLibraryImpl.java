@@ -5,6 +5,7 @@ import org.arend.ext.ui.ArendUI;
 import org.arend.library.classLoader.ClassLoaderDelegate;
 import org.arend.naming.reference.LocatedReferable;
 import org.arend.server.ArendLibrary;
+import org.arend.util.Range;
 import org.arend.util.Version;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,8 +23,9 @@ public class ArendLibraryImpl implements ArendLibrary {
   private ArendExtension myExtension;
   private final Map<String, LocatedReferable> myGeneratedNames;
   private final Version myVersion;
+  private final Range<Version> myLanguageVersion;
 
-  public ArendLibraryImpl(String libraryName, Version version, boolean externalLibrary, long modificationStamp, List<String> dependencies, ArendExtension extension, Map<String, LocatedReferable> generatedNames) {
+  public ArendLibraryImpl(String libraryName, Version version, Range<Version> languageVersion, boolean externalLibrary, long modificationStamp, List<String> dependencies, ArendExtension extension, Map<String, LocatedReferable> generatedNames) {
     myLibraryName = libraryName;
     myExternalLibrary = externalLibrary;
     myModificationStamp = modificationStamp;
@@ -31,6 +33,7 @@ public class ArendLibraryImpl implements ArendLibrary {
     myExtension = extension;
     myGeneratedNames = generatedNames == null ? new HashMap<>() : new HashMap<>(generatedNames);
     myVersion = version;
+    myLanguageVersion = languageVersion;
   }
 
   @Override
@@ -45,6 +48,11 @@ public class ArendLibraryImpl implements ArendLibrary {
 
   @Override
   public @Nullable Version getLibraryVersion() { return myVersion; }
+
+  @Override
+  public @Nullable Range<Version> getLanguageVersion() {
+    return myLanguageVersion;
+  }
 
   @Override
   public long getModificationStamp() {

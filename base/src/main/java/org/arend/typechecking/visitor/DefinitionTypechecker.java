@@ -843,13 +843,14 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
 
     if (cdef instanceof Concrete.FunctionDefinition && ((Concrete.FunctionDefinition) cdef).getKind().isUse()) {
       Definition def = cdef.getUseParent().getTypechecked();
-      var levelParams = def.getLevelParameters();
+      var levelParams = def == null ? null : def.getLevelParameters();
       if (levelParams != null && cdef.getLevelParameters() == null) {
         cdef.setLevelParameters(levelVariablesToParameters(cdef.getData(), levelParams));
       }
     }
 
-    var levelParams = cdef.enclosingClass == null ? null : cdef.enclosingClass.getTypechecked().getLevelParameters();
+    Definition enclosingClassDef = cdef.enclosingClass == null ? null : cdef.enclosingClass.getTypechecked();
+    var levelParams = enclosingClassDef == null ? null : enclosingClassDef.getLevelParameters();
     if (levelParams != null && !levelParams.isEmpty() && cdef.getLevelParameters() == null && !parameters.isEmpty()) {
       refs.clear();
       getCovariantDefinitions(parameters.getFirst().getType(), refs);
@@ -956,8 +957,10 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
 
     if (def.getKind() == FunctionKind.LEVEL) {
       Definition useParent = def.getUseParent().getTypechecked();
-      if (def.getLevelParameters() == null && useParent.hasNonTrivialLevelParameters()) {
-        def.setLevelParameters(Concrete.LevelParameters.makeLevelParameters(useParent.getLevelParameters()));
+      if (useParent != null) {
+        if (def.getLevelParameters() == null && useParent.hasNonTrivialLevelParameters()) {
+          def.setLevelParameters(Concrete.LevelParameters.makeLevelParameters(useParent.getLevelParameters()));
+        }
       }
     }
 
@@ -990,7 +993,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     } else {
       if (def.getKind().isUse()) {
         Definition useParent = def.getUseParent().getTypechecked();
-        if (def.getLevelParameters() != null) {
+        if (useParent != null && def.getLevelParameters() != null) {
           compareUseLevelParameters(def.getLevelParameters(), levelVariablesToParameters(def.getLevelParameters().getData(), useParent.getLevelParameters()));
         }
       }

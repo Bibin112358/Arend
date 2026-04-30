@@ -9,13 +9,14 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.updateSettings.impl.pluginsAdvertisement.getPluginSuggestionNotificationGroup
 import com.intellij.util.ui.ImageUtil
-import org.arend.documentation.ArendDocumentationProvider.Companion.COEFFICIENT_HTML_FONT
-import org.arend.documentation.ArendDocumentationProvider.Companion.COEFFICIENT_LATEX_FONT
+import org.arend.documentation.ArendDocumentationGenerator.COEFFICIENT_HTML_FONT
+import org.arend.documentation.ArendDocumentationGenerator.COEFFICIENT_LATEX_FONT
 import org.arend.util.ArendBundle
 import org.scilab.forge.jlatexmath.ParseException
 import org.scilab.forge.jlatexmath.TeXConstants
 import org.scilab.forge.jlatexmath.TeXFormula
 import org.scilab.forge.jlatexmath.TeXIcon
+import java.awt.Color
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
@@ -26,7 +27,7 @@ internal var counterLatexImages = 0
 internal const val LATEX_IMAGES_DIR = "latex-images"
 internal const val FONT_DIFF_COEFFICIENT = COEFFICIENT_HTML_FONT * COEFFICIENT_LATEX_FONT
 
-internal fun getHtmlLatexCode(title: String, latexCode: String, project: Project, offset: Int, isNewlineLatexCode: Boolean, font: Float): String {
+internal fun getHtmlLatexCode(title: String, latexCode: String, project: Project, offset: Int, isNewlineLatexCode: Boolean, font: Float, backgroundColor: Color? = null): String {
     try {
         val formula = TeXFormula(latexCode)
         val icon: TeXIcon = formula.TeXIconBuilder()
@@ -36,10 +37,10 @@ internal fun getHtmlLatexCode(title: String, latexCode: String, project: Project
         val image = ImageUtil.createImage(icon.iconWidth, icon.iconHeight, BufferedImage.TYPE_INT_ARGB)
 
         val label = JLabel()
-        label.setForeground(UIManager.getColor("PopupMenu.foreground"))
+        label.foreground = UIManager.getColor("PopupMenu.foreground")
 
         val graphics = image.createGraphics()
-        graphics.color = EditorColorsManager.getInstance().globalScheme.getColor(EditorColors.DOCUMENTATION_COLOR)
+        graphics.color = backgroundColor ?: EditorColorsManager.getInstance().globalScheme.getColor(EditorColors.DOCUMENTATION_COLOR)
         graphics.fillRect(0, 0, icon.iconWidth, icon.iconHeight)
 
         icon.paintIcon(label, graphics, 0, 0)

@@ -2,9 +2,6 @@ package org.arend.codeInsight
 
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
-import com.intellij.codeInsight.daemon.impl.LineMarkerNavigator
-import com.intellij.codeInsight.daemon.impl.MarkerType
-import com.intellij.codeInsight.navigation.PsiTargetNavigator
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.components.service
@@ -37,7 +34,6 @@ import org.arend.graph.call.getCallMatrix
 import org.arend.naming.reference.TCDefReferable
 import org.arend.psi.ArendFile
 import org.arend.psi.ext.*
-import org.arend.search.ClassDescendantsSearch
 import org.arend.server.ArendServerService
 import org.arend.term.concrete.Concrete
 import org.arend.term.concrete.SearchConcreteVisitor
@@ -47,6 +43,7 @@ import org.arend.typechecking.subexpr.CorrespondedSubDefVisitor
 import org.arend.typechecking.termination.BaseCallGraph
 import org.arend.typechecking.termination.BaseCallMatrix
 import org.arend.typechecking.termination.CollectCallVisitor
+import org.arend.util.ComputationInterruptedException
 import java.awt.BorderLayout
 import java.awt.MouseInfo
 import java.awt.event.MouseAdapter
@@ -57,40 +54,32 @@ import javax.swing.JPanel
 import javax.swing.JScrollPane
 import kotlin.collections.set
 
-class ArendLineMarkerProvider : LineMarkerProviderDescriptor() {
-  override fun getName() = "Arend line markers"
+class ArendRecursiveLineMarkerProvider : LineMarkerProviderDescriptor() {
+  override fun getName() = "Arend recursive line markers"
 
   override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? = null
 
   override fun collectSlowLineMarkers(elements: List<PsiElement>, result: MutableCollection<in LineMarkerInfo<*>>) {
     if (elements.isEmpty()) return
     val file = elements.firstOrNull()?.containingFile as? ArendFile
-    subclassesLineMarkers(elements, result)
     file?.let { recursiveLineMarkers(it, result, elements) }
   }
 
-  private fun subclassesLineMarkers(elements: List<PsiElement>, result: MutableCollection<in LineMarkerInfo<*>>) {
-    for (element in elements) {
-      if (element is ArendDefIdentifier) {
-        (element.parent as? ArendDefClass)?.let { clazz ->
+  private fun recursiveLineMarkers(file: ArendFile, result: MutableCollection<in LineMarkerInfo<*>>, elements: List<PsiElement>) {
+    try {
+      recursiveLineMarkers(file).forEach {
+        it.element?.let { id ->
           ProgressManager.checkCanceled()
-          if (clazz.project.service<ClassDescendantsSearch>().search(clazz).isNotEmpty()) {
-            result.add(LineMarkerInfo(element.id, element.textRange, AllIcons.Gutter.OverridenMethod,
-              SUPERCLASS_OF.tooltip, SUPERCLASS_OF.navigationHandler,
-              GutterIconRenderer.Alignment.RIGHT) { "subclasses" })
+          if (elements.contains(id)) {
+            result.add(it)
           }
         }
       }
-    }
-  }
-
-  private fun recursiveLineMarkers(file: ArendFile, result: MutableCollection<in LineMarkerInfo<*>>, elements: List<PsiElement>) {
-    recursiveLineMarkers(file).forEach {
-      it.element?.let { id ->
-        ProgressManager.checkCanceled()
-        if (elements.contains(id)) {
-          result.add(it)
-        }
+    } catch (e: Exception) {
+      if (e is ComputationInterruptedException || e is com.intellij.openapi.progress.ProcessCanceledException) {
+        // Ignore, the computation was canceled
+      } else {
+        throw e
       }
     }
   }
@@ -379,14 +368,6 @@ class ArendLineMarkerProvider : LineMarkerProviderDescriptor() {
   }
 
   companion object {
-    private val SUPERCLASS_OF = MarkerType("SUPERCLASS_OF", { "Is overridden by several subclasses" },
-      object : LineMarkerNavigator() {
-        override fun browse(e: MouseEvent, element: PsiElement) {
-          val clazz = element.parent.parent as? ArendDefClass ?: return
-          PsiTargetNavigator(clazz.project.service<ClassDescendantsSearch>().getAllDescendants(clazz).toTypedArray()).navigate(e, "Subclasses of " + clazz.name, element.project)
-        }
-      })
-
     const val DOCUMENTATION_URL = "https://arend-lang.github.io/documentation/language-reference/term-checker"
 
     private val previousDefinitions = ConcurrentHashMap<ArendFile, List<Concrete.Definition>>()

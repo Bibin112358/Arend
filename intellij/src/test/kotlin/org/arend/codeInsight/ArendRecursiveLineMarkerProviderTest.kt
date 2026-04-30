@@ -15,7 +15,7 @@ import org.arend.server.ProgressReporter
 import org.arend.typechecking.computation.UnstoppableCancellationIndicator
 
 
-class ArendLineMarkerProviderTest : ArendTestBase() {
+class ArendRecursiveLineMarkerProviderTest : ArendTestBase() {
 
   fun testSimpleAndMutualRecursiveFunctions() {
     val arendFile = myFixture.configureByText("Main.ard", """
@@ -46,7 +46,7 @@ class ArendLineMarkerProviderTest : ArendTestBase() {
     val f = (elements.find { it is ArendDefFunction && it.name == "f" } as? ArendDefFunction)?.defIdentifier?.id
     val g = (elements.find { it is ArendDefFunction && it.name == "g" } as? ArendDefFunction)?.defIdentifier?.id
 
-    val provider = ArendLineMarkerProvider()
+    val provider = ArendRecursiveLineMarkerProvider()
     val markers = mutableListOf<LineMarkerInfo<*>>()
     arendFile.project.service<ArendServerService>().server.getCheckerFor(listOf(arendFile.moduleLocation!!)).typecheck(null, DummyErrorReporter.INSTANCE, UnstoppableCancellationIndicator.INSTANCE, ProgressReporter.empty())
     provider.collectSlowLineMarkers(elements, markers)
@@ -80,7 +80,7 @@ class ArendLineMarkerProviderTest : ArendTestBase() {
     val bar = (elements.find { it is ArendDefFunction && it.name == "bar" } as? ArendDefFunction)?.defIdentifier?.id
     val foo = (elements.find { it is ArendDefFunction && it.name == "foo" } as? ArendDefFunction)?.defIdentifier?.id
 
-    val provider = ArendLineMarkerProvider()
+    val provider = ArendRecursiveLineMarkerProvider()
     val markers = mutableListOf<LineMarkerInfo<*>>()
     arendFile.project.service<ArendServerService>().server.getCheckerFor(listOf(arendFile.moduleLocation!!))
       .typecheck(

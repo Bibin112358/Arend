@@ -99,6 +99,10 @@ intellijPlatform {
     instrumentCode = true
 }
 
+configurations.all {
+    exclude("xml-apis", "xml-apis")
+}
+
 tasks.named<JavaExec>("runIde") {
     jvmArgs = listOf("-Xmx4g")
 }

@@ -9,6 +9,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.EnumSet;
 
 public interface PrettyPrinterConfig {
+  int MAX_LEN = 150;
+
   default boolean isSingleLine() {
     return false;
   }
@@ -43,6 +45,10 @@ public interface PrettyPrinterConfig {
   }
   default int getVerboseLevel(@NotNull CoreParameter parameter) {
     return 0;
+  }
+
+  default int getLineLength() {
+    return MAX_LEN;
   }
 
   PrettyPrinterConfig DEFAULT = new PrettyPrinterConfig() {};

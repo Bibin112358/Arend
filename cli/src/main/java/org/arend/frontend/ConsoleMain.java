@@ -8,7 +8,6 @@ import org.arend.ext.error.ErrorReporter;
 import org.arend.ext.error.GeneralError;
 import org.arend.ext.module.LongName;
 import org.arend.ext.module.ModulePath;
-import org.arend.ext.prettyprinting.PrettyPrinterConfig;
 import org.arend.ext.prettyprinting.PrettyPrinterFlag;
 import org.arend.ext.util.Pair;
 import org.arend.frontend.library.*;
@@ -19,13 +18,17 @@ import org.arend.library.classLoader.FileClassLoaderDelegate;
 import org.arend.library.error.LibraryIOError;
 import org.arend.ext.module.FullName;
 import org.arend.ext.module.ModuleLocation;
+import org.arend.proof.ArendExpressionMatcher;
+import org.arend.proof.ProofSearchQuery;
 import org.arend.module.error.DefinitionNotFoundError;
 import org.arend.module.error.ModuleNotFoundError;
 import org.arend.naming.reference.GlobalReferable;
 import org.arend.naming.reference.LocatedReferable;
 import org.arend.naming.reference.TCDefReferable;
 import org.arend.naming.scope.EmptyScope;
+import org.arend.naming.scope.Scope;
 import org.arend.prelude.Prelude;
+import org.arend.util.Triple;
 import org.arend.server.ArendServer;
 import org.arend.server.ProgressReporter;
 import org.arend.server.impl.ArendServerImpl;
@@ -42,11 +45,16 @@ import org.arend.typechecking.error.local.GoalError;
 import org.arend.typechecking.order.MapTarjanSCC;
 import org.arend.util.FileUtils;
 
+import org.arend.ext.reference.Precedence;
+import org.arend.term.prettyprint.PrettyPrintVisitor;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+
+import static org.arend.ext.prettyprinting.PrettyPrinterConfig.DEFAULT;
+import static org.arend.proof.Utils.getSignatures;
 
 public class ConsoleMain {
   private boolean myExitWithError;
@@ -56,6 +64,54 @@ public class ConsoleMain {
   private final static String SHOW_SIZES = "show-sizes";
   private final static String SHOW_MODULES = "show-modules";
   private final static String SHOW_MODULES_WITH_INSTANCES = "show-modules-with-instances";
+  private final static String PRINT_FULL = "print-full";
+  private final static String ANSI_GREEN = "\u001B[32m";
+  private final static String ANSI_RESET = "\u001B[0m";
+
+  private static class HighlightingPrettyPrintVisitor extends PrettyPrintVisitor {
+    private final Set<Concrete.SourceNode> highlightedNodes;
+    private int highlightCount = 0;
+
+    public HighlightingPrettyPrintVisitor(StringBuilder builder, int indent, Set<Concrete.SourceNode> highlightedNodes) {
+      super(builder, indent);
+      this.highlightedNodes = highlightedNodes;
+    }
+
+    @Override
+    protected PrettyPrintVisitor copy(StringBuilder builder, int indent, boolean doIndent) {
+      return new HighlightingPrettyPrintVisitor(builder, indent, highlightedNodes);
+    }
+
+    @Override
+    public void printExpr(Concrete.Expression expr, Precedence prec) {
+      if (highlightedNodes.contains(expr)) {
+        myBuilder.append(ANSI_GREEN);
+        highlightCount++;
+      }
+      super.printExpr(expr, prec);
+      if (highlightedNodes.contains(expr)) {
+        highlightCount--;
+        if (highlightCount == 0) {
+          myBuilder.append(ANSI_RESET);
+        }
+      }
+    }
+
+    @Override
+    public void prettyPrintParameter(Concrete.Parameter parameter) {
+      if (highlightedNodes.contains(parameter)) {
+        myBuilder.append(ANSI_GREEN);
+        highlightCount++;
+      }
+      super.prettyPrintParameter(parameter);
+      if (highlightedNodes.contains(parameter)) {
+        highlightCount--;
+        if (highlightCount == 0) {
+          myBuilder.append(ANSI_RESET);
+        }
+      }
+    }
+  }
 
   private final ErrorReporter mySystemErrErrorReporter = error -> {
     System.err.println(error);
@@ -74,6 +130,7 @@ public class ConsoleMain {
       cmdOptions.addOption(Option.builder("c").longOpt("double-check").desc("double check correctness of the result").build());
       cmdOptions.addOption(Option.builder("i").longOpt("interactive").hasArg().optionalArg(true).argName("type").desc("start an interactive REPL, type can be plain or jline (default)").build());
       cmdOptions.addOption(Option.builder("p").longOpt("print").hasArg().argName("target").desc("print a definition or a module").build());
+      cmdOptions.addOption(Option.builder("ps").longOpt("proof-search").hasArgs().argName("pattern").desc("search for definitions matching the pattern").build());
       cmdOptions.addOption("t", "test", false, "run tests");
       cmdOptions.addOption("v", "version", false, "print language version");
       cmdOptions.addOption(Option.builder().longOpt(SHOW_TIMES).build());
@@ -191,7 +248,7 @@ public class ConsoleMain {
             if (definition != null) {
               System.out.println();
               StringBuilder builder = new StringBuilder();
-              ToAbstractVisitor.convert(definition, PrettyPrinterConfig.DEFAULT).prettyPrint(builder, PrettyPrinterConfig.DEFAULT);
+              ToAbstractVisitor.convert(definition, DEFAULT).prettyPrint(builder, DEFAULT);
               System.out.println(builder);
             }
 
@@ -325,7 +382,7 @@ public class ConsoleMain {
 
     // Collect modules and libraries for which typechecking was requested
     Collection<String> argFiles = cmdLine.getArgList();
-    Set<ModulePath> requestedModules = new LinkedHashSet<>();
+    Set<Pair<ModulePath, LongName>> requestedModules = new LinkedHashSet<>();
     List<SourceLibrary> requestedLibraries = new ArrayList<>();
     for (String fileName : argFiles) {
       Path path = Paths.get(fileName);
@@ -340,11 +397,21 @@ public class ConsoleMain {
           mySystemErrErrorReporter.report(new LibraryIOError(fileName, "not a library"));
         }
       } else if (!findLibrary(fileName, libDirs, requestedLibraries)) {
-        ModulePath modulePath = ModulePath.fromString(fileName);
-        if (FileUtils.isCorrectModulePath(modulePath)) {
-          requestedModules.add(modulePath);
+        int colonIndex = fileName.indexOf(':');
+        if (colonIndex >= 0) {
+          Pair<ModulePath, LongName> parsed = parseFullName(fileName);
+          if (parsed != null && parsed.proj2 != null) {
+            requestedModules.add(parsed);
+          } else if (parsed != null) {
+            mySystemErrErrorReporter.report(new GeneralError(GeneralError.Level.ERROR, "Definition name missing after ':' in " + fileName));
+          }
         } else {
-          mySystemErrErrorReporter.report(new GeneralError(GeneralError.Level.ERROR, "File " + fileName + " not found"));
+          ModulePath modulePath = ModulePath.fromString(fileName);
+          if (FileUtils.isCorrectModulePath(modulePath)) {
+            requestedModules.add(new Pair<>(modulePath, null));
+          } else {
+            mySystemErrErrorReporter.report(new GeneralError(GeneralError.Level.ERROR, "File " + fileName + " not found"));
+          }
         }
       }
     }
@@ -360,7 +427,7 @@ public class ConsoleMain {
       }
 
       requestedLibraries.add(new FileSourceLibrary("\\default", false, -1,
-          requestedLibraries.stream().map(SourceLibrary::getLibraryName).toList(), null, extMainClass, null,
+          requestedLibraries.stream().map(SourceLibrary::getLibraryName).toList(), null, null, extMainClass, null,
           sourceDir, outDir, null, extDir == null ? null : new FileClassLoaderDelegate(extDir)));
     }
 
@@ -390,6 +457,28 @@ public class ConsoleMain {
 
     if (myExitWithError) {
       return false;
+    }
+
+    if (cmdLine.hasOption("ps")) {
+      String[] psArgs = cmdLine.getOptionValues("ps");
+      boolean printFull = false;
+      List<String> patterns = new ArrayList<>();
+      for (String arg : psArgs) {
+        if (arg.equals(PRINT_FULL)) {
+          printFull = true;
+        } else {
+          patterns.add(arg);
+        }
+      }
+      if (patterns.isEmpty()) {
+        System.err.println("[ERROR] Missing proof search pattern");
+        return false;
+      }
+      if (patterns.size() > 1) {
+        System.err.println("[ERROR] Only one proof search pattern is allowed. Use quotes if the pattern contains spaces.");
+        return false;
+      }
+      return matchAndPrint(server, requestedLibraries, patterns.getFirst(), printFull);
     }
 
     TimedProgressReporter timedProgressReporter = cmdLine.hasOption(SHOW_TIMES) ? new TimedProgressReporter() : null;
@@ -466,10 +555,21 @@ public class ConsoleMain {
         }
       }
     } else {
-      for (ModulePath modulePath : requestedModules) {
+      for (Pair<ModulePath, LongName> requested : requestedModules) {
+        ModulePath modulePath = requested.proj1;
+        LongName definitionName = requested.proj2;
         ModuleLocation module = server.findModule(modulePath, null, true, false);
         if (module == null) {
           mySystemErrErrorReporter.report(new ModuleNotFoundError(modulePath));
+        } else if (definitionName != null) {
+          System.out.println();
+          FullName fullName = new FullName(module, definitionName);
+          System.out.println("--- Typechecking " + fullName + " ---");
+          long time = System.currentTimeMillis();
+
+          server.getCheckerFor(Collections.singletonList(module)).typecheck(Collections.singletonList(fullName), myErrorReporter, UnstoppableCancellationIndicator.INSTANCE, progressReporter);
+
+          System.out.println("--- Done (" + TimedProgressReporter.timeToString(System.currentTimeMillis() - time) + ") ---");
         } else {
           System.out.println();
           System.out.println("--- Typechecking " + module + " ---");
@@ -620,6 +720,76 @@ public class ConsoleMain {
     } else {
       myExitWithError = true;
     }
+  }
+
+  private boolean matchAndPrint(ArendServer server, List<SourceLibrary> requestedLibraries, String pattern, boolean printFull) {
+    ProofSearchQuery.ParsingResult<ProofSearchQuery> queryResult = ProofSearchQuery.fromString(pattern);
+    if (queryResult == null) return false;
+    if (queryResult instanceof ProofSearchQuery.ParsingResult.Error<ProofSearchQuery> error) {
+      System.err.println("Search pattern error at " + error.range + ": " + error.message);
+      return false;
+    }
+    ProofSearchQuery query = ((ProofSearchQuery.ParsingResult.OK<ProofSearchQuery>) queryResult).value;
+    ArendExpressionMatcher matcher = new ArendExpressionMatcher(query);
+
+    for (SourceLibrary library : requestedLibraries) {
+      System.out.println("[INFO] Resolving " + library.getLibraryName());
+      long time = System.currentTimeMillis();
+      server.getCheckerFor(library.findModules(false).stream().map(modulePath -> new ModuleLocation(library.getLibraryName(), ModuleLocation.LocationKind.SOURCE, modulePath)).toList())
+              .resolveAll(UnstoppableCancellationIndicator.INSTANCE, ProgressReporter.empty());
+      System.out.println("[INFO] " + "Resolved " + library.getLibraryName() + " (" + TimedProgressReporter.timeToString(System.currentTimeMillis() - time) + ")");
+    }
+
+    for (ModuleLocation moduleLocation : server.getModules()) {
+      for (DefinitionData data : server.getResolvedDefinitions(moduleLocation)) {
+        for (Triple<Concrete.GeneralDefinition, List<Concrete.Expression>, Concrete.Expression> signature : getSignatures(data.definition())) {
+          TCDefReferable referable = signature.first().getData();
+          List<Concrete.Expression> parameters = signature.second();
+          Concrete.Expression codomain = signature.third();
+
+          Scope scope = server.getReferableScope(data.definition().getData());
+
+          ArendExpressionMatcher.ProofSearchMatchingResult result = matcher.match(parameters, codomain, scope);
+          if (result == null) continue;
+          if (referable.getData() != null) {
+            System.out.println(referable.getRefName() + " " + referable.getData().toString());
+          } else {
+            System.out.println(referable.getRefFullName().toString());
+          }
+
+          Set<Concrete.SourceNode> highlightedNodes = new HashSet<>(result.inCodomain());
+          if (result.inPattern() != null) {
+            for (Pair<Concrete.Expression, List<Concrete.Expression>> parameterData : result.inPattern()) {
+              highlightedNodes.addAll(parameterData.proj2);
+            }
+          }
+          highlightedNodes.addAll(result.inCodomain());
+
+          Precedence topPrec = new Precedence(Concrete.Expression.PREC);
+          if (printFull) {
+            StringBuilder builder = new StringBuilder();
+            HighlightingPrettyPrintVisitor visitor = new HighlightingPrettyPrintVisitor(builder, 0, highlightedNodes);
+            data.definition().accept(visitor, null);
+            System.out.println(builder);
+          } else {
+            if (result.inPattern() != null) {
+              for (Pair<Concrete.Expression, List<Concrete.Expression>> parameterData : result.inPattern()) {
+                StringBuilder builder = new StringBuilder();
+                HighlightingPrettyPrintVisitor visitor = new HighlightingPrettyPrintVisitor(builder, 0, highlightedNodes);
+                parameterData.proj1.prettyPrint(visitor, topPrec);
+                System.out.print("(" + builder + ") -> ");
+              }
+            }
+            StringBuilder builder = new StringBuilder();
+            HighlightingPrettyPrintVisitor visitor = new HighlightingPrettyPrintVisitor(builder, 0, highlightedNodes);
+            codomain.prettyPrint(visitor, topPrec);
+            System.out.println(builder);
+          }
+          System.out.println();
+        }
+      }
+    }
+    return true;
   }
 
   public static void main(String[] args) {
