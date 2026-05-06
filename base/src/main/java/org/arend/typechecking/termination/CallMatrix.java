@@ -139,9 +139,11 @@ public class CallMatrix extends BaseCallMatrix<Definition> {
   }
 
   @Nullable public static DependentLink tryUnfoldDependentLink(DependentLink parameter) {
+    if (!parameter.hasNext()) return null;
     Expression type = parameter.getType().getExpr();
     if (type instanceof SigmaExpression) {
-      return ((SigmaExpression) type).getParameters();
+      DependentLink params = ((SigmaExpression) type).getParameters();
+      return params.hasNext() ? params : null;
     }
     return null;
   }

@@ -202,6 +202,33 @@ public class TerminationCheckTest extends TypeCheckingTestCase {
   }
 
   @Test
+  public void emptySigmaParam() {
+    typeCheckModule("""
+      \\func f (x : \\Sigma) (n : Nat) : Nat \\elim n
+        | 0 => 0
+        | suc n => f x n
+      """, 0);
+  }
+
+  @Test
+  public void emptySigmaParamPair() {
+    typeCheckModule("""
+      \\func f (x : \\Sigma) (y : \\Sigma) (n : Nat) : Nat \\elim n
+        | 0 => 0
+        | suc n => f x y n
+      """, 0);
+  }
+
+  @Test
+  public void emptySigmaParamUnitPattern() {
+    typeCheckModule("""
+      \\func f (x : \\Sigma) (n : Nat) : Nat \\elim x, n
+        | (), 0 => 0
+        | (), suc n => f () n
+      """, 0);
+  }
+
+  @Test
   public void test_loop1() {
     typeCheckModule("""
       \\func lol (a : \\Sigma Nat Nat) (b : \\Sigma Nat Nat) : Nat \\elim a, b {
