@@ -1,0 +1,50 @@
+\import Arith.Nat
+\import Data.Array
+\import Function
+\import Function.Meta
+\import Logic
+\import Logic.Meta
+\import Paths
+\import Paths.Meta
+
+\truncated \data Bar {A : \Set} (P : Array A -> \Prop) (l : Array A) : \Prop
+  | bar-stop (P l)
+  | bar-ask (h : \Pi (a : A) -> Bar P (a :: l))
+
+\lemma bounded-bar {A : \Set} {P : Array A -> \Prop} (n : Nat) (b : \Pi (l : Array A n) -> P l) : Bar P nil
+  => induction n b n idp
+  \where {
+    \protected \lemma induction (n : Nat) (b : \Pi (l : Array A n) -> P l) {l : Array A} (k : Nat) (p : l.len Nat.+ k = n) : Bar P l \elim k
+      | 0 => bar-stop \case \elim n, \elim p, \elim b \with {
+        | _, idp, b => b \new l
+      }
+      | suc k => bar-ask \lam a => induction n b k p
+  }
+
+\data IsInvPrefix {A : \Set} (l : Array A) (s : Nat -> A) : \Prop \elim l
+  | nil => invPrefix-nil
+  | a :: l => invPrefix-:: (a = s l.len) (IsInvPrefix l s)
+  \where {
+    \lemma toIndex {l : Array A} (p : IsInvPrefix l s) {i : Fin l.len} : l i = s (l.len -' suc i) \elim l, p, i
+      | a :: l, invPrefix-:: p q, 0 => p *> pmap s (inv -'0)
+      | a :: l, invPrefix-:: p q, suc i => toIndex q
+  }
+
+\lemma bar-stream {A : \Set} {P : Array A -> \Prop} (b : Bar P nil) (s : Nat -> A)
+  : ∃ (r : Array A) (IsInvPrefix r s) (P r)
+  => induction b invPrefix-nil
+  \where
+    \protected \lemma induction {l : Array A} (b : Bar P l) {s : Nat -> A} (sp : IsInvPrefix l s)
+      : ∃ (r : Array A) (IsInvPrefix r s) (P r) \elim b
+      | bar-stop p => inP (l,sp,p)
+      | bar-ask h => induction (h (s l.len)) (invPrefix-:: idp sp)
+
+\lemma bar-surj {A B : \Set} {f : A -> B} (fs : IsSurj f) {P : Array B -> \Prop} {l : Array A} (b : Bar (\lam as => P (map f as)) l) : Bar P (map f l) \elim b
+  | bar-stop Pl => bar-stop Pl
+  | bar-ask h => bar-ask \lam b => \case fs b \with {
+    | inP (a,fa=b) => rewriteI fa=b $ bar-surj fs (h a)
+  }
+
+\lemma bar-map {A B : \Set} (f : A -> B) {P : Array B -> \Prop} (l : Array A) (b : Bar P (map f l)) : Bar (\lam as => P (map f as)) l \elim b
+  | bar-stop Pl => bar-stop Pl
+  | bar-ask h => bar-ask \lam a => bar-map f (a :: l) $ h (f a)

@@ -10,6 +10,7 @@
 \import Relation.Equivalence
 \import Set
 \import Set.Fin
+\import Set.Fin.BoundedPigeonhole
 \import Set.Fin.Pigeonhole
 
 \class KFinSet \extends BoundedPigeonholeSet {
