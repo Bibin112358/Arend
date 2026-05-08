@@ -67,6 +67,9 @@
 \lemma prop-dpi (A : I -> \Prop) (a : A left) (a' : A right) : Path A a a'
   => pathOver (prop-isProp (coe A a right) a')
 
+\lemma setPair-unext2 {A : \Set} {B : A -> \Set} {a : A} {b : B a} {b' : B a} (p : (a,b) = {\Sigma (a : A) (B a)} (a,b')) : b = b'
+  => pmap (\lam x => transport B x b) (prop-pi : idp = pmap __.1 p) *> pmapd __.2 p
+
 \data ToProp (A : \Sort) (p : isProp A)
   | toProp A
   \where {

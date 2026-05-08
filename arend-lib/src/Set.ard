@@ -19,6 +19,10 @@
       | no q => n q
   }
 
+\lemma dec-separated {E : \Prop} (d : Dec E) (q : Not (Not E)) : E \elim d
+  | yes e => e
+  | no p => absurd (q p)
+
 \lemma negated-dec (E : \Prop) {P : NegatedProp} (f : Dec E -> P) : P
   => isNegated \lam g => g $ f $ no \lam e => g $ f (yes e)
 

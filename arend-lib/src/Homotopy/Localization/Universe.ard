@@ -1,4 +1,3 @@
-\import Data.Sigma
 \import Equiv
 \import Equiv.BiEquiv
 \import Equiv.Path

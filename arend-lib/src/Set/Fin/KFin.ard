@@ -45,6 +45,12 @@
   \lemma search_no_reduce {A : E -> \Prop} (d : \Pi (e : E) -> Dec (A e)) (q : Not (∃ (e : E) (A e))) : search A d = no q
     => prop-pi
 
+  \lemma forall-dec (A : E -> \Prop) (d : \Pi (e : E) -> Dec (A e)) : Dec (∀ e (A e))
+    => \case search (\lam e => Not (A e)) (\lam e => NotDec (d e)) \with {
+      | yes (inP (e,q)) => no \lam f => q (f e)
+      | no q => yes \lam e => dec-separated (d e) \lam p => q $ inP (e,p)
+    }
+
   \lemma dec : Dec (TruncP E)
     => cases (finCard,finSurj) \with {
       | 0, inP (f,fs) => no \lam (inP x) => \case fs x \with {
