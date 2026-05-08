@@ -1,0 +1,73 @@
+-- | The constructive version of the fan theorem is proved in Daniel Fridlender, An Interpretation of the Fan Theorem in Type Theory, 1998.
+
+\import Data.Array
+\import Function.Meta
+\import Logic
+\import Logic.Bar
+\import Logic.Meta
+\import Meta
+\import Paths
+\import Paths.Meta
+
+\lemma fanTheorem {A : \Set} {P : Array A -> \Prop} (Pm : IsBarMonotone P) (b : Bar P nil) : Bar (AllPaths P) nil
+  => coe (\lam i => Bar (AllPaths \lam l => P (++_nil {_} {l} i)) nil) (induction b) right
+  \where {
+    {- | A path through a sequence of lists [l_1, ..., l_n] is a list [a_1, ..., a_n] such that a_i belongs to l_i for each i.
+     -   {AllPaths} says that {P} holds for every path through {ls}.
+     -}
+    \type AllPaths (P : Array A -> \Prop) (ls : Array (Array A))
+      => ∀ (js : \Pi (i : Fin ls.len) -> Fin (ls i).len) (P \lam i => ls i (js i))
+
+    \lemma allPaths_:: {P : Array A -> \Prop} {l : Array A} {ls : Array (Array A)} : AllPaths P (l :: ls) <-> ∀ (a : l) (AllPaths (\lam r => P (a :: r)) ls)
+      => (\lam ap k js => ap \case \elim __ \with {
+        | 0 => k
+        | suc i => js i
+      }, \lam ap js => ap (js 0) \lam i => js (suc i))
+
+    \lemma allPaths_++ {P : Array A -> \Prop} {ls : Array (Array A)} {r : Array A}
+      : AllPaths P (ls ++ map {A} {Array A} (`:: nil) r) <-> AllPaths (\lam l => P (l ++ r)) ls \elim ls
+      | nil => (\lam c _ => c \lam _ => 0,
+                \lam c js => transport P (exts \lam i => cases (js i) idp) $ c \case __)
+      | l1 :: ls => (\lam c => allPaths_::.2 \lam k => allPaths_++.1 $ allPaths_::.1 c k,
+                     \lam c => allPaths_::.2 \lam k => allPaths_++.2 $ allPaths_::.1 c k)
+
+    \lemma allPaths-monotone {P : Array A -> \Prop} (Pm : IsBarMonotone P) {r : Array (Array A)} : IsBarMonotone (\lam ls => AllPaths P (ls ++ r))
+      => \lam {l} {ls} ls_r js => Pm $ ls_r \lam i => js (suc i)
+
+    \lemma allPaths-empty {P : Array A -> \Prop} {ls r : Array (Array A)} : AllPaths P (ls ++ nil :: r) \elim ls
+      | nil => \lam js => \case js 0
+      | l :: ls => allPaths_::.2 \lam k => allPaths-empty
+
+    \lemma allPaths-split {P : Array A -> \Prop} {ls r : Array (Array A)} {a : A} {m : Array A}
+                          (ap1 : AllPaths P (ls ++ (a :: nil) :: r)) (ap2 : AllPaths P (ls ++ m :: r)) : AllPaths P (ls ++ (a :: m) :: r) \elim ls
+      | nil => \lam js => cases (js 0 arg addPath) \with {
+        | 0, p => transport P (exts \case \elim __ \with {
+            | 0 => rewrite p idp
+            | suc i => idp
+          }) $ ap1 \case \elim __ \with {
+            | 0 => 0
+            | suc i => js (suc i)
+          }
+        | suc j, p => transport P (exts \case \elim __ \with {
+            | 0 => rewrite p idp
+            | suc i => idp
+          }) $ ap2 \case \elim __ \with {
+            | 0 => j
+            | suc i => js (suc i)
+          }
+      }
+      | l :: ls => allPaths_::.2 \lam k => allPaths-split (allPaths_::.1 ap1 k) (allPaths_::.1 ap2 k)
+
+    \lemma allPaths-bar-shift {ls : Array (Array A)} {l r : Array A}
+      (h : ∀ (a : l) (Bar (AllPaths \lam l' => P (l' ++ a :: r)) ls)) : Bar (AllPaths P) (ls ++ l :: map (`:: nil) r) \elim l
+      | nil => bar-stop allPaths-empty
+      | a :: l => bar-shift-right $
+        bar-impl (\lam {ls'} c => transport (AllPaths P) ++-assoc $ allPaths-split (allPaths_++.2 c.1) $ transportInv (AllPaths P) ++-assoc c.2) $
+        bar-conj (allPaths-monotone $ barMonotone_++ Pm) (allPaths-monotone Pm) (bar-shift-left (h 0)) $ bar-shift-left $ allPaths-bar-shift \lam j => h (suc j)
+
+    \lemma induction {l : Array A} (b : Bar P l) : Bar (AllPaths \lam l' => P (l' ++ l)) nil \elim b
+      | bar-stop p => bar-stop \lam _ => p
+      | bar-ask h => bar-ask \lam l' => bar-shift-right $
+        bar-impl (\lam {ls} c => allPaths_++.1 $ transportInv (AllPaths P) (++-assoc {_} {ls} {l' :: nil}) c) $
+        bar-shift-left $ allPaths-bar-shift \lam j => induction $ h (l' j)
+  }

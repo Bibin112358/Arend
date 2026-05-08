@@ -21,7 +21,7 @@
       | suc k => bar-ask \lam a => induction n b k p
   }
 
-\data IsInvPrefix {A : \Set} (l : Array A) (s : Nat -> A) : \Prop \elim l
+\data IsInvPrefix {A : \Set} (l : Array A) (s : Nat -> A) \elim l
   | nil => invPrefix-nil
   | a :: l => invPrefix-:: (a = s l.len) (IsInvPrefix l s)
   \where {
@@ -48,3 +48,47 @@
 \lemma bar-map {A B : \Set} (f : A -> B) {P : Array B -> \Prop} (l : Array A) (b : Bar P (map f l)) : Bar (\lam as => P (map f as)) l \elim b
   | bar-stop Pl => bar-stop Pl
   | bar-ask h => bar-ask \lam a => bar-map f (a :: l) $ h (f a)
+
+\lemma bar-impl {A : \Set} {P Q : Array A -> \Prop} (PQ : ∀ {l : P} (Q l)) {l : Array A} (b : Bar P l) : Bar Q l \elim b
+  | bar-stop p => bar-stop (PQ p)
+  | bar-ask h => bar-ask \lam a => bar-impl PQ (h a)
+
+\lemma bar-shift-left {A : \Set} {P : Array A -> \Prop} {l : Array A} (b : Bar P l) : Bar (\lam l' => P (l' ++ l)) nil
+  => induction b
+  \where {
+    \protected \lemma induction {l r : Array A} (b : Bar P (l ++ r)) : Bar (\lam l' => P (l' ++ r)) l \elim b
+      | bar-stop p => bar-stop p
+      | bar-ask h => bar-ask \lam a => induction (h a)
+  }
+
+\lemma bar-shift-right {A : \Set} {P : Array A -> \Prop} {l : Array A} (b : Bar (\lam l' => P (l' ++ l)) nil) : Bar P l
+  => induction b
+  \where {
+    \protected \lemma induction {l r : Array A} (b : Bar (\lam x => P (x ++ r)) l) : Bar P (l ++ r) \elim b
+      | bar-stop p => bar-stop p
+      | bar-ask h => bar-ask \lam a => induction (h a)
+  }
+
+\func IsBarMonotone {A : \Set} (P : Array A -> \Prop) : \Prop
+  => \Pi {a : A} {l : Array A} -> P l -> P (a :: l)
+
+\lemma barMonotone_++ {A : \Set} {P : Array A -> \Prop} (Pm : IsBarMonotone P) {r : Array A} : IsBarMonotone (\lam l => P (l ++ r))
+  => Pm __
+
+\lemma bar-monotone {A : \Set} {P : Array A -> \Prop} (Pm : IsBarMonotone P) : IsBarMonotone (Bar P)
+  => induction
+  \where {
+    \private \lemma induction {a : A} {l : Array A} (b : Bar P l) : Bar P (a :: l) \elim b
+      | bar-stop p => bar-stop (Pm p)
+      | bar-ask h => bar-ask \lam a' => induction (h a)
+  }
+
+\lemma bar-conj {A : \Set} {P Q : Array A -> \Prop} (Pm : IsBarMonotone P) (Qm : IsBarMonotone Q)
+                {l : Array A} (b1 : Bar P l) (b2 : Bar Q l) : Bar (\lam l' => \Sigma (P l') (Q l')) l \elim b1
+  | bar-stop p1 => aux p1 b2
+  | bar-ask h1 => bar-ask \lam a => bar-conj Pm Qm (h1 a) (bar-monotone Qm b2)
+  \where {
+    \private \lemma aux {l : Array A} (Pl : P l) (b : Bar Q l) : Bar (\lam l' => \Sigma (P l') (Q l')) l \elim b
+      | bar-stop Ql => bar-stop (Pl,Ql)
+      | bar-ask h => bar-ask \lam a => aux (Pm Pl) (h a)
+  }

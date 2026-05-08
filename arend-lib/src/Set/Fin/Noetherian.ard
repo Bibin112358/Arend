@@ -1,3 +1,5 @@
+-- | Noetherian sets are defined in Arnaud Spiwack, Thierry Coquand, Constructively Finite?, 2010
+
 \import Arith.Nat
 \import Function.Meta
 \import Logic
