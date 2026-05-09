@@ -106,6 +106,10 @@
   \func IsGeneratedBy (l : Array S)
     => \Sigma (∀ (a : l) (contains a)) (\Pi {a : S} -> contains a -> ∃ (l' : Array S l.len) (a = BigSum (\lam j => l' j * l j)))
 
+  \lemma generatedBy-char {l : Array S} : IsGeneratedBy l <-> (\this = {Ideal S} closure l)
+    => (\lam s => exts \lam a => ext (\lam Ia => closureN-lem.2 $ s.2 Ia, closure-univ s.1),
+        \lam p => rewrite p closure-generated)
+
   \protected \func IsFinitelyGenerated => ∃ (l : Array S) (IsGeneratedBy l)
 
   \func IsGeneratedBy1 (a : S) => \Sigma (contains a) (\Pi {b : S} -> contains b -> TruncP (Monoid.LDiv a b))

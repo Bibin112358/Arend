@@ -31,9 +31,9 @@
 \open Monoid
 \open equation(cRing)
 
-\class PID \extends SmithDomain, NoetherianCRing {
+\class PID \extends SmithDomain, WeaklyNoetherianCRing {
   | divChain : CMonoid.DivChain {DivQuotientMonoid nonZeroCMonoid}
-  | isNoetherian I Ifg => Ideal.fromMonoidChainCondition (IntegralDomain.Dec.fromNonZeroDivChain divChain) I \lam n => bezout_finitelyGenerated_principal.1 isBezout (Ifg n)
+  | isWeaklyNoetherian I Ifg => Ideal.fromMonoidChainCondition (IntegralDomain.Dec.fromNonZeroDivChain divChain) I \lam n => bezout_finitelyGenerated_principal.1 isBezout (Ifg n)
   | isKaplansky => adequate_kaplansky \lam a/=0 => adequate'_adequate (domain_adequate' divChain a/=0)
 
   \lemma is1Dim : Dim<= 1

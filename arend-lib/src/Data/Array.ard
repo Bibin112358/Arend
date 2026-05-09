@@ -810,6 +810,35 @@
   | suc n, a :: l, 0 => idp
   | suc n, a :: l, suc j => take-index
 
+\func drop {A : \Sort} (n : Nat) (l : Array A) : Array A (ndrop n l.len) \elim n, l
+  | 0, l => \new l
+  | suc n, nil => nil
+  | suc n, a :: l => drop n l
+  \where {
+    \func ndrop (n m : Nat) : Nat
+      | 0, m => m
+      | suc n, 0 => 0
+      | suc n, suc m => ndrop n m
+
+    \func ndrop_Fin {n m : Nat} (k : Fin (ndrop n m)) : Fin m \elim n, m
+      | 0, m => k
+      | suc n, suc m => suc (ndrop_Fin k)
+
+    \protected \func index {A : \Sort} {n : Nat} {l : Array A} {i : Fin (ndrop n l.len)} : drop n l i = l (ndrop_Fin i) \elim n, l
+      | 0, l => idp
+      | suc n, nil => \case i
+      | suc n, a :: l => index
+
+    \lemma ndrop_Fin_+ {n m : Nat} {k : Fin (ndrop n m)} : ndrop_Fin k = {Nat} n Nat.+ k \elim n, m
+      | 0, m => idp
+      | suc n, suc m => pmap suc ndrop_Fin_+
+  }
+
+\func drop_map {A B : \Sort} (f : A -> B) {n : Nat} {l : Array A} : drop n (map f l) = map f (drop n l) \elim n, l
+  | 0, l => idp
+  | suc n, nil => idp
+  | suc n, a :: l => drop_map f
+
 \func singleAt {A : \Sort} {n : Nat} (j : Fin n) (value def : A) : Array A n \cowith
   | at i => \case decideEq j i \with {
     | yes _ => value
