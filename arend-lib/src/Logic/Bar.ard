@@ -56,6 +56,19 @@
   | bar-stop p => bar-stop (PQ p)
   | bar-ask h => bar-ask \lam a => bar-impl PQ (h a)
 
+\lemma bar-rel {A B : \Set} (R : A -> B -> \Prop) (Rs : ∀ b ∃ (a : A) (R a b)) {P : Array A -> \Prop} {Q : Array B -> \Prop}
+               (PQ : \Pi (as : Array A) (bs : Array B as.len) -> ∀ j (R (as j) (bs j)) -> P as -> Q bs) (b : Bar P nil) : Bar Q nil
+  => induction b \case __
+  \where
+    \protected \lemma induction {as : Array A} (b : Bar P as) {bs : Array B as.len} (c : ∀ j (R (as j) (bs j))) : Bar Q bs \elim b
+      | bar-stop p => bar-stop (PQ as bs c p)
+      | bar-ask h => bar-ask \lam b => \case Rs b \with {
+        | inP (a,Rab) => induction (h a) \case \elim __ \with {
+          | 0 => Rab
+          | suc j => c j
+        }
+      }
+
 \lemma bar-shift-left {A : \Set} {P : Array A -> \Prop} {l : Array A} (b : Bar P l) : Bar (\lam l' => P (l' ++ l)) nil
   => induction b
   \where {

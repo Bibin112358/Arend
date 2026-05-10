@@ -1,0 +1,41 @@
+\import Algebra.Meta
+\import Algebra.Monoid
+\import Algebra.Monoid.Localization
+\import Algebra.Monoid.Sub
+\import Algebra.Ring
+\import Algebra.Ring.Ideal
+\import Algebra.Ring.Localization
+\import Algebra.Ring.Noetherian
+\import Algebra.Ring.RingHom
+\import Algebra.Semiring
+\import Data.Array
+\import Function
+\import Function.Meta
+\import Logic
+\import Logic.Bar
+\import Logic.Meta
+\import Paths
+\import Paths.Meta
+\import Set.Fin
+
+\lemma SurjNoetherian {R S : CRing} (RN : IsNoetherian R) {f : RingHom R S} (fs : IsSurj f) : IsNoetherian S
+  => bar-surj f fs $ bar-impl pauses-map RN
+  \where {
+    \lemma pauses-map {l : Array R} (p : PausesElem l) : PausesElem (map f l) \elim l, p
+      | a :: l, pauses-here p => pauses-here (RingHom.func-Ideal_closure f {_} {l} p)
+      | a :: l, pauses-there p => pauses-there (pauses-map p)
+  }
+
+\lemma LocalizationNoetherian (L : RingLocalization {}) (RN : IsNoetherian L.B) : IsNoetherian L.L
+  => bar-rel (\lam r t => ∃ (s : L.B) (L.S s) (t * L s = L r)) (\lam b => \case L.localization-surj b \with {
+    | inP (y,c,Sc,p) => inP (y, inP (c,Sc,p))
+  }) pauses-loc RN
+  \where {
+    \lemma pauses-loc (as : Array L.B) (bs : Array L.L as.len) (c : ∀ j ∃ (s : L.B) (L.S s) (bs j * L s = L (as j))) (p : PausesElem as) : PausesElem bs \elim as, bs, p
+      | a :: as, b :: bs, pauses-here p => pauses-here \case FinSet.finiteAC c, Ideal.closureN-lem.1 p \with {
+        | inP h, inP (l,p) => Ideal.closureN-lem.2 $ inP (\lam j => L (l j) * L (h (suc j)).1 * (L.localization-inv (h 0).2).inv,
+          (L.localization-inv (h 0).2).inv-cancel-right $ (h 0).3 *> pmap L p *> RingHom.func-BigSum *>
+          pmap AddMonoid.BigSum (exts \lam j => RingHom.func-* *> equation.cMonoid {(L.localization-inv (h 0).2).inv-right, (h (suc j)).3}) *> inv Semiring.BigSum-rdistr)
+      }
+      | a :: as, b :: bs, pauses-there p => pauses-there $ pauses-loc as bs (\lam j => c (suc j)) p
+  }

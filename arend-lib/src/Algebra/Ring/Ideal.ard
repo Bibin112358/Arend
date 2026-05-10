@@ -135,7 +135,7 @@
     => inP ((1,j) :: nil, simplify)
 
   \lemma sclosure-superset {R : CRing} {U : R -> \Prop} {x : R} (Ux : U x) : sclosure U x
-    => inP ((1,(x,Ux)) :: nil, equation)
+    => inP ((1,(x,Ux)) :: nil, inv $ zro-right *> ide-left)
 
   \lemma closure-univ {R : CRing} {J : \Set} {g : J -> R} {I : Ideal R} (c : \Pi (j : J) -> I (g j)) {x : R} (d : closure g x) : I x \elim d
     | inP (l,p) => transportInv I p $ bigSum _ \lam i => later $ ideal-left (c (l i).2)

@@ -72,8 +72,11 @@
       => (Ideal.closure l, Ideal.closure-finGenerated)
   }
 
+\func IsNoetherian (R : CRing) : \Prop
+  => Bar (PausesElem {R}) nil
+
 \class NoetherianCRing \extends WeaklyNoetherianCRing
-  | isNoetherian : Bar (PausesElem {\this}) nil
+  | isNoetherian : IsNoetherian \this
   | isWeaklyNoetherian I Ifg Ic => \case bar-stream (elemToIdeal isNoetherian) (\lam n => (I (suc n), Ifg (suc n))) \with {
     | inP (l,p,s) => \case Pauses.toIndex s \with {
       | inP (j,q) => inP (l.len -' suc j, \lam {a} Ia => Ideal.sclosure-univ (hiding (q,s) $ later \lam (inP (k,lx)) =>

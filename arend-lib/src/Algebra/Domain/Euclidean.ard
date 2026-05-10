@@ -8,12 +8,15 @@
 \import Algebra.Monoid.GCD
 \import Algebra.Pointed
 \import Algebra.Ring
+\import Algebra.Ring.Ideal
+\import Algebra.Ring.Noetherian
 \import Algebra.Semiring
 \import Arith.Int
 \import Arith.Nat
 \import Data.Or
 \import Function.Meta
 \import Logic
+\import Logic.Bar
 \import Logic.Classical
 \import Logic.Meta
 \import Meta
@@ -198,7 +201,7 @@
     => bezoutIdentity-fueled (suc' (euclideanMap b)) a b
 }
 
-\class EuclideanDomain \extends PID
+\class EuclideanDomain \extends PID, NoetherianCRing
   | isEuclidean : TruncP (EuclideanRingData { | CRing => \this | decideEq => decideEq })
   | isBezout a b => TruncP.map isEuclidean \lam (d : EuclideanRingData { | CRing => \this }) =>
       ((d.bezout a b).1, (d.bezout a b).2,
@@ -208,8 +211,8 @@
     | inP d => cases (a 0 arg addPath) \with {
       | in~ a0, ap =>
         \let n => suc (euclideanMap {d} a0.1)
-        \in \case Choice.liftSurj {FinFin (suc n)} Quotient.in-surj (\lam j => a j) \with {
-          | inP (b,bp) => TruncP.map (aux {d} n (\lam i => ((b i).1, AddGroup.With#.apartNonZero (b i).2))
+        \in \case (FinFin (suc n)).liftSurj Quotient.in-surj (\lam j => a j) \with {
+          | inP (b,bp) => TruncP.map (divChain-induction {d} n (\lam i => ((b i).1, AddGroup.With#.apartNonZero (b i).2))
               (\lam i => TruncP.map (c i) \lam ci => nonZero_ldiv {_} {b (suc i)} {b i} $ div-from~ {nonZeroCMonoid} $ rewrite (bp (suc i), bp i) ci) a0.1
               (nonZero_ldiv {_} {b 0} {a0} $ div-from~ {nonZeroCMonoid} $ rewrite (bp 0, ap) LDiv.id-div)
               (nonZero_ldiv {_} {a0} {b 0} $ div-from~ {nonZeroCMonoid} $ rewrite (bp 0, ap) LDiv.id-div)
@@ -217,17 +220,35 @@
         }
     }
   }
+  | isNoetherian => bar-ask \lam a => \case decideEq a 0 \with {
+    | yes a=0 => bar-stop $ pauses-here $ inP (nil, a=0)
+    | no a/=0 => \case isEuclidean \with {
+        | inP d => isNoetherian-induction {d} _ a/=0 id<suc $ Ideal.closure-superset {_} {Fin 1} {a :: nil} 0
+      }
+  }
   \where {
     \open DivQuotient
 
-    \lemma aux {R : EuclideanRingData} (n : Nat) (a : Fin (suc n) -> \Sigma (x : R) (x /= 0)) (c : \Pi (i : Fin n) -> TruncP (LDiv (a (suc i)).1 (a i).1)) (b : R) (a0|b : LDiv (a 0).1 b) (b|a0 : LDiv b (a 0).1) (p : euclideanMap b < n) : ∃ (i : Fin n) (LDiv (a i).1 (a (suc i)).1) \elim n
+    \private \lemma divChain-induction {R : EuclideanRingData} (n : Nat) (a : Fin (suc n) -> \Sigma (x : R) (x /= 0)) (c : \Pi (i : Fin n) -> TruncP (LDiv (a (suc i)).1 (a i).1)) (b : R) (a0|b : LDiv (a 0).1 b) (b|a0 : LDiv b (a 0).1) (p : euclideanMap b < n) : ∃ (i : Fin n) (LDiv (a i).1 (a (suc i)).1) \elim n
       | 0 => \case p
       | suc n => \case c 0 \with {
         | inP c0 => \case isPseudonorm {_} {b} {(a 1).1} (R.ldiv/=0 (a 0).2 b|a0) (LDiv.trans c0 a0|b) \with {
           | inl b|a1 => inP (0, LDiv.trans a0|b b|a1)
-          | inr (a1',a1|a1',a1'|a1,a1'<b) => TruncP.map (aux n (\lam i => a (suc i)) (\lam i => c (suc i)) a1' a1|a1' a1'|a1 (a1'<b <∘l <_suc_<= p)) \lam s => (suc s.1, s.2)
+          | inr (a1',a1|a1',a1'|a1,a1'<b) => TruncP.map (divChain-induction n (\lam i => a (suc i)) (\lam i => c (suc i)) a1' a1|a1' a1'|a1 (a1'<b <∘l <_suc_<= p)) \lam s => (suc s.1, s.2)
         }
       }
+
+    \private \lemma isNoetherian-induction {R : EuclideanRingData} (n : Nat) {a : R} (a/=0 : a /= 0) (a<n : euclideanMap a < n)
+                                           {l : Array R} (a<=l : Ideal.closure l a) : Bar PausesElem l \elim n
+      | suc n => bar-ask \lam b =>
+        \have gcd|a => transportInv (LDiv __ a) (R.bezoutIdentity a b) (R.gcd-isGCD a b).res|val1
+        \in \case isPseudonorm a/=0 gcd|a \with {
+          | inl r => \have a|b : LDiv a b => LDiv.trans r $ transportInv (LDiv __ b) (R.bezoutIdentity a b) (R.gcd-isGCD a b).res|val2
+                     \in bar-stop $ pauses-here $ (Ideal.closure l).ldiv a|b a<=l
+          | inr (a',gcd|a',a'|gcd,a'<a) => isNoetherian-induction n (R.ldiv/=0 (R.ldiv/=0 a/=0 gcd|a) a'|gcd) (a'<a <∘l <_suc_<= a<n) $
+            (Ideal.closure (b :: l)).ldiv gcd|a' $ Ideal.contains_+ (ideal-left $ Ideal.closure-univ {_} {_} {l} {Ideal.closure (b :: l)}
+              (\lam j => Ideal.closure-superset {_} {_} {b :: l} (suc j)) a<=l) (ideal-left $ Ideal.closure-superset {_} {Fin (suc l.len)} {b :: l} 0)
+        }
   }
 
 \instance NatEuclidean : EuclideanSemiringData
