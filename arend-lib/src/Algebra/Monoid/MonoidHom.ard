@@ -6,11 +6,17 @@
 \import Paths
 \import Paths.Meta
 \import Set.Fin
+\import Set.SetHom
 
-\record MonoidHom \extends PointedHom {
+\record SemigroupHom \extends SetHom {
+  \override Dom : Semigroup
+  \override Cod : Semigroup
+  | func-* {x y : Dom} : func (x * y) = func x * func y
+}
+
+\record MonoidHom \extends PointedHom, SemigroupHom {
   \override Dom : Monoid
   \override Cod : Monoid
-  | func-* {x y : Dom} : func (x * y) = func x * func y
 
   \lemma func-pow {x : Dom} {n : Nat} : func (Monoid.pow x n) = Monoid.pow (func x) n \elim n
     | 0 => func-ide

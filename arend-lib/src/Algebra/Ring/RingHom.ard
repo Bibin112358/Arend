@@ -47,7 +47,27 @@
 \lemma *-addGroupHom-right {R : PseudoRing} {a : R} : AddGroupHom R R (`* a) \cowith
   | func-+ => rdistr
 
-\record RingHom \extends SemiringHom, AddGroupHom {
+\record PseudoRingHom \extends AddGroupHom, SemigroupHom {
+  \override Dom : PseudoRing
+  \override Cod : PseudoRing
+} \where {
+  \lemma func-Ideal_closure {R S : CRing} (f : PseudoRingHom R S) {J : \Set} {g : J -> R} {x : R} (gx : Ideal.closure g x) : Ideal.closure (\lam j => f (g j)) (f x) \elim gx
+    | inP (l,p) => inP (map (\lam s => (f s.1, s.2)) l, pmap f p *> f.func-BigSum *> pmap S.BigSum (exts \lam j => f.func-*))
+
+  \lemma func-Ideal_sclosure {R S : CRing} (f : PseudoRingHom R S) {U : R -> \Prop} {x : R} (Ux : Ideal.sclosure U x) : Ideal.sclosure (SetIm f U) (f x) \elim Ux
+    | inP (l,p) => inP (map (\lam s => later (f s.1, (f s.2.1, SetIm-con s.2.2))) l, pmap f p *> f.func-BigSum *> pmap S.BigSum (exts \lam j => f.func-*))
+
+  \lemma func-Ideal_lclosure {R S : CRing} (f : PseudoRingHom R S) {l : Array R} {x : R} (lx : Ideal.lclosure l x) : Ideal.lclosure (\lam j => f (l j)) (f x)
+    => func-Ideal_closure f {_} {l} lx
+
+  \func func-Ideal {R S : CRing} (f : PseudoRingHom R S) (I : Ideal S) : Ideal R \cowith
+    | contains x => I (f x)
+    | contains_zro => transportInv I f.func-zro I.contains_zro
+    | contains_+ Ifx Ify => transportInv I f.func-+ $ I.contains_+ Ifx Ify
+    | ideal-left Ifa => transportInv I f.func-* $ I.ideal-left Ifa
+}
+
+\record RingHom \extends PseudoRingHom, SemiringHom {
   \override Dom : Ring
   \override Cod : Ring
 
@@ -59,7 +79,7 @@
   \protected \func Image : SubRing Cod \cowith
     | SubRing => ringHomImage _
 
-  \protected \func image : RingHom (SubRing.IRing {Image}) Cod \cowith
+  \protected \func image : RingHom Image.IRing Cod \cowith
     | func x => x.1
     | func-+ => idp
     | func-ide => idp
@@ -87,18 +107,6 @@
       | func-ide => pmap g f.func-ide *> g.func-ide
       | func-+ => pmap g f.func-+ *> g.func-+
       | func-* => pmap g f.func-* *> g.func-*
-
-    \lemma func-Ideal_closure {R S : CRing} (f : RingHom R S) {J : \Set} {g : J -> R} {x : R} (gx : Ideal.closure g x) : Ideal.closure (\lam j => f (g j)) (f x) \elim gx
-      | inP (l,p) => inP (map (\lam s => (f s.1, s.2)) l, pmap f p *> f.func-BigSum *> pmap S.BigSum (exts \lam j => f.func-*))
-
-    \lemma func-Ideal_sclosure {R S : CRing} (f : RingHom R S) {U : R -> \Prop} {x : R} (Ux : Ideal.sclosure U x) : Ideal.sclosure (SetIm f U) (f x) \elim Ux
-      | inP (l,p) => inP (map (\lam s => later (f s.1, (f s.2.1, SetIm-con s.2.2))) l, pmap f p *> f.func-BigSum *> pmap S.BigSum (exts \lam j => f.func-*))
-
-    \func func-Ideal {R S : CRing} (f : RingHom R S) (I : Ideal S) : Ideal R \cowith
-      | contains x => I (f x)
-      | contains_zro => transportInv I f.func-zro I.contains_zro
-      | contains_+ Ifx Ify => transportInv I f.func-+ $ I.contains_+ Ifx Ify
-      | ideal-left Ifa => transportInv I f.func-* $ I.ideal-left Ifa
 
   \lemma contr-isTerm {R S : Ring} (c : Contr S) : Contr (RingHom R S) \cowith
       | center => \new RingHom {

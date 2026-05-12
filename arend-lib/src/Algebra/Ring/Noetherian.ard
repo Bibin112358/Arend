@@ -1,5 +1,6 @@
 \import Algebra.Ring
 \import Algebra.Ring.Ideal
+\import Algebra.Ring.RingHom
 \import Arith.Nat
 \import Data.Array
 \import Function.Meta
@@ -37,7 +38,26 @@
   }
 
 \func PausesElem {R : CRing} (l : Array R) : \Prop
-  => Pauses (\lam a l' => Ideal.closure l' a) l
+  => Pauses (\lam a l' => Ideal.lclosure l' a) l
+  \where {
+    \lemma ++-insert {l m r : Array R} (p : PausesElem (l ++ r)) : PausesElem (l ++ m ++ r) \elim l, p
+      | nil, p => ++-right p
+      | a :: l, pauses-here p => pauses-here (Ideal.lclosure_++-insert p)
+      | a :: l, pauses-there p => pauses-there (++-insert p)
+
+    \lemma ++-left {l r : Array R} (p : PausesElem l) : PausesElem (l ++ r)
+      => rewrite ++_nil in ++-insert (transportInv PausesElem ++_nil p)
+
+    \lemma ++-right {l r : Array R} (p : PausesElem r) : PausesElem (l ++ r) \elim l
+      | nil => p
+      | a :: l => pauses-there (++-right p)
+
+    \open Data.Array (map \as amap)
+
+    \protected \lemma map {R S : CRing} (f : PseudoRingHom R S) {l : Array R} (p : PausesElem l) : PausesElem (amap f l) \elim l, p
+      | a :: l, pauses-here p => pauses-here (PseudoRingHom.func-Ideal_closure f {_} {l} p)
+      | a :: l, pauses-there p => pauses-there (map f p)
+  }
 
 \func PausesIdeal {R : CRing} (l : Array (\Sigma (I : Ideal R) (I.IsFinitelyGenerated))) : \Prop
   => Pauses (\lam I l' => I.1 ⊆ Ideal.sclosure \lam x => ∃ (J : l') (J.1 x)) l
@@ -50,18 +70,17 @@
 
     \lemma pausesIdealToElem {l : Array R} (p : PausesIdeal (map principal l)) : PausesElem l \elim l, p
       | a :: l, pauses-here p => pauses-here $ Ideal.sclosure-univ {_} {\lam x => ∃ (a : l) ((principal a).1 x)} {Ideal.closure l}
-        (\lam {x} (inP (j,lx)) => Ideal.closure-univ {_} {_} {l j :: nil} {Ideal.closure l} (\lam (0) => Ideal.closure-superset j) lx) $
-          p $ Ideal.closure-superset {_} {Fin 1} {a :: nil} 0
+        (\lam {x} (inP (j,lx)) => Ideal.lclosure-univ (Ideal.closure l) {l j :: nil} (\lam (0) => Ideal.closure-superset j) lx) $ p (Ideal.lclosure-superset 0)
       | a :: l, pauses-there p => pauses-there (pausesIdealToElem p)
   }
 
 \lemma elemToIdeal {R : CRing} (b : Bar (PausesElem {R}) nil) : Bar (PausesIdeal {R}) nil
   => bar-surj fgIdeal (\lam (I, inP (l,lg)) => inP (l, ext $ inv $ I.generatedBy-char.1 lg)) $
       bar-impl (\lam {ls} (inP (i,fan)) => Pauses.fromIndex i $ unfold fgIdeal \lam e =>
-        Ideal.closure-univ {_} {_} {ls i} {Ideal.sclosure _} (\lam j => \case fan j \with {
+        Ideal.lclosure-univ (Ideal.sclosure _) (\lam j => \case fan j \with {
           | (js, jsp, inP (c,p)) => transport (Ideal.sclosure _) (inv p *> pmap (ls i) jsp) $ hiding (j,fan,e,jsp,p) $
             (Ideal.sclosure _).bigSum _ \lam k => ideal-left $ Ideal.sclosure-superset $ inP $ later ((c k).2, rewrite drop_map $
-              rewrite (drop.index,drop.index) $ Ideal.closure-superset {_} {_} {ls _} $ js $ ndrop_Fin (c k).2)
+              rewrite (drop.index,drop.index) $ Ideal.lclosure-superset $ js $ ndrop_Fin (c k).2)
         }) e) $
       indexedFanTheorem Pauses.isBarMonotone b (\lam l j => Ideal.closure (drop (suc j) l) (l j)) Pauses.toIndex
   \where {
@@ -69,7 +88,7 @@
     \open drop
 
     \func fgIdeal (l : Array R) : \Sigma (I : Ideal R) (I.IsFinitelyGenerated)
-      => (Ideal.closure l, Ideal.closure-finGenerated)
+      => (Ideal.lclosure l, Ideal.closure-finGenerated)
   }
 
 \func IsNoetherian (R : CRing) : \Prop

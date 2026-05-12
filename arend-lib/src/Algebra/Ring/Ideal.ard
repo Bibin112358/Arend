@@ -146,6 +146,27 @@
   \lemma sclosure-mono {R : CRing} {U V : R -> \Prop} (c : \Pi {x : R} -> U x -> V x) {x : R} (d : sclosure U x) : sclosure V x
     => sclosure-univ {_} {_} {sclosure V} (\lam Ux => sclosure-superset (c Ux)) d
 
+  \func lclosure {R : CRing} (l : Array R) : Ideal R
+    => closure l
+
+  \lemma lclosure-superset {R : CRing} {l : Array R} (j : Fin l.len) : lclosure l (l j)
+    => closure-superset j
+
+  \lemma lclosure-univ {R : CRing} (I : Ideal R) {l : Array R} (c : \Pi (j : Fin l.len) -> I (l j)) {x : R} (d : lclosure l x) : I x
+    => closure-univ c d
+
+  \lemma lclosure_++-left {R : CRing} {l r : Array R} {a : R} (c : lclosure l a) : lclosure (l ++ r) a
+    => lclosure-univ (lclosure _) (\lam j => transport (lclosure (l ++ r)) (++.++_index-left j) $ lclosure-superset _) c
+
+  \lemma lclosure_++-right {R : CRing} {l r : Array R} {a : R} (c : lclosure r a) : lclosure (l ++ r) a
+    => lclosure-univ (lclosure _) (\lam j => transport (lclosure (l ++ r)) ++.++_index-right $ lclosure-superset _) c
+
+  \lemma lclosure_++-insert {R : CRing} {l m r : Array R} {a : R} (c : lclosure (l ++ r) a) : lclosure (l ++ m ++ r) a
+    => lclosure-univ (lclosure _) (\lam j => later \case \elim j, ++.split-index j \with {
+      | _, inl (j,idp) => rewrite ++.++_index-left $ lclosure_++-left (lclosure-superset j)
+      | _, inr (j,idp) => rewrite ++.++_index-right $ lclosure_++-right $ lclosure_++-right (lclosure-superset j)
+    }) c
+
   \func closure1 {R : CRing} (a : R) : Ideal R
     => closure (\lam (_ : \Sigma) => a)
 
