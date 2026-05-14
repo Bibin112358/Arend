@@ -805,6 +805,11 @@
   | suc n, nil => absurd (p NatOrder.zero<suc)
   | suc n, a :: l => a :: take n l (suc<=suc.conv p)
 
+\func take' {A : \Sort} (n : Nat) (l : Array A) : Array A \elim n, l
+  | 0, l => nil
+  | suc n, nil => nil
+  | suc n, a :: l => a :: take' n l
+
 \func take-index {A : \Sort} {n : Nat} {l : Array A} {p : n <= l.len} {j : Fin n} : take n l p j = l (fin-inc_<= p j) \elim n, l, j
   | suc n, nil, j => absurd (p NatOrder.zero<suc)
   | suc n, a :: l, 0 => idp
@@ -838,6 +843,11 @@
   | 0, l => idp
   | suc n, nil => idp
   | suc n, a :: l => drop_map f
+
+\func take_drop {A : \Sort} {n : Nat} {l : Array A} : take' n l ++ drop n l = l \elim n, l
+  | 0, l => idp
+  | suc n, nil => idp
+  | suc n, a :: l => pmap (a ::) take_drop
 
 \func singleAt {A : \Sort} {n : Nat} (j : Fin n) (value def : A) : Array A n \cowith
   | at i => \case decideEq j i \with {

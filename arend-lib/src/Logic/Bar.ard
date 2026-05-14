@@ -91,6 +91,9 @@
 \lemma barMonotone_++ {A : \Set} {P : Array A -> \Prop} (Pm : IsBarMonotone P) {r : Array A} : IsBarMonotone (\lam l => P (l ++ r))
   => Pm __
 
+\lemma barMonotone_map {A B : \Set} (f : A -> B) {P : Array B -> \Prop} (Pm : IsBarMonotone P) : IsBarMonotone (\lam l => P (map f l))
+  => Pm __
+
 \lemma bar-monotone {A : \Set} {P : Array A -> \Prop} (Pm : IsBarMonotone P) : IsBarMonotone (Bar P)
   => induction
   \where {
@@ -108,3 +111,8 @@
       | bar-stop Ql => bar-stop (Pl,Ql)
       | bar-ask h => bar-ask \lam a => aux (Pm Pl) (h a)
   }
+
+\lemma bar-++-insert {A : \Set} {P : Array A -> \Prop} (h : \Pi {l m r : Array A} -> P (l ++ r) -> P (l ++ m ++ r))
+  {l m r : Array A} (b : Bar P (l ++ r)) : Bar P (l ++ m ++ r) \elim b
+  | bar-stop p => bar-stop (h p)
+  | bar-ask p => bar-ask \lam a => bar-++-insert h {a :: l} (p a)
