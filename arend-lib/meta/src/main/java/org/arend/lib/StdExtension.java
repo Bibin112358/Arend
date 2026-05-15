@@ -434,6 +434,10 @@ public class StdExtension implements ArendExtension {
         * In `semiring { -1 p } {?}`, the subgoal is `a + b = c`.
         """), makeDef(equation.getRef(), "cSemiring", new DependencyMetaTypechecker(CSemiringEquationMeta.class, () -> new DeferredMetaDefinition(new CSemiringEquationMeta(), true))));
     contributor.declare(multiline("""
+        The Nat-specialized commutative semiring solver. Behaves like {cSemiring}, but on a `Nat` carrier it additionally mints synthetic equality hints about `div`, `mod`, and `-'` subterms of the goal (e.g. `b * (a div b) + (a mod b) = a` for every `(a, b)` pair encountered, plus conditional sharpenings from `LDiv` / `<=` witnesses in the context).
+        On any non-Nat carrier this is exactly {cSemiring}.
+        """), makeDef(equation.getRef(), "natCSemiring", new DependencyMetaTypechecker(NatCSemiringEquationMeta.class, () -> new DeferredMetaDefinition(new NatCSemiringEquationMeta(), true))));
+    contributor.declare(multiline("""
         The ring solver solves goals of the form `e1 = {R} e2` for some ring `R`.
         If `e1` and `e2` represent the same word in the language of rings, then the solver proves the equality immediately without any additional arguments.
         For example, {ring} proves the following equality: `(a + b) * (a - b) = a * a - a * b + b * a - b * b`.

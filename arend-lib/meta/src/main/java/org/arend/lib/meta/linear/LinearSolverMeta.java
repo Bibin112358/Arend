@@ -44,6 +44,18 @@ public class LinearSolverMeta extends BaseAlgebraicMeta {
   @Dependency(name = "Operation.LessOrEquals")        ArendRef opLessOrEquals;
   @Dependency(name = "Operation.Equals")              ArendRef opEquals;
 
+  // Nat-specific refs for NatOpsPreprocessor (div/mod/-' axiom injection).
+  @Dependency(name = "-'")                            public CoreFunctionDefinition truncMinus;
+  @Dependency(name = "-'")                            public ArendRef truncMinusRef;
+  @Dependency(name = "-'<=id")                        public ArendRef truncMinusLEId;
+  @Dependency(name = "-'_<=+")                        public ArendRef truncMinusLEPlus;
+  @Dependency(name = "-'=0")                          public ArendRef truncMinusEqZero;
+  @Dependency(name = "mod<right")                     public ArendRef modLessRight;
+  @Dependency(name = "suc/=0")                        public ArendRef sucNeqZero;
+  @Dependency(name = "<=_exists")                     public ArendRef leqExists;
+  @Dependency(name = "div_mod")                       public ArendRef modZeroFromLDiv;
+  @Dependency(name = "ldiv*div=id")                   public ArendRef ldivDivEq;
+
   @Override
   public boolean @Nullable [] argumentExplicitness() {
     return new boolean[] { true };

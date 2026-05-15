@@ -24,6 +24,7 @@ import org.arend.lib.context.ContextHelper;
 import org.arend.lib.error.LinearSolverError;
 import org.arend.lib.error.TypeError;
 import org.arend.lib.meta.solver.BaseTermCompiler;
+import org.arend.lib.meta.solver.NatOpsPreprocessor;
 import org.arend.lib.meta.solver.RingKind;
 import org.arend.lib.util.DefImplInstanceSearchParameters;
 import org.arend.lib.util.Names;
@@ -440,14 +441,40 @@ public class LinearSolver {
     }
 
     List<Hypothesis<CoreExpression>> rules = new ArrayList<>();
+    List<CoreBinding> allBindings = new ArrayList<>();
     ContextHelper helper = new ContextHelper(hint);
     for (CoreBinding binding : helper.getContextBindings(typechecker)) {
+      allBindings.add(binding);
       Hypothesis<CoreExpression> hypothesis = bindingToHypothesis(binding, false);
       if (hypothesis != null) rules.add(hypothesis);
     }
     for (CoreBinding binding : helper.getAdditionalBindings(typechecker)) {
+      allBindings.add(binding);
       Hypothesis<CoreExpression> hypothesis = bindingToHypothesis(binding, true);
       if (hypothesis != null) rules.add(hypothesis);
+    }
+
+    {
+      List<CoreExpression> toScan = new ArrayList<>();
+      for (Hypothesis<CoreExpression> rule : rules) {
+        toScan.add(rule.lhsTerm);
+        toScan.add(rule.rhsTerm);
+      }
+      if (resultEquation != null) {
+        toScan.add(resultEquation.lhsTerm);
+        toScan.add(resultEquation.rhsTerm);
+      }
+      NatOpsPreprocessor.Refs refs = new NatOpsPreprocessor.Refs(
+          meta.truncMinus, meta.truncMinusRef,
+          meta.truncMinusLEId, meta.truncMinusLEPlus, meta.truncMinusEqZero,
+          meta.modLessRight, meta.sucNeqZero, meta.leqExists,
+          meta.modZeroFromLDiv,
+          meta.ldivDivEq,
+          meta.NatSemiring);
+      NatOpsPreprocessor preprocessor = new NatOpsPreprocessor(typechecker, marker, refs);
+      for (NatOpsPreprocessor.SyntheticHypothesis sh : preprocessor.collect(toScan, allBindings)) {
+        rules.add(new Hypothesis<>(sh.proof, sh.instance, sh.op, sh.lhs, sh.rhs, BigInteger.ONE));
+      }
     }
 
     if (resultEquation != null) {

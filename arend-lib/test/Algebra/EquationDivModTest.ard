@@ -1,0 +1,64 @@
+\import Algebra.Meta
+\import Algebra.Monoid
+\import Arith.Nat
+\import Logic
+\import Order.PartialOrder
+\import Paths
+\import Paths.Meta
+\open Nat
+\open Monoid
+
+
+-- `equation.natCSemiring` on Nat picks up the synthetic divModProp axiom from
+-- NatOpsPreprocessor, so identities that follow from
+--   b * (a div b) + (a mod b) = a
+-- via commutative semiring reasoning go through with no explicit witnesses.
+
+-- Direct divModProp identity
+\lemma cSemiringDivModTest1 (a b : Nat) : a mod b + b * (a div b) = a
+  => equation.natCSemiring
+
+\lemma cSemiringDivModTest2 (a b : Nat) : b * (a div b) + a mod b = a
+  => equation.natCSemiring
+
+-- Scaled / distributed
+\lemma cSemiringDivModTest3 (a b c : Nat) : c * (a mod b) + c * (b * (a div b)) = c * a
+  => equation.natCSemiring
+
+-- Conditional sharpening for -': uses <=_exists when b <= a is in scope
+\lemma cSemiringTruncMinusTest1 (a b : Nat) (h : b <= a) : b + (a -' b) = a
+  => equation.natCSemiring
+
+\lemma cSemiringTruncMinusTest2 (a b c : Nat) (h : b <= a) : c + b + (a -' b) = c + a
+  => equation.natCSemiring
+
+-- Conditional sharpening for -': uses -'=0 when a <= b is in scope
+\lemma cSemiringTruncMinusTest3 (a b c : Nat) (h : a <= b) : c + (a -' b) = c
+  => equation.natCSemiring
+
+-- Divisibility sharpening: when LDiv b a is in scope, (a mod b) collapses to 0,
+-- which together with the unconditional divModProp axiom gives b * (a div b) = a.
+\lemma cSemiringLDivTest1 (a b : Nat) (d : LDiv b a) : b * (a div b) = a
+  => equation.natCSemiring
+
+\lemma cSemiringLDivTest2 (n : Nat) (d : LDiv 2 (n * (n + 1))) : 2 * ((n * (n + 1)) div 2) = n * (n + 1)
+  => equation.natCSemiring
+
+\lemma cSemiringLDivTest3 (n : Nat) (d : LDiv 2 (n * (n + 1))) : ((n * (n + 1)) div 2) * 2 = n * (n + 1)
+  => equation.natCSemiring
+
+-- LDiv synth chained with an explicit equation hint
+\lemma cSemiringLDivTest4 (a b c : Nat) (d : LDiv b a) (h : a = c) : b * (a div b) = c
+  => equation.natCSemiring h
+
+-- Two LDiv witnesses, both ldiv*div=id synths must fire
+\lemma cSemiringLDivTest5 (a b : Nat) (da : LDiv 2 a) (db : LDiv 2 b) : 2 * (a div 2) + 2 * (b div 2) = a + b
+  => equation.natCSemiring
+
+-- LDiv synth applied with a non-trivial factor (3 *)
+\lemma cSemiringLDivTest6 (a b : Nat) (d : LDiv b a) : 3 * (b * (a div b)) = 3 * a
+  => equation.natCSemiring
+
+-- LDiv synth combined with a multiplicative equation hint
+\lemma cSemiringLDivTest7 (a b c : Nat) (d : LDiv b a) (h : a = b * c) : b * (a div b) = b * c
+  => equation.natCSemiring h

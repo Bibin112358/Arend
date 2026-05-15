@@ -282,6 +282,11 @@
   | suc k, 0 => -'id
   | suc k, suc m => \let A1 => -'_inv (suc<=suc.conv A0) \in rewrite (-'_suc -'<=id, A1) idp
 
+\lemma -'_<=+ {n m : Nat} : n <= (n -' m) + m \elim n, m
+  | 0, _ => zero<=_
+  | suc n, 0 => <=-refl
+  | suc n, suc m => suc<=suc -'_<=+
+
 \lemma -'+-comm {n m k : Nat} (p : m <= n) : n + k -' m = n -' m + k \elim n, m, k
   | _, _, 0 => idp
   | _, 0, _ => rewrite (-'0, -'0) idp
@@ -305,6 +310,11 @@
   | 0, m => zero<=_
   | suc n, 0 => \case p
   | suc n, suc m => suc<=suc (-'_<= p)
+
+\lemma -'=0 {n m : Nat} (p : n <= m) : n -' m = 0 \elim n, m
+  | 0, _ => idp
+  | suc n, 0 => absurd (p zero<suc)
+  | suc n, suc m => -'=0 (\lam q => p (suc<suc q))
 
 \open LinearlyOrderedSemiring \hiding (Dec)
 
@@ -399,6 +409,9 @@
     | 0, p => absurd (m/=0 (inv p))
     | suc k, p => transport (n <=) p (<=_+ zero<=_ <=-refl)
   }
+
+\lemma ldiv*div=id {n m : Nat} (m|n : LDiv m n) : m * (n div m) = n
+  => pmap (m * (n div m) +) (inv (div_mod m|n)) *> divModProp n m
 
 \func mod_div {n m : Nat} (p : n mod m = 0) : LDiv m n
   => rewriteI (divModProp n m) (rewrite p (\new LDiv {
