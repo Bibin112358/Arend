@@ -572,7 +572,7 @@
   \where {
     \open Monoid(pow,BigProd)
 
-    \func aux {k n : Nat} (e : Sym n) (p : finCard {Sym.SupportFin e} < k)
+    \func aux {k n : Nat} (e : Sym n) (p : (Sym.SupportFin e).finCard < k)
       : \Sigma (l : Array (Sym n))
                (∀ (e' : l) (isCycle e'))
                (\Pi (i1 i2 : Fin l.len) {i : Fin n} -> Support (l i1) i -> Support (l i2) i -> i1 = i2)
