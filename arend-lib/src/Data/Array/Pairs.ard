@@ -34,6 +34,13 @@
     \func pairs_++-right {A B C : \Sort} {f : A -> B -> C} {l : Array A} {l1 l2 : Array B} : EPerm (pairs f l (l1 ++ l2)) (pairs f l l1 ++ pairs f l l2)
       => pairs-flip `eperm-trans` rewrite pairs_++-left (eperm-++ pairs-flip pairs-flip)
 
+    \func pairs_EPerm-left {A B C : \Sort} {f : A -> B -> C} {l1 l2 : Array A} {l : Array B} (e : EPerm l1 l2) : EPerm (pairs f l1 l) (pairs f l2 l)
+      => pairs-flip `eperm-trans` pairs_EPerm-right e `eperm-trans` pairs-flip
+
+    \func pairs_EPerm-right {A B C : \Sort} {f : A -> B -> C} {l : Array A} {l1 l2 : Array B} (e : EPerm l1 l2) : EPerm (pairs f l l1) (pairs f l l2) \elim l
+      | nil => EPerm.eperm-refl
+      | a :: l => EPerm.eperm-++ (EPerm.EPerm_map (f a) e) (pairs.pairs_EPerm-right e)
+
     \func pairs_map-left {A : \Sort} {f : A -> A -> A} (p : \Pi {x y z : A} -> f (f x y) z = f x (f y z)) {a : A} {l l' : Array A}
       : pairs f (map (f a) l) l' = map (f a) (pairs f l l') \elim l
       | nil => idp

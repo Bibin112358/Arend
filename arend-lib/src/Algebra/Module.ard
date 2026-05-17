@@ -407,7 +407,7 @@
   }
 
 
-\func RingLModule (R : Ring) : LModule R R \cowith
+\func RingLModule (R : Ring) : LModule R \cowith
   | AbGroup => R
   | *c => *
   | *c-assoc => *-assoc
@@ -415,16 +415,6 @@
   | *c-rdistr => R.rdistr
   | ide_*c => ide-left
   \where {
-    \func *_hom-left {R : CRing} {x : R} : LinearMap (RingLModule R) (RingLModule R) \cowith
-      | func y => x * y
-      | func-+ => ldistr
-      | func-*c => equation
-
-    \func *_hom-right {R : Ring} {x : R} : LinearMap (RingLModule R) (RingLModule R) \cowith
-      | func y => y * x
-      | func-+ => rdistr
-      | func-*c => *-assoc
-
     \lemma basis {R : Ring} : LModule.IsBasis {RingLModule R} (1 :: nil)
       => (\lam c p (0) => inv ide-right *> inv zro-right *> p, \lam x => inP (x :: nil, simplify))
   }

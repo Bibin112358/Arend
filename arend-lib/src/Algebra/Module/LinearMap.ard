@@ -150,6 +150,14 @@
     => exts \lam u => f.func-BigSum *> pmap BigSum (exts \lam j => func-*c *> pmap (_ *c) (func-BigSum *> pmap BigSum (exts \lam k => func-*c)))
 }
 
+\lemma *-linear-left {R : Ring} {x : R} : LinearMap (RingLModule R) (RingLModule R) (`* x) \cowith
+  | func-+ => rdistr
+  | func-*c => *-assoc
+
+\lemma *-linear-right {R : CRing} {x : R} : LinearMap (RingLModule R) (RingLModule R) (x *) \cowith
+  | func-+ => ldistr
+  | func-*c => equation.cRing
+
 \lemma linearMap_zro {R : Ring} {A B : LModule R} : LinearMap A B (\lam _ => 0) \cowith
   | func-+ => inv zro-left
   | func-*c => inv B.*c_zro-right
@@ -161,6 +169,10 @@
 \lemma linearMap_negative {R : Ring} {A B : LModule R} (f : LinearMap A B) : LinearMap A B (\lam a => negative (f a)) \cowith
   | func-+ => pmap negative f.func-+ *> B.negative_+ *> +-comm
   | func-*c => pmap negative f.func-*c *> inv B.*c_negative-right
+
+\lemma linearMap_*c {R : CRing} {A B : LModule R} {r : R} (f : LinearMap A B) : LinearMap A B (\lam a => r *c f a) \cowith
+  | func-+ => pmap (r *c) f.func-+ *> *c-ldistr
+  | func-*c => pmap (r *c) f.func-*c *> inv *c-assoc *> pmap (`*c _) *-comm *> *c-assoc
 
 \lemma linearMap_BigSum {R : Ring} {A B : LModule R} {m : Nat} (f : Fin m -> LinearMap A B) : LinearMap A B (\lam a => BigSum (\lam i => f i a)) \cowith
   | func-+ => cong (ext (\lam i => func-+)) *> B.BigSum_+
@@ -181,10 +193,6 @@
     \lemma equiv-char {v : Array V} : IsEquiv (arrayLinearMap v) <-> V.IsBasis v
       => (\lam e => (inj-char.1 $ IsEquiv.isInj e, surj-char.1 $ IsEquiv.isSurj e), \lam b => IsEquiv.fromInjSurj (inj-char.2 b.1) (surj-char.2 b.2))
   }
-
-\record BilinearMap {R : Ring} (A B C : LModule R) (\coerce func : A -> B -> C)
-  | linear-left {b : B} : LinearMap A C (func __ b)
-  | linear-right {a : A} : LinearMap B C (func a)
 
 \func isMultiLinear {R : Ring} {n : Nat} {A B : LModule R} (f : Array A n -> B) : \Prop \elim n
   | 0 => \Sigma
