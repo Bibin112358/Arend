@@ -15,7 +15,12 @@ public interface FunctionMatcher {
   List<CoreExpression> match(CoreExpression expr);
 
   static FunctionMatcher makeFieldMatcher(CoreClassCallExpression classCall, TypedExpression instance, CoreClassField field, ExpressionTypechecker typechecker, ConcreteFactory factory, ConcreteSourceNode marker, int numberOfArguments) {
-    CoreExpression expr = classCall.getImplementation(field, instance);
+    CoreExpression expr;
+    try {
+      expr = classCall.getImplementation(field, instance);
+    } catch (IllegalArgumentException e) {
+      expr = null;
+    }
     if (numberOfArguments == 0 && expr != null) {
       return new ExpressionFunctionMatcher(typechecker, factory, marker, expr.computeTyped(), null, 0);
     }
