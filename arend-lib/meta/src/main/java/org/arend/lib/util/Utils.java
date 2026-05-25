@@ -505,12 +505,7 @@ public class Utils {
 
   public static CoreExpression getClassifyingExpression(CoreClassCallExpression classCall, TypedExpression thisExpr) {
     CoreClassField field = classCall.getDefinition().getClassifyingField();
-    if (field == null) return null;
-    try {
-      return classCall.getImplementation(field, thisExpr);
-    } catch (IllegalArgumentException e) {
-      return null;
-    }
+    return field == null ? null : classCall.getImplementation(field, thisExpr);
   }
 
   public static ConcreteExpression makeArray(List<ConcreteExpression> expressions, ConcreteFactory factory) {
