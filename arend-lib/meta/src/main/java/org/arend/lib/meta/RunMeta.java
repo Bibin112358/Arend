@@ -40,7 +40,8 @@ public class RunMeta extends BaseMetaDefinition implements MetaResolver {
       }
       if (i > 0) {
         ConcreteExpression later = factory.meta("later", new LaterMeta());
-        result = factory.app(later, true, Collections.singletonList(result));
+        ConcreteExpression dollar = factory.meta("$", new ApplyMeta());
+        result = factory.binOpSequence(List.of(later, dollar, result));
       }
     }
     return result;
