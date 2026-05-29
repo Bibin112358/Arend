@@ -91,6 +91,9 @@
   \lemma powers-id {M : Monoid} {a : M} : powers a a
     => inP (1, ide-left)
 
+  \lemma func-powers {M N : Monoid} {f : MonoidHom M N} {a b : M} (p : powers a b) : powers (f a) (f b) \elim p
+    | inP (n,p) => inP (n, inv f.func-pow *> pmap f p)
+
   \func image {M N : Monoid} (f : MonoidHom M N) (S : SubMonoid M) : SubMonoid N \cowith
     | contains y => ∃ (x : M) (S x) (f x = y)
     | contains_ide => inP (1, contains_ide, f.func-ide)

@@ -91,7 +91,7 @@
         }
       }
 
-    \func site (R : GradedCRing) : SchemeSite \cowith
+    \func site (R : GradedCRing) : SatSchemeSite \cowith
       | P => ProjPreorder R
       | R => StructureSheaf
       | loc-exists {a} (in~ (x, y, inP (n,p)), inP (z,xyz,k,z1h,z2h)) => inP ((a.1 * z.1, \case a.2 \with {

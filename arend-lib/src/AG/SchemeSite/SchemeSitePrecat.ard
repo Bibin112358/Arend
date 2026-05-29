@@ -1,33 +1,13 @@
-\import AG.RingedLocale
-\import AG.RingedLocale.RingedLocaleCat
-\import AG.Scheme
 \import AG.SchemeSite
 \import AG.SchemeSite.SchemeSiteHom
-\import Algebra.Monoid
-\import Algebra.Monoid.Localization
-\import Algebra.Monoid.MonoidHom
-\import Algebra.Monoid.Sub
-\import Algebra.Pointed
-\import Algebra.Ring.Ideal
-\import Algebra.Ring.RingHom
 \import Category
-\import Category.Functor
-\import Category.Topos.Sheaf
-\import Category.Topos.Sheaf.DenseExtend
-\import Equiv
-\import Function.Meta
+\import Category.Subcat
 \import Logic
-\import Logic.Meta
-\import Meta
-\import Order.Lattice
-\import Order.Lattice.CompleteLattice
 \import Order.PartialOrder
 \import Paths
-\import Paths.Meta
-\import Topology.Locale.PreorderSite
+\import Relation.Equivalence
 \open SchemeSitePrehom
-\open SchemeSiteHom
-\open Cover
+\open SchemeSiteHom (inh~)
 
 \func SchemeSitePrehomPrecat : Precat SchemeSite \cowith
   | Hom => SchemeSitePrehom
@@ -48,44 +28,15 @@
   | Hom => SchemeSiteHom
   | id _ => SchemeSiteHom.id
   | o => SchemeSiteHom.∘
-  | id-left => toSchemeSiteHom_o-left *> path (\lam i => (SchemeSitePrehomPrecat.id-left i).toSchemeSiteHom) *> toSchemeSiteHom-idemp
-  | id-right => toSchemeSiteHom_o-right *> path (\lam i => (SchemeSitePrehomPrecat.id-right i).toSchemeSiteHom) *> toSchemeSiteHom-idemp
-  | o-assoc => toSchemeSiteHom_o-left *> path (\lam i => (SchemeSitePrehomPrecat.o-assoc i).toSchemeSiteHom) *> inv toSchemeSiteHom_o-right
-
-\func SchemeSiteFunctor : FullyFaithfulFunctor SchemeSitePrecat LocallyRingedLocaleCat \cowith
-  | F S => S.toScheme
-  | Func f => f.toLRLSchemeSiteHom.toLRLHom
-  | Func-id {X} => later (path (\lam i => (id_toLRL i).toLRLHom)) *> LRLSchemeSiteHom.LRL-equiv.f_ret _
-  | Func-o {_} {_} {_} {g} {f} => path (\lam i => (toLRLSchemeSiteHom-natural i).toLRLHom) *>
-    inv (path \lam i => (toLRLSchemeSiteHom_toLRLHom {_} {_} {_} {f.toLRLSchemeSiteHom} i).toLRLHom) *>
-    inv (LRLSchemeSiteHom.toLRLHom-natural {_} {_} {_} {f.toLRLSchemeSiteHom.toLRLHom} {g.toLRLSchemeSiteHom})
-  | isFullyFaithful => IsEquiv.trans (inP LRL-equiv) (inP LRLSchemeSiteHom.LRL-equiv)
-
-\func LRL->SchemeSiteHom {S : Scheme} : LRLSchemeSiteHom S (maxSchemeSite S) \cowith
-  | f* => LRL->SchemeSite.embedding {S} {S.IsAffineOpen} {\lam p => p}
-  | f# => NatTrans.id
-  | isLRLSchemeSiteHom-top => isLocallyAffine <=∘ Join-univ \lam {a} aff => S.L.IJoin-cond (later (a,aff))
-  | isLRLSchemeSiteHom-meet {a} {b} => meet-univ (a.2.3 meet-left) (b.2.3 meet-right) <=∘ S.L.Join-distr>= <=∘ S.L.SJoin-univ
-    (later \lam {c} ((c1<=ab, inP (x,xp)), (c2<=ab, inP (y,yp))) =>
-      \have | (inP ca) => S.principal-o a.2 {meet-left} {S.R.F.Func (c1<=ab <=∘ meet-right) y} (S.principal_meet-left _ _ yp) xp
-            | cb => S.principal-o b.2 {meet-right} {S.R.F.Func (c2<=ab <=∘ meet-left) x} (S.principal_meet-right _ xp _) yp
-      \in S.L.SJoin-conde (later (c.1 ∧ c.2, S.principal-affine a.2 ca.2)) $ later
-            ((meet-left <=∘ c1<=ab <=∘ meet-left, inP ca), (meet-right <=∘ c2<=ab <=∘ meet-right, cb)))
-  | isLRLSchemeSiteHom-loc {a} (ba, inP (y,yp)) {x} xp ca xi => yp.2 ca $
-    transport Monoid.Inv (pmap (\lam r => Localization.liftHom1 xp _ xi (S.R.F.Func r y)) prop-pi *> xp.lift_inL) $
-    (Localization.liftHom1 xp (S.R.F.Func ca) xi).func-Inv $ (S.principal-localization a.2 yp).localization-inv SubMonoid.powers-id
-  \where {
-    \lemma isIso : (LRL->SchemeSiteHom {S}).toLRLHom.IsIso
-      => (LRL->SchemeSiteHom {S}).toLRLHom-iso
-          (\lam {a} {U} U<=a a<=U => (maxSchemeSite S).Ideal_Cover $ Ideal.radical_ide {Ideal.sclosure _} $ Ideal.sclosure-univ {_} {_} {(Ideal.sclosure _).radical}
-            (later \lam {y} (inP (_, inP ((d,Ud),idp), c, cd, ca, cl)) => \case U<=a Ud \with {
-              | (da, inP (z,dp)) => \case cl.inv-char.1 $ transportInv Monoid.Inv (path \lam i => S.R.F.Func-o i z) $ (S.R.F.Func cd).func-Inv dp.1 \with {
-                | inP (w, inP (k,y^k=zw)) => inP (k, transportInv (Ideal.sclosure _) y^k=zw $ ideal-right $ Ideal.sclosure-superset $ inP $ later
-                  (d, d, Ud, (<=-refl, inP (1, S.principal-id)), (da, inP (z,dp)), transport (\lam r => Localization _ _ (S.R.F.Func r)) prop-pi $ S.principal-localization a.2 dp))
-              }
-            }) $ Ideal.radical_ide $ a.2.2 <=-refl 1 S.principal-id a<=U)
-          (\lam b => inP (\lam c => c.1 <= b, <=-antisymmetric (meet-univ <=-refl (top-univ <=∘ isLocallyAffine) <=∘
-            S.L.Join-ldistr>= <=∘ S.L.SJoin-univ \lam {c} aff => later $ aff.3 meet-right <=∘ Join-univ \lam {d} (d<=bc, inP (x,dp)) =>
-            S.L.SJoin-conde (later (d, S.principal-affine aff dp)) (d<=bc <=∘ meet-left)) $ S.L.SJoin-univ \lam p => p))
-          (\lam a => inP idEquiv)
+  | id-left {X} {Y} {f} => \case \elim f \with {
+    | in~ f => pmap inh~ SchemeSitePrehomPrecat.id-left
   }
+  | id-right {X} {Y} {f} => \case \elim f \with {
+    | in~ f => pmap inh~ SchemeSitePrehomPrecat.id-right
+  }
+  | o-assoc {X} {Y} {Z} {W} {h} {g} {f} => \case \elim h, \elim g, \elim f \with {
+    | in~ h, in~ g, in~ f => pmap inh~ SchemeSitePrehomPrecat.o-assoc
+  }
+
+\instance SatSchemeSitePrecat : Precat SatSchemeSite
+  => subPrecat {SchemeSitePrecat} \lam X => X

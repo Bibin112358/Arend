@@ -97,6 +97,16 @@
         lift_inL-quot (contains_* Sc1 Sc2) (equation.cMonoid {func-*, p1, p2} *> inv func-*) *> {_} {_} {f (y1 * y2)} func-* *> equation.cMonoid {func-*, lift_inL-quot Sc1 p1, lift_inL-quot Sc2 p2}
     }
 } \where {
+  \lemma localization-inj1 {M : CMonoid} {x : M} (L : Localization (powers x)) {y z : M} (p : L y = L z) : ∃ (n : Nat) (y * pow x n = z * pow x n)
+    => \case L.localization-inj p \with {
+      | inP (_, inP (n,idp), q) => inP (n,q)
+    }
+
+  \lemma localization-surj1 {M : CMonoid} {x : M} (L : Localization (powers x)) (y : L) : ∃ (y' : M) (n : Nat) (y * inL (pow x n) = inL y')
+    => \case L.localization-surj y \with {
+      | inP (y', _, inP (n,idp), p) => inP (y',n,p)
+    }
+
   \lemma factor-right {M : CMonoid} (A B : Localization {M}) {f : MonoidHom A B} (f_inL : \Pi (x : M) -> f (A x) = B x) : Localization (image A B.S) B f \cowith
     | localization-inv {_} (inP (x,Sx,idp)) => rewrite f_inL (localization-inv Sx)
     | localization-inj {x} {y} fx=fy => \case A.localization-surj x, A.localization-surj y \with {
@@ -147,6 +157,14 @@
           | localization-surj x => inP (1, z, powers-id, t *> inv t)
         })
 
+  \lemma comp-replace (A : Localization {}) {x : A} (B : Localization (powers x)) : ∃ (y : A.B) (Localization (powers (A y)) B B)
+    => \case A.localization-surj x \with {
+      | inP (y,c,Sc,xc=y) => inP (y, transportSubMonoid1 B
+        (inP (1, \let ci => A.localization-inv Sc
+                 \in LDiv.make ci.inv $ inv $ ci.rotate-inv-right $ *-assoc *> ide-left *> xc=y))
+        (inP (1, LDiv.make (A c) (xc=y *> inv ide-left))))
+    }
+
   \lemma comp1 {M : CMonoid} {a b : M} (A : Localization (powers a)) (B : Localization (powers (A b)))
     : Localization (powers (a * b)) B.L (B.inL MonoidHom.∘ A.inL) \cowith
     | localization-inv {_} (inP (n,idp)) => transportInv Inv (B.inL MonoidHom.∘ A.inL).func-pow $ Inv.Inv_pow $
@@ -162,12 +180,6 @@
           rewrite (A.inL.func-*, A.inL.func-*, inv q, A.L.*-assoc {y}, inv A.inL.func-*, inv M.pow_*-comm, *-assoc, B.inL.func-*, inv p) $
           pmap (x *) (pmap B (pmap A (pow_+ *> *-comm *> pmap (_ *) M.pow_*-comm) *> func-* *> pmap (_ *) func-* *> inv *-assoc *> pmap (_ *) A.inL.func-pow *> *-comm) *> B.inL.func-*) *> inv *-assoc)
       }
-    }
-
-  \lemma comp1' {M : CMonoid} {a : M} (A : Localization (powers a)) {b : A.L} (B : Localization (powers b))
-    : ∃ (c : M) (Localization (powers c) B.L (B.inL MonoidHom.∘ A.inL))
-    => \case A.localization-surj b \with {
-      | inP (x,y,ya,p) => inP (a * x, comp1 A $ transportSubMonoid1 B (inP (1, \let yi => A.localization-inv ya \in LDiv.make yi.inv $ inv $ yi.rotate-inv-right $ *-assoc *> ide-left *> p)) (inP (1, LDiv.make (A y) (p *> inv ide-left))))
     }
 
   \lemma transportSubMonoid (A : Localization {}) {S : SubMonoid A.B}
@@ -254,9 +266,19 @@
   \func liftHom1 {B : CMonoid} {a : B} (L : Localization (powers a)) {T : CMonoid} (f : MonoidHom B T) (ai : Inv (f a)) : MonoidHom L.L T
     => L.liftMonoidHom f \box (\lam {_} (inP (n,idp)) => transportInv Inv f.func-pow $ Inv.Inv_pow ai)
 
-  \lemma localization1-equiv {M : CMonoid} (L : Localization (powers M.ide)) : QEquiv L.inL (liftHom1 L MonoidHom.id Inv.ide-isInv) \cowith
+  \lemma localization1-inv-equiv {M : CMonoid} {x : M} (xi : Inv x) (L : Localization (powers x)) : QEquiv L.inL (liftHom1 L MonoidHom.id xi) \cowith
     | ret_f a => L.lift_inL
-    | f_sec b => L.isEpi (L MonoidHom.∘ liftHom1 L MonoidHom.id Inv.ide-isInv) MonoidHom.id \lam x => pmap L L.lift_inL
+    | f_sec b => L.isEpi (L MonoidHom.∘ liftHom1 L MonoidHom.id xi) MonoidHom.id \lam x => pmap L L.lift_inL
+
+  \lemma localization1-equiv {M : CMonoid} (L : Localization (powers M.ide)) : QEquiv L.inL (liftHom1 L MonoidHom.id Inv.ide-isInv)
+    => localization1-inv-equiv Inv.ide-isInv L
+
+  \lemma localization-fromEquiv {M L : CMonoid} {f : MonoidHom M L} (e : IsEquiv f) : Localization (powers M.ide) L f \cowith
+    | localization-inv {_} (inP (n,idp)) => f.func-Inv $ Inv.Inv_pow Inv.ide-isInv
+    | localization-inj p => inP (1, powers-id, ide-right *> IsEquiv.isInj e p *> inv ide-right)
+    | localization-surj x => \case IsEquiv.isSurj e x \with {
+      | inP (y,fy=x) => inP (y, 1, powers-id, pmap (x *) f.func-ide *> ide-right *> inv fy=x)
+    }
 }
 
 -- | The type of elements of {LocMonoid}.

@@ -201,17 +201,30 @@
   | isLRLNonTrivial (a : L) : 0 = {R a} 1 -> a <= bottom
   | isLocallyRinged (a : L) (x : R a) : a <= Join (\lam b => \Sigma (p : b <= a) (Inv (R.F.Func p x) || Inv (R.F.Func p (x + 1))))
 
-  \lemma locallyRinged-split_ide {a : L} {x y : R.F a} (x+y=1 : x + y = 1) : a <= Join (\lam b => \Sigma (p : b <= a) (Inv (R.F.Func p x) || Inv (R.F.Func p y)))
+  \lemma locallyRinged-split2_ide {a : L} {x y : R.F a} (x+y=1 : x + y = 1) : a <= Join (\lam b => \Sigma (p : b <= a) (Inv (R.F.Func p x) || Inv (R.F.Func p y)))
     => isLocallyRinged a (negative x) <=∘ Join-univ \lam {b} => \case \elim __ \with {
       | (b<=a, byLeft e) => Join-cond (b<=a, byLeft $ Ring.Inv_negative $ transport Inv AddGroupHom.func-negative e)
       | (b<=a, byRight e) => Join-cond (b<=a, byRight $ transportInv (\lam r => Inv (R.F.Func b<=a r)) (equation.abGroup {x+y=1}) e)
     }
 
-  \lemma locallyRinged-split_Inv {a : L} {x y : R.F a} (x+y-inv : Inv (x + y)) : a <= Join (\lam b => \Sigma (p : b <= a) (Inv (R.F.Func p x) || Inv (R.F.Func p y)))
-    => locallyRinged-split_ide {_} {a} {x * x+y-inv.inv} {y * x+y-inv.inv} (inv Ring.rdistr *> x+y-inv.inv-right) <=∘ Join-univ \lam {b} => \case \elim __ \with {
+  \lemma locallyRinged-split2_Inv {a : L} {x y : R.F a} (x+y-inv : Inv (x + y)) : a <= Join (\lam b => \Sigma (p : b <= a) (Inv (R.F.Func p x) || Inv (R.F.Func p y)))
+    => locallyRinged-split2_ide {_} {a} {x * x+y-inv.inv} {y * x+y-inv.inv} (inv Ring.rdistr *> x+y-inv.inv-right) <=∘ Join-univ \lam {b} => \case \elim __ \with {
       | (b<=a, byLeft e) => Join-cond (b<=a, byLeft $ Inv.cfactor-left $ transport Inv func-* e)
       | (b<=a, byRight e) => Join-cond (b<=a, byRight $ Inv.cfactor-left $ transport Inv func-* e)
     }
+
+  \lemma locallyRinged-split_Inv {n : Nat} {a : L} {l : Array (R.F a) n} (q : Inv (AddMonoid.BigSum l))
+    : a <= Join (\lam b => Given (p : b <= a) ∃ (x : l) (Inv (R.F.Func p x))) \elim n, l
+    | 0, nil => isLRLNonTrivial a (Ring.Inv_zro.1 q) <=∘ bottom-univ
+    | suc n, x :: l => locallyRinged-split2_Inv q <=∘ Join-univ \case \elim __ \with {
+      | (wa, byLeft xi) => Join-cond (wa, inP (0, xi))
+      | (wa, byRight li) => locallyRinged-split_Inv (transport Inv (R.F.Func wa).func-BigSum li) <=∘ Join-univ
+        \lam {z} (zw, inP (j,zi)) => Join-cond (zw <=∘ wa, inP (suc j, transportInv Inv (path \lam i => R.F.Func-o i _) zi))
+    }
+
+  \lemma locallyRinged-split_ide {a : L} {l : Array (R.F a)} (q : AddMonoid.BigSum l = 1)
+    : a <= Join (\lam b => Given (p : b <= a) ∃ (x : l) (Inv (R.F.Func p x)))
+    => locallyRinged-split_Inv $ transportInv Inv q Inv.ide-isInv
 
   \protected \func restrict (a : L) : LocallyRingedLocale \cowith
     | RingedLocale => RingedLocale.restrict a
@@ -249,13 +262,15 @@
       \lam {b} (b<=ga,xi') => func-<= (g.isLRLHomLocal b<=ga xi') <=∘ f.f*.func-SJoin>= <=∘ L.L.SJoin-univ \lam {a'} s => L.L.SJoin-cond s)
 }
 
-\record LocallyRingedSite.{s} (\coerce P : PreorderSite.{s}) (R : Functor P.op CRingBicat.{s}) (R-sheaf : IsPreorderSheaf R) {
-  | isNonTrivialPres (a : P) : 0 = {R a} 1 -> Cover a empty
-  | isLocallyRingedPres (a : P) (x : R a) : Cover a (\lam b => \Sigma (p : b <= a) (Inv (R.Func p x) || Inv (R.Func p (x + 1))))
-
+\record RingedSite.{s} (\coerce P : PreorderSite.{s}) (R : Functor P.op CRingBicat.{s}) (R-sheaf : IsPreorderSheaf R) {
   \lemma R-equals {a : P} {U : Set P} (a<=U : Cover a U) {x y : R a} (p : ∀ {b} {c : U} (ba : b <= a) (b <= c) (R.Func ba x = R.Func ba y)) : x = y
     => path \lam i => (IsSheaf.makeSheaf (sheaf-preserve CRingCat.forget CRingCat.forget.preservesLimit (IsPreorderSheaf.makeSheaf R-sheaf))).separated-covering
         (toCovering a<=U) {\Sigma} {\lam _ => x} {\lam _ => y} (\lam {u} (inP (z,Uz,u<=z)) => exts \lam _ => p Uz u.2 u<=z) i ()
+}
+
+\record LocallyRingedSite \extends RingedSite {
+  | isNonTrivialPres (a : P) : 0 = {R a} 1 -> Cover a empty
+  | isLocallyRingedPres (a : P) (x : R a) : Cover a (\lam b => \Sigma (p : b <= a) (Inv (R.Func p x) || Inv (R.Func p (x + 1))))
 
   \protected \func toLocale : LocallyRingedLocale \cowith
     | L => SiteLocale P

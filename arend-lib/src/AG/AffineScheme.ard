@@ -2,6 +2,7 @@
 \import AG.RingedLocale.RingedLocaleCat
 \import AG.Scheme
 \import AG.SchemeSite
+\import AG.SchemeSite.LRLSchemeSiteHom
 \import AG.SchemeSite.SchemeSiteHom
 \import Algebra.Meta
 \import Algebra.Monoid
@@ -60,7 +61,7 @@
           | inP a|b, inP (n,idp) => LR.inv-char.2 $ inP $ (pow a|b.inv n, later $ inP (n, pmap (pow __ n) (inv a|b.inv-right) *> R.pow_*-comm))
       }
 
-    \func site (R : CRing) : SchemeSite \cowith
+    \func site (R : CRing) : SatSchemeSite \cowith
       | P => SpecPreorder R
       | R => StructureSheaf
       | loc-exists {a} (in~ (x, y, inP (n,p))) => inP (a * x, inP $ LDiv.make x idp, loc-exists-aux)
@@ -82,7 +83,7 @@
     \func preSite {R : CRing} => (site R).toSite
 
     \lemma cover_* {a : R} : Cover1 {preSite} a (a * a)
-      => SchemeSite.inv-cover {site R} (inP $ LDiv.make a idp) (SpecPreorder R).<=-refl
+      => SatSchemeSite.inv-cover {site R} (inP $ LDiv.make a idp) (SpecPreorder R).<=-refl
           (transportSubMonoid1 (factor-right1 LocRing.isLocalization LocRing.isLocalization \lam x => later lift_inL)
             (inP (1, LDiv.ide-div)) $ inP (0, LDiv.make (later $ inl~ (1, _, inP (2,idp))) $ later $ ~-lequiv1 simplify))
           (transportInv Inv (StructureSheaf.Func _).func-ide Inv.ide-isInv)
@@ -96,8 +97,8 @@
       | suc n => cover_*-univ cover_pow (cover-refl idp)
 
     \lemma Ideal_Cover {a : R} {U : Set R} (a<=U : (Ideal.sclosure U).radical a) : Cover {preSite} a U \elim a<=U
-      | inP (n,Ua) => SchemeSite.Ideal_Cover {site R} $ Ideal.sclosure-mono
-        (SetIm-elim \lam {c} Uc => inP $ later (a * c, c, Uc, inP $ LDiv.make a *-comm, inP $ LDiv.make c idp,
+      | inP (n,Ua) => cover-basic $ Ideal.sclosure-mono
+        (SetIm-elim \lam {c} Uc => inP $ later (a * c, c, inP $ LDiv.make a *-comm, Uc, inP $ LDiv.make c idp,
           Localization.factor-right-div LocRing.isLocalization LocRing.isLocalization (\lam x => lift_inL) $ LDiv.make c idp)) $
         (LocalizationIdeal.sclosure-char LocRing.isLocalization).1 $ later $ (LocalizationIdeal.unit-char {Ideal.sclosure U} LocRing.isLocalization).2 $
         inP (pow a n, later $ inP (n,idp), Ua)
