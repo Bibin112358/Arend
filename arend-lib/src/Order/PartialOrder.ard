@@ -77,6 +77,12 @@
     | <=-antisymmetric p q => <=-antisymmetric q p
 }
 
+\instance TrivialPoset : Poset (\Sigma)
+  | <= _ _ => \Sigma
+  | <=-refl => ()
+  | <=-transitive _ _ => ()
+  | <=-antisymmetric _ _ => idp
+
 \instance ProductPreorder (P Q : Preorder) : Preorder (\Sigma P Q)
   | <= (x,y) (x',y') => \Sigma (x <= x') (y <= y')
   | <=-refl => (<=-refl, <=-refl)

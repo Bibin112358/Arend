@@ -1,6 +1,5 @@
 -- | An equivalence between the category of saturated scheme sites and the category of schemes.
 
-\import AG.AffineScheme
 \import AG.RingedLocale.RingedLocaleCat
 \import AG.Scheme
 \import AG.SchemeSite

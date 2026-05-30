@@ -364,6 +364,28 @@
                 | ret_f x => inv (path \lam i => R.Func-o {_b} {b} {_b} i x) *> path (\lam i => R.Func-id {_b} i x)
                 | f_sec y => inv (path \lam i => R.Func-o {b} {_b} i y) *> path (\lam i => R.Func-id {b} i y)
               }) \lam x => pmap (R.Func __ x) prop-pi *> path \lam i => R.Func-o {a} {_b} i x
+
+    \func preSite : PreorderSite
+      => (SatSite S).toSite
+
+    \lemma cover_* {a : S} {x : S.R a} : Cover1 {preSite} (a, x) (a, x * x)
+      => (SatSite S).inv-cover {a,x} (<=-refl, inP $ LDiv.make x \box path \lam i => S.R.Func-id i x * x) (P.<=-refl {a,x}) {locR x}
+          (Localization.transportSubMonoid1 (Localization.factor-right1 LocRing.isLocalization LocRing.isLocalization
+              \lam y => later $ Localization.lift_inL *> path \lam i => locR (S.R.Func-id i y))
+            (inP (1, LDiv.make (locR x) $ ~-lequiv1 simplify))
+            (inP (2, LDiv.make 1 $ later $ ~-lequiv1 simplify)))
+          (transportInv Inv (path \lam i => R.Func-id i _) $ LocRing.isLocalization.localization-inv powers-id)
+
+    \lemma Ideal_Cover {a : SatSite S} {U : Set (SatSite S)} (x<=U : (Ideal.sclosure \lam y => U (a.1, y)).radical a.2)
+      : Cover {preSite} a U \elim x<=U
+      | inP (n,Ua) => cover-basic $ Ideal.sclosure-mono
+        (SetIm-elim \lam {c} Uc => inP $ later ((a.1, a.2 * c), (a.1, c),
+          (<=-refl, inP $ LDiv.make a.2 $ *-comm *> path \lam i => _ * S.R.Func-id i c), Uc,
+          (<=-refl, inP $ LDiv.make c $ path \lam i => S.R.Func-id i _ * c),
+          Localization.factor-right-div LocRing.isLocalization LocRing.isLocalization
+            (\lam x => Localization.lift_inL *> path \lam i => locR (S.R.Func-id i x)) $ LDiv.make c idp)) $
+        (LocalizationIdeal.sclosure-char LocRing.isLocalization).1 $ later $ (LocalizationIdeal.unit-char {Ideal.sclosure _} LocRing.isLocalization).2 $
+          inP (pow a.2 n, later $ inP (n,idp), Ua)
   }
 
 \func LRL->SchemeSite {L : RingedLocale} (C : L -> \Prop) (Ca : ∀ {a : C} (L.IsAffineOpen a))
