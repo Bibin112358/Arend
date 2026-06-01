@@ -450,6 +450,11 @@ class ExpectedConstructorQuickFixTest : QuickFixTestBase() {
         | suc n, cons a v1, cons a1 v2, DCons sv1, DCons sv2 => {?}  
     """)
 
+    fun test108_DConstructorNotOffered() = typedCheckNoQuickFixes(ArendBundle.message("arend.pattern.doMatching"), """
+      \func lol (x : Nat) : Nat \elim x
+        | nil{-caret-} => 0
+    """)
+
     companion object {
         const val data1 = """
       \data Vec (A : \Type) (n : Nat) \elim n

@@ -67,7 +67,8 @@ class ExpectedConstructorQuickFix(val error: ExpectedConstructorError, val cause
 
     override fun getText(): String = ArendBundle.message("arend.pattern.doMatching")
 
-    override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean = true
+    override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean =
+        (error.referable as? TCDefReferable)?.typechecked is Constructor
 
     override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
         val server = project.service<ArendServerService>().server
@@ -189,7 +190,7 @@ class ExpectedConstructorQuickFix(val error: ExpectedConstructorError, val cause
                             val relevantErrors = errorReporter.errorList.filterIsInstance<ExpectedConstructorError>()
                             if (relevantErrors.size == 1) {
                                 val relevantError = relevantErrors[0]
-                                val constructorTypechecked = (relevantError.referable as InternalReferableImpl).typechecked
+                                val constructorTypechecked = (relevantError.referable as? TCDefReferable)?.typechecked
                                 if (constructorTypechecked is Constructor)
                                     expectedConstructorErrorEntries.add(createClauseEntry(relevantError, clause, substitution, constructorTypechecked))
                             }

@@ -27,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
 import java.util.*;
+import org.arend.term.group.AccessModifier;
 
 import static org.arend.ext.prettyprinting.PrettyPrinterConfig.MAX_LEN;
 
@@ -39,6 +40,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
   protected int myIndent;
   private final boolean noIndent;
   private final int myLineLength;
+  private final Deque<Map<String, ConcreteGroup>> myCoclauseGroupsStack = new ArrayDeque<>();
 
   public PrettyPrintVisitor(StringBuilder builder, int indent, boolean doIndent, int lineLength) {
     myBuilder = builder;
@@ -91,7 +93,9 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
   }
 
   protected PrettyPrintVisitor copy(StringBuilder builder, int indent, boolean doIndent) {
-    return new PrettyPrintVisitor(builder, indent, doIndent, myLineLength);
+    PrettyPrintVisitor copy = new PrettyPrintVisitor(builder, indent, doIndent, myLineLength);
+    copy.myCoclauseGroupsStack.addAll(myCoclauseGroupsStack);
+    return copy;
   }
 
   public void printGroup(ConcreteGroup group) {
@@ -117,14 +121,40 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
       }
     }
 
+    // Collect coclause function groups (FUNC_COCLAUSE) — these are printed inline in the body,
+    // not in a \where block. Build a map from referable name to group for lookup during body printing.
+    Map<String, ConcreteGroup> coclauseGroups = new LinkedHashMap<>();
+    List<ConcreteStatement> nonCoclauseStatements = new ArrayList<>();
+    for (ConcreteStatement stmt : group.statements()) {
+      ConcreteGroup stmtGroup = stmt.group();
+      if (stmtGroup != null && stmtGroup.definition() instanceof Concrete.BaseFunctionDefinition funcDef
+          && funcDef.getKind() == FunctionKind.FUNC_COCLAUSE) {
+        coclauseGroups.put(stmtGroup.referable().getRefName(), stmtGroup);
+        continue;
+      }
+      nonCoclauseStatements.add(stmt);
+    }
+
+    if (!coclauseGroups.isEmpty()) {
+      myCoclauseGroupsStack.push(coclauseGroups);
+    }
+
     if (group.definition() != null) {
-      group.definition().accept(this, null);
+      if (group.definition() instanceof Concrete.ClassDefinition classDef) {
+        visitClass(classDef, group.dynamicGroups(), null);
+      } else {
+        group.definition().accept(this, null);
+      }
     } else {
       printIndent();
       myBuilder.append("\\module ").append(group.referable().getRefName());
     }
 
-    if (group.statements().isEmpty()) return;
+    if (!coclauseGroups.isEmpty()) {
+      myCoclauseGroupsStack.pop();
+    }
+
+    if (nonCoclauseStatements.isEmpty()) return;
 
     myBuilder.append("\n");
     myIndent += INDENT;
@@ -132,7 +162,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
     myBuilder.append("\\where {\n");
     myIndent += INDENT;
 
-    printStatements(group.statements());
+    printStatements(nonCoclauseStatements);
 
     myBuilder.append("\n");
     myIndent -= INDENT;
@@ -1116,12 +1146,12 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
   }
 
   public void printIndent() {
-    myBuilder.append(" ".repeat(Math.max(0, myIndent)));
+    myBuilder.repeat(" ", Math.max(0, myIndent));
   }
 
   private void prettyPrintPrecedence(Precedence precedence) {
     if (!precedence.equals(Precedence.DEFAULT)) {
-      myBuilder.append("\\infix");
+      myBuilder.append(precedence.isInfix ? "\\infix" : "\\fix");
       if (precedence.associativity == Precedence.Associativity.LEFT_ASSOC) myBuilder.append('l');
       if (precedence.associativity == Precedence.Associativity.RIGHT_ASSOC) myBuilder.append('r');
       myBuilder.append(' ');
@@ -1154,12 +1184,24 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
       myIndent += INDENT;
       for (Concrete.CoClauseElement element : body.getCoClauseElements()) {
         myBuilder.append("\n");
-        printIndent();
-        if (element instanceof Concrete.CoClauseFunctionReference) {
-          TCDefReferable ref = ((Concrete.CoClauseFunctionReference) element).getFunctionReference();
-          prettyPrintNameWithPrecedence(ref);
-          myBuilder.append(" => ").append(ref.textRepresentation());
+        if (element instanceof Concrete.CoClauseFunctionReference coClauseRef) {
+          // Look up the full coclause function definition from the group stack
+          TCDefReferable ref = coClauseRef.getFunctionReference();
+          ConcreteGroup coclauseGroup = null;
+          if (!myCoclauseGroupsStack.isEmpty()) {
+            coclauseGroup = myCoclauseGroupsStack.peek().get(ref.textRepresentation());
+          }
+          if (coclauseGroup != null && coclauseGroup.definition() instanceof Concrete.BaseFunctionDefinition funcDef) {
+            // Print the full coclause function definition inline (visitFunction handles its own printIndent)
+            funcDef.accept(this, null);
+          } else {
+            printIndent();
+            myBuilder.append("| ");
+            prettyPrintNameWithPrecedence(ref);
+            myBuilder.append(" => ").append(ref.textRepresentation());
+          }
         } else if (element instanceof Concrete.ClassFieldImpl) {
+          printIndent();
           myBuilder.append("| ");
           prettyPrintClassFieldImpl((Concrete.ClassFieldImpl) element);
         }
@@ -1186,15 +1228,26 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
   @Override
   public Void visitFunction(final Concrete.BaseFunctionDefinition def, Void ignored) {
     printIndent();
+    if (def.getData().getAccessModifier() == AccessModifier.PROTECTED) {
+      myBuilder.append("\\protected ");
+    }
+    boolean isUse = def instanceof Concrete.FunctionDefinition && def.getUseParent() != null
+        && def.getKind() != FunctionKind.LEVEL && def.getKind() != FunctionKind.COERCE && !def.getKind().isCoclause();
+    if (isUse) {
+      myBuilder.append("\\use ");
+    }
     switch (def.getKind()) {
       case FUNC -> myBuilder.append("\\func ");
+      case SFUNC -> myBuilder.append("\\sfunc ");
       case FUNC_COCLAUSE -> myBuilder.append("| ");
       case CLASS_COCLAUSE -> myBuilder.append("\\default ");
       case TYPE -> myBuilder.append("\\type ");
       case LEMMA -> myBuilder.append("\\lemma ");
+      case AXIOM -> myBuilder.append("\\axiom ");
       case LEVEL -> myBuilder.append("\\use \\level ");
       case COERCE -> myBuilder.append("\\use \\coerce ");
       case INSTANCE -> myBuilder.append("\\instance ");
+      case CONS -> myBuilder.append("| ");
     }
 
     prettyPrintNameWithPrecedence(def.getData());
@@ -1259,6 +1312,9 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
 
   @Override
   public Void visitData(Concrete.DataDefinition def, Void ignored) {
+    if (def.getData().getAccessModifier() == AccessModifier.PROTECTED) {
+      myBuilder.append("\\protected ");
+    }
     myBuilder.append("\\data ");
     prettyPrintNameWithPrecedence(def.getData());
 
@@ -1465,6 +1521,13 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
         if (needsParens && pattern.isExplicit())
           myBuilder.append(')');
       }
+      case Concrete.UnparsedConstructorPattern unparsedPattern -> {
+        List<BinOpSequenceElem<Concrete.Pattern>> elems = unparsedPattern.getUnparsedPatterns();
+        for (int i = 0; i < elems.size(); i++) {
+          if (i > 0) myBuilder.append(' ');
+          prettyPrintPattern(elems.get(i).getComponent(), parentPrec, false, i == 0 ? ArgumentPosition.LEFT : ArgumentPosition.RIGHT);
+        }
+      }
       default -> {}
     }
 
@@ -1512,8 +1575,8 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
     }
   }
 
-  private void prettyPrintClassDefinitionHeader(Concrete.Definition def, List<Concrete.ReferenceExpression> superClasses) {
-    myBuilder.append("\\class ").append(def.getData().textRepresentation());
+  private void prettyPrintClassDefinitionHeader(Concrete.ClassDefinition def, List<Concrete.ReferenceExpression> superClasses) {
+    myBuilder.append(def.isRecord() ? "\\record " : "\\class ").append(def.getData().textRepresentation());
     if (!superClasses.isEmpty()) {
       myBuilder.append(" \\extends ");
       boolean first = true;
@@ -1529,6 +1592,9 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
   }
 
   public void prettyPrintClassField(Concrete.ClassField field) {
+    if (field.isCoerce()) {
+      myBuilder.append("\\coerce ");
+    }
     switch (field.getKind()) {
       case FIELD -> myBuilder.append("\\field ");
       case PROPERTY -> myBuilder.append("\\property ");
@@ -1555,18 +1621,47 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
 
   @Override
   public Void visitClass(Concrete.ClassDefinition def, Void ignored) {
+    return visitClass(def, Collections.emptyList(), ignored);
+  }
+
+  public Void visitClass(Concrete.ClassDefinition def, List<? extends ConcreteGroup> dynamicGroups, Void ignored) {
     prettyPrintClassDefinitionHeader(def, def.getSuperClasses());
+
+    // Print parameter fields as inline parameters in the header
+    for (Concrete.ClassElement element : def.getElements()) {
+      if (element instanceof Concrete.ClassField classField && classField.getData().isParameterField()) {
+        myBuilder.append(' ');
+        boolean explicit = classField.getData().isExplicitField();
+        myBuilder.append(explicit ? '(' : '{');
+        if (classField.isCoerce()) {
+          myBuilder.append("\\coerce ");
+        }
+        myBuilder.append(classField.getData().textRepresentation());
+        myBuilder.append(" : ");
+        printExpr(classField.getResultType(), new Precedence(Concrete.Expression.PREC));
+        myBuilder.append(explicit ? ')' : '}');
+      }
+    }
 
     if (def.getLevelParameters() != null) {
       myBuilder.append(" ");
       prettyPrintLevelParameters(def.getLevelParameters(), true);
     }
 
-    if (!def.getElements().isEmpty()) {
+    // Collect non-parameter elements for the body
+    List<Concrete.ClassElement> bodyElements = new ArrayList<>();
+    for (Concrete.ClassElement element : def.getElements()) {
+      if (element instanceof Concrete.ClassField classField && classField.getData().isParameterField()) {
+        continue;
+      }
+      bodyElements.add(element);
+    }
+
+    if (!bodyElements.isEmpty() || !dynamicGroups.isEmpty()) {
       myBuilder.append(" {");
       myIndent += INDENT;
 
-      for (Concrete.ClassElement element : def.getElements()) {
+      for (Concrete.ClassElement element : bodyElements) {
         myBuilder.append('\n');
         printIndent();
         switch (element) {
@@ -1578,6 +1673,11 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
           case Concrete.OverriddenField overriddenField -> prettyPrintOverridden(overriddenField);
           case null, default -> throw new IllegalStateException();
         }
+      }
+
+      for (int i = 0; i < dynamicGroups.size(); i++) {
+        myBuilder.append(bodyElements.isEmpty() && i == 0 ? "\n" : "\n\n");
+        printGroup(dynamicGroups.get(i));
       }
 
       myIndent -= INDENT;

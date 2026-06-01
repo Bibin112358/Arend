@@ -148,12 +148,12 @@ public class TerminationCheckTest extends TypeCheckingTestCase {
   }
 
   @Test
-  public void twoErrors() {
+  public void oneError() {
     typeCheckModule("""
       \\data D Nat | con
       \\func f (x : Nat) (y : D (f x con)) : Nat => x
       \\func g : Nat => f 0 con
-      """, 2);
+      """, 1);
   }
 
   @Test
@@ -198,6 +198,33 @@ public class TerminationCheckTest extends TypeCheckingTestCase {
         | end1 e => bar1 x (e x)
       \\func bar2 (x : Nat) (e : End2 x) : Nat \\elim e
         | end2 y e => bar2 y (e ())
+      """, 0);
+  }
+
+  @Test
+  public void emptySigmaParam() {
+    typeCheckModule("""
+      \\func f (x : \\Sigma) (n : Nat) : Nat \\elim n
+        | 0 => 0
+        | suc n => f x n
+      """, 0);
+  }
+
+  @Test
+  public void emptySigmaParamPair() {
+    typeCheckModule("""
+      \\func f (x : \\Sigma) (y : \\Sigma) (n : Nat) : Nat \\elim n
+        | 0 => 0
+        | suc n => f x y n
+      """, 0);
+  }
+
+  @Test
+  public void emptySigmaParamUnitPattern() {
+    typeCheckModule("""
+      \\func f (x : \\Sigma) (n : Nat) : Nat \\elim x, n
+        | (), 0 => 0
+        | (), suc n => f () n
       """, 0);
   }
 
