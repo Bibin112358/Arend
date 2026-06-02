@@ -2128,7 +2128,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     if (expr.getReferent() instanceof ErrorReference) {
       return new Level(LevelVariable.PVAR);
     }
-    ParamLevelVariable var = myLevelContext != null && expr.getReferent() instanceof LevelReferable ? myLevelContext.getVariable((LevelReferable) expr.getReferent()) : null;
+    LevelVariable var = myLevelContext != null && expr.getReferent() instanceof LevelReferable ? myLevelContext.getVariable((LevelReferable) expr.getReferent()) : null;
     if (var == null) {
       if (checkUnresolved(expr.getReferent(), expr)) {
         errorReporter.report(new IncorrectReferenceError(expr.getReferent(), expr));
@@ -3087,9 +3087,9 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       errorReporter.report(new TypecheckingError("Meta '" + refExpr.getReferent().getRefName() + "' is empty", refExpr));
       return null;
     }
-    Definition definition = metaRef.getTypechecked();
-    MetaTopDefinition def = definition instanceof MetaTopDefinition ? (MetaTopDefinition) definition : null;
-    LevelSubstitution levelSubst = def == null ? null : typecheckLevels(def, refExpr, null, false).makeSubstitution(def);
+    MetaTopDefinition def = metaRef.getTypechecked() instanceof MetaTopDefinition metaTop ? metaTop : null;
+    Levels levels = def == null ? null : typecheckLevels(def, refExpr, null, false);
+    LevelSubstitution levelSubst = levels == null ? null : levels.makeSubstitution(def);
     if (def != null && def.getParameters().hasNext()) {
       ExprSubstitution substitution = new ExprSubstitution();
       arguments = new ArrayList<>(arguments);
@@ -3134,7 +3134,27 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
 
     int numberOfErrors = getNumberOfErrors();
-    TypecheckingResult result = invokeMeta(meta, contextData);
+    TypecheckingResult result;
+    Concrete.LevelParameters levelParams = meta instanceof DefaultMetaDefinition defaultMeta ? defaultMeta.getConcrete().getLevelParameters() : null;
+    if (def != null && def.getLevelParameters() != null && !def.getLevelParameters().isEmpty() && levelParams != null && levelParams.referables.size() == def.getLevelParameters().size()) {
+      LevelContext levelContext = myLevelContext;
+      try {
+        Map<LevelReferable, LevelVariable> levelsMap = new HashMap<>(myLevelContext == null ? Collections.emptyMap() : myLevelContext.getVariables());
+        for (int i = 0; i < levelParams.referables.size(); i++) {
+          levelsMap.put(levelParams.referables.get(i), def.getLevelParameters().get(i));
+        }
+        myLevelContext = new LevelContext(levelsMap, myLevelContext == null || myLevelContext.isPBased);
+        result = invokeMeta(meta, contextData);
+        if (result != null) {
+          result.expression = result.expression.subst(new ExprSubstitution(), levelSubst);
+          result.type = result.type.subst(new ExprSubstitution(), levelSubst);
+        }
+      } finally {
+        myLevelContext = levelContext;
+      }
+    } else {
+      result = invokeMeta(meta, contextData);
+    }
     fixCheckedExpression(result, refExpr.getReferent(), refExpr);
     if (result != null) {
       return result.getType() == expectedType ? result : checkResult(expectedType, result, refExpr);

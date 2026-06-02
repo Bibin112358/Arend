@@ -704,7 +704,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     }
   }
 
-  private boolean typecheckLevelParameters(Concrete.LevelParameters params, List<LevelVariable> parameters, Map<LevelReferable, ParamLevelVariable> variables) {
+  private boolean typecheckLevelParameters(Concrete.LevelParameters params, List<LevelVariable> parameters, Map<LevelReferable, LevelVariable> variables) {
     if (params == null) {
       parameters.add(LevelVariable.PVAR);
       return true;
@@ -721,7 +721,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
   private List<LevelVariable> typecheckLevelParameters(Concrete.ResolvableDefinition def) {
     if (def.getLevelParameters() == null) return null;
     List<LevelVariable> parameters = new ArrayList<>();
-    Map<LevelReferable, ParamLevelVariable> variables = new HashMap<>();
+    Map<LevelReferable, LevelVariable> variables = new HashMap<>();
     boolean isPBased = typecheckLevelParameters(def.getLevelParameters(), parameters, variables);
     typechecker.setLevelContext(new LevelContext(variables, isPBased));
     return parameters;

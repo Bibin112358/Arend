@@ -88,20 +88,13 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   public void useTest2() {
     typeCheckModule(
       "\\data D.{p2,p1} (A : \\Type p2) | con Nat\n" +
-      "  \\where \\use \\coerce test (A : \\Type p2) (n : Nat) : D A => con n");
+      "  \\where \\use \\coerce test.{p2,p1} (A : \\Type p2) (n : Nat) : D A => con n");
     assertEquals(2, getDefinition("D.test").getLevelParameters().size());
   }
 
   @Test
   public void useError() {
-    typeCheckModule(
-      "\\data D.{p1,p2} (A : \\Type p2) | con Nat\n" +
-      "  \\where \\use \\coerce test.{p3,p4} {A : \\Type p3} (n : Nat) : D A => con n", 1);
-  }
-
-  @Test
-  public void useError2() {
-    typeCheckModule(
+    resolveNamesModule(
       "\\data D.{p1,p2} (A : \\Type p2) | con Nat\n" +
       "  \\where \\use \\coerce test {A : \\Type p1} (n : Nat) : D A => con n", 1);
   }
