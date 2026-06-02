@@ -267,14 +267,7 @@ public class UseTypechecking {
     } else if (useParent instanceof FunctionDefinition) {
       ((FunctionDefinition) useParent).addParametersLevel(parametersLevel);
     } else {
-      ClassDefinition classDef = (ClassDefinition) useParent;
-      ClassDefinition.ParametersLevel classParametersLevel = (ClassDefinition.ParametersLevel) parametersLevel;
-      if (classParametersLevel.fields == null) {
-        classDef.setSquasher(useDefinition);
-        classDef.setSortExpression(new SortExpression.Const(parametersLevel.level.equals(ConstLevel.PROP.value()) ? Sort.PROP : new Sort(classDef.getSortExpression().withInfLevel().getPLevel(), new ConstLevel(parametersLevel.level))));
-      } else {
-        classDef.addParametersLevel(classParametersLevel);
-      }
+      ((ClassDefinition) useParent).addParametersLevel((ClassDefinition.ParametersLevel) parametersLevel);
     }
   }
 }

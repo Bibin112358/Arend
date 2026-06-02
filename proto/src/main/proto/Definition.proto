@@ -63,7 +63,6 @@ message Definition {
         repeated ClassParametersLevel parameters_level = 11;
         map<int32, OverriddenData> overridden_field = 23;
         repeated int32 covariant_field = 20;
-        int32 squasher = 13;
         map<int32, Levels> super_levels = 19;
         UniverseKind base_universe_kind = 21;
         repeated int32 omega_field = 22;

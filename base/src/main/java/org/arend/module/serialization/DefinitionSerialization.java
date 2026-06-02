@@ -186,15 +186,14 @@ public class DefinitionSerialization implements ArendSerializer {
     if (!definition.getCoerceData().isEmpty()) {
       builder.setCoerceData(writeCoerceData(definition.getCoerceData()));
     }
-    if (definition.getSquasher() != null) {
-      builder.setSquasher(myCallTargetIndexProvider.getDefIndex(definition.getSquasher()));
-    }
 
     for (ClassDefinition.ParametersLevel parametersLevel : definition.getParametersLevels()) {
       DefinitionProtos.Definition.ClassParametersLevel.Builder parametersLevelBuilder = DefinitionProtos.Definition.ClassParametersLevel.newBuilder();
       parametersLevelBuilder.setParametersLevel(writeParametersLevel(defSerializer, parametersLevel));
-      for (ClassField field : parametersLevel.fields) {
-        parametersLevelBuilder.addField(myCallTargetIndexProvider.getDefIndex(field));
+      if (parametersLevel.fields != null) {
+        for (ClassField field : parametersLevel.fields) {
+          parametersLevelBuilder.addField(myCallTargetIndexProvider.getDefIndex(field));
+        }
       }
       if (parametersLevel.strictList != null) {
         parametersLevelBuilder.setIsStrict(true);

@@ -42,7 +42,6 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
   private Set<ClassField> myGoodThisFields = Collections.emptySet();
   private Set<ClassField> myTypeClassParameters = Collections.emptySet();
   private final ParametersLevels<ParametersLevel> myParametersLevels = new ParametersLevels<>();
-  private FunctionDefinition mySquasher;
   private Map<ClassDefinition, Levels> mySuperLevels = Collections.emptyMap();
   private final Set<ClassField> myOmegaFields = new HashSet<>();
   private UniverseKind myBaseUniverseKind = UniverseKind.NO_UNIVERSES; // TODO[sorts]: Delete this
@@ -124,14 +123,6 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     myParametersLevels.add(parametersLevel);
   }
 
-  public FunctionDefinition getSquasher() {
-    return mySquasher;
-  }
-
-  public void setSquasher(FunctionDefinition squasher) {
-    mySquasher = squasher;
-  }
-
   public Map<ClassDefinition, Levels> getSuperLevels() {
     return mySuperLevels;
   }
@@ -166,18 +157,19 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
   public BigInteger getUseLevel(Map<ClassField,Expression> implemented, Binding thisBinding, boolean isStrict) {
     loop:
     for (ParametersLevel parametersLevel : myParametersLevels.getList()) {
-      if (isStrict && parametersLevel.strictList == null || parametersLevel.fields.size() > implemented.size()) {
+      List<ClassField> fields = parametersLevel.fields == null ? Collections.emptyList() : parametersLevel.fields;
+      if (isStrict && parametersLevel.strictList == null || fields.size() > implemented.size()) {
         continue;
       }
-      if (parametersLevel.fields.size() != implemented.size()) {
+      if (fields.size() != implemented.size()) {
         for (ClassField field : implemented.keySet()) {
-          if (!field.isProperty() && !parametersLevel.fields.contains(field)) {
+          if (!field.isProperty() && !fields.contains(field)) {
             continue loop;
           }
         }
       }
       List<Expression> expressions = new ArrayList<>();
-      for (ClassField field : parametersLevel.fields) {
+      for (ClassField field : fields) {
         Expression expr = implemented.get(field);
         if (expr == null || expr.accept(new FindBindingVisitor(Collections.singleton(thisBinding), true), null)) {
           continue loop;
@@ -243,10 +235,6 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
 
   public @Nullable Sort getSort() {
     return mySort instanceof SortExpression.Const(Sort sort) ? sort : null;
-  }
-
-  public void setSortExpression(SortExpression sort) {
-    mySort = sort;
   }
 
   @Override

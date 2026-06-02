@@ -84,7 +84,6 @@ public class UseTest extends TypeCheckingTestCase {
           \\use \\level isProp (c1 c2 : C) : c1 = c2 => absurd c1.d
       """);
     assertEquals(Sort.SetOfLevel(new Level(LevelVariable.PVAR)), ((DataDefinition) getDefinition("D")).getSort());
-    assertEquals(Sort.PROP, ((ClassDefinition) getDefinition("C")).getSort());
   }
 
   @Test
