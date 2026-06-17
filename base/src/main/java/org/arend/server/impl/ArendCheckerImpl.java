@@ -237,6 +237,27 @@ public class ArendCheckerImpl implements ArendChecker {
                       if (cause != null) updater.put(cause, error::setCauseSourceNode);
                     }
                     update = !entry.getValue().compare(newData, updater);
+                    if (!update && entry.getValue().definition().getData() != newData.definition().getData()) {
+                      // The definition itself has not changed, but its referable was recreated
+                      // (this happens when the previously resolved definitions are discarded, e.g.
+                      // because the previous version of the module had resolver errors). The
+                      // typechecking errors are stored under the old (now orphaned) referable, while
+                      // the recreated referable will be typechecked from scratch. Drop the stale
+                      // errors of the old referable to avoid duplicated/lingering errors.
+                      myServer.getErrorService().resetDefinition(entry.getValue().definition().getData());
+                    }
+                    if (!update && !myServer.getErrorService().getTypecheckingErrors(entry.getValue().definition().getData()).isEmpty()) {
+                      // The definition itself has not changed, but it still has typechecking errors.
+                      // Such an error may have been caused by another definition that has since been
+                      // fixed: e.g. a cascading "unsolved metavariable" error whose real cause was a
+                      // different definition. The reverse-dependency edge that would normally trigger
+                      // re-typechecking of this definition may be missing (typechecking was aborted by
+                      // the error, so the dependency was never recorded). Force re-typechecking here so
+                      // that stale errors disappear once their cause is fixed, even when the edit
+                      // happens in another definition or module. If the error is genuine, it will be
+                      // reported again during the following typechecking pass.
+                      update = true;
+                    }
                   } else {
                     update = true;
                   }
