@@ -18,6 +18,7 @@
 \import Order.StrictOrder
 \import Paths
 \import Paths.Meta
+\import Set.Fin
 \import Set.Subset
 \import Topology.CoverSpace
 \import Topology.MetricSpace
@@ -90,6 +91,12 @@
   \lemma norm_BigSum {l : Array E} : norm (BigSum l) <= ExUpperRealAbMonoid.BigSum \lam j => norm (l j) \elim l
     | nil => transportInv (`<= _) norm_zro <=-refl
     | x :: l => norm_+ <=∘ <=_+ <=-refl norm_BigSum
+
+  -- | `FinSum` analog of `norm_BigSum` on `Fin n`.
+  \lemma norm_FinSum {A : FinSet} {f : A -> E} : norm (FinSum f) <= ExUpperRealAbMonoid.FinSum (\lam j => norm (f j))
+    => \case FinSum_char f \with {
+      | inP (e,p) => transportInv (norm __ <= _) p $ norm_BigSum <=∘ =_<= (inv $ ExUpperRealAbMonoid.FinSum_char2 e)
+    }
 }
 
 \lemma norm>=0 {X : ExPseudoNormedAbGroup} {x : X} : 0 <= norm x
@@ -114,8 +121,12 @@
   \default norm-ext p => dist-ext $ norm-dist *> pmap norm (pmap (_ +) negative_zro *> zro-right) *> p
 }
 
-\class BoundedExPseudoNormedAbGroup \extends ExPseudoNormedAbGroup
+\class BoundedExPseudoNormedAbGroup \extends ExPseudoNormedAbGroup {
   | norm-bounded (x : E) : (norm x).IsBounded
+
+  \lemma distBounded : IsDistBounded
+    => \lam x y => rewrite norm-dist (norm-bounded _)
+}
 
 \func bnorm {X : BoundedExPseudoNormedAbGroup} (x : X) : UpperReal \cowith
   | ExUpperReal => norm x
