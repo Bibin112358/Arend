@@ -31,7 +31,7 @@
       }
     }
 
-  \lemma *q-right-uniform {q : Rat} : TopAbGroupMap \this \this (q *q) \cowith
+  \protected \lemma *q-right-uniform {q : Rat} : TopAbGroupMap \this \this (q *q) \cowith
     | func-+ => toRatModule.*c-ldistr
     | func-uniform Eu =>
       \have cu => *i-uniform ∘ *q_<=1-right-uniform (RatField.finv>=0 fromNat_>=0) (RatField.finv_<= idp $ fromInt_<= $ pos<=pos $ suc_<_<= $ nonZero>0 ratDenom/=0)

@@ -12,7 +12,6 @@
 \import Algebra.Ring.Localization
 \import Algebra.Ring.Localization.Field
 \import Algebra.Semiring
-\import Arith.Fin
 \import Arith.Int
 \import Arith.Nat
 \import Data.Bool

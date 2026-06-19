@@ -8,7 +8,7 @@
 \import Arith.Exp
 \import Arith.Real
 \import Arith.Real.Field
-\import Arith.Trig
+\import Arith.Trig.Real
 \import Paths
 \import Paths.Meta
 \open Complex \using (iunit \as i)
@@ -29,4 +29,4 @@
      $z := \exp(i \cdot \mathrm{fromReal}\,x)$, using $\cos x = \Re z$ and
      $\sin x = \Im z$ (definitions of `cos` / `sin` in `Arith.Trig`). -}
 \lemma euler {x : Real} : exp (i * x) = fromReal (cos x) + i * sin x
-  => complex-decomp (exp (i * x))
+  => complex-decomp (exp (i * x)) *> inv (pmap2 (fromReal __ + i * fromReal __) (\peval cos x) (\peval sin x))
