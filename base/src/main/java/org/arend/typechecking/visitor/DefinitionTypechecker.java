@@ -458,53 +458,50 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     ExprSubstitution substitution = fieldType == null ? null : new ExprSubstitution();
     int skip = def instanceof Concrete.CoClauseFunctionDefinition ? ((Concrete.CoClauseFunctionDefinition) def).getNumberOfExternalParameters() : 0;
 
-    List<Concrete.Parameter> parameters = new ArrayList<>();
-    List<SortLevelVariable> sortLevelVariables = new ArrayList<>();
     List<Integer> sortLevelParamIndices = new ArrayList<>();
-    if (def instanceof Concrete.FunctionDefinition || def instanceof Concrete.DataDefinition) {
-      for (Concrete.Parameter parameter : def.getParameters()) {
-        if (parameter instanceof Concrete.TelescopeParameter tele && tele.type != null && tele.type.isInfSort()) {
-          for (Referable ref : tele.getReferableList()) {
-            SortLevelVariable slv = new SortLevelVariable(sortLevelVariables.size());
-            sortLevelVariables.add(slv);
-            parameters.add(new Concrete.TelescopeParameter(parameter.getData(), parameter.isExplicit(), Collections.singletonList(ref), tele.type, tele.isProperty()));
-          }
-        } else {
-          parameters.add(parameter);
-        }
-      }
-    } else {
-      parameters.addAll(def.getParameters());
+    if (def instanceof Concrete.DataDefinition || def instanceof Concrete.FunctionDefinition) {
+      // It is probably empty anyway, but let's clear it just in case.
+      typechecker.getSortLevelVariables().clear();
     }
 
     boolean first = true;
-    int sortLevelVarIndex = 0;
     int paramIndex = 0;
-    for (Concrete.Parameter parameter : parameters) {
+    for (Concrete.Parameter parameter : def.getParameters()) {
       if (skip == 0 && resultType != null && !(resultType instanceof ErrorExpression)) {
         resultType = resultType.normalize(NormalizationMode.WHNF).getUnderlyingExpression();
       }
 
-      boolean isInfSort = parameter.getType() != null && parameter.getType().isInfSort();
-      if (isInfSort && sortLevelVarIndex < sortLevelVariables.size()) {
-        sortLevelParamIndices.add(paramIndex);
-        typechecker.setSortLevelVariable(sortLevelVariables.get(sortLevelVarIndex++));
-      }
-
-      Expression paramResult = null;
+      List<Expression> paramResults = new ArrayList<>();
       if (parameter.getType() != null) {
+        int numberOfSortLevelVars = typechecker.getSortLevelVariables().size();
         if (def instanceof Concrete.Constructor) {
           TypeExpression paramType = typechecker.checkType(parameter.getType(), UniverseExpression.OMEGA);
           if (paramType != null) {
-            paramResult = paramType.expression();
+            paramResults.add(paramType.expression());
             sorts.add(paramType.sort());
           }
         } else {
-          TypecheckingResult paramType = typechecker.finalCheckExpr(parameter.getType(), UniverseExpression.OMEGA);
-          if (paramType != null) paramResult = paramType.expression;
+          TypecheckingResult paramType = typechecker.finalCheckExpr(parameter.getType(), def instanceof Concrete.DataDefinition || def instanceof Concrete.FunctionDefinition ? UniverseExpression.INF_OMEGA : UniverseExpression.OMEGA);
+          if (paramType != null) {
+            paramResults.add(paramType.expression);
+          }
         }
+        boolean isInfSort = typechecker.getSortLevelVariables().size() > numberOfSortLevelVars;
         if (isInfSort) {
-          typechecker.setSortLevelVariable(null);
+          int numberOfParameters = parameter.getNumberOfParameters();
+          List<SortLevelVariable> vars = typechecker.getSortLevelVariables();
+          int diff = vars.size() - numberOfSortLevelVars;
+          for (int i = 0; i < numberOfParameters; i++) {
+            for (int j = 0; j < diff; j++) {
+              sortLevelParamIndices.add(paramIndex + i);
+              if (i > 0) {
+                vars.add(new SortLevelVariable(vars.size()));
+              }
+            }
+            if (i > 0) {
+              paramResults.add(paramResults.getFirst().replaceInfinityLevels(vars.subList(vars.size() - diff, vars.size())));
+            }
+          }
         }
         if (typedParameters != null) {
           typedParameters.add(true);
@@ -520,7 +517,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
           if (thisRef != null && paramType.findBinding(thisRef)) {
             errorReporter.report(new TypeFromFieldError(typechecker.getExpressionPrettifier(), TypeFromFieldError.parameter(), paramType, parameter));
           } else {
-            paramResult = paramType.subst(substitution, typedDef.getEnclosingClass() == null ? LevelSubstitution.EMPTY : typedDef.getEnclosingClass().levelSubstitutionFor(implementedField.getParentClass()));
+            paramResults.add(paramType.subst(substitution, typedDef.getEnclosingClass() == null ? LevelSubstitution.EMPTY : typedDef.getEnclosingClass().levelSubstitutionFor(implementedField.getParentClass())));
           }
         } else if (resultType == null || typedDef == null || !resultType.reportIfError(errorReporter, parameter)) {
           if (resultType == null || typedDef == null) {
@@ -536,12 +533,12 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
         }
       }
       boolean isProperty = parameter.isProperty();
-      if (paramResult == null) {
+      if (paramResults.isEmpty()) {
         if (typedParameters == null) {
-          paramResult = new ErrorExpression();
+          paramResults.add(new ErrorExpression());
         }
-      } else if (isProperty && !(paramResult instanceof ErrorExpression)) {
-        Sort paramSort = paramResult.getSortOfType();
+      } else if (isProperty && !(paramResults.getFirst() instanceof ErrorExpression)) {
+        Sort paramSort = paramResults.getFirst().getSortOfType();
         if (paramSort == null || !Sort.compare(paramSort, Sort.PROP, CMP.LE, typechecker.getEquations(), parameter)) {
           errorReporter.report(new TypecheckingError("The type of the parameter should live in \\Prop, but lives in " + paramSort, parameter));
           isProperty = false;
@@ -559,10 +556,21 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
         }
 
         List<String> names = parameter.getNames();
-        param = paramResult == null ? null
-            : referableList.size() == 1 && referableList.getFirst() instanceof HiddenLocalReferable
-            ? parameter(parameter.isExplicit(), isProperty, names.getFirst(), paramResult, true)
-            : parameter(parameter.isExplicit(), isProperty, names, paramResult);
+        if (paramResults.isEmpty()) {
+          param = null;
+        } else if (referableList.size() == 1 && referableList.getFirst() instanceof HiddenLocalReferable) {
+          param = parameter(parameter.isExplicit(), isProperty, names.getFirst(), paramResults.getFirst(), true);
+        } else if (paramResults.size() == names.size()) {
+          param = parameter(parameter.isExplicit(), isProperty, names.getFirst(), paramResults.getFirst(), false);
+          DependentLink current = param;
+          for (int i = 1; i < names.size(); i++) {
+            DependentLink newParam = parameter(parameter.isExplicit(), isProperty, names.get(i), paramResults.get(i), false);
+            current.setNext(newParam);
+            current = newParam;
+          }
+        } else {
+          param = parameter(parameter.isExplicit(), isProperty, names, paramResults.getFirst());
+        }
         numberOfParameters = names.size();
 
         int i = 0;
@@ -574,7 +582,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       } else {
         numberOfParameters = 1;
         Referable ref = parameter.getReferableList().getFirst();
-        param = paramResult == null ? null : parameter(parameter.isExplicit(), isProperty, Collections.singletonList(ref == null ? null : ref.getRefName()), paramResult);
+        param = paramResults.isEmpty() ? null : parameter(parameter.isExplicit(), isProperty, Collections.singletonList(ref == null ? null : ref.getRefName()), paramResults.getFirst());
         if (param != null) {
           typechecker.addBinding(ref, param);
         }
@@ -603,8 +611,8 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
         }
       }
 
-      if (localInstancePool != null && paramResult instanceof ClassCallExpression && param != null) {
-        ClassDefinition classDef = ((ClassCallExpression) paramResult).getDefinition();
+      if (localInstancePool != null && !paramResults.isEmpty() && paramResults.getFirst() instanceof ClassCallExpression && param != null) {
+        ClassDefinition classDef = ((ClassCallExpression) paramResults.getFirst()).getDefinition();
         if (!classDef.isRecord() && ArendInstances.getClassRef(parameter.getType(), null) != null) {
           ClassField classifyingField = classDef.getClassifyingField();
           int i = 0;
@@ -637,8 +645,8 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       if (skip > 0) skip--;
     }
 
-    if (!sortLevelVariables.isEmpty() && typedDef instanceof TopLevelDefinition topLevel) {
-      topLevel.setSortLevelParameters(sortLevelVariables);
+    if (!typechecker.getSortLevelVariables().isEmpty() && typedDef instanceof TopLevelDefinition topLevel) {
+      topLevel.setSortLevelParameters(typechecker.getSortLevelVariables());
       topLevel.setSortLevelArgumentIndices(sortLevelParamIndices);
     }
 
@@ -2430,7 +2438,16 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
           }
           if (previousType == field.getResultType()) {
             if (previousField != null) {
-              ClassField newField = addField(field.getData(), typedDef, previousField.getType(), previousField.getTypeLevel());
+              PiExpression newType = previousField.getType();
+              if (!typechecker.getSortLevelVariables().isEmpty()) {
+                List<SortLevelVariable> vars = typechecker.getSortLevelVariables();
+                List<SortLevelVariable> classVars = typedDef.getSortLevelParameters();
+                for (SortLevelVariable ignored : vars) {
+                  classVars.add(new SortLevelVariable(classVars.size()));
+                }
+                newType = newType.replaceInfinityLevels(classVars.subList(classVars.size() - vars.size(), classVars.size()));
+              }
+              ClassField newField = addField(field.getData(), typedDef, newType, previousField.getTypeLevel());
               newField.setStatus(previousField.status());
               newField.setUniverseKind(previousField.getUniverseKind());
               newField.setNumberOfParameters(previousField.getNumberOfParameters());
@@ -3016,16 +3033,14 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       instancePool.setInstancePool(localInstancePool);
       typechecker.setInstancePool(instancePool);
       ClassFieldKind kind = def instanceof Concrete.ClassField ? ((Concrete.ClassField) def).getKind() : typedDef == null ? ClassFieldKind.ANY : typedDef.isProperty() ? ClassFieldKind.PROPERTY : ClassFieldKind.FIELD;
-      if (def instanceof Concrete.ClassField && codomain.isInfSort()) {
-        SortLevelVariable slv = new SortLevelVariable(parentClass.getSortLevelParameters().size());
+      typechecker.getSortLevelVariables().clear();
+      TypeExpression typeResult = typechecker.finalCheckType(codomain, def instanceof Concrete.ClassField ? UniverseExpression.INF_OMEGA : UniverseExpression.OMEGA);
+      if (!typechecker.getSortLevelVariables().isEmpty()) {
         if (parentClass.getSortLevelParameters().isEmpty()) {
           parentClass.setSortLevelParameters(new ArrayList<>());
         }
-        parentClass.getSortLevelParameters().add(slv);
-        typechecker.setSortLevelVariable(slv);
+        parentClass.getSortLevelParameters().addAll(typechecker.getSortLevelVariables());
       }
-      TypeExpression typeResult = typechecker.finalCheckType(codomain, UniverseExpression.OMEGA);
-      typechecker.setSortLevelVariable(null);
       ok = typeResult != null;
       piType = new PiExpression(thisParam, ok ? typeResult.expression() : new ErrorExpression());
 

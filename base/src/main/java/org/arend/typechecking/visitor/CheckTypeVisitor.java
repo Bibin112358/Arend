@@ -114,7 +114,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   private Definition myDefinition;
   private Set<TCDefReferable> myRecursiveDefinitions = Collections.emptySet();
   private boolean myAllowDeferredMetas = true;
-  private SortLevelVariable mySortLevelVariable;
+  private final List<SortLevelVariable> mySortLevelVariables = new ArrayList<>();
 
   private record DeferredMeta(MetaDefinition meta, Map<Referable, Binding> context, LocalExpressionPrettifier localPrettifier, ContextDataImpl contextData, InferenceVariable inferenceVar, MyErrorReporter errorReporter) {}
 
@@ -183,16 +183,12 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     myDefinition = definition;
   }
 
-  public SortLevelVariable getSortLevelVariable() {
-    return mySortLevelVariable;
-  }
-
-  public void setSortLevelVariable(SortLevelVariable variable) {
-    mySortLevelVariable = variable;
-  }
-
   public void setRecursiveDefinitions(Set<TCDefReferable> definitions) {
     myRecursiveDefinitions = definitions;
+  }
+
+  public List<SortLevelVariable> getSortLevelVariables() {
+    return mySortLevelVariables;
   }
 
   public static CheckTypeVisitor loadTypecheckingContext(TypecheckingContext typecheckingContext, ErrorReporter errorReporter) {
@@ -2541,7 +2537,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
         list.add(link);
       }
 
-      TypeExpression result = checkType(expr.getCodomain(), UniverseExpression.OMEGA);
+      TypeExpression result = checkType(expr.getCodomain(), expectedType == UniverseExpression.INF_OMEGA ? expectedType : UniverseExpression.OMEGA);
       if (result == null) return null;
 
       Expression piExpr = result.expression();
@@ -3372,13 +3368,20 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
   @Override
   public TypecheckingResult visitUniverse(Concrete.UniverseExpression expr, Expression expectedType) {
-    if (mySortLevelVariable != null && expr.isInfSort()) {
-      SortExpression sort = new SortExpression.LVar(mySortLevelVariable);
+    if (expr.isInfSort() && expectedType == UniverseExpression.INF_OMEGA) {
+      SortLevelVariable var = new SortLevelVariable(mySortLevelVariables.size());
+      mySortLevelVariables.add(var);
+      SortExpression sort = new SortExpression.LVar(var);
       return checkResult(expectedType, new TypecheckingResult(new UniverseExpression(sort), new UniverseExpression(SortExpression.makeSucc(sort))), expr);
     }
 
     if (expr.getKind() == ConcreteUniverseExpression.Kind.SORT) {
       errorReporter.report(new TypecheckingError("\\Sort is not allowed here", expr));
+      return null;
+    }
+
+    if (expr.isInfSort()) {
+      errorReporter.report(new TypecheckingError("Infinite level is not allowed here", expr));
       return null;
     }
 
