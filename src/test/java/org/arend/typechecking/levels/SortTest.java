@@ -17,6 +17,7 @@ import org.arend.core.sort.SortExpression;
 import org.arend.typechecking.TypeCheckingTestCase;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -249,8 +250,8 @@ public class SortTest extends TypeCheckingTestCase {
 
   @Test
   public void splitParameters() {
-    Definition def = typeCheckDef("\\func test (A B C : \\Sort) (x : C) (D E : A -> \\Sort) => 0");
-    List<SortLevelVariable> vars = ((FunctionDefinition) def).getSortLevelParameters();
+    FunctionDefinition def = (FunctionDefinition) typeCheckDef("\\func test (A B C : \\Sort) (x : C) (D E : A -> \\Sort) => 0");
+    List<SortLevelVariable> vars = def.getSortLevelParameters();
     assertEquals(5, vars.size());
     DependentLink param = def.getParameters();
     assertEquals(new UniverseExpression(new SortExpression.LVar(vars.get(0))), param.getType());
@@ -262,6 +263,7 @@ public class SortTest extends TypeCheckingTestCase {
     assertEquals(new PiExpression(new TypedSingleDependentLink(true, null, new ReferenceExpression(def.getParameters())), new UniverseExpression(new SortExpression.LVar(vars.get(3)))), param.getType());
     param = param.getNext();
     assertEquals(new PiExpression(new TypedSingleDependentLink(true, null, new ReferenceExpression(def.getParameters())), new UniverseExpression(new SortExpression.LVar(vars.get(4)))), param.getType());
+    assertEquals(Arrays.asList(0, 1, 2, 4, 5), def.getSortLevelArgumentIndices());
   }
 
   @Test
@@ -275,5 +277,67 @@ public class SortTest extends TypeCheckingTestCase {
     assertEquals(new UniverseExpression(new SortExpression.LVar(vars.get(2))), fields.get(2).getResultType());
     assertEquals(new PiExpression(new TypedSingleDependentLink(true, null, ExpressionFactory.Nat()), new UniverseExpression(new SortExpression.LVar(vars.get(3)))), fields.get(4).getResultType());
     assertEquals(new PiExpression(new TypedSingleDependentLink(true, null, ExpressionFactory.Nat()), new UniverseExpression(new SortExpression.LVar(vars.get(4)))), fields.get(5).getResultType());
+    assertEquals(Arrays.asList(fields.get(0), fields.get(1), fields.get(2), fields.get(4), fields.get(5)), def.getSortLevelFields());
+  }
+
+  @Test
+  public void splitFieldsImplement() {
+    ClassDefinition def = (ClassDefinition) typeCheckDef("\\record R (A B C : \\Sort) | B => Nat");
+    List<SortLevelVariable> vars = def.getSortLevelParameters();
+    List<? extends ClassField> fields = def.getPersonalFields();
+    assertEquals(2, vars.size());
+    assertEquals(new UniverseExpression(new SortExpression.LVar(vars.get(0))), fields.get(0).getResultType());
+    assertEquals(new UniverseExpression(new SortExpression.LVar(vars.get(1))), fields.get(2).getResultType());
+    assertEquals(Arrays.asList(fields.get(0), fields.get(2)), def.getSortLevelFields());
+  }
+
+  @Test
+  public void splitFieldsExtend() {
+    typeCheckModule("""
+      \\record R (A B C D : \\Sort)
+      \\record S \\extends R
+        | A => Nat
+        | C => Nat
+      """);
+    ClassDefinition def = (ClassDefinition) getDefinition("S");
+    List<SortLevelVariable> vars = def.getSortLevelParameters();
+    List<? extends ClassField> fields = ((ClassDefinition) getDefinition("R")).getPersonalFields();
+    assertEquals(2, vars.size());
+    assertEquals(new UniverseExpression(new SortExpression.LVar(vars.get(0))), fields.get(1).getResultType());
+    assertEquals(new UniverseExpression(new SortExpression.LVar(vars.get(1))), fields.get(3).getResultType());
+    assertEquals(Arrays.asList(fields.get(1), fields.get(3)), def.getSortLevelFields());
+  }
+
+  @Test
+  public void splitFieldsExtend2() {
+    typeCheckModule("""
+      \\record R (A B : \\Sort)
+      \\record S (C D : \\Sort) (c : C) (d : D)
+      \\record T \\extends R, S
+      \\func test : \\Type3 => T { | A => \\Set0 | B => \\Set1 | C => \\Set2 | D => \\Set3 }
+      """, 1);
+    assertThatErrorsAre(Matchers.typeMismatchError());
+  }
+
+  @Test
+  public void splitFieldsExtend3() {
+    typeCheckModule("""
+      \\record R (A B : \\Sort)
+      \\record S (C D : \\Sort)
+      \\record T \\extends R, S
+      \\func test (t : T \\Set0 \\Set1 \\Set2 \\Set3) : \\Set3 => t.C
+      """, 1);
+    assertThatErrorsAre(Matchers.typeMismatchError());
+  }
+
+  @Test
+  public void splitFieldsExtend4() {
+    typeCheckModule("""
+      \\record R (A B : \\Sort)
+      \\record S (C D : \\Sort)
+      \\record T \\extends R, S
+      \\func test (t : T \\Set0 \\Set1 \\Set2 \\Set3) : \\Set1 => t.C
+      """, 1);
+    assertThatErrorsAre(Matchers.typeMismatchError());
   }
 }

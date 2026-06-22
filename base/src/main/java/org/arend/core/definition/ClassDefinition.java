@@ -1,6 +1,7 @@
 package org.arend.core.definition;
 
 import org.arend.core.context.binding.Binding;
+import org.arend.core.context.binding.SortLevelVariable;
 import org.arend.core.context.param.DependentLink;
 import org.arend.core.expr.*;
 import org.arend.core.expr.visitor.FindBindingVisitor;
@@ -124,6 +125,10 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     myParametersLevels.add(parametersLevel);
   }
 
+  /**
+   * The length of this list is equal to the length of {@link #getSortLevelParameters} and it gives the field
+   * corresponding to this {@link SortLevelVariable}.
+   */
   public List<ClassField> getSortLevelFields() {
     return mySortLevelFields;
   }

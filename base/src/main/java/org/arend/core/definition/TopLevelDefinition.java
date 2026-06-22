@@ -58,6 +58,10 @@ public abstract class TopLevelDefinition extends CallableDefinition {
     mySortLevelParameters = parameters;
   }
 
+  /**
+   * The length of this list is equal to the length of {@link #getSortLevelParameters} and it gives the index
+   * in {@link #getParameters()} of the parameter corresponding to this {@link SortLevelVariable}.
+   */
   public List<Integer> getSortLevelArgumentIndices() {
     return mySortLevelArgumentIndices;
   }
