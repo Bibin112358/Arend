@@ -459,16 +459,18 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     int skip = def instanceof Concrete.CoClauseFunctionDefinition ? ((Concrete.CoClauseFunctionDefinition) def).getNumberOfExternalParameters() : 0;
 
     List<Concrete.Parameter> parameters = new ArrayList<>();
+    List<SortLevelVariable> sortLevelVariables = new ArrayList<>();
+    List<Integer> sortLevelParamIndices = new ArrayList<>();
     if (def instanceof Concrete.FunctionDefinition || def instanceof Concrete.DataDefinition) {
-      int index = 0;
       for (Concrete.Parameter parameter : def.getParameters()) {
         if (parameter instanceof Concrete.TelescopeParameter tele && tele.type != null && tele.type.isInfSort()) {
           for (Referable ref : tele.getReferableList()) {
-            parameters.add(new Concrete.TelescopeParameter(parameter.getData(), parameter.isExplicit(), Collections.singletonList(ref), tele.type.withInfIndex(index++), tele.isProperty()));
+            SortLevelVariable slv = new SortLevelVariable(sortLevelVariables.size());
+            sortLevelVariables.add(slv);
+            parameters.add(new Concrete.TelescopeParameter(parameter.getData(), parameter.isExplicit(), Collections.singletonList(ref), tele.type, tele.isProperty()));
           }
         } else {
           parameters.add(parameter);
-          index += parameter.getNumberOfParameters();
         }
       }
     } else {
@@ -476,9 +478,17 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     }
 
     boolean first = true;
+    int sortLevelVarIndex = 0;
+    int paramIndex = 0;
     for (Concrete.Parameter parameter : parameters) {
       if (skip == 0 && resultType != null && !(resultType instanceof ErrorExpression)) {
         resultType = resultType.normalize(NormalizationMode.WHNF).getUnderlyingExpression();
+      }
+
+      boolean isInfSort = parameter.getType() != null && parameter.getType().isInfSort();
+      if (isInfSort && sortLevelVarIndex < sortLevelVariables.size()) {
+        sortLevelParamIndices.add(paramIndex);
+        typechecker.setSortLevelVariable(sortLevelVariables.get(sortLevelVarIndex++));
       }
 
       Expression paramResult = null;
@@ -492,6 +502,9 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
         } else {
           TypecheckingResult paramType = typechecker.finalCheckExpr(parameter.getType(), UniverseExpression.OMEGA);
           if (paramType != null) paramResult = paramType.expression;
+        }
+        if (isInfSort) {
+          typechecker.setSortLevelVariable(null);
         }
         if (typedParameters != null) {
           typedParameters.add(true);
@@ -615,10 +628,18 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
         if (first && typedDef != null) {
           typedDef.setParameters(param);
         }
+        for (DependentLink link = param; link.hasNext(); link = link.getNext()) {
+          paramIndex++;
+        }
       }
 
       first = false;
       if (skip > 0) skip--;
+    }
+
+    if (!sortLevelVariables.isEmpty() && typedDef instanceof TopLevelDefinition topLevel) {
+      topLevel.setSortLevelParameters(sortLevelVariables);
+      topLevel.setSortLevelArgumentIndices(sortLevelParamIndices);
     }
 
     return new Pair<>(SortExpression.makeMax(sorts), resultType == null ? null : resultType.subst(substitution));
@@ -1808,7 +1829,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     dataDefinition.getConstructors().clear();
 
     Sort userSort = dataDefinition.getSort();
-    dataDefinition.setSortExpression(new SortExpression.Var(DependentLink.Helper.size(dataDefinition.getParameters())));
+    dataDefinition.setSortExpression(new SortExpression.LVar(new SortLevelVariable(dataDefinition.getSortLevelParameters().size())));
     List<SortExpression> inferredSortList = new ArrayList<>();
 
     boolean dataOk = true;
@@ -1996,13 +2017,13 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
 
     SortExpression inferredSort = SortExpression.makeMax(inferredSortList);
     {
-      List<Expression> arguments = new ArrayList<>();
-      for (DependentLink param = dataDefinition.getParameters(); param.hasNext(); param = param.getNext()) {
-        arguments.add(null);
+      List<Expression> sortLevelArgs = new ArrayList<>();
+      for (int i = 0; i < dataDefinition.getSortLevelParameters().size(); i++) {
+        sortLevelArgs.add(null);
       }
-      arguments.add(new UniverseExpression(Sort.PROP));
-      arguments.set(arguments.size() - 1, new UniverseExpression(inferredSort.subst(true, arguments, LevelSubstitution.EMPTY)));
-      inferredSort = inferredSort.subst(true, arguments, LevelSubstitution.EMPTY);
+      sortLevelArgs.add(new UniverseExpression(Sort.PROP));
+      sortLevelArgs.set(sortLevelArgs.size() - 1, new UniverseExpression(inferredSort.subst(true, sortLevelArgs, LevelSubstitution.EMPTY)));
+      inferredSort = inferredSort.subst(true, sortLevelArgs, LevelSubstitution.EMPTY);
     }
     fixParametersSorts(dataDefinition.getParameters());
 
@@ -2957,9 +2978,6 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
 
   private ClassField typecheckClassField(Concrete.BaseClassField def, ClassDefinition parentClass, List<LocalInstance> localInstances, boolean hasClassifyingField, Concrete.ClassDefinition classDef) {
     ClassField typedDef = null;
-    if (def instanceof Concrete.ClassField field) {
-      def.getResultType().setInfField(field.getData());
-    }
     if (def instanceof Concrete.OverriddenField) {
       typedDef = typechecker.referableToClassField(((Concrete.OverriddenField) def).getOverriddenField(), def);
       if (typedDef == null) {
@@ -2998,12 +3016,27 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       instancePool.setInstancePool(localInstancePool);
       typechecker.setInstancePool(instancePool);
       ClassFieldKind kind = def instanceof Concrete.ClassField ? ((Concrete.ClassField) def).getKind() : typedDef == null ? ClassFieldKind.ANY : typedDef.isProperty() ? ClassFieldKind.PROPERTY : ClassFieldKind.FIELD;
+      if (def instanceof Concrete.ClassField && codomain.isInfSort()) {
+        SortLevelVariable slv = new SortLevelVariable(parentClass.getSortLevelParameters().size());
+        if (parentClass.getSortLevelParameters().isEmpty()) {
+          parentClass.setSortLevelParameters(new ArrayList<>());
+        }
+        parentClass.getSortLevelParameters().add(slv);
+        typechecker.setSortLevelVariable(slv);
+      }
       TypeExpression typeResult = typechecker.finalCheckType(codomain, UniverseExpression.OMEGA);
+      typechecker.setSortLevelVariable(null);
       ok = typeResult != null;
       piType = new PiExpression(thisParam, ok ? typeResult.expression() : new ErrorExpression());
 
       if (def instanceof Concrete.ClassField) {
         typedDef = addField(((Concrete.ClassField) def).getData(), parentClass, piType, null);
+        if (codomain.isInfSort()) {
+          if (parentClass.getSortLevelFields().isEmpty()) {
+            parentClass.setSortLevelFields(new ArrayList<>());
+          }
+          parentClass.getSortLevelFields().add(typedDef);
+        }
       }
 
       if (ok && def.getResultTypeLevel() != null) {

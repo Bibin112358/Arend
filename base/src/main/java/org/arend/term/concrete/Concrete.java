@@ -318,11 +318,6 @@ public final class Concrete {
       return false;
     }
 
-    public Expression withInfIndex(int index) {
-      return this;
-    }
-
-    public void setInfField(FieldReferableImpl field) {}
 
     @Override
     public String toString() {
@@ -1204,16 +1199,6 @@ public final class Concrete {
     }
 
     @Override
-    public Expression withInfIndex(int index) {
-      return new PiExpression(getData(), myParameters, codomain.withInfIndex(index));
-    }
-
-    @Override
-    public void setInfField(FieldReferableImpl field) {
-      codomain.setInfField(field);
-    }
-
-    @Override
     public <P, R> R accept(ConcreteExpressionVisitor<? super P, ? extends R> visitor, P params) {
       return visitor.visitPi(this, params);
     }
@@ -1266,19 +1251,12 @@ public final class Concrete {
     private final LevelExpression myPLevel;
     private final BigInteger myHLevel;
     private final Kind myKind;
-    private final Integer myInfIndex;
-    private FieldReferableImpl myInfField;
 
-    private UniverseExpression(Object data, LevelExpression pLevel, BigInteger hLevel, Kind kind, Integer infIndex) {
+    public UniverseExpression(Object data, LevelExpression pLevel, BigInteger hLevel, Kind kind) {
       super(data);
       myPLevel = pLevel;
       myHLevel = hLevel;
       myKind = kind;
-      myInfIndex = infIndex;
-    }
-
-    public UniverseExpression(Object data, LevelExpression pLevel, BigInteger hLevel, Kind kind) {
-      this(data, pLevel, hLevel, kind, null);
     }
 
     @Override
@@ -1299,29 +1277,9 @@ public final class Concrete {
       return myKind;
     }
 
-    public Integer getInfIndex() {
-      return myInfIndex;
-    }
-
-    public FieldReferableImpl getInfField() {
-      return myInfField;
-    }
-
     @Override
     public boolean isInfSort() {
       return myKind == Kind.SORT;
-    }
-
-    @Override
-    public Expression withInfIndex(int index) {
-      return isInfSort() ? new UniverseExpression(getData(), myPLevel, myHLevel, myKind, index) : this;
-    }
-
-    @Override
-    public void setInfField(FieldReferableImpl field) {
-      if (myKind == Kind.SORT) {
-        myInfField = field;
-      }
     }
 
     @Override

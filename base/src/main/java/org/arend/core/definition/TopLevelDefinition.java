@@ -1,10 +1,13 @@
 package org.arend.core.definition;
 
 import org.arend.core.context.binding.LevelVariable;
+import org.arend.core.context.binding.SortLevelVariable;
+import org.arend.core.expr.Expression;
 import org.arend.ext.util.Pair;
 import org.arend.naming.reference.LocatedReferable;
 import org.arend.naming.reference.TCDefReferable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -12,6 +15,8 @@ import java.util.Set;
 public abstract class TopLevelDefinition extends CallableDefinition {
   private UniverseKind myUniverseKind = UniverseKind.NO_UNIVERSES;
   private List<? extends LevelVariable> myLevelParameters;
+  private List<SortLevelVariable> mySortLevelParameters = Collections.emptyList();
+  private List<Integer> mySortLevelArgumentIndices = Collections.emptyList();
   private LocatedReferable myLevelsParent;
   private boolean myLevelsDerived;
   private List<Pair<TCDefReferable,Integer>> myParametersOriginalDefinitions = Collections.emptyList();
@@ -43,6 +48,31 @@ public abstract class TopLevelDefinition extends CallableDefinition {
 
   public void setLevelParameters(List<LevelVariable> parameters) {
     myLevelParameters = parameters;
+  }
+
+  public List<SortLevelVariable> getSortLevelParameters() {
+    return mySortLevelParameters;
+  }
+
+  public void setSortLevelParameters(List<SortLevelVariable> parameters) {
+    mySortLevelParameters = parameters;
+  }
+
+  public List<Integer> getSortLevelArgumentIndices() {
+    return mySortLevelArgumentIndices;
+  }
+
+  public void setSortLevelArgumentIndices(List<Integer> indices) {
+    mySortLevelArgumentIndices = indices;
+  }
+
+  public List<Expression> getSortLevelArguments(List<? extends Expression> allArguments) {
+    if (mySortLevelArgumentIndices.isEmpty()) return Collections.emptyList();
+    List<Expression> result = new ArrayList<>(mySortLevelArgumentIndices.size());
+    for (int index : mySortLevelArgumentIndices) {
+      result.add(index < allArguments.size() ? allArguments.get(index) : null);
+    }
+    return result;
   }
 
   @Override

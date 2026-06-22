@@ -3,6 +3,7 @@ package org.arend.typechecking.visitor;
 import org.arend.core.context.LinkList;
 import org.arend.core.context.Utils;
 import org.arend.core.context.binding.*;
+import org.arend.core.context.binding.SortLevelVariable;
 import org.arend.core.context.binding.inference.*;
 import org.arend.core.context.param.*;
 import org.arend.core.definition.*;
@@ -113,6 +114,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   private Definition myDefinition;
   private Set<TCDefReferable> myRecursiveDefinitions = Collections.emptySet();
   private boolean myAllowDeferredMetas = true;
+  private SortLevelVariable mySortLevelVariable;
 
   private record DeferredMeta(MetaDefinition meta, Map<Referable, Binding> context, LocalExpressionPrettifier localPrettifier, ContextDataImpl contextData, InferenceVariable inferenceVar, MyErrorReporter errorReporter) {}
 
@@ -179,6 +181,14 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
   public void setDefinition(Definition definition) {
     myDefinition = definition;
+  }
+
+  public SortLevelVariable getSortLevelVariable() {
+    return mySortLevelVariable;
+  }
+
+  public void setSortLevelVariable(SortLevelVariable variable) {
+    mySortLevelVariable = variable;
   }
 
   public void setRecursiveDefinitions(Set<TCDefReferable> definitions) {
@@ -3362,12 +3372,8 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
   @Override
   public TypecheckingResult visitUniverse(Concrete.UniverseExpression expr, Expression expectedType) {
-    if (expr.getInfIndex() != null) {
-      SortExpression sort = new SortExpression.Var(expr.getInfIndex());
-      return checkResult(expectedType, new TypecheckingResult(new UniverseExpression(sort), new UniverseExpression(SortExpression.makeSucc(sort))), expr);
-    }
-    if (expr.getInfField() != null) {
-      SortExpression sort = new SortExpression.Field(expr.getInfField());
+    if (mySortLevelVariable != null && expr.isInfSort()) {
+      SortExpression sort = new SortExpression.LVar(mySortLevelVariable);
       return checkResult(expectedType, new TypecheckingResult(new UniverseExpression(sort), new UniverseExpression(SortExpression.makeSucc(sort))), expr);
     }
 

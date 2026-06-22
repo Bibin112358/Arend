@@ -110,7 +110,7 @@ public class SortTest extends TypeCheckingTestCase {
       """);
     checkLevelParameters("R", "test");
     FunctionDefinition function = (FunctionDefinition) getDefinition("test");
-    assertEquals(new UniverseExpression(new SortExpression.Var(0)), function.getResultType());
+    assertEquals(new UniverseExpression(new SortExpression.LVar(function.getSortLevelParameters().getFirst())), function.getResultType());
   }
 
   @Test

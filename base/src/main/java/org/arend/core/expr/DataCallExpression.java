@@ -55,7 +55,7 @@ public class DataCallExpression extends LeveledDefCallExpression implements Core
   }
 
   public SortExpression getSortExpression() {
-    return getDefinition().getSortExpression().subst(false, getDefCallArguments(), getLevelSubstitution());
+    return getDefinition().getSortExpression().subst(false, getDefinition().getSortLevelArguments(getDefCallArguments()), getLevelSubstitution());
   }
 
   @Override

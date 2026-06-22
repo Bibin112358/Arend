@@ -59,6 +59,14 @@ public class DefinitionSerialization implements ArendSerializer {
     for (FunctionDefinition axiom : definition.getAxioms()) {
       out.addAxiom(myCallTargetIndexProvider.getDefIndex(axiom));
     }
+    if (definition instanceof TopLevelDefinition topDef) {
+      for (var slp : topDef.getSortLevelParameters()) {
+        out.addSortLevelParameter(slp.getIndex());
+      }
+      for (int index : topDef.getSortLevelArgumentIndices()) {
+        out.addSortLevelArgumentIndex(index);
+      }
+    }
 
     for (TCDefReferable dependency : myDependencyListener.getDependencies(definition.getRef())) {
       if (dependency instanceof MetaReferable) {
@@ -169,6 +177,9 @@ public class DefinitionSerialization implements ArendSerializer {
     }
     for (ClassField field : definition.getOmegaFields()) {
       builder.addOmegaField(myCallTargetIndexProvider.getDefIndex(field));
+    }
+    for (ClassField field : definition.getSortLevelFields()) {
+      builder.addSortLevelField(myCallTargetIndexProvider.getDefIndex(field));
     }
     // builder.setSort(defSerializer.writeSort(definition.getSortExpression()));
 

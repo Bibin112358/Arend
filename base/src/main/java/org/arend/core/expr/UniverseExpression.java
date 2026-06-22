@@ -34,7 +34,7 @@ public class UniverseExpression extends Expression implements CoreUniverseExpres
   }
 
   public void fixVarSort() {
-    if (mySortExpression instanceof SortExpression.Var) {
+    if (mySortExpression instanceof SortExpression.LVar) {
       mySortExpression = new SortExpression.Const(Sort.INFINITY);
     }
   }
@@ -47,7 +47,7 @@ public class UniverseExpression extends Expression implements CoreUniverseExpres
 
   @Override
   public Expression replaceInfinityLevel(InferenceVariable variable) {
-    return mySortExpression instanceof SortExpression.Const(Sort sort) && sort.getPLevel().isInfinity() || mySortExpression instanceof SortExpression.Var || mySortExpression instanceof SortExpression.Field ? new UniverseExpression(new SortExpression.InfVar(variable)) : null;
+    return mySortExpression instanceof SortExpression.Const(Sort sort) && sort.getPLevel().isInfinity() || mySortExpression instanceof SortExpression.LVar ? new UniverseExpression(new SortExpression.InfVar(variable)) : null;
   }
 
   @Override

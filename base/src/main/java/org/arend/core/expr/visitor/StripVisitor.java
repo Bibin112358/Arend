@@ -214,7 +214,7 @@ public class StripVisitor implements ExpressionVisitor<Void, Expression> {
   private SortExpression visitSort(SortExpression sort) {
     return switch (sort) {
       case SortExpression.Const aConst -> aConst;
-      case SortExpression.Field field -> field;
+      case SortExpression.LVar lvar -> lvar;
       case SortExpression.InfVar infVar -> {
         SortExpression simplified = infVar.simplify();
         if (simplified instanceof SortExpression.InfVar infVar1) {
@@ -234,7 +234,6 @@ public class StripVisitor implements ExpressionVisitor<Void, Expression> {
       case SortExpression.Pi pi -> SortExpression.makePi(visitSort(pi.getDomain()), visitSort(pi.getCodomain()));
       case SortExpression.Prev prev -> SortExpression.makePrev(visitSort(prev.getSort()));
       case SortExpression.Succ succ -> SortExpression.makeSucc(visitSort(succ.getSort()));
-      case SortExpression.Var var -> var;
     };
   }
 

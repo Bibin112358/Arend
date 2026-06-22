@@ -214,7 +214,7 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
     assert arguments.size() == defParams.size();
 
     if (type instanceof UniverseExpression universe) {
-      return new UniverseExpression(universe.getSortExpression().subst(false, arguments, LevelSubstitution.EMPTY));
+      return new UniverseExpression(universe.getSortExpression().subst(false, definition.getSortLevelArguments(arguments), LevelSubstitution.EMPTY));
     } else {
       return type.subst(DependentLink.Helper.toSubstitution(defParams, arguments));
     }
@@ -222,7 +222,7 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
 
   @Override
   public UniverseExpression visitDataCall(DataCallExpression expr, Void params) {
-    return new UniverseExpression(expr.getDefinition().getSortExpression().subst(false, expr.getDefCallArguments(), (myMinimal ? minimizeLevels(expr) : expr.getLevels()).makeSubstitution(expr.getDefinition())));
+    return new UniverseExpression(expr.getDefinition().getSortExpression().subst(false, expr.getDefinition().getSortLevelArguments(expr.getDefCallArguments()), (myMinimal ? minimizeLevels(expr) : expr.getLevels()).makeSubstitution(expr.getDefinition())));
   }
 
   private Levels minimizeLevelsToSuperClass(ClassCallExpression classCall, ClassDefinition superClass) {

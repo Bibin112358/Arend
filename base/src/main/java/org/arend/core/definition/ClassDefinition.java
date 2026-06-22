@@ -44,6 +44,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
   private final ParametersLevels<ParametersLevel> myParametersLevels = new ParametersLevels<>();
   private Map<ClassDefinition, Levels> mySuperLevels = Collections.emptyMap();
   private final Set<ClassField> myOmegaFields = new HashSet<>();
+  private List<ClassField> mySortLevelFields = Collections.emptyList();
   private UniverseKind myBaseUniverseKind = UniverseKind.NO_UNIVERSES; // TODO[sorts]: Delete this
 
   public ClassDefinition(TCDefReferable referable) {
@@ -121,6 +122,14 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
 
   public void addParametersLevel(ParametersLevel parametersLevel) {
     myParametersLevels.add(parametersLevel);
+  }
+
+  public List<ClassField> getSortLevelFields() {
+    return mySortLevelFields;
+  }
+
+  public void setSortLevelFields(List<ClassField> fields) {
+    mySortLevelFields = fields;
   }
 
   public Map<ClassDefinition, Levels> getSuperLevels() {
@@ -206,7 +215,11 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
           }
         }
         if (fieldSort != null) {
-          sorts.add(fieldSort.subst(false, Collections.emptyList(), implemented, levelSubstitution));
+          List<Expression> sortLevelArgs = new ArrayList<>(mySortLevelFields.size());
+          for (ClassField slField : mySortLevelFields) {
+            sortLevelArgs.add(implemented.get(slField));
+          }
+          sorts.add(fieldSort.subst(false, sortLevelArgs, levelSubstitution));
         }
       }
     }
