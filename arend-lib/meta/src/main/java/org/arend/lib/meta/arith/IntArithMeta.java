@@ -1,4 +1,4 @@
-package org.arend.lib.meta.linear;
+package org.arend.lib.meta.arith;
 
 import org.arend.ext.core.context.CoreBinding;
 import org.arend.ext.reference.ArendRef;

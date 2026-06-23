@@ -1,4 +1,4 @@
-package org.arend.lib.meta.linear;
+package org.arend.lib.meta.arith;
 
 import org.arend.ext.FreeBindingsModifier;
 import org.arend.ext.concrete.ConcreteAppBuilder;
