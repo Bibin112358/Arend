@@ -38,6 +38,8 @@ import org.arend.lib.meta.exists.ExistsMeta;
 import org.arend.lib.meta.exists.GivenMeta;
 import org.arend.lib.meta.exists.ExistsResolver;
 import org.arend.lib.meta.linear.LinearSolverMeta;
+import org.arend.lib.meta.linear.IntArithMeta;
+import org.arend.lib.meta.linear.NatArithMeta;
 import org.arend.lib.meta.rewrite.RewriteEquationMeta;
 import org.arend.lib.meta.rewrite.RewriteMeta;
 import org.arend.lib.meta.simplify.SimplifyMeta;
@@ -434,10 +436,6 @@ public class StdExtension implements ArendExtension {
         * In `semiring { -1 p } {?}`, the subgoal is `a + b = c`.
         """), makeDef(equation.getRef(), "cSemiring", new DependencyMetaTypechecker(CSemiringEquationMeta.class, () -> new DeferredMetaDefinition(new CSemiringEquationMeta(), true))));
     contributor.declare(multiline("""
-        The Nat-specialized commutative semiring solver. Behaves like {cSemiring}, but on a `Nat` carrier it additionally mints synthetic equality hints about `div`, `mod`, and `-'` subterms of the goal (e.g. `b * (a div b) + (a mod b) = a` for every `(a, b)` pair encountered, plus conditional sharpenings from `LDiv` / `<=` witnesses in the context).
-        On any non-Nat carrier this is exactly {cSemiring}.
-        """), makeDef(equation.getRef(), "natCSemiring", new DependencyMetaTypechecker(NatCSemiringEquationMeta.class, () -> new DeferredMetaDefinition(new NatCSemiringEquationMeta(), true))));
-    contributor.declare(multiline("""
         The ring solver solves goals of the form `e1 = {R} e2` for some ring `R`.
         If `e1` and `e2` represent the same word in the language of rings, then the solver proves the equality immediately without any additional arguments.
         For example, {ring} proves the following equality: `(a + b) * (a - b) = a * a - a * b + b * a - b * b`.
@@ -509,6 +507,10 @@ public class StdExtension implements ArendExtension {
         For example, if `p : a = b + c`, `q : b + b * c = c`, and the goal is `a * b = c`, then `bRing {p,q}` proves the goal.
         """), makeDef(equation.getRef(), "bRing", new DependencyMetaTypechecker(BooleanRingEquationMeta.class, () -> new DeferredMetaDefinition(new BooleanRingEquationMeta(), true))));
     contributor.declare(text("Solve systems of linear equations"), makeDef(algebra, "linarith", new DependencyMetaTypechecker(LinearSolverMeta.class, () -> new DeferredMetaDefinition(new LinearSolverMeta(), true))));
+    contributor.declare(text("Like linarith, but additionally synthesizes hypotheses about div, mod, and truncated minus (-') subterms for Nat"),
+        makeDef(algebra, "natarith", new DependencyMetaTypechecker(NatArithMeta.class, () -> new DeferredMetaDefinition(new NatArithMeta(), true))));
+    contributor.declare(text("Like linarith, but additionally converts strict Int inequalities x < y into isuc x <= y"),
+        makeDef(algebra, "intarith", new DependencyMetaTypechecker(IntArithMeta.class, () -> new DeferredMetaDefinition(new IntArithMeta(), true))));
     contributor.declare(text("Proves an equality by congruence closure of equalities in the context. E.g. derives f a = g b from f = g and a = b"),
         makeDef(algebra, "cong", new DependencyMetaTypechecker(CongruenceMeta.class, () ->  new DeferredMetaDefinition(new CongruenceMeta()))));
     contributor.declare(text("Simplifies the expected type or the type of the argument if the expected type is unknown."),

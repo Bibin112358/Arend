@@ -202,78 +202,84 @@
 
 \lemma leqToless {x y : Nat} (_ : x + 1 <= y) : x < y => linarith
 
--- Tests for div/mod/-' preprocessing
+-- Tests for div/mod/-' preprocessing (natarith = preprocessor + linarith)
 
 \lemma divModTest1 {a b : Nat} : a Nat.mod b <= a
-  => linarith
+  => natarith
 
 \lemma divModTest2 {a b : Nat} : b * (a Nat.div b) + a Nat.mod b = a
-  => linarith
+  => natarith
 
 \lemma divModTest3 {a b : Nat} : b * (a Nat.div b) <= a
-  => linarith
+  => natarith
 
 \lemma truncMinusTest1 {a b : Nat} : a -' b <= a
-  => linarith
+  => natarith
 
 \lemma truncMinusTest2 {a b : Nat} : a <= (a -' b) + b
-  => linarith
+  => natarith
 
 \lemma truncMinusTest3 {a b c : Nat} (p : a <= b) : a -' c <= b
-  => linarith
+  => natarith
 
 -- Conditional sharpening: literal-modulus mod bound (uses suc/=0)
 \lemma divModSharpTest1 {a : Nat} : a Nat.mod 5 NatSemiring.< 5
-  => linarith
+  => natarith
 
 \lemma divModSharpTest2 {a : Nat} : a Nat.mod 1 = {Nat} 0
-  => linarith
+  => natarith
 
 -- Conditional sharpening: mod bound from `b /= 0` hypothesis in context
 \lemma divModSharpTest3 {a b : Nat} (h : b /= 0) : a Nat.mod b < b
-  => linarith
+  => natarith
 
 \lemma divModSharpTest4 {a b : Nat} (h : b /= 0) (p : a < b) : a Nat.mod b <= a
-  => linarith
+  => natarith
 
 -- Conditional sharpening: -' equality from `b <= a` hypothesis
 \lemma truncMinusSharpTest1 {a b : Nat} (h : b <= a) : (a -' b) + b = a
-  => linarith
+  => natarith
 
 \lemma truncMinusSharpTest2 {a b c : Nat} (h : b <= a) (p : c <= a -' b) : c + b <= a
-  => linarith
+  => natarith
 
 -- Conditional sharpening: -' = 0 from `a <= b` hypothesis
 \lemma truncMinusSharpTest3 {a b : Nat} (h : a <= b) : a -' b = 0
-  => linarith
+  => natarith
 
 \lemma truncMinusSharpTest4 {a b c : Nat} (h : a <= b) : c -' (a -' b) = c
-  => linarith
+  => natarith
 
 -- Divisibility sharpening: when `LDiv b a` is in scope, (a mod b) collapses to 0
 \lemma divModSharpTest5 {a b : Nat} (d : LDiv b a) : a Nat.mod b = {Nat} 0
-  => linarith
+  => natarith
 
 \lemma divModSharpTest6 {a b : Nat} (d : LDiv b a) : b * (a Nat.div b) = a
-  => linarith
+  => natarith
 
 \lemma divModSharpTest7 (n : Nat) (d : LDiv 2 (n * (n + 1))) : 2 * ((n * (n + 1)) Nat.div 2) = n * (n + 1)
-  => linarith
+  => natarith
 
 -- LDiv combined with another linear hypothesis: synth provides
--- b * (a div b) = a, then linarith chains with p.
+-- b * (a div b) = a, then natarith chains with p.
 \lemma divModSharpTest8 {a b k : Nat} (d : LDiv b a) (p : b * (a Nat.div b) <= k) : a <= k
-  => linarith
+  => natarith
 
 \lemma divModSharpTest9 {a b k : Nat} (d : LDiv b a) (p : k <= a) : k <= b * (a Nat.div b)
-  => linarith
+  => natarith
 
 -- Triangular-number flavour: bound on the halved product transferred to the product.
 \lemma divModSharpTest10 (n k : Nat) (d : LDiv 2 (n * (n + 1))) (p : 2 * ((n * (n + 1)) Nat.div 2) <= k) : n * (n + 1) <= k
-  => linarith
+  => natarith
 
 -- Two independent LDiv witnesses
 \lemma divModSharpTest11 {a b : Nat} (da : LDiv 2 a) (db : LDiv 2 b) : 2 * (a Nat.div 2) + 2 * (b Nat.div 2) = a + b
-  => linarith
+  => natarith
 
-\lemma lessToleq {x y : Nat} (_ : x < y) : x + 1 <= y => linarith
+\lemma lessToleq {x y : Nat} (_ : x < y) : x + 1 <= y => natarith
+
+-- Tests for Int discrete strengthening (intarith = isuc_<_<= + linarith)
+
+\lemma intLessToLeq {x y : Int} (_ : x < y) : isuc x <= y => intarith
+
+\lemma intLessToLeq2 {a b : Nat} (_ : pos a < pos b) : pos (suc a) <= pos b => intarith

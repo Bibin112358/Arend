@@ -24,7 +24,6 @@ import org.arend.lib.context.ContextHelper;
 import org.arend.lib.error.LinearSolverError;
 import org.arend.lib.error.TypeError;
 import org.arend.lib.meta.solver.BaseTermCompiler;
-import org.arend.lib.meta.solver.NatOpsPreprocessor;
 import org.arend.lib.meta.solver.RingKind;
 import org.arend.lib.util.DefImplInstanceSearchParameters;
 import org.arend.lib.util.Names;
@@ -277,15 +276,11 @@ public class LinearSolver {
         result.add(new Hypothesis<>(factory.app(factory.ref(meta.eqToLeq), true, factory.app(factory.ref(meta.inv), true, hypothesis.proof)), hypothesis.instance, Equation.Operation.LESS_OR_EQUALS, terms.term2, terms.term1, terms.lcm));
       } else {
         result.add(new Hypothesis<>(hypothesis.proof, hypothesis.instance, hypothesis.operation, terms.term1, terms.term2, terms.lcm));
-        if (hypothesis.operation == Equation.Operation.LESS) {
-          // Tighten the bounds for discrete types: x < y implies x + 1 <= y
-          if (compiler.isNat() || compiler.isInt()) {
-            List<BigInteger> newCoefs = new ArrayList<>(terms.term1.coefficients());
-            newCoefs.set(0, newCoefs.get(0).add(BigInteger.ONE));
-            ConcreteExpression proof = compiler.isNat() ? factory.app(factory.ref(meta.sucLleq), true, hypothesis.proof) :
-              factory.app(factory.ref(meta.fromIntLE), true, factory.app(factory.ref(meta.fromIntL), true, factory.app(factory.ref(meta.idLisuc), true, hypothesis.proof)));
-            result.add(new Hypothesis<>(proof, hypothesis.instance, Equation.Operation.LESS_OR_EQUALS, new CompiledTerm(factory.app(factory.ref(meta.addTerm), true, terms.term1.concrete(), factory.ref(meta.ideTerm)), newCoefs, terms.term1.vars()), terms.term2, terms.lcm));
-          }
+        if (hypothesis.operation == Equation.Operation.LESS && compiler.isInt()) {
+          List<BigInteger> newCoefs = new ArrayList<>(terms.term1.coefficients());
+          newCoefs.set(0, newCoefs.get(0).add(BigInteger.ONE));
+          ConcreteExpression proof = factory.app(factory.ref(meta.isucLleq), true, hypothesis.proof);
+          result.add(new Hypothesis<>(proof, hypothesis.instance, Equation.Operation.LESS_OR_EQUALS, new CompiledTerm(factory.app(factory.ref(meta.addTerm), true, terms.term1.concrete(), factory.ref(meta.ideTerm)), newCoefs, terms.term1.vars()), terms.term2, terms.lcm));
         }
       }
     }
@@ -452,29 +447,6 @@ public class LinearSolver {
       allBindings.add(binding);
       Hypothesis<CoreExpression> hypothesis = bindingToHypothesis(binding, true);
       if (hypothesis != null) rules.add(hypothesis);
-    }
-
-    {
-      List<CoreExpression> toScan = new ArrayList<>();
-      for (Hypothesis<CoreExpression> rule : rules) {
-        toScan.add(rule.lhsTerm);
-        toScan.add(rule.rhsTerm);
-      }
-      if (resultEquation != null) {
-        toScan.add(resultEquation.lhsTerm);
-        toScan.add(resultEquation.rhsTerm);
-      }
-      NatOpsPreprocessor.Refs refs = new NatOpsPreprocessor.Refs(
-          meta.truncMinus, meta.truncMinusRef,
-          meta.truncMinusLEId, meta.truncMinusLEPlus, meta.truncMinusEqZero,
-          meta.modLessRight, meta.sucNeqZero, meta.leqExists,
-          meta.modZeroFromLDiv,
-          meta.ldivDivEq,
-          meta.NatSemiring);
-      NatOpsPreprocessor preprocessor = new NatOpsPreprocessor(typechecker, marker, refs);
-      for (NatOpsPreprocessor.SyntheticHypothesis sh : preprocessor.collect(toScan, allBindings)) {
-        rules.add(new Hypothesis<>(sh.proof, sh.instance, sh.op, sh.lhs, sh.rhs, BigInteger.ONE));
-      }
     }
 
     if (resultEquation != null) {

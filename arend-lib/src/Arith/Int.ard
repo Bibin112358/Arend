@@ -383,6 +383,12 @@
   | pos n => pos<pos id<suc
   | neg (suc n) => neg<neg id<suc
 
+\lemma isuc_<_<= {x y : Int} (p : x < y) : isuc x <= y \elim x, y
+  | pos n, pos m => pos<=pos $ suc_<_<= $ pos<pos.conv p
+  | pos n, neg (suc m) => absurd $ neg<=pos p
+  | neg (suc n), pos m => neg<=pos
+  | neg (suc n), neg (suc m) => neg<=neg $ <_suc_<= $ neg<neg.conv p
+
 \lemma pos_iabs {x y : Nat} (y<=x : y <= x) : pos (iabs (x Nat.- y)) = x Nat.- y
   => cases ((x Nat.- y) arg addPath) \with {
     | pos n, p => idp

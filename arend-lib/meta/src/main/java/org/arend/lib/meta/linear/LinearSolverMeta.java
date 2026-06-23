@@ -17,10 +17,10 @@ public class LinearSolverMeta extends BaseAlgebraicMeta {
   @Dependency(name = "zero<=_")                       ArendRef zeroLE_;
   @Dependency(name = "pos<=pos")                      ArendRef posLEpos;
   @Dependency(name = "pos<pos")                       ArendRef posLpos;
-  @Dependency(name = "suc_<_<=")                      ArendRef sucLleq;
   @Dependency(name = "fromInt_<=")                    ArendRef fromIntLE;
   @Dependency(name = "fromInt_<")                     ArendRef fromIntL;
   @Dependency(name = "id<isuc")                       ArendRef idLisuc;
+  @Dependency(name = "isuc_<_<=")                     ArendRef isucLleq;
   @Dependency(name = "Rat.fromInt")                   ArendRef fromInt;
   @Dependency(name = "=_<=")                          ArendRef eqToLeq;
   @Dependency(name = "OrderedAAlgebra.coef_<")        ArendRef coefMapL;
@@ -43,18 +43,6 @@ public class LinearSolverMeta extends BaseAlgebraicMeta {
   @Dependency(name = "Operation.Less")                ArendRef opLess;
   @Dependency(name = "Operation.LessOrEquals")        ArendRef opLessOrEquals;
   @Dependency(name = "Operation.Equals")              ArendRef opEquals;
-
-  // Nat-specific refs for NatOpsPreprocessor (div/mod/-' axiom injection).
-  @Dependency(name = "-'")                            public CoreFunctionDefinition truncMinus;
-  @Dependency(name = "-'")                            public ArendRef truncMinusRef;
-  @Dependency(name = "-'<=id")                        public ArendRef truncMinusLEId;
-  @Dependency(name = "-'_<=+")                        public ArendRef truncMinusLEPlus;
-  @Dependency(name = "-'=0")                          public ArendRef truncMinusEqZero;
-  @Dependency(name = "mod<right")                     public ArendRef modLessRight;
-  @Dependency(name = "suc/=0")                        public ArendRef sucNeqZero;
-  @Dependency(name = "<=_exists")                     public ArendRef leqExists;
-  @Dependency(name = "div_mod")                       public ArendRef modZeroFromLDiv;
-  @Dependency(name = "ldiv*div=id")                   public ArendRef ldivDivEq;
 
   @Override
   public boolean @Nullable [] argumentExplicitness() {
