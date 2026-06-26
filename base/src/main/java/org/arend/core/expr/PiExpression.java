@@ -1,7 +1,7 @@
 package org.arend.core.expr;
 
-import org.arend.core.context.binding.SortLevelVariable;
 import org.arend.core.context.binding.inference.InferenceVariable;
+import org.arend.core.context.param.DependentLink;
 import org.arend.core.context.param.SingleDependentLink;
 import org.arend.core.expr.visitor.ExpressionVisitor;
 import org.arend.core.expr.visitor.ExpressionVisitor2;
@@ -85,8 +85,8 @@ public class PiExpression extends Expression implements CorePiExpression, CoreAb
   }
 
   @Override
-  public PiExpression replaceInfinityLevels(List<SortLevelVariable> newVariables) {
-    Expression codomain = myCodomain.replaceInfinityLevels(newVariables);
+  public Expression replaceInfinityLevel(DependentLink param) {
+    Expression codomain = myCodomain.replaceInfinityLevel(param);
     return codomain == null ? null : new PiExpression(myLink, codomain);
   }
 

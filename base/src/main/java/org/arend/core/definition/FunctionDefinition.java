@@ -32,6 +32,7 @@ public class FunctionDefinition extends TopLevelDefinition implements Function, 
   private List<Boolean> myStrictParameters = Collections.emptyList();
   private List<Boolean> myOmegaParameters = Collections.emptyList();
   private TCDefReferable myImplementedField; // for coclause functions
+  private boolean myHasInfiniteParameters;
 
   public enum HiddenStatus { NOT_HIDDEN, HIDDEN, REALLY_HIDDEN }
 
@@ -43,6 +44,7 @@ public class FunctionDefinition extends TopLevelDefinition implements Function, 
   public FunctionDefinition(FunctionDefinition other) {
     super(other.getReferable(), TypeCheckingStatus.NEEDS_TYPE_CHECKING);
     this.myParameters = other.myParameters;
+    this.myHasInfiniteParameters = other.myHasInfiniteParameters;
     this.myResultType = other.myResultType;
     this.myResultTypeLevel = other.myResultTypeLevel;
     this.myBody = other.myBody;
@@ -157,6 +159,12 @@ public class FunctionDefinition extends TopLevelDefinition implements Function, 
 
   public void setParameters(DependentLink parameters) {
     myParameters = parameters;
+    myHasInfiniteParameters = hasInfiniteParameters(parameters);
+  }
+
+  @Override
+  public boolean hasInfiniteParameters() {
+    return myHasInfiniteParameters;
   }
 
   @Override

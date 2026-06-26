@@ -40,10 +40,21 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
     myMinimal = minimal;
   }
 
+  private Expression fixInfiniteType(Expression expr, Expression type) {
+    if (!type.isOmega()) return type;
+    while (expr instanceof AppExpression appExpr) {
+      expr = appExpr.getFunction();
+    }
+    if (expr instanceof ReferenceExpression refExpr && refExpr.getBinding() instanceof DependentLink param) {
+      return new UniverseExpression(new SortExpression.Var(param));
+    }
+    return type;
+  }
+
   @Override
   public Expression visitApp(AppExpression expr, Void params) {
     Expression result = expr.getFunction().accept(this, null).applyExpression(expr.getArgument(), myNormalizing);
-    return result == null ? new ErrorExpression() : result;
+    return result == null ? new ErrorExpression() : fixInfiniteType(expr, result);
   }
 
   private Level getMaxLevel(Level level1, Level level2) {
@@ -214,7 +225,7 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
     assert arguments.size() == defParams.size();
 
     if (type instanceof UniverseExpression universe) {
-      return new UniverseExpression(universe.getSortExpression().subst(false, definition.getSortLevelArguments(arguments), LevelSubstitution.EMPTY));
+      return new UniverseExpression(universe.getSortExpression().subst(false, definition.getSubstMap(arguments), LevelSubstitution.EMPTY));
     } else {
       return type.subst(DependentLink.Helper.toSubstitution(defParams, arguments));
     }
@@ -222,7 +233,7 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
 
   @Override
   public UniverseExpression visitDataCall(DataCallExpression expr, Void params) {
-    return new UniverseExpression(expr.getDefinition().getSortExpression().subst(false, expr.getDefinition().getSortLevelArguments(expr.getDefCallArguments()), (myMinimal ? minimizeLevels(expr) : expr.getLevels()).makeSubstitution(expr.getDefinition())));
+    return new UniverseExpression(expr.getDefinition().getSortExpression().subst(false, expr.getDefinition().getSubstMap(expr.getDefCallArguments()), (myMinimal ? minimizeLevels(expr) : expr.getLevels()).makeSubstitution(expr.getDefinition())));
   }
 
   private Levels minimizeLevelsToSuperClass(ClassCallExpression classCall, ClassDefinition superClass) {
@@ -268,13 +279,13 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
       type = type.normalize(NormalizationMode.WHNF);
     }
     if (type instanceof ClassCallExpression classCall && classCall.getDefinition().isSubClassOf(expr.getDefinition().getParentClass())) {
-      if (expr.getDefinition().getType().isInfinityLevel()) {
+      if (expr.getDefinition().isInfiniteField()) {
         Expression normExpr = NormalizeVisitor.INSTANCE.evalFieldCall(expr.getDefinition(), expr.getArgument());
         if (normExpr != null) {
           return normExpr.accept(this, null);
         }
       }
-      return getFieldCallType(expr.getDefinition(), classCall, expr.getArgument());
+      return fixInfiniteType(expr, getFieldCallType(expr.getDefinition(), classCall, expr.getArgument()));
     }
     return new ErrorExpression();
   }
@@ -311,7 +322,7 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
 
   @Override
   public Expression visitReference(ReferenceExpression expr, Void params) {
-    return expr.getBinding().getType();
+    return fixInfiniteType(expr, expr.getBinding().getType());
   }
 
   @Override

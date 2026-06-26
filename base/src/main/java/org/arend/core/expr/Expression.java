@@ -1,7 +1,6 @@
 package org.arend.core.expr;
 
 import org.arend.core.context.binding.Binding;
-import org.arend.core.context.binding.SortLevelVariable;
 import org.arend.core.definition.Constructor;
 import org.arend.core.elimtree.ElimBody;
 import org.arend.core.elimtree.ElimClause;
@@ -643,12 +642,20 @@ public abstract class Expression implements Body, CoreExpression {
     return expr instanceof UniverseExpression universe && universe.getSortExpression().isInfinite();
   }
 
+  public boolean isPiSortInfinityLevel() {
+    Expression expr = this;
+    while (expr instanceof PiExpression piExpr) {
+      expr = piExpr.getCodomain();
+    }
+    return expr instanceof UniverseExpression universe && universe.getSortExpression().isInfinite();
+  }
+
   public Expression replaceInfinityLevel(InferenceVariable variable) {
     return null;
   }
 
-  public Expression replaceInfinityLevels(List<SortLevelVariable> newVariables) {
-    return this;
+  public Expression replaceInfinityLevel(DependentLink param) {
+    return null;
   }
 
   public Expression applyExpression(Expression expression) {

@@ -26,8 +26,6 @@ message Definition {
     repeated ParameterOriginalDef parameter_original_def = 15;
     repeated int32 axiom = 16;
     bool no_errors = 17;
-    repeated int32 sort_level_parameter = 18;
-    repeated int32 sort_level_argument_index = 19;
 
     message RefList {
         repeated int32 ref = 1;
@@ -68,7 +66,6 @@ message Definition {
         map<int32, Levels> super_levels = 19;
         UniverseKind base_universe_kind = 21;
         repeated int32 omega_field = 22;
-        repeated int32 sort_level_field = 24;
 
         message Field {
             Referable referable = 1;

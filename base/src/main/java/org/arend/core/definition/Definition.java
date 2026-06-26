@@ -149,6 +149,10 @@ public abstract class Definition extends UserDataHolderImpl implements CoreDefin
 
   }
 
+  public boolean hasInfiniteParameters() {
+    return false;
+  }
+
   public boolean hasStrictParameters() {
     return false;
   }

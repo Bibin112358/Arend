@@ -1,7 +1,7 @@
 package org.arend.core.expr;
 
-import org.arend.core.context.binding.SortLevelVariable;
 import org.arend.core.context.binding.inference.InferenceVariable;
+import org.arend.core.context.param.DependentLink;
 import org.arend.core.expr.visitor.ExpressionVisitor;
 import org.arend.core.expr.visitor.ExpressionVisitor2;
 import org.arend.core.sort.Sort;
@@ -11,8 +11,6 @@ import org.arend.ext.core.expr.CoreExpressionVisitor;
 import org.arend.ext.core.expr.CoreUniverseExpression;
 import org.arend.util.Decision;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 public class UniverseExpression extends Expression implements CoreUniverseExpression {
   public static final UniverseExpression OMEGA = new UniverseExpression(Sort.INFINITY);
@@ -38,7 +36,7 @@ public class UniverseExpression extends Expression implements CoreUniverseExpres
   }
 
   public void fixVarSort() {
-    if (mySortExpression instanceof SortExpression.LVar) {
+    if (mySortExpression instanceof SortExpression.Var) {
       mySortExpression = new SortExpression.Const(Sort.INFINITY);
     }
   }
@@ -51,12 +49,12 @@ public class UniverseExpression extends Expression implements CoreUniverseExpres
 
   @Override
   public Expression replaceInfinityLevel(InferenceVariable variable) {
-    return mySortExpression instanceof SortExpression.Const(Sort sort) && sort.getPLevel().isInfinity() || mySortExpression instanceof SortExpression.LVar ? new UniverseExpression(new SortExpression.InfVar(variable)) : null;
+    return mySortExpression instanceof SortExpression.Const(Sort sort) && sort.getPLevel().isInfinity() || mySortExpression instanceof SortExpression.Var ? new UniverseExpression(new SortExpression.InfVar(variable)) : null;
   }
 
   @Override
-  public Expression replaceInfinityLevels(List<SortLevelVariable> newVariables) {
-    return !newVariables.isEmpty() && mySortExpression instanceof SortExpression.LVar ? new UniverseExpression(new SortExpression.LVar(newVariables.getFirst())) : this;
+  public Expression replaceInfinityLevel(DependentLink param) {
+    return mySortExpression instanceof SortExpression.Const(Sort sort) && sort.getPLevel().isInfinity() || mySortExpression instanceof SortExpression.Var ? new UniverseExpression(new SortExpression.Var(param)) : null;
   }
 
   @Override

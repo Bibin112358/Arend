@@ -147,7 +147,7 @@ public class FixLevelParameters extends VoidExpressionVisitor<Void> {
       case SortExpression.Prev prev -> SortExpression.makePrev(removeVars(prev.getSort()));
       case SortExpression.Succ succ -> SortExpression.makeSucc(removeVars(succ.getSort()));
       case SortExpression.Pi pi -> SortExpression.makePi(removeVars(pi.getDomain()), removeVars(pi.getCodomain()));
-      case SortExpression.LVar lvar -> lvar;
+      case SortExpression.Var var -> var;
       case SortExpression.InfVar var -> var;
     };
   }

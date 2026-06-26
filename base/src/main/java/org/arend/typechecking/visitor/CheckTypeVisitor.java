@@ -3,7 +3,6 @@ package org.arend.typechecking.visitor;
 import org.arend.core.context.LinkList;
 import org.arend.core.context.Utils;
 import org.arend.core.context.binding.*;
-import org.arend.core.context.binding.SortLevelVariable;
 import org.arend.core.context.binding.inference.*;
 import org.arend.core.context.param.*;
 import org.arend.core.definition.*;
@@ -114,7 +113,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   private Definition myDefinition;
   private Set<TCDefReferable> myRecursiveDefinitions = Collections.emptySet();
   private boolean myAllowDeferredMetas = true;
-  private final List<SortLevelVariable> mySortLevelVariables = new ArrayList<>();
+  private boolean myHasInfiniteParameters;
 
   private record DeferredMeta(MetaDefinition meta, Map<Referable, Binding> context, LocalExpressionPrettifier localPrettifier, ContextDataImpl contextData, InferenceVariable inferenceVar, MyErrorReporter errorReporter) {}
 
@@ -187,8 +186,8 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     myRecursiveDefinitions = definitions;
   }
 
-  public List<SortLevelVariable> getSortLevelVariables() {
-    return mySortLevelVariables;
+  public void setInfiniteParameters(boolean hasInfiniteParameters) {
+    myHasInfiniteParameters = hasInfiniteParameters;
   }
 
   public static CheckTypeVisitor loadTypecheckingContext(TypecheckingContext typecheckingContext, ErrorReporter errorReporter) {
@@ -371,9 +370,21 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     return null;
   }
 
+  private void replaceInfiniteType(TypecheckingResult result) {
+    if (!myHasInfiniteParameters) return;
+    Expression expr = result.expression;
+    while (expr instanceof AppExpression appExpr) {
+      expr = appExpr.getFunction();
+    }
+    if (expr instanceof ReferenceExpression refExpr && refExpr.getBinding() instanceof DependentLink param) {
+      result.type = result.type.replaceInfinityLevel(param);
+    }
+  }
+
   public TypecheckingResult checkResult(Expression expectedType, TypecheckingResult result, Concrete.Expression expr) {
     boolean isOmega = expectedType != null && expectedType.isOmega();
     if (result == null || expectedType == null || isOmega && result.type instanceof UniverseExpression) {
+      if (result != null && result.type.isPiSortInfinityLevel()) replaceInfiniteType(result);
       return result;
     }
 
@@ -3369,10 +3380,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   @Override
   public TypecheckingResult visitUniverse(Concrete.UniverseExpression expr, Expression expectedType) {
     if (expr.isInfSort() && expectedType == UniverseExpression.INF_OMEGA) {
-      SortLevelVariable var = new SortLevelVariable(mySortLevelVariables.size());
-      mySortLevelVariables.add(var);
-      SortExpression sort = new SortExpression.LVar(var);
-      return checkResult(expectedType, new TypecheckingResult(new UniverseExpression(sort), new UniverseExpression(SortExpression.makeSucc(sort))), expr);
+      return checkResult(expectedType, new TypecheckingResult(UniverseExpression.OMEGA, UniverseExpression.OMEGA), expr);
     }
 
     if (expr.getKind() == ConcreteUniverseExpression.Kind.SORT) {

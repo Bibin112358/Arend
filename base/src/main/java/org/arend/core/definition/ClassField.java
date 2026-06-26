@@ -23,6 +23,7 @@ public class ClassField extends CallableDefinition implements CoreClassField {
   private int myNumberOfParameters;
   private boolean myHideable;
   private UniverseKind myUniverseKind = UniverseKind.NO_UNIVERSES;
+  private boolean myInfinite;
 
   public ClassField(FieldReferableImpl referable, ClassDefinition parentClass) {
     super(referable, TypeCheckingStatus.NEEDS_TYPE_CHECKING);
@@ -34,6 +35,7 @@ public class ClassField extends CallableDefinition implements CoreClassField {
     myParentClass = parentClass;
     myType = type;
     myTypeLevel = typeLevel;
+    myInfinite = type.isInfinityLevel();
   }
 
   @Override
@@ -52,8 +54,13 @@ public class ClassField extends CallableDefinition implements CoreClassField {
     return myParentClass;
   }
 
+  public boolean isInfiniteField() {
+    return myInfinite;
+  }
+
   public void setType(PiExpression type) {
     myType = type;
+    myInfinite = type.isInfinityLevel();
   }
 
   public PiExpression getType(Levels levels) {

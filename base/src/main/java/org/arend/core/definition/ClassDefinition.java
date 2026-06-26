@@ -1,13 +1,13 @@
 package org.arend.core.definition;
 
 import org.arend.core.context.binding.Binding;
-import org.arend.core.context.binding.SortLevelVariable;
 import org.arend.core.context.param.DependentLink;
 import org.arend.core.expr.*;
 import org.arend.core.expr.visitor.FindBindingVisitor;
 import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.ExprSubstitution;
+import org.arend.core.subst.InfiniteFieldsSubstVisitor;
 import org.arend.core.subst.Levels;
 import org.arend.core.subst.SubstVisitor;
 import org.arend.ext.core.definition.CoreClassDefinition;
@@ -45,7 +45,6 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
   private final ParametersLevels<ParametersLevel> myParametersLevels = new ParametersLevels<>();
   private Map<ClassDefinition, Levels> mySuperLevels = Collections.emptyMap();
   private final Set<ClassField> myOmegaFields = new HashSet<>();
-  private List<ClassField> mySortLevelFields = Collections.emptyList();
   private UniverseKind myBaseUniverseKind = UniverseKind.NO_UNIVERSES; // TODO[sorts]: Delete this
 
   public ClassDefinition(TCDefReferable referable) {
@@ -125,18 +124,6 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     myParametersLevels.add(parametersLevel);
   }
 
-  /**
-   * The length of this list is equal to the length of {@link #getSortLevelParameters} and it gives the field
-   * corresponding to this {@link SortLevelVariable}.
-   */
-  public List<ClassField> getSortLevelFields() {
-    return mySortLevelFields;
-  }
-
-  public void setSortLevelFields(List<ClassField> fields) {
-    mySortLevelFields = fields;
-  }
-
   public Map<ClassDefinition, Levels> getSuperLevels() {
     return mySuperLevels;
   }
@@ -200,7 +187,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
 
   public SortExpression computeSort(Map<ClassField,Expression> implemented, Binding thisBinding, LevelSubstitution levelSubstitution, boolean ignoreErrors) {
     Levels idLevels = makeIdLevels();
-    Expression thisExpr1 = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, idLevels, implemented, myBaseUniverseKind)));
+    ReferenceExpression thisExpr1 = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, idLevels, implemented, myBaseUniverseKind)));
     Expression thisExpr2 = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, idLevels)));
     BigInteger hLevel = getUseLevel(implemented, thisBinding, true);
     if (hLevel != null && hLevel.equals(ConstLevel.PROP.value())) {
@@ -210,7 +197,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     List<SortExpression> sorts = new ArrayList<>();
     for (ClassField field : myNotImplementedFields) {
       if (implemented.containsKey(field)) continue;
-      Expression fieldType = getFieldType(field, idLevels, thisExpr1).normalize(NormalizationMode.WHNF);
+      Expression fieldType = getFieldTypeSubstInfiniteFields(field, idLevels, thisExpr1).normalize(NormalizationMode.WHNF);
       if (!fieldType.isInstance(ErrorExpression.class)) {
         SortExpression fieldSort = fieldType.getSortExpressionOfType();
         if (fieldSort == null || fieldSort instanceof SortExpression.Const(Sort sort) && sort.isOmega()) {
@@ -220,11 +207,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
           }
         }
         if (fieldSort != null) {
-          List<Expression> sortLevelArgs = new ArrayList<>(mySortLevelFields.size());
-          for (ClassField slField : mySortLevelFields) {
-            sortLevelArgs.add(implemented.get(slField));
-          }
-          sorts.add(fieldSort.subst(false, sortLevelArgs, levelSubstitution));
+          sorts.add(levelSubstitution.isEmpty() ? fieldSort : fieldSort.subst(false, Collections.emptyMap(), levelSubstitution));
         }
       }
     }
@@ -483,6 +466,12 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     Pair<PiExpression, ClassDefinition> pair = myOverridden.get(field);
     PiExpression type = pair == null ? field.getType() : pair.proj1;
     return type.getCodomain().subst(new ExprSubstitution(type.getParameters(), thisExpr), levelSubstitutionFor(pair == null ? field.getParentClass() : pair.proj2, levels));
+  }
+
+  private Expression getFieldTypeSubstInfiniteFields(ClassField field, Levels levels, ReferenceExpression thisExpr) {
+    Pair<PiExpression, ClassDefinition> pair = myOverridden.get(field);
+    PiExpression type = pair == null ? field.getType() : pair.proj1;
+    return type.getCodomain().accept(new InfiniteFieldsSubstVisitor(type.getParameters(), thisExpr, levelSubstitutionFor(pair == null ? field.getParentClass() : pair.proj2, levels)), null);
   }
 
   @Nullable

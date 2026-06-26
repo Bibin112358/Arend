@@ -3,7 +3,6 @@ package org.arend.module.serialization;
 import com.google.protobuf.ByteString;
 import org.arend.core.context.LinkList;
 import org.arend.core.context.binding.Binding;
-import org.arend.core.context.binding.SortLevelVariable;
 import org.arend.core.context.param.DependentLink;
 import org.arend.core.definition.*;
 import org.arend.core.elimtree.*;
@@ -66,19 +65,6 @@ public class DefinitionDeserialization implements ArendDeserializer {
       topDef.setAxioms(readDefinitions(defProto.getAxiomList(), FunctionDefinition.class));
 
       topDef.setParametersOriginalDefinitions(parametersOriginalDefinitions);
-
-      List<Integer> sortLevelParamIndices = defProto.getSortLevelParameterList();
-      if (!sortLevelParamIndices.isEmpty()) {
-        List<SortLevelVariable> sortLevelParams = new ArrayList<>(sortLevelParamIndices.size());
-        for (int idx : sortLevelParamIndices) {
-          sortLevelParams.add(new SortLevelVariable(idx));
-        }
-        topDef.setSortLevelParameters(sortLevelParams);
-      }
-      List<Integer> sortLevelArgIndices = defProto.getSortLevelArgumentIndexList();
-      if (!sortLevelArgIndices.isEmpty()) {
-        topDef.setSortLevelArgumentIndices(sortLevelArgIndices);
-      }
     }
 
     for (Integer index : defProto.getMetaRefList()) {
@@ -172,14 +158,6 @@ public class DefinitionDeserialization implements ArendDeserializer {
     }
     for (Integer fieldRef : classProto.getOmegaFieldList()) {
       classDef.addOmegaField(myCallTargetProvider.getCallTarget(fieldRef, ClassField.class));
-    }
-    List<Integer> sortLevelFieldRefs = classProto.getSortLevelFieldList();
-    if (!sortLevelFieldRefs.isEmpty()) {
-      List<ClassField> sortLevelFields = new ArrayList<>(sortLevelFieldRefs.size());
-      for (Integer fieldRef : sortLevelFieldRefs) {
-        sortLevelFields.add(myCallTargetProvider.getCallTarget(fieldRef, ClassField.class));
-      }
-      classDef.setSortLevelFields(sortLevelFields);
     }
     // classDef.setSort(defDeserializer.readSort(classProto.getSort()));
 

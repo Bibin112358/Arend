@@ -421,7 +421,7 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
 
   @Override
   public Expression visitUniverse(UniverseExpression expr, Expression expectedType) {
-    if (expr.isOmega()) {
+    if (expectedType != UniverseExpression.INF_OMEGA && expr.isInfinityLevel()) {
       throw new CoreException(CoreErrorWrapper.make(new TypecheckingError("Universes of the infinite level are not allowed", mySourceNode), expr));
     }
     return checkUniverse(expr, expectedType);
@@ -553,7 +553,7 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
     if (pattern instanceof BindingPattern) {
       Expression actualType = pattern.getFirstBinding().getType();
       if (pattern.getFirstBinding() instanceof TypedDependentLink) {
-        actualType.accept(this, UniverseExpression.OMEGA);
+        actualType.accept(this, type.isInfinityLevel() ? UniverseExpression.INF_OMEGA : UniverseExpression.OMEGA);
       }
       Binding newBinding = new TypedBinding(pattern.getFirstBinding().getName(), type);
       newBindings.add(newBinding);

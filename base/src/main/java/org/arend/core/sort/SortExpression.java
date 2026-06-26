@@ -1,7 +1,7 @@
 package org.arend.core.sort;
 
-import org.arend.core.context.binding.SortLevelVariable;
 import org.arend.core.context.binding.inference.InferenceVariable;
+import org.arend.core.context.param.DependentLink;
 import org.arend.core.expr.Expression;
 import org.arend.core.expr.PiExpression;
 import org.arend.core.expr.UniverseExpression;
@@ -18,13 +18,13 @@ import org.jetbrains.annotations.Nullable;
 import java.math.BigInteger;
 import java.util.*;
 
-public sealed interface SortExpression extends CoreSortExpression permits SortExpression.Const, SortExpression.LVar, SortExpression.InfVar, SortExpression.Max, SortExpression.Pi, SortExpression.Prev, SortExpression.Succ {
-  @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution);
+public sealed interface SortExpression extends CoreSortExpression permits SortExpression.Const, SortExpression.Var, SortExpression.InfVar, SortExpression.Max, SortExpression.Pi, SortExpression.Prev, SortExpression.Succ {
+  @NotNull SortExpression subst(boolean isType, @NotNull Map<? extends DependentLink, ? extends Expression> arguments, @NotNull LevelSubstitution substitution);
   @NotNull Sort withInfLevel();
   boolean isInfinite();
 
   default @NotNull SortExpression subst(@NotNull LevelSubstitution substitution) {
-    return subst(false, Collections.emptyList(), substitution);
+    return subst(false, Collections.emptyMap(), substitution);
   }
 
   default @NotNull SortExpression simplify() {
@@ -41,7 +41,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
   }
 
   static boolean compare(SortExpression sortExpr1, SortExpression sortExpr2, CMP cmp, Equations equations, Concrete.SourceNode sourceNode) {
-    if (sortExpr1 instanceof Const(Sort sort1) && (cmp == CMP.LE && sort1.isProp() || cmp == CMP.GE && sort1.isOmega()) || sortExpr2 instanceof Const(Sort sort2) && (cmp == CMP.LE && sort2.isOmega() || cmp == CMP.GE && sort2.isProp()) || sortExpr1 instanceof LVar && cmp == CMP.GE || sortExpr2 instanceof LVar && cmp == CMP.LE) {
+    if (sortExpr1 instanceof Const(Sort sort1) && (cmp == CMP.LE && sort1.isProp() || cmp == CMP.GE && sort1.isOmega()) || sortExpr2 instanceof Const(Sort sort2) && (cmp == CMP.LE && sort2.isOmega() || cmp == CMP.GE && sort2.isProp()) || sortExpr1 instanceof Var && cmp == CMP.GE || sortExpr2 instanceof Var && cmp == CMP.LE) {
       return true;
     }
 
@@ -49,9 +49,9 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
       case Const(Sort sort1) when sortExpr2 instanceof Const(Sort sort2) -> {
         return Sort.compare(sort1, sort2, cmp, equations, sourceNode);
       }
-      case LVar lvar1 -> {
-        if (sortExpr2 instanceof LVar(SortLevelVariable variable)) {
-          return lvar1.variable.equals(variable);
+      case Var var1 -> {
+        if (sortExpr2 instanceof Var(DependentLink param2)) {
+          return var1.parameter == param2;
         } else if (sortExpr2 instanceof Const(Sort sort2) && sort2.getPLevel().isClosed()) {
           return sort2.getPLevel().isInfinity() && sort2.getHLevel().isInfinity();
         }
@@ -68,7 +68,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     }
 
     @Override
-    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
+    public @NotNull SortExpression subst(boolean isType, @NotNull Map<? extends DependentLink, ? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
       return new Const(sort.subst(substitution));
     }
 
@@ -94,11 +94,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     }
   }
 
-  record LVar(SortLevelVariable variable) implements SortExpression {
-    public SortLevelVariable getVariable() {
-      return variable;
-    }
-
+  record Var(DependentLink parameter) implements SortExpression {
     static SortExpression getCodomainSort(Expression arg) {
       if (arg == null) return new Const(Sort.INFINITY);
       arg = arg.normalize(NormalizationMode.WHNF).getType().normalize(NormalizationMode.WHNF);
@@ -110,10 +106,9 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     }
 
     @Override
-    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
-      int index = variable.getIndex();
-      if (index >= arguments.size()) return this;
-      Expression arg = arguments.get(index);
+    public @NotNull SortExpression subst(boolean isType, @NotNull Map<? extends DependentLink, ? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
+      Expression arg = arguments.get(parameter);
+      if (arg == null) return this;
 
       if (isType) {
         SortExpression result = arg instanceof UniverseExpression universe ? universe.getSortExpression() : null;
@@ -136,16 +131,6 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     @Override
     public @Nullable BigInteger getSortHLevel() {
       return null;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      return this == o || o instanceof LVar(SortLevelVariable variable1) && variable.equals(variable1);
-    }
-
-    @Override
-    public int hashCode() {
-      return variable.hashCode();
     }
   }
 
@@ -196,7 +181,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     }
 
     @Override
-    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
+    public @NotNull SortExpression subst(boolean isType, @NotNull Map<? extends DependentLink, ? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
       return sort == null || sort == this ? this : sort.subst(isType, arguments, substitution);
     }
 
@@ -275,7 +260,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     }
 
     @Override
-    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
+    public @NotNull SortExpression subst(boolean isType, @NotNull Map<? extends DependentLink, ? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
       List<SortExpression> sorts = new ArrayList<>(mySorts.size());
       for (SortExpression sort : mySorts) {
         sorts.add(sort.subst(isType, arguments, substitution));
@@ -327,7 +312,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
   }
 
   static @NotNull SortExpression makeSucc(@NotNull SortExpression sort) {
-    return sort instanceof Const(Sort aSort) ? new Const(aSort.succ()) : sort instanceof LVar ? new Const(Sort.INFINITY) : new Succ(sort);
+    return sort instanceof Const(Sort aSort) ? new Const(aSort.succ()) : sort instanceof Var ? new Const(Sort.INFINITY) : new Succ(sort);
   }
 
   final class Pi implements SortExpression, PiSortExpression {
@@ -350,7 +335,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     }
 
     @Override
-    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
+    public @NotNull SortExpression subst(boolean isType, @NotNull Map<? extends DependentLink, ? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
       return makePi(myDomain.subst(isType, arguments, substitution), myCodomain.subst(isType, arguments, substitution));
     }
 
@@ -385,7 +370,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     }
 
     @Override
-    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
+    public @NotNull SortExpression subst(boolean isType, @NotNull Map<? extends DependentLink, ? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
       return makePrev(mySort.subst(isType, arguments, substitution));
     }
 
@@ -420,7 +405,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     }
 
     @Override
-    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
+    public @NotNull SortExpression subst(boolean isType, @NotNull Map<? extends DependentLink, ? extends Expression> arguments, @NotNull LevelSubstitution substitution) {
       return makeSucc(mySort.subst(isType, arguments, substitution));
     }
 
