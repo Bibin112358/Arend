@@ -202,7 +202,7 @@ public class DefCallResult implements TResult {
         }
       }
 
-      return new UniverseExpression(universe.getSortExpression().subst(false, myDefinition.getTopLevelDefinition().getSubstMap(myArguments), LevelSubstitution.EMPTY, GetTypeVisitor.INSTANCE));
+      return new UniverseExpression(universe.getSortExpression().subst(false, myArguments, LevelSubstitution.EMPTY, GetTypeVisitor.INSTANCE));
     }
     return myResultType;
   }

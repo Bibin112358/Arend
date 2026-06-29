@@ -646,7 +646,7 @@ public abstract class Expression implements Body, CoreExpression {
     return null;
   }
 
-  public Expression replaceInfinityLevel(DependentLink param) {
+  public Expression replaceInfinityLevel(int index) {
     return null;
   }
 

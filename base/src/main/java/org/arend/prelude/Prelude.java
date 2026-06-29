@@ -161,7 +161,7 @@ public class Prelude implements ArendPrelude {
       }
       case "Path" -> {
         PATH = (DataDefinition) definition;
-        PATH.setSortExpression(new SortExpression.Prev(new SortExpression.Var(PATH.getParameters())));
+        PATH.setSortExpression(new SortExpression.Prev(new SortExpression.Var(0)));
         PATH.setCovariant(1, false);
         PATH.setCovariant(2, false);
         PATH_CON = PATH.getConstructor("path");
@@ -198,7 +198,7 @@ public class Prelude implements ArendPrelude {
       }
       case "iso" -> {
         ISO = (FunctionDefinition) definition;
-        ISO.setResultType(new UniverseExpression(SortExpression.makeMax(Arrays.asList(new SortExpression.Var(ISO.getParameters()), new SortExpression.Var(ISO.getParameters().getNext())))));
+        ISO.setResultType(new UniverseExpression(SortExpression.makeMax(Arrays.asList(new SortExpression.Var(0), new SortExpression.Var(1)))));
         ISO.setStatus(Definition.TypeCheckingStatus.NO_ERRORS);
       }
       case "fromNat" -> {

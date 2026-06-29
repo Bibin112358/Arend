@@ -25,7 +25,7 @@ public class GetInfiniteTypeVisitor extends GetTypeVisitor {
     if (expr.getBinding() instanceof DependentLink param) {
       Integer index = myParameters.get(param);
       if (index != null) {
-        return param.getType().replaceInfinityLevel(param);
+        return param.getType().replaceInfinityLevel(index);
       }
     }
     return super.visitReference(expr, params);
@@ -40,7 +40,7 @@ public class GetInfiniteTypeVisitor extends GetTypeVisitor {
     if (fun instanceof ReferenceExpression refExpr && refExpr.getBinding() instanceof DependentLink param) {
       Integer index = myParameters.get(param);
       if (index != null) {
-        return super.visitApp(expr, params).replaceInfinityLevel(param);
+        return super.visitApp(expr, params).replaceInfinityLevel(index);
       }
     }
 
@@ -49,6 +49,6 @@ public class GetInfiniteTypeVisitor extends GetTypeVisitor {
 
   @Override
   public UniverseExpression visitDataCall(DataCallExpression expr, Void params) {
-    return myThisData == null ? super.visitDataCall(expr, params) : new UniverseExpression(new SortExpression.Var(null));
+    return myThisData == expr.getDefinition() ? new UniverseExpression(new SortExpression.Var(expr.getDefCallArguments().size())) : super.visitDataCall(expr, params);
   }
 }

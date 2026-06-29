@@ -208,7 +208,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
           }
         }
         if (fieldSort != null) {
-          sorts.add(levelSubstitution.isEmpty() ? fieldSort : fieldSort.subst(false, Collections.emptyMap(), levelSubstitution, GetTypeVisitor.INSTANCE));
+          sorts.add(levelSubstitution.isEmpty() ? fieldSort : fieldSort.subst(levelSubstitution));
         }
       }
     }

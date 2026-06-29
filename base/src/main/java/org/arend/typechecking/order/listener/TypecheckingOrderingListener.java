@@ -330,10 +330,20 @@ public class TypecheckingOrderingListener extends BooleanComputationRunner imple
     if (dataDefinition.getTruncatedLevel() != null) {
       sortMax = SortExpression.makeTrunc(sortMax, dataDefinition.getTruncatedLevel());
     }
-    SortExpression dataSort = sortMax.subst(true, Collections.singletonMap(null, new UniverseExpression(Sort.PROP)), LevelSubstitution.EMPTY, visitor);
-    if (!dataDefinition.getRecursiveDefinitions().isEmpty()) {
-      dataSort = sortMax.subst(true, Collections.singletonMap(null, new UniverseExpression(dataSort)), LevelSubstitution.EMPTY, visitor);
+
+    int params = DependentLink.Helper.size(dataDefinition.getParameters());
+    List<Expression> args = new ArrayList<>(params + 1);
+    for (int i = 0; i < params; i++) {
+      args.add(null);
     }
+    args.add(new UniverseExpression(Sort.PROP));
+
+    SortExpression dataSort = sortMax.subst(true, args, LevelSubstitution.EMPTY, visitor);
+    if (!dataDefinition.getRecursiveDefinitions().isEmpty()) {
+      args.set(params, new UniverseExpression(dataSort));
+      dataSort = sortMax.subst(true, args, LevelSubstitution.EMPTY, visitor);
+    }
+
     dataDefinition.setSortExpression(dataSort);
   }
 

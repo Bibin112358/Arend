@@ -227,7 +227,7 @@ public class CoreDefinitionChecker extends BaseDefinitionTypechecker {
 
     if (!definition.isTruncated() && definition.getSquasher() == null) {
       for (Constructor constructor : definition.getConstructors()) {
-        if (constructor.getBody() instanceof IntervalElim && !(definition.getSortExpression() instanceof SortExpression.Const(Sort sort) && sort.getHLevel().isInfinity())) {
+        if (constructor.getBody() instanceof IntervalElim && definition.getSortExpression().getSortHLevel() != null) {
           errorReporter.report(new TypecheckingError("A higher inductive type must have sort " + new Sort(new Level(LevelVariable.PVAR), ConstLevel.INFINITY), null));
           return false;
         }

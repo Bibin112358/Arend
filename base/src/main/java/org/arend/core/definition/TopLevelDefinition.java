@@ -2,7 +2,6 @@ package org.arend.core.definition;
 
 import org.arend.core.context.binding.LevelVariable;
 import org.arend.core.context.param.DependentLink;
-import org.arend.core.expr.Expression;
 import org.arend.ext.util.Pair;
 import org.arend.naming.reference.LocatedReferable;
 import org.arend.naming.reference.TCDefReferable;
@@ -53,23 +52,6 @@ public abstract class TopLevelDefinition extends CallableDefinition {
       }
     }
     return false;
-  }
-
-  public Map<DependentLink, Expression> getSubstMap(List<? extends Expression> arguments) {
-    if (!hasInfiniteParameters()) {
-      return Collections.emptyMap();
-    }
-
-    Map<DependentLink, Expression> result = new HashMap<>();
-    DependentLink param = getParameters();
-    for (Expression argument : arguments) {
-      if (!param.hasNext()) {
-        throw new IllegalStateException();
-      }
-      result.put(param, argument);
-      param = param.getNext();
-    }
-    return result;
   }
 
   @Override
