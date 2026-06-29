@@ -8,7 +8,9 @@ import org.arend.core.definition.*;
 import org.arend.core.elimtree.ElimClause;
 import org.arend.core.expr.*;
 import org.arend.core.expr.visitor.GetInfiniteTypeVisitor;
+import org.arend.core.expr.visitor.GetTypeVisitor;
 import org.arend.core.expr.visitor.VoidExpressionVisitor;
+import org.arend.core.pattern.BindingPattern;
 import org.arend.core.pattern.ExpressionPattern;
 import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
@@ -310,9 +312,24 @@ public class TypecheckingOrderingListener extends BooleanComputationRunner imple
     List<SortExpression> sortExpressions = new ArrayList<>();
 
     for (Constructor constructor : dataDefinition.getConstructors()) {
+      GetInfiniteTypeVisitor visitor1;
+      List<ExpressionPattern> patterns = constructor.getPatterns();
+      if (patterns != null) {
+        Map<DependentLink, Integer> map = new HashMap<>();
+        int i = 0;
+        for (DependentLink param = dataDefinition.getParameters(); param.hasNext(); param = param.getNext()) {
+          if (patterns.get(i) instanceof BindingPattern bindingPattern && bindingPattern.getBinding().getType().isInfinityLevel()) {
+            map.put(bindingPattern.getBinding(), i);
+          }
+          i++;
+        }
+        visitor1 = new GetInfiniteTypeVisitor(map, dataDefinition.getRecursiveDefinitions().isEmpty() ? null : dataDefinition);
+      } else {
+        visitor1 = visitor;
+      }
       for (DependentLink param = constructor.getParameters(); param.hasNext(); param = param.getNext()) {
         param = param.getNextTyped(null);
-        if (param.getType().accept(visitor, null) instanceof UniverseExpression universe) {
+        if (param.getType().accept(visitor1, null) instanceof UniverseExpression universe) {
           sortExpressions.add(universe.getSortExpression());
         } else {
           return;
@@ -338,10 +355,10 @@ public class TypecheckingOrderingListener extends BooleanComputationRunner imple
     }
     args.add(new UniverseExpression(Sort.PROP));
 
-    SortExpression dataSort = sortMax.subst(true, args, LevelSubstitution.EMPTY, visitor);
+    SortExpression dataSort = sortMax.subst(true, args, LevelSubstitution.EMPTY, GetTypeVisitor.INSTANCE);
     if (!dataDefinition.getRecursiveDefinitions().isEmpty()) {
       args.set(params, new UniverseExpression(dataSort));
-      dataSort = sortMax.subst(true, args, LevelSubstitution.EMPTY, visitor);
+      dataSort = sortMax.subst(true, args, LevelSubstitution.EMPTY, GetTypeVisitor.INSTANCE);
     }
 
     dataDefinition.setSortExpression(dataSort);
