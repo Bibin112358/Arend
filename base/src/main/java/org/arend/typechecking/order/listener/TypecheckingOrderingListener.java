@@ -7,12 +7,16 @@ import org.arend.core.context.param.TypedSingleDependentLink;
 import org.arend.core.definition.*;
 import org.arend.core.elimtree.ElimClause;
 import org.arend.core.expr.*;
+import org.arend.core.expr.visitor.GetInfiniteTypeVisitor;
 import org.arend.core.expr.visitor.VoidExpressionVisitor;
 import org.arend.core.pattern.ExpressionPattern;
+import org.arend.core.sort.Sort;
+import org.arend.core.sort.SortExpression;
 import org.arend.error.CountingErrorReporter;
 import org.arend.ext.ArendExtension;
 import org.arend.ext.core.definition.CoreFunctionDefinition;
 import org.arend.ext.core.expr.CoreExpression;
+import org.arend.ext.core.level.LevelSubstitution;
 import org.arend.ext.core.ops.CMP;
 import org.arend.ext.error.ErrorReporter;
 import org.arend.ext.error.TypecheckingError;
@@ -265,8 +269,11 @@ public class TypecheckingOrderingListener extends BooleanComputationRunner imple
       if (recursive && typechecked instanceof FunctionDefinition) {
         ((FunctionDefinition) typechecked).setRecursiveDefinitions(Collections.singleton((FunctionDefinition) typechecked));
       }
-      if (recursive && typechecked instanceof DataDefinition) {
-        ((DataDefinition) typechecked).setRecursiveDefinitions(Collections.singleton((DataDefinition) typechecked));
+      if (typechecked instanceof DataDefinition dataDef) {
+        if (recursive) {
+          dataDef.setRecursiveDefinitions(Collections.singleton(dataDef));
+        }
+        fixDataSorts(Collections.singletonList(dataDef));
       }
       findAxiomsAndGoals(Collections.singletonList(definition), Collections.singleton(typechecked));
       if (definition instanceof Concrete.Definition def && def.isRecursive() && typechecked instanceof FunctionDefinition) {
@@ -292,6 +299,42 @@ public class TypecheckingOrderingListener extends BooleanComputationRunner imple
       }
       UseTypechecking.typecheck(funcDefinitions, errorReporter);
     }
+  }
+
+  private void fixDataSorts(List<? extends DataDefinition> dataDefinitions) {
+    if (dataDefinitions.size() != 1) return;
+    DataDefinition dataDefinition = dataDefinitions.getFirst();
+    if (!dataDefinition.getSortExpression().isInfinite()) return;
+
+    GetInfiniteTypeVisitor visitor = new GetInfiniteTypeVisitor(DefinitionTypechecker.parametersIndices(dataDefinition.getParameters()), dataDefinition.getRecursiveDefinitions().isEmpty() ? null : dataDefinition);
+    List<SortExpression> sortExpressions = new ArrayList<>();
+
+    for (Constructor constructor : dataDefinition.getConstructors()) {
+      for (DependentLink param = constructor.getParameters(); param.hasNext(); param = param.getNext()) {
+        param = param.getNextTyped(null);
+        if (param.getType().accept(visitor, null) instanceof UniverseExpression universe) {
+          sortExpressions.add(universe.getSortExpression());
+        } else {
+          return;
+        }
+      }
+    }
+
+    if (dataDefinition.isHIT()) {
+      sortExpressions.add(new SortExpression.Const(Sort.TypeOfLevel(0)));
+    } else if (dataDefinition.hasMultipleConstructors()) {
+      sortExpressions.add(new SortExpression.Const(Sort.SET0));
+    }
+
+    SortExpression sortMax = SortExpression.makeMax(sortExpressions);
+    if (dataDefinition.getTruncatedLevel() != null) {
+      sortMax = SortExpression.makeTrunc(sortMax, dataDefinition.getTruncatedLevel());
+    }
+    SortExpression dataSort = sortMax.subst(true, Collections.singletonMap(null, new UniverseExpression(Sort.PROP)), LevelSubstitution.EMPTY, visitor);
+    if (!dataDefinition.getRecursiveDefinitions().isEmpty()) {
+      dataSort = sortMax.subst(true, Collections.singletonMap(null, new UniverseExpression(dataSort)), LevelSubstitution.EMPTY, visitor);
+    }
+    dataDefinition.setSortExpression(dataSort);
   }
 
   private void addUseDependencies(Concrete.ResolvableDefinition definition) {
@@ -485,20 +528,24 @@ public class TypecheckingOrderingListener extends BooleanComputationRunner imple
 
     boolean fixLevels = true;
     Set<TopLevelDefinition> allDefinitions = new LinkedHashSet<>();
+    List<DataDefinition> dataDefs = new ArrayList<>();
     for (Concrete.ResolvableDefinition definition : orderedDefinitions) {
       Definition typechecked = definition.getData().getTypechecked();
       if (!newDefs.contains(typechecked)) continue;
       if (typechecked instanceof FunctionDefinition) {
         ((FunctionDefinition) typechecked).setRecursiveDefinitions(allDefinitions);
         allDefinitions.add((FunctionDefinition) typechecked);
-      } else if (typechecked instanceof DataDefinition) {
-        ((DataDefinition) typechecked).setRecursiveDefinitions(allDefinitions);
-        allDefinitions.add((DataDefinition) typechecked);
+      } else if (typechecked instanceof DataDefinition dataDef) {
+        dataDef.setRecursiveDefinitions(allDefinitions);
+        allDefinitions.add(dataDef);
+        dataDefs.add(dataDef);
       }
       if (definition instanceof Concrete.FunctionDefinition && ((Concrete.FunctionDefinition) definition).getKind().isCoclause()) {
         fixLevels = false;
       }
     }
+
+    fixDataSorts(dataDefs);
 
     if (fixLevels) {
       FixLevelParameters.fix(allDefinitions, newDefs);

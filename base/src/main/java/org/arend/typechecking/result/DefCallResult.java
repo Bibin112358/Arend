@@ -7,6 +7,7 @@ import org.arend.core.definition.CallableDefinition;
 import org.arend.core.definition.Definition;
 import org.arend.core.expr.*;
 import org.arend.core.expr.visitor.CompareVisitor;
+import org.arend.core.expr.visitor.GetTypeVisitor;
 import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.ExprSubstitution;
 import org.arend.core.subst.Levels;
@@ -201,7 +202,7 @@ public class DefCallResult implements TResult {
         }
       }
 
-      return new UniverseExpression(universe.getSortExpression().subst(false, myDefinition.getTopLevelDefinition().getSubstMap(myArguments), LevelSubstitution.EMPTY));
+      return new UniverseExpression(universe.getSortExpression().subst(false, myDefinition.getTopLevelDefinition().getSubstMap(myArguments), LevelSubstitution.EMPTY, GetTypeVisitor.INSTANCE));
     }
     return myResultType;
   }

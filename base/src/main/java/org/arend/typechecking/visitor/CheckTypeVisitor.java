@@ -113,7 +113,6 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   private Definition myDefinition;
   private Set<TCDefReferable> myRecursiveDefinitions = Collections.emptySet();
   private boolean myAllowDeferredMetas = true;
-  private boolean myHasInfiniteParameters;
 
   private record DeferredMeta(MetaDefinition meta, Map<Referable, Binding> context, LocalExpressionPrettifier localPrettifier, ContextDataImpl contextData, InferenceVariable inferenceVar, MyErrorReporter errorReporter) {}
 
@@ -184,10 +183,6 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
   public void setRecursiveDefinitions(Set<TCDefReferable> definitions) {
     myRecursiveDefinitions = definitions;
-  }
-
-  public void setInfiniteParameters(boolean hasInfiniteParameters) {
-    myHasInfiniteParameters = hasInfiniteParameters;
   }
 
   public static CheckTypeVisitor loadTypecheckingContext(TypecheckingContext typecheckingContext, ErrorReporter errorReporter) {
@@ -370,21 +365,9 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     return null;
   }
 
-  private void replaceInfiniteType(TypecheckingResult result) {
-    if (!myHasInfiniteParameters) return;
-    Expression expr = result.expression;
-    while (expr instanceof AppExpression appExpr) {
-      expr = appExpr.getFunction();
-    }
-    if (expr instanceof ReferenceExpression refExpr && refExpr.getBinding() instanceof DependentLink param) {
-      result.type = result.type.replaceInfinityLevel(param);
-    }
-  }
-
   public TypecheckingResult checkResult(Expression expectedType, TypecheckingResult result, Concrete.Expression expr) {
     boolean isOmega = expectedType != null && expectedType.isOmega();
     if (result == null || expectedType == null || isOmega && result.type instanceof UniverseExpression) {
-      if (result != null && result.type.isPiSortInfinityLevel()) replaceInfiniteType(result);
       return result;
     }
 

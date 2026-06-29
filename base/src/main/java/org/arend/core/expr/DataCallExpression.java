@@ -5,6 +5,7 @@ import org.arend.core.definition.Constructor;
 import org.arend.core.definition.DataDefinition;
 import org.arend.core.expr.visitor.ExpressionVisitor;
 import org.arend.core.expr.visitor.ExpressionVisitor2;
+import org.arend.core.expr.visitor.GetTypeVisitor;
 import org.arend.core.pattern.ExpressionPattern;
 import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.ExprSubstitution;
@@ -55,7 +56,7 @@ public class DataCallExpression extends LeveledDefCallExpression implements Core
   }
 
   public SortExpression getSortExpression() {
-    return getDefinition().getSortExpression().subst(false, getDefinition().getSubstMap(getDefCallArguments()), getLevelSubstitution());
+    return getDefinition().getSortExpression().subst(false, getDefinition().getSubstMap(getDefCallArguments()), getLevelSubstitution(), GetTypeVisitor.INSTANCE);
   }
 
   @Override

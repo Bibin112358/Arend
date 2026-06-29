@@ -40,21 +40,14 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
     myMinimal = minimal;
   }
 
-  private Expression fixInfiniteType(Expression expr, Expression type) {
-    if (!type.isOmega()) return type;
-    while (expr instanceof AppExpression appExpr) {
-      expr = appExpr.getFunction();
-    }
-    if (expr instanceof ReferenceExpression refExpr && refExpr.getBinding() instanceof DependentLink param) {
-      return new UniverseExpression(new SortExpression.Var(param));
-    }
-    return type;
+  GetTypeVisitor() {
+    this(true, false);
   }
 
   @Override
   public Expression visitApp(AppExpression expr, Void params) {
     Expression result = expr.getFunction().accept(this, null).applyExpression(expr.getArgument(), myNormalizing);
-    return result == null ? new ErrorExpression() : fixInfiniteType(expr, result);
+    return result == null ? new ErrorExpression() : result;
   }
 
   private Level getMaxLevel(Level level1, Level level2) {
@@ -225,7 +218,7 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
     assert arguments.size() == defParams.size();
 
     if (type instanceof UniverseExpression universe) {
-      return new UniverseExpression(universe.getSortExpression().subst(false, definition.getSubstMap(arguments), LevelSubstitution.EMPTY));
+      return new UniverseExpression(universe.getSortExpression().subst(false, definition.getSubstMap(arguments), LevelSubstitution.EMPTY, this));
     } else {
       return type.subst(DependentLink.Helper.toSubstitution(defParams, arguments));
     }
@@ -233,7 +226,7 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
 
   @Override
   public UniverseExpression visitDataCall(DataCallExpression expr, Void params) {
-    return new UniverseExpression(expr.getDefinition().getSortExpression().subst(false, expr.getDefinition().getSubstMap(expr.getDefCallArguments()), (myMinimal ? minimizeLevels(expr) : expr.getLevels()).makeSubstitution(expr.getDefinition())));
+    return new UniverseExpression(expr.getDefinition().getSortExpression().subst(false, expr.getDefinition().getSubstMap(expr.getDefCallArguments()), (myMinimal ? minimizeLevels(expr) : expr.getLevels()).makeSubstitution(expr.getDefinition()), this));
   }
 
   private Levels minimizeLevelsToSuperClass(ClassCallExpression classCall, ClassDefinition superClass) {
@@ -285,7 +278,7 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
           return normExpr.accept(this, null);
         }
       }
-      return fixInfiniteType(expr, getFieldCallType(expr.getDefinition(), classCall, expr.getArgument()));
+      return getFieldCallType(expr.getDefinition(), classCall, expr.getArgument());
     }
     return new ErrorExpression();
   }
@@ -316,13 +309,13 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
 
   @Override
   public Expression visitClassCall(ClassCallExpression expr, Void params) {
-    SortExpression sort = expr.getDefinition().computeSort(expr.getImplementedHere(), expr.getThisBinding(), expr.getLevelSubstitution(), false);
+    SortExpression sort = expr.getDefinition().computeSort(expr.getImplementedHere(), expr.getThisBinding(), expr.getLevelSubstitution(), false, this);
     return sort == null ? new ErrorExpression() : new UniverseExpression(sort);
   }
 
   @Override
   public Expression visitReference(ReferenceExpression expr, Void params) {
-    return fixInfiniteType(expr, expr.getBinding().getType());
+    return expr.getBinding().getType();
   }
 
   @Override
@@ -352,7 +345,8 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
     List<SortExpression> sorts = new ArrayList<>();
     for (DependentLink param = expr.getParameters(); param.hasNext(); param = param.getNext()) {
       param = param.getNextTyped(null);
-      SortExpression sort = param.getType().accept(this, null).toSortExpression();
+      Expression type = param.getType().accept(this, null);
+      SortExpression sort = type.toSortExpression();
       if (sort == null) {
         return new ErrorExpression();
       }

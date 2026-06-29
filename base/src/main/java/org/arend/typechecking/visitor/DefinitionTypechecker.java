@@ -616,25 +616,9 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
 
     if (typedDef != null) {
       typedDef.setParameters(list.getFirst());
-      if (typedDef.hasInfiniteParameters()) {
-        typechecker.setInfiniteParameters(true);
-      }
     }
 
     return new Pair<>(SortExpression.makeMax(sorts), resultType == null ? null : resultType.subst(substitution));
-  }
-
-  private void fixParametersSorts(DependentLink param) {
-    for (; param.hasNext(); param = param.getNext()) {
-      param = param.getNextTyped(null);
-      Expression type = param.getType();
-      while (type instanceof PiExpression piExpr) {
-        type = piExpr.getCodomain();
-      }
-      if (type instanceof UniverseExpression universe) {
-        universe.fixVarSort();
-      }
-    }
   }
 
   private List<Boolean> getStrictParameters(List<? extends Concrete.Parameter> parameters) {
@@ -1317,6 +1301,21 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     }
   }
 
+  public static Map<DependentLink, Integer> parametersIndices(DependentLink param) {
+    Map<DependentLink, Integer> result = new HashMap<>();
+    for (int i = 0; param.hasNext(); param = param.getNext()) {
+      boolean isInf = param.getType().isInfinityLevel();
+      while (!(param instanceof TypedDependentLink)) {
+        if (isInf) result.put(param, i);
+        i++;
+        param = param.getNext();
+      }
+      if (isInf) result.put(param, i);
+      i++;
+    }
+    return result;
+  }
+
   private List<ExtElimClause> typecheckFunctionBody(FunctionDefinition typedDef, Concrete.BaseFunctionDefinition def) {
     UniverseKind universeKind = typedDef.getUniverseKind();
     typedDef.setUniverseKind(UniverseKind.WITH_UNIVERSES);
@@ -1484,8 +1483,6 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     } else {
       throw new IllegalStateException();
     }
-
-    fixParametersSorts(typedDef.getParameters());
 
     if (typedDef.getKind() == CoreFunctionDefinition.Kind.SFUNC && typedDef.getActualBody() instanceof IntervalElim) {
       errorReporter.report(new TypecheckingError("\\sfunc cannot be defined by pattern matching on the interval", def));
@@ -1735,6 +1732,13 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       }
     }
 
+    if (typedDef.getResultType().isInfinityLevel() && typedDef.getReallyActualBody() instanceof Expression coreBody) {
+      Expression type = coreBody.accept(new GetInfiniteTypeVisitor(parametersIndices(typedDef.getParameters())), null);
+      if (!type.isError()) {
+        typedDef.setResultType(type);
+      }
+    }
+
     typechecker.setStatus(def.getStatus().getTypecheckingStatus());
     typedDef.addStatus(typechecker.getStatus().max(!bodyIsOK && typedDef.getActualBody() == null && def.getKind() != FunctionKind.AXIOM ? Definition.TypeCheckingStatus.HAS_ERRORS : Definition.TypeCheckingStatus.NO_ERRORS));
 
@@ -1751,14 +1755,13 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     dataDefinition.setLevelParameters(typecheckLevelParameters(def));
 
     LinkList list = new LinkList();
-    Sort userSort = null;
     boolean paramsOk = typecheckParameters(def, dataDefinition, list, localInstancePool, null, null) != null;
     checkNoStrictParameters(def.getParameters());
 
     if (def.getUniverse() != null) {
       TypecheckingResult userTypeResult = typechecker.finalCheckExpr(def.getUniverse(), UniverseExpression.OMEGA);
       if (userTypeResult != null) {
-        userSort = userTypeResult.expression.toSort();
+        Sort userSort = userTypeResult.expression.toSort();
         if (userSort == null) {
           errorReporter.report(new TypecheckingError("Expected a universe", def.getUniverse()));
         } else if (userSort.isOmega()) {
@@ -1769,7 +1772,6 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       }
     }
 
-    dataDefinition.setSortExpression(userSort == null ? null : new SortExpression.Const(userSort)); // TODO[sorts]: Delete this. Set only when actually specified.
     calculateTypeClassParameters(dataDefinition);
     calculateParametersTypecheckingOrder(dataDefinition);
 
@@ -1808,7 +1810,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     dataDefinition.getConstructors().clear();
 
     Sort userSort = dataDefinition.getSort();
-    dataDefinition.setSortExpression(new SortExpression.Var(null));
+    if (userSort != null && userSort.isOmega()) userSort = null;
     List<SortExpression> inferredSortList = new ArrayList<>();
 
     boolean dataOk = true;
@@ -1931,19 +1933,9 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       }
 
       if (infLevel) {
-        inferredSortList.add(new SortExpression.Const(new Sort(new Level(BigInteger.ZERO), ConstLevel.INFINITY)));
-      } else {
-        loop:
-        for (int i = 0; i < dataDefinition.getConstructors().size(); i++) {
-          List<ExpressionPattern> patterns1 = dataDefinition.getConstructors().get(i).getPatterns();
-          for (int j = i + 1; j < dataDefinition.getConstructors().size(); j++) {
-            List<ExpressionPattern> patterns2 = dataDefinition.getConstructors().get(j).getPatterns();
-            if (patterns1 == null || patterns2 == null || ExpressionPattern.unify(patterns1, patterns2, null, null, null, errorReporter, def)) {
-              inferredSortList.add(new SortExpression.Const(Sort.SET0));
-              break loop;
-            }
-          }
-        }
+        inferredSortList.add(new SortExpression.Const(Sort.TypeOfLevel(0)));
+      } else if (dataDefinition.hasMultipleConstructors()) {
+        inferredSortList.add(new SortExpression.Const(Sort.SET0));
       }
 
       typechecker.invokeDeferredMetas(null, null, false);
@@ -1995,8 +1987,6 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     }
 
     SortExpression inferredSort = SortExpression.makeMax(inferredSortList);
-    inferredSort = inferredSort.subst(true, Collections.singletonMap(null, new UniverseExpression(inferredSort.subst(true, Collections.singletonMap(null, new UniverseExpression(Sort.PROP)), LevelSubstitution.EMPTY))), LevelSubstitution.EMPTY);
-    fixParametersSorts(dataDefinition.getParameters());
 
     // Check truncatedness
     if (def.isTruncated()) {

@@ -4,6 +4,7 @@ import org.arend.core.context.binding.Binding;
 import org.arend.core.context.param.DependentLink;
 import org.arend.core.expr.*;
 import org.arend.core.expr.visitor.FindBindingVisitor;
+import org.arend.core.expr.visitor.GetTypeVisitor;
 import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.ExprSubstitution;
@@ -185,7 +186,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     return null;
   }
 
-  public SortExpression computeSort(Map<ClassField,Expression> implemented, Binding thisBinding, LevelSubstitution levelSubstitution, boolean ignoreErrors) {
+  public SortExpression computeSort(Map<ClassField,Expression> implemented, Binding thisBinding, LevelSubstitution levelSubstitution, boolean ignoreErrors, GetTypeVisitor visitor) {
     Levels idLevels = makeIdLevels();
     ReferenceExpression thisExpr1 = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, idLevels, implemented, myBaseUniverseKind)));
     Expression thisExpr2 = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, idLevels)));
@@ -199,7 +200,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
       if (implemented.containsKey(field)) continue;
       Expression fieldType = getFieldTypeSubstInfiniteFields(field, idLevels, thisExpr1).normalize(NormalizationMode.WHNF);
       if (!fieldType.isInstance(ErrorExpression.class)) {
-        SortExpression fieldSort = fieldType.getSortExpressionOfType();
+        SortExpression fieldSort = fieldType.accept(visitor, null).toSortExpression();
         if (fieldSort == null || fieldSort instanceof SortExpression.Const(Sort sort) && sort.isOmega()) {
           fieldSort = getFieldType(field, idLevels, thisExpr2).normalize(NormalizationMode.WHNF).getSortExpressionOfType();
           if (!ignoreErrors && fieldSort == null) {
@@ -207,7 +208,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
           }
         }
         if (fieldSort != null) {
-          sorts.add(levelSubstitution.isEmpty() ? fieldSort : fieldSort.subst(false, Collections.emptyMap(), levelSubstitution));
+          sorts.add(levelSubstitution.isEmpty() ? fieldSort : fieldSort.subst(false, Collections.emptyMap(), levelSubstitution, GetTypeVisitor.INSTANCE));
         }
       }
     }
@@ -225,7 +226,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
   }
 
   public void updateSort() {
-    mySort = computeSort(Collections.emptyMap(), null, LevelSubstitution.EMPTY, true);
+    mySort = computeSort(Collections.emptyMap(), null, LevelSubstitution.EMPTY, true, GetTypeVisitor.INSTANCE);
   }
 
   @NotNull

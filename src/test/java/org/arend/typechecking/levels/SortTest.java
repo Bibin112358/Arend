@@ -273,4 +273,9 @@ public class SortTest extends TypeCheckingTestCase {
       """, 1);
     assertThatErrorsAre(Matchers.typeMismatchError());
   }
+
+  @Test
+  public void arrayTest() {
+    typeCheckDef("\\func test (A : \\Set) : \\Set => Array A");
+  }
 }

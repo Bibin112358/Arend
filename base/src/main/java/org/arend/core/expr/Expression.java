@@ -642,14 +642,6 @@ public abstract class Expression implements Body, CoreExpression {
     return expr instanceof UniverseExpression universe && universe.getSortExpression().isInfinite();
   }
 
-  public boolean isPiSortInfinityLevel() {
-    Expression expr = this;
-    while (expr instanceof PiExpression piExpr) {
-      expr = piExpr.getCodomain();
-    }
-    return expr instanceof UniverseExpression universe && universe.getSortExpression().isInfinite();
-  }
-
   public Expression replaceInfinityLevel(InferenceVariable variable) {
     return null;
   }
