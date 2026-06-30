@@ -149,7 +149,7 @@
   | limit => limit {VPresheafComplete D C}
   | colimit => colimit {VPresheafCocomplete D C}
 
-\func PresheafCatBicomplete.{s,o,h} (C : Precat.{o,h}) : BicompleteCat.{s, \max (\suc s) (\max o h), \max s o} (PresheafCat.{s} C)
+\func PresheafCatBicomplete.{s,o,h} (C : Precat.{o,h}) : BicompleteCat.{s, \max (\suc s) (\max o h), \max s (\max o h)} (PresheafCat.{s} C)
   => VPresheafCatBicomplete.{s, \suc s, s, o, h} SetBicat.{s} C
 
 --\open PrecatWithBprod
