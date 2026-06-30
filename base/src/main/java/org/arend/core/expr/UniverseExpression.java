@@ -1,7 +1,7 @@
 package org.arend.core.expr;
 
 import org.arend.core.context.binding.inference.InferenceVariable;
-import org.arend.core.context.param.DependentLink;
+import org.arend.core.definition.ClassField;
 import org.arend.core.expr.visitor.ExpressionVisitor;
 import org.arend.core.expr.visitor.ExpressionVisitor2;
 import org.arend.core.sort.Sort;
@@ -11,6 +11,8 @@ import org.arend.ext.core.expr.CoreExpressionVisitor;
 import org.arend.ext.core.expr.CoreUniverseExpression;
 import org.arend.util.Decision;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class UniverseExpression extends Expression implements CoreUniverseExpression {
   public static final UniverseExpression OMEGA = new UniverseExpression(Sort.INFINITY);
@@ -35,12 +37,6 @@ public class UniverseExpression extends Expression implements CoreUniverseExpres
     if (!substitution.isEmpty()) mySortExpression = mySortExpression.subst(substitution);
   }
 
-  public void fixVarSort() {
-    if (mySortExpression instanceof SortExpression.Var) {
-      mySortExpression = new SortExpression.Const(Sort.INFINITY);
-    }
-  }
-
   @NotNull
   @Override
   public SortExpression getSortExpression() {
@@ -53,8 +49,8 @@ public class UniverseExpression extends Expression implements CoreUniverseExpres
   }
 
   @Override
-  public Expression replaceInfinityLevel(int index) {
-    return mySortExpression instanceof SortExpression.Const(Sort sort) && sort.getPLevel().isInfinity() || mySortExpression instanceof SortExpression.Var ? new UniverseExpression(new SortExpression.Var(index)) : null;
+  public Expression replaceInfinityLevel(int index, List<ClassField> fields) {
+    return mySortExpression instanceof SortExpression.Const(Sort sort) && sort.getPLevel().isInfinity() || mySortExpression instanceof SortExpression.Var ? new UniverseExpression(new SortExpression.Var(index, fields)) : null;
   }
 
   @Override

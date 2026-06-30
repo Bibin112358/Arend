@@ -1,6 +1,7 @@
 package org.arend.core.expr;
 
 import org.arend.core.context.binding.Binding;
+import org.arend.core.definition.ClassField;
 import org.arend.core.definition.Constructor;
 import org.arend.core.elimtree.ElimBody;
 import org.arend.core.elimtree.ElimClause;
@@ -639,6 +640,27 @@ public abstract class Expression implements Body, CoreExpression {
     while (expr instanceof PiExpression piExpr) {
       expr = piExpr.getCodomain();
     }
+
+    if (expr instanceof UniverseExpression universe) {
+      return universe.getSortExpression().isInfinite();
+    }
+
+    if (expr instanceof ClassCallExpression classCall) {
+      for (ClassField field : classCall.getDefinition().getNotImplementedFields()) {
+        if (field.isInfiniteField() && !classCall.isImplementedHere(field)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  public boolean isPiInfinityLevel() {
+    Expression expr = this;
+    while (expr instanceof PiExpression piExpr) {
+      expr = piExpr.getCodomain();
+    }
     return expr instanceof UniverseExpression universe && universe.getSortExpression().isInfinite();
   }
 
@@ -646,7 +668,7 @@ public abstract class Expression implements Body, CoreExpression {
     return null;
   }
 
-  public Expression replaceInfinityLevel(int index) {
+  public Expression replaceInfinityLevel(int index, List<ClassField> fields) {
     return null;
   }
 

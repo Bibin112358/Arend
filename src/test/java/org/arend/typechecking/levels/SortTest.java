@@ -7,12 +7,15 @@ import org.arend.core.definition.FunctionDefinition;
 import org.arend.core.expr.ExpressionFactory;
 import org.arend.core.expr.PiExpression;
 import org.arend.core.expr.UniverseExpression;
+import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.prelude.Prelude;
 import org.arend.typechecking.TypeCheckingTestCase;
 import org.junit.Test;
 
+import java.math.BigInteger;
 import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
@@ -111,7 +114,7 @@ public class SortTest extends TypeCheckingTestCase {
       """);
     checkLevelParameters("R", "test");
     FunctionDefinition function = (FunctionDefinition) getDefinition("test");
-    assertEquals(new UniverseExpression(new SortExpression.Var(0)), function.getResultType());
+    assertEquals(new UniverseExpression(new SortExpression.Var(0, Collections.emptyList())), function.getResultType());
   }
 
   @Test
@@ -285,5 +288,75 @@ public class SortTest extends TypeCheckingTestCase {
     typeCheckModule("");
     assertEquals(Sort.SET0, Prelude.NAT.getSort());
     assertEquals(Sort.SET0, Prelude.FIN.getSort());
+  }
+
+  @Test
+  public void fieldTest() {
+    typeCheckModule("""
+      \\record R (A : \\Sort) (a : A)
+      \\func fun (r : R) (x : r.A) => x
+      \\func test => fun (\\new R Nat 7)
+      """);
+    checkLevelParameters("R", "fun", "test");
+    assertEquals(Sort.SET0, ((FunctionDefinition) getDefinition("test")).getResultType().getSortOfType());
+  }
+
+  @Test
+  public void fieldTest2() {
+    typeCheckModule("""
+      \\record R (A : \\Sort) (a : A)
+      \\func test (r : R) (n : Nat) : \\Sort => r.A
+      """);
+  }
+
+  @Test
+  public void fieldTest3() {
+    typeCheckModule("""
+      \\record R (A : \\Sort) (a : A)
+      \\func test (r : R) (n : Nat) : \\Sort \\elim n
+        | 0 => r.A
+        | suc _ => r.A
+      """, 1);
+  }
+
+  @Test
+  public void fieldDataTest() {
+    typeCheckModule("""
+      \\record R (A B : \\Sort) (a : A) (b : B)
+      \\data D (r : R) | con1 r.A | con2 r.A
+      \\func test => D (\\new R \\Set0 \\3-Type7 Nat Nat)
+      """);
+    assertEquals(new Sort(new Level(BigInteger.ONE), new ConstLevel(BigInteger.ONE)), ((FunctionDefinition) getDefinition("test")).getResultType().toSort());
+  }
+
+  @Test
+  public void fieldDataTest2() {
+    typeCheckModule("""
+      \\record R (A B : \\Sort) (a : A) (b : B)
+      \\data D (r : R) | con1 r.B | con2 r.B
+      \\func test => D (\\new R \\3-Type7 Nat \\Set0 0)
+      """);
+    assertEquals(Sort.SET0, ((FunctionDefinition) getDefinition("test")).getResultType().toSort());
+  }
+
+  @Test
+  public void fieldDataTest3() {
+    typeCheckModule("""
+      \\record R (A B : \\Sort) (a : A) (b : B)
+      \\data D (r : R) | con1 r.A | con2 r.B
+      \\func test => D (\\new R \\3-Type7 \\7-Type3 Nat Nat)
+      """);
+    assertEquals(new Sort(new Level(BigInteger.valueOf(8)), new ConstLevel(BigInteger.valueOf(8))), ((FunctionDefinition) getDefinition("test")).getResultType().toSort());
+  }
+
+  @Test
+  public void fieldDataTest4() {
+    typeCheckModule("""
+      \\record R (A B : \\Sort) (a : A) (b : B)
+      \\record S (C : \\Sort) (r : R)
+      \\data D (s : S) | con1 s.r.B | con2 s.C
+      \\func test => D (\\new S \\3-Type7 (\\new R \\100-Type100 \\7-Type3 Nat Nat))
+      """);
+    assertEquals(new Sort(new Level(BigInteger.valueOf(8)), new ConstLevel(BigInteger.valueOf(8))), ((FunctionDefinition) getDefinition("test")).getResultType().toSort());
   }
 }

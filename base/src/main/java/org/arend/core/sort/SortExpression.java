@@ -1,6 +1,8 @@
 package org.arend.core.sort;
 
 import org.arend.core.context.binding.inference.InferenceVariable;
+import org.arend.core.definition.ClassField;
+import org.arend.core.expr.ClassCallExpression;
 import org.arend.core.expr.Expression;
 import org.arend.core.expr.PiExpression;
 import org.arend.core.expr.UniverseExpression;
@@ -51,8 +53,8 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
         return Sort.compare(sort1, sort2, cmp, equations, sourceNode);
       }
       case Var var1 -> {
-        if (sortExpr2 instanceof Var(int index2)) {
-          return var1.index == index2;
+        if (sortExpr2 instanceof Var) {
+          return var1.equals(sortExpr2);
         } else if (sortExpr2 instanceof Const(Sort sort2) && sort2.getPLevel().isClosed()) {
           return sort2.getPLevel().isInfinity() && sort2.getHLevel().isInfinity();
         }
@@ -108,12 +110,27 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
    *
    * @param index   refers to one of the parameters of the (data or function) definition.
    */
-  record Var(int index) implements SortExpression {
+  record Var(int index, List<ClassField> fields) implements SortExpression {
     @Override
     public @NotNull SortExpression subst(@NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution, @NotNull GetTypeVisitor visitor) {
       if (index >= arguments.size()) return this;
       Expression arg = arguments.get(index);
       if (arg == null) return this;
+
+      for (ClassField field : fields) {
+        arg = arg.normalize(NormalizationMode.WHNF).accept(visitor, null).normalize(NormalizationMode.WHNF);
+        while (arg instanceof PiExpression piExpr) {
+          arg = piExpr.getCodomain().normalize(NormalizationMode.WHNF);
+        }
+        if (!(arg instanceof ClassCallExpression classCall)) {
+          return new Const(Sort.INFINITY);
+        }
+
+        arg = classCall.getImplementation(field, arg);
+        if (arg == null) {
+          return new Const(Sort.INFINITY);
+        }
+      }
 
       arg = arg.normalize(NormalizationMode.WHNF).accept(visitor, null).normalize(NormalizationMode.WHNF);
       while (arg instanceof PiExpression piExpr) {
