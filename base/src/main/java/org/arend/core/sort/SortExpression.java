@@ -18,13 +18,14 @@ import org.jetbrains.annotations.Nullable;
 import java.math.BigInteger;
 import java.util.*;
 
-public sealed interface SortExpression extends CoreSortExpression permits SortExpression.Const, SortExpression.Var, SortExpression.InfVar, SortExpression.Max, SortExpression.Pi, SortExpression.Prev, SortExpression.Succ {
-  @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution, @NotNull GetTypeVisitor visitor);
+public sealed interface SortExpression extends CoreSortExpression permits SortExpression.Const, SortExpression.Var, SortExpression.RecursiveData, SortExpression.InfVar, SortExpression.Max, SortExpression.Pi, SortExpression.Prev, SortExpression.Succ {
+  @NotNull SortExpression subst(@NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution, @NotNull GetTypeVisitor visitor);
+  @NotNull SortExpression replaceRecursiveData(@NotNull Expression argument);
   @NotNull Sort withInfLevel();
   boolean isInfinite();
 
   default @NotNull SortExpression subst(@NotNull LevelSubstitution substitution) {
-    return subst(false, Collections.emptyList(), substitution, GetTypeVisitor.INSTANCE);
+    return subst(Collections.emptyList(), substitution, GetTypeVisitor.INSTANCE);
   }
 
   default @NotNull SortExpression simplify() {
@@ -56,6 +57,9 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
           return sort2.getPLevel().isInfinity() && sort2.getHLevel().isInfinity();
         }
       }
+      case RecursiveData ignored -> {
+        return sortExpr2 instanceof RecursiveData;
+      }
       default -> {}
     }
     return equations.addEquation(sortExpr1, sortExpr2, cmp, sourceNode);
@@ -68,8 +72,13 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     }
 
     @Override
-    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution, @NotNull GetTypeVisitor visitor) {
+    public @NotNull SortExpression subst(@NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution, @NotNull GetTypeVisitor visitor) {
       return new Const(sort.subst(substitution));
+    }
+
+    @Override
+    public @NotNull SortExpression replaceRecursiveData(@NotNull Expression argument) {
+      return this;
     }
 
     @Override
@@ -101,22 +110,49 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
    */
   record Var(int index) implements SortExpression {
     @Override
-    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution, @NotNull GetTypeVisitor visitor) {
+    public @NotNull SortExpression subst(@NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution, @NotNull GetTypeVisitor visitor) {
       if (index >= arguments.size()) return this;
       Expression arg = arguments.get(index);
       if (arg == null) return this;
 
-      if (isType) {
-        SortExpression result = arg instanceof UniverseExpression universe ? universe.getSortExpression() : null;
-        return result == null ? new Const(Sort.INFINITY) : result;
-      } else {
-        arg = arg.normalize(NormalizationMode.WHNF).accept(visitor, null).normalize(NormalizationMode.WHNF);
-        while (arg instanceof PiExpression piExpr) {
-          arg = piExpr.getCodomain().normalize(NormalizationMode.WHNF);
-        }
-        SortExpression result = arg.toSortExpression();
-        return result == null ? new Const(Sort.INFINITY) : result;
+      arg = arg.normalize(NormalizationMode.WHNF).accept(visitor, null).normalize(NormalizationMode.WHNF);
+      while (arg instanceof PiExpression piExpr) {
+        arg = piExpr.getCodomain().normalize(NormalizationMode.WHNF);
       }
+      SortExpression result = arg.toSortExpression();
+      return result == null ? new Const(Sort.INFINITY) : result;
+    }
+
+    @Override
+    public @NotNull SortExpression replaceRecursiveData(@NotNull Expression argument) {
+      return this;
+    }
+
+    @Override
+    public @NotNull Sort withInfLevel() {
+      return Sort.INFINITY;
+    }
+
+    @Override
+    public boolean isInfinite() {
+      return true;
+    }
+
+    @Override
+    public @Nullable BigInteger getSortHLevel() {
+      return null;
+    }
+  }
+
+  record RecursiveData() implements SortExpression {
+    @Override
+    public @NotNull SortExpression subst(@NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution, @NotNull GetTypeVisitor visitor) {
+      return this;
+    }
+
+    @Override
+    public @NotNull SortExpression replaceRecursiveData(@NotNull Expression argument) {
+      return argument instanceof UniverseExpression universe ? universe.getSortExpression() : new Const(Sort.INFINITY);
     }
 
     @Override
@@ -182,8 +218,13 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     }
 
     @Override
-    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution, @NotNull GetTypeVisitor visitor) {
-      return sort == null || sort == this ? this : sort.subst(isType, arguments, substitution, visitor);
+    public @NotNull SortExpression subst(@NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution, @NotNull GetTypeVisitor visitor) {
+      return sort == null || sort == this ? this : sort.subst(arguments, substitution, visitor);
+    }
+
+    @Override
+    public @NotNull SortExpression replaceRecursiveData(@NotNull Expression argument) {
+      return this;
     }
 
     @Override
@@ -261,10 +302,19 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     }
 
     @Override
-    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution, @NotNull GetTypeVisitor visitor) {
+    public @NotNull SortExpression subst(@NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution, @NotNull GetTypeVisitor visitor) {
       List<SortExpression> sorts = new ArrayList<>(mySorts.size());
       for (SortExpression sort : mySorts) {
-        sorts.add(sort.subst(isType, arguments, substitution, visitor));
+        sorts.add(sort.subst(arguments, substitution, visitor));
+      }
+      return makeMax(sorts);
+    }
+
+    @Override
+    public @NotNull SortExpression replaceRecursiveData(@NotNull Expression argument) {
+      List<SortExpression> sorts = new ArrayList<>(mySorts.size());
+      for (SortExpression sort : mySorts) {
+        sorts.add(sort.replaceRecursiveData(argument));
       }
       return makeMax(sorts);
     }
@@ -313,7 +363,7 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
   }
 
   static @NotNull SortExpression makeSucc(@NotNull SortExpression sort) {
-    return sort instanceof Const(Sort aSort) ? new Const(aSort.succ()) : sort instanceof Var ? new Const(Sort.INFINITY) : new Succ(sort);
+    return sort instanceof Const(Sort aSort) ? new Const(aSort.succ()) : sort instanceof Var || sort instanceof RecursiveData ? new Const(Sort.INFINITY) : new Succ(sort);
   }
 
   final class Pi implements SortExpression, PiSortExpression {
@@ -336,8 +386,13 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     }
 
     @Override
-    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution, @NotNull GetTypeVisitor visitor) {
-      return makePi(myDomain.subst(isType, arguments, substitution, visitor), myCodomain.subst(isType, arguments, substitution, visitor));
+    public @NotNull SortExpression subst(@NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution, @NotNull GetTypeVisitor visitor) {
+      return makePi(myDomain.subst(arguments, substitution, visitor), myCodomain.subst(arguments, substitution, visitor));
+    }
+
+    @Override
+    public @NotNull SortExpression replaceRecursiveData(@NotNull Expression argument) {
+      return makePi(myDomain.replaceRecursiveData(argument), myCodomain.replaceRecursiveData(argument));
     }
 
     @Override
@@ -371,8 +426,13 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     }
 
     @Override
-    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution, @NotNull GetTypeVisitor visitor) {
-      return makePrev(mySort.subst(isType, arguments, substitution, visitor));
+    public @NotNull SortExpression subst(@NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution, @NotNull GetTypeVisitor visitor) {
+      return makePrev(mySort.subst(arguments, substitution, visitor));
+    }
+
+    @Override
+    public @NotNull SortExpression replaceRecursiveData(@NotNull Expression argument) {
+      return makePrev(mySort.replaceRecursiveData(argument));
     }
 
     @Override
@@ -406,8 +466,13 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
     }
 
     @Override
-    public @NotNull SortExpression subst(boolean isType, @NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution, @NotNull GetTypeVisitor visitor) {
-      return makeSucc(mySort.subst(isType, arguments, substitution, visitor));
+    public @NotNull SortExpression subst(@NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution, @NotNull GetTypeVisitor visitor) {
+      return makeSucc(mySort.subst(arguments, substitution, visitor));
+    }
+
+    @Override
+    public @NotNull SortExpression replaceRecursiveData(@NotNull Expression argument) {
+      return makeSucc(mySort.replaceRecursiveData(argument));
     }
 
     @Override

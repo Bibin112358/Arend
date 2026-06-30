@@ -215,6 +215,7 @@ public class StripVisitor implements ExpressionVisitor<Void, Expression> {
     return switch (sort) {
       case SortExpression.Const aConst -> aConst;
       case SortExpression.Var var -> var;
+      case SortExpression.RecursiveData var -> var;
       case SortExpression.InfVar infVar -> {
         SortExpression simplified = infVar.simplify();
         if (simplified instanceof SortExpression.InfVar infVar1) {

@@ -8,7 +8,6 @@ import org.arend.core.definition.*;
 import org.arend.core.elimtree.ElimClause;
 import org.arend.core.expr.*;
 import org.arend.core.expr.visitor.GetInfiniteTypeVisitor;
-import org.arend.core.expr.visitor.GetTypeVisitor;
 import org.arend.core.expr.visitor.VoidExpressionVisitor;
 import org.arend.core.pattern.BindingPattern;
 import org.arend.core.pattern.ExpressionPattern;
@@ -18,7 +17,6 @@ import org.arend.error.CountingErrorReporter;
 import org.arend.ext.ArendExtension;
 import org.arend.ext.core.definition.CoreFunctionDefinition;
 import org.arend.ext.core.expr.CoreExpression;
-import org.arend.ext.core.level.LevelSubstitution;
 import org.arend.ext.core.ops.CMP;
 import org.arend.ext.error.ErrorReporter;
 import org.arend.ext.error.TypecheckingError;
@@ -348,17 +346,9 @@ public class TypecheckingOrderingListener extends BooleanComputationRunner imple
       sortMax = SortExpression.makeTrunc(sortMax, dataDefinition.getTruncatedLevel());
     }
 
-    int params = DependentLink.Helper.size(dataDefinition.getParameters());
-    List<Expression> args = new ArrayList<>(params + 1);
-    for (int i = 0; i < params; i++) {
-      args.add(null);
-    }
-    args.add(new UniverseExpression(Sort.PROP));
-
-    SortExpression dataSort = sortMax.subst(true, args, LevelSubstitution.EMPTY, GetTypeVisitor.INSTANCE);
+    SortExpression dataSort = sortMax.replaceRecursiveData(new UniverseExpression(Sort.PROP));
     if (!dataDefinition.getRecursiveDefinitions().isEmpty()) {
-      args.set(params, new UniverseExpression(dataSort));
-      dataSort = sortMax.subst(true, args, LevelSubstitution.EMPTY, GetTypeVisitor.INSTANCE);
+      dataSort = sortMax.replaceRecursiveData(new UniverseExpression(dataSort));
     }
 
     dataDefinition.setSortExpression(dataSort);

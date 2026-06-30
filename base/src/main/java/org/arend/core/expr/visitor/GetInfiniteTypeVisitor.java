@@ -49,6 +49,6 @@ public class GetInfiniteTypeVisitor extends GetTypeVisitor {
 
   @Override
   public UniverseExpression visitDataCall(DataCallExpression expr, Void params) {
-    return myThisData == expr.getDefinition() ? new UniverseExpression(new SortExpression.Var(expr.getDefCallArguments().size())) : super.visitDataCall(expr, params);
+    return myThisData == expr.getDefinition() ? new UniverseExpression(new SortExpression.RecursiveData()) : super.visitDataCall(expr, params);
   }
 }
