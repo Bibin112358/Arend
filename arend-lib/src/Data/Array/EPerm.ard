@@ -162,7 +162,7 @@
           | 0 => inv p
           | suc j => f j
         })
-      | x :: (x' :: (l : Array)), y :: (y' :: l'), eperm-swap p1 p2 q => transport (\lam (l'' : Array A) => \Sigma (e : QEquiv {Fin (suc (suc l''.len))} {Fin (suc (suc l.len))}) (\Pi (j : Fin (suc (suc l''.len))) -> (y :: y' :: l'') j = (x :: x' :: l) (e j))) q
+      | x :: (x' :: l), y :: (y' :: l'), eperm-swap p1 p2 q => transport (\lam (l'' : Array A) => \Sigma (e : QEquiv {Fin (suc (suc l''.len))} {Fin (suc (suc l.len))}) (\Pi (j : Fin (suc (suc l''.len))) -> (y :: y' :: l'') j = (x :: x' :: l) (e j))) q
         (transposition1 (0 : Fin (suc l.len)), \case \elim __ \with {
           | 0 => rewrite transposition1.transposition1-left (inv p2)
           | 1 => rewrite transposition1.transposition1-right (inv p1)

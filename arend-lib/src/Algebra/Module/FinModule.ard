@@ -48,7 +48,7 @@
       \level \lam s t => ext \case s.2, t.2 \with {
         | inP (l,lb), inP (l',l'b) => <=-antisymmetric (basis<=generating l l' lb l'b.2) (basis<=generating l' l l'b lb.2)
       } => \case U.isFinModule \with {
-        | inP (l : Array, lb) => (l.len, inP (\new l, lb))
+        | inP (l, lb) => (l.len, inP (\new l, lb))
       }
 
     \func dimension {R : NonZeroCRing} (U : FinModule R) => (dimension-pair U).1

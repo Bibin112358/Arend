@@ -141,7 +141,7 @@
 
   \lemma IsIndependentSet-right-inj {J K : \Set} {f : J -> K} (inj : IsInj f) {g : K -> E} (gi : IsIndependentSet g) : IsIndependentSet (\lam j => g (f j))
     => \lam c p => \case IsZeroSum.nonEmpty $ gi (map (\lam s => (s.1, f s.2)) c) p \with {
-         | inP (l1 : Array, e, h) => inP
+         | inP (l1, e, h) => inP
            \let | g (s : \Sigma R J) => (s.1, f s.2)
                 | pi (i : Fin l1.len) : \Sigma (j : J) (f j = (l1 i).2) =>
                   \let | i' => ++.index-big {_} {map (\lam s => map (\lam p0 => (p0, s.2)) s.1) l1} i $ toFin 0 (nonZero>0 (l1 i).3)

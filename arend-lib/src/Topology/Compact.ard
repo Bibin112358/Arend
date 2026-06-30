@@ -89,7 +89,7 @@
       }
       | closure-trans {D} Dc {E} Ec idp => \case totallyBounded-closure base Dc \with {
         | inP (V,Vc,DV) => \case FinSet.finiteAC (\lam j => totallyBounded-closure base $ Ec (DV j)) \with {
-          | inP W => \have e : QEquiv => SigmaFin.aux {_} {\lam i => (W i).1.len} \in inP
+          | inP W => \have e => SigmaFin.aux {_} {\lam i => (W i).1.len} \in inP
             (\lam k => V (e k).1 ∧ (W (e k).1).1 (e k).2,
              \lam x => \case Vc x \with {
                | inP (_, inP (i,idp), Vx) => \case (W i).2 x \with {

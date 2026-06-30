@@ -267,6 +267,16 @@ public class ClassCallExpression extends LeveledDefCallExpression implements Cor
     return field instanceof ClassField && (myImplementations.containsKey(field) || getDefinition().isImplemented(field));
   }
 
+  @Override
+  public boolean isInfinityLevel() {
+    for (ClassField field : getDefinition().getNotImplementedFields()) {
+      if (field.isInfiniteField() && !myImplementations.containsKey(field)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public boolean isUnit() {
     return myImplementations.size() == getDefinition().getNumberOfNotImplementedFields();
   }

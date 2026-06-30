@@ -46,7 +46,7 @@
   ) => TFAE.cycle (
     \lam ac (inP (n,pd,pc)) => aux ac pd pc,
     \lam c n pd pc => \case c (inP (n,pd,pc)) \with {
-      | inP (l : Array, q) => \case decideEq n l.len \with {
+      | inP (l, q) => \case decideEq n l.len \with {
         | yes e => rewrite e $ inP (\new l, q)
         | no r => \have t x => inv $ inv K.zro_*-right *> pmap (x *) (monic-unique r pd pc
                                 (rewrite q $ degree<=_BigProd1 \lam _ => idp)

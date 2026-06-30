@@ -36,7 +36,7 @@
 
 \lemma splitting-monic {k K : DiscreteField} {p : Poly k} (pm : isMonic p) {f : RingHom k K} (s : IsSplittingField p f)
   : ∃ (l : Array K) (RingHom.isAlgebraGenerated f l) (polyMap f p = Monoid.BigProd (map (\lam a => padd 1 (negative a)) l)) \elim pm, s
-  | inP (n,pd,pc), inP (l : Array, c, lg, lq) => inP (l, lg, lq *> pmap (PolyRing.`*c _) (
+  | inP (n,pd,pc), inP (l, c, lg, lq) => inP (l, lg, lq *> pmap (PolyRing.`*c _) (
     \have | pc1 : polyCoef (polyMap f p) n = 1 => polyCoef_polyMap *> pmap f pc *> func-ide
           | pc2 : polyCoef (polyMap f p) l.len = c => rewrite lq $ polyCoef_*c *> pmap (c *) (leadCoef_BigProd1 (\lam _ => idp) \lam _ => idp) *> ide-right
     \in \case LinearOrder.trichotomy l.len n \with {

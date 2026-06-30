@@ -25,7 +25,7 @@
   | inP e => inP $ pathEquiv (f __ = f __) \lam {a} {a'} => \new Retraction {
     | f => pmap f
     | sec p => inv (e.ret_f a) *> pmap e.ret p *> e.ret_f a'
-    | f_sec p => \let hae : HAEquiv => e \in
+    | f_sec p => \let hae : HAEquiv f => e \in
       pmap f (inv (e.ret_f a) *> pmap e.ret p *> e.ret_f a')                   ==< pmap_*>-comm f (inv (e.ret_f a)) (pmap e.ret p *> e.ret_f a') >==
       pmap f (inv (e.ret_f a)) *> pmap f (pmap e.ret p *> e.ret_f a')          ==< pmap2 (*>) (pmap_inv-comm f (e.ret_f a)) (pmap_*>-comm f (pmap e.ret p) (e.ret_f a')) >==
       inv (pmap f (e.ret_f a)) *> pmap f (pmap e.ret p) *> pmap f (e.ret_f a') ==< rotatePathLeft (

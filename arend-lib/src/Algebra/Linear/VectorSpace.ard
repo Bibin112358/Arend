@@ -186,7 +186,7 @@
   | LModule => KerLModule f
   | isFinModule => \case U.isFinModule, V.isFinModule \with {
     | inP (_,bu'), inP (_,bv') => \case smith-bases bu' bv' f \with {
-        | inP (lu : Array, bu, lv : Array, bv, d, g, d0) =>
+        | inP (lu, bu, lv, bv, d, g, d0) =>
           \have | KerFin : FinSet (\Sigma (j : Fin lu.len) (d j = 0)) => SigmaFin (FinFin lu.len) (\lam j => DecFin (decideEq (d j) 0))
                 | kb : LModule.IsBasisSet {KerLModule f} (\lam s => (lu s.1, g s.1 *> pmap (`*c _) s.2 *> V.*c_zro-left))
                 => (LinearMap.IsIndependentSet_func {KerLModuleHom f} $ LModule.IsIndependentSet-right-inj (\lam p => ext p) ((U.IsIndependent<->IsIndependentSet {lu}).1 bu.1),

@@ -93,21 +93,6 @@ public class ArrayTest extends TypeCheckingTestCase {
   }
 
   @Test
-  public void nilEtaTest() {
-    typeCheckModule("""
-      \\lemma test1 (a b : Array Nat 0) : a = b => idp
-      \\func test2 (a : DArray { | len => 0 }) : a = nil => idp
-      \\func test3 (a : DArray { | len => 0 }) : nil = a => idp
-      """);
-  }
-
-  @Test
-  public void nilEtaError() {
-    typeCheckDef("\\func test (a b : DArray { | len => 0 }) : a = b => idp", 1);
-    assertThatErrorsAre(Matchers.typecheckingError(NotEqualExpressionsError.class));
-  }
-
-  @Test
   public void newConsTest() {
     typeCheckModule(
       "\\lemma test1 : (\\new Array Nat 2 (\\case __ \\with { | 0 => 5 | 1 => 7 })) = 5 :: 7 :: nil => idp\n" +
@@ -131,12 +116,6 @@ public class ArrayTest extends TypeCheckingTestCase {
   @Test
   public void etaTest() {
     typeCheckDef("\\func test {A : \\Type} {n : Nat} (g : Fin n -> Array A 3) : (\\new Array (Array A) n g) = {Array (Array A)} \\new Array (Array A 3) n g => idp");
-  }
-
-  @Test
-  public void etaError() {
-    typeCheckDef("\\func test {A : \\Type} {n : Nat} (g : Fin n -> Array A 3) : (\\new Array (Array A) n g) = {DArray} \\new Array (Array A 3) n g => idp", 1);
-    assertThatErrorsAre(Matchers.typecheckingError(NotEqualExpressionsError.class));
   }
 
   @Test

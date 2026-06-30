@@ -370,7 +370,7 @@ public class DataTest extends TypeCheckingTestCase {
       \\record R (A : \\Sort) (field : Nat -> A)
       \\data D | con1 (R D) | con2
       \\func test (d : D) : Nat
-        | con1 (r : R) => test (r.field 0)
+        | con1 r => test (r.field 0)
         | con2 => 1
       """);
   }

@@ -9,6 +9,7 @@ import org.arend.core.expr.PiExpression;
 import org.arend.core.expr.UniverseExpression;
 import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
+import org.arend.prelude.Prelude;
 import org.arend.typechecking.TypeCheckingTestCase;
 import org.junit.Test;
 
@@ -277,5 +278,12 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void arrayTest() {
     typeCheckDef("\\func test (A : \\Set) : \\Set => Array A");
+  }
+
+  @Test
+  public void preludeTest() {
+    typeCheckModule("");
+    assertEquals(Sort.SET0, Prelude.NAT.getSort());
+    assertEquals(Sort.SET0, Prelude.FIN.getSort());
   }
 }

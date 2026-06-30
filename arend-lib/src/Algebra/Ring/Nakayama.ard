@@ -26,7 +26,7 @@
 
 \lemma nakayama {R : CRing} {M : LModule R} {I : Ideal R} (fg : M.IsFinitelyGenerated)
                 (c : topSubLModule M <= I *m topSubLModule M) : ∃ (e : R) (I (1 - e)) ∀ (m : M) (e *c m = 0) \elim fg
-  | inP (l : Array, lg) =>
+  | inP (l, lg) =>
     \let | (inP f) => FinSet.finiteAC \lam j => c {l j} ()
          | (inP g) => FinSet.finiteAC \lam i => FinSet.finiteAC \lam j => lg ((f i).1 j).3
          | A => mkMatrix \lam i k => R.BigSum $ mkArray \lam j => ((f i).1 j).1 * (g i j).1 k

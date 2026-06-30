@@ -76,7 +76,7 @@
   \truncated \data isPartialTheorem (seq : Sequent) : \Prop \with
     | (_, _, _, equality (var v) (var v')) => varDef (v = v')
     | (V, vf, phi, equality a b) => sym (isTheorem phi (equality b a))
-    | (V, vf, phi : Array, psi) => {
+    | (V, vf, phi, psi) => {
       | partProj (j : Fin phi.len) (psi = phi j)
       | partSubstPres {U : Sort -> \Set} (chi : Formula U) (rho rho' : \Pi {s : Sort} -> U s -> Term V s)
                       (\Pi {s : Sort} (u : U s) -> isTheorem phi (equality (rho u) (rho' u)))

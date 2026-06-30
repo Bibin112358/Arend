@@ -1319,7 +1319,11 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       return null;
     }
 
-    return expr.getStatements().isEmpty() ? checkResult(expectedType, typeCheckedBaseClass, expr) : typecheckClassExt(expr.getStatements(), expectedType, classCall, null, expr, false);
+    if (expr.getStatements().isEmpty()) {
+      return checkInfiniteLevel(typeCheckedBaseClass, expectedType, expr) ? checkResult(expectedType, typeCheckedBaseClass, expr) : null;
+    } else {
+      return typecheckClassExt(expr.getStatements(), expectedType, classCall, null, expr, false);
+    }
   }
 
   public TypecheckingResult typecheckClassExt(List<? extends Concrete.ClassFieldImpl> classFieldImpls, Expression expectedType, ClassCallExpression classCallExpr, Set<ClassField> pseudoImplemented, Concrete.Expression expr, boolean useDefaults) {
@@ -1578,7 +1582,9 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       errorReporter.report(new TypecheckingError("Cannot infer the sort of the class extension", expr));
       return null;
     }
-    return checkResult(expectedType, new TypecheckingResult(resultClassCall, new UniverseExpression(sort)), expr);
+
+    TypecheckingResult result = new TypecheckingResult(resultClassCall, new UniverseExpression(sort));
+    return checkInfiniteLevel(result, expectedType, expr) ? checkResult(expectedType, result, expr) : null;
   }
 
   static void setCaseLevel(Concrete.Expression expr, BigInteger level, boolean setSCase) {
@@ -1745,7 +1751,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       TypecheckingResult typeCheckedBaseClass = baseClassExpr instanceof Concrete.ReferenceExpression && ((Concrete.ReferenceExpression) baseClassExpr).getReferent() == Prelude.DEP_ARRAY.getRef()
         ? tResultToResult(null, visitReference((Concrete.ReferenceExpression) baseClassExpr, true), baseClassExpr)
         : baseClassExpr instanceof Concrete.ReferenceExpression
-          ? visitReference((Concrete.ReferenceExpression) baseClassExpr, null, false)
+          ? visitReference((Concrete.ReferenceExpression) baseClassExpr, null, false, false)
           : baseClassExpr instanceof Concrete.AppExpression
             ? visitApp((Concrete.AppExpression) baseClassExpr, null, false)
             : checkExpr(baseClassExpr, null);
@@ -1999,7 +2005,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
   @Override
   public TypecheckingResult visitReference(Concrete.ReferenceExpression expr, Expression expectedType) {
-    return visitReference(expr, expectedType, true);
+    return visitReference(expr, expectedType, true, true);
   }
 
   @Override
@@ -2038,7 +2044,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     return result == null ? null : checkResult(expectedType, result.toResult(this), expr);
   }
 
-  private TypecheckingResult visitReference(Concrete.ReferenceExpression expr, Expression expectedType, boolean inferTailImplicits) {
+  private TypecheckingResult visitReference(Concrete.ReferenceExpression expr, Expression expectedType, boolean inferTailImplicits, boolean checkInfiniteLevel) {
     if (expr.getReferent() instanceof MetaReferable) {
       return checkMeta(expr, Collections.emptyList(), null, expectedType);
     }
@@ -2062,11 +2068,19 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
 
     TResult result = visitReference(expr);
-    if (result == null || !checkPath(result, expr)) {
+    if (result == null || !checkPath(result, expr) || checkInfiniteLevel && !checkInfiniteLevel(result, expectedType, expr)) {
       return null;
     }
 
     return tResultToResult(expectedType, result, expr);
+  }
+
+  private boolean checkInfiniteLevel(TResult result, Expression expectedType, Concrete.SourceNode sourceNode) {
+    if (expectedType != UniverseExpression.INF_OMEGA && result instanceof TypecheckingResult tcResult && tcResult.expression.isInfinityLevel()) {
+      errorReporter.report(new TypecheckingError("Infinite level is not allowed here", sourceNode));
+      return false;
+    }
+    return true;
   }
 
   @Override
