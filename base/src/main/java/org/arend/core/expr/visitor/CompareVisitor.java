@@ -1240,9 +1240,7 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
             implementations.put(field, classCall1.getImplementationHere(field, new ReferenceExpression(classCall.getThisBinding())));
             i++;
           } else {
-            PiExpression piType = classCall1.getDefinition().getFieldType(field, classCall1.getLevels());
-            Expression type = piType.getCodomain();
-            TypedSingleDependentLink link = new TypedSingleDependentLink(field.getReferable().isExplicitField(), field.getName(), type);
+            TypedSingleDependentLink link = new TypedSingleDependentLink(field.getReferable().isExplicitField(), field.getName(), classCall1.getFieldPiType(field).getCodomain());
             params.add(link);
             implementations.put(field, new ReferenceExpression(link));
           }

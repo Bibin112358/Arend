@@ -191,12 +191,20 @@ public class ClassCallExpression extends LeveledDefCallExpression implements Cor
     return impl == null ? null : impl.apply((Expression) thisExpr, getLevelSubstitution());
   }
 
+  public @NotNull Expression getFieldType(@NotNull ClassField field, @NotNull Levels levels) {
+    return getDefinition().getFieldType(field, levels, new ReferenceExpression(myThisBinding));
+  }
+
   public @NotNull Expression getFieldType(@NotNull ClassField field) {
-    return getDefinition().getFieldType(field, getLevels(), new ReferenceExpression(myThisBinding));
+    return getFieldType(field, getLevels());
   }
 
   public @NotNull Expression getFieldType(@NotNull ClassField field, @NotNull Expression thisExpr) {
     return getDefinition().getFieldType(field, getLevels(), thisExpr);
+  }
+
+  public @NotNull PiExpression getFieldPiType(@NotNull ClassField field) {
+    return getDefinition().getFieldType(field, getLevels());
   }
 
   private static void checkImplementation(CoreClassField field, Expression type) {
@@ -323,7 +331,7 @@ public class ClassCallExpression extends LeveledDefCallExpression implements Cor
         continue;
       }
 
-      PiExpression piExpr = getDefinition().getFieldType(field, getLevels());
+      PiExpression piExpr = getFieldPiType(field);
       Binding thisBinding = piExpr.getBinding();
       Expression type = piExpr.getCodomain().accept(new SubstVisitor(new ExprSubstitution(thisBinding, newExpr), LevelSubstitution.EMPTY) {
         private Expression makeNewExpression(Expression arg, Expression type) {

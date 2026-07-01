@@ -2367,7 +2367,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
               ClassCallExpression classCall = (ClassCallExpression) defCallParamType;
               for (Map.Entry<ClassField, Expression> entry : classCall.getImplementedHere().entrySet()) {
                 Expression type = entry.getValue().getType();
-                if (type == null || !CompareVisitor.compare(myEquations, CMP.LE, type, classCall.getDefinition().getFieldType(entry.getKey(), levels, new ReferenceExpression(classCall.getThisBinding())), UniverseExpression.OMEGA, param)) {
+                if (type == null || !CompareVisitor.compare(myEquations, CMP.LE, type, classCall.getFieldType(entry.getKey(), levels), UniverseExpression.OMEGA, param)) {
                   levels = null;
                   break;
                 }
