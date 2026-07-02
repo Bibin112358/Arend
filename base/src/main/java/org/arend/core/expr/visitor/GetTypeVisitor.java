@@ -261,7 +261,7 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
     if (myMinimal) {
       return field.getType(minimizeLevelsToSuperClass(type, field.getParentClass())).applyExpression(argument);
     } else {
-      return field.getType(type.getDefinition().castLevels(field.getParentClass(), type.getLevels())).applyExpression(argument);
+      return type.getFieldType(field, argument);
     }
   }
 
@@ -309,7 +309,7 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
 
   @Override
   public Expression visitClassCall(ClassCallExpression expr, Void params) {
-    SortExpression sort = expr.getDefinition().computeSort(expr.getImplementedHere(), expr.getThisBinding(), expr.getLevelSubstitution(), false, this);
+    SortExpression sort = expr.getDefinition().computeSort(expr.getImplementedHere(), expr.getThisBinding(), expr.getLevels(), expr.getLevelSubstitution(), false, this);
     return sort == null ? new ErrorExpression() : new UniverseExpression(sort);
   }
 

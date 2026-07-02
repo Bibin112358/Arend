@@ -6,6 +6,7 @@ import org.arend.core.definition.ClassField;
 import org.arend.core.expr.visitor.ExpressionVisitor;
 import org.arend.core.expr.visitor.ExpressionVisitor2;
 import org.arend.core.expr.visitor.NormalizeVisitor;
+import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.subst.ExprSubstitution;
 import org.arend.ext.core.context.CoreParameter;
@@ -87,6 +88,12 @@ public class PiExpression extends Expression implements CorePiExpression, CoreAb
   @Override
   public Expression replaceInfinityLevel(int index, List<ClassField> fields) {
     Expression codomain = myCodomain.replaceInfinityLevel(index, fields);
+    return codomain == null ? null : new PiExpression(myLink, codomain);
+  }
+
+  @Override
+  public PiExpression replaceInfinityLevel(Level level) {
+    Expression codomain = myCodomain.replaceInfinityLevel(level);
     return codomain == null ? null : new PiExpression(myLink, codomain);
   }
 

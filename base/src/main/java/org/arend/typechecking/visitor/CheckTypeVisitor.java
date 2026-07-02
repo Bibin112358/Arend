@@ -1282,10 +1282,11 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     if (baseClassExpr instanceof Concrete.ReferenceExpression) {
       Referable ref = ((Concrete.ReferenceExpression) baseClassExpr).getReferent();
       boolean withoutUniverses = true;
+      Set<ClassField> implemented = Collections.emptySet();
       if (ref instanceof TCDefReferable && ((TCDefReferable) ref).getTypechecked() instanceof ClassDefinition classDef) {
         withoutUniverses = classDef.getUniverseKind() != UniverseKind.WITH_UNIVERSES;
-        if (withoutUniverses && classDef.getUniverseKind() != UniverseKind.NO_UNIVERSES) {
-          Set<ClassField> implemented = new HashSet<>();
+        if (withoutUniverses && classDef.getUniverseKind() != UniverseKind.NO_UNIVERSES || !classDef.getOverridableInfiniteFields().isEmpty()) {
+          implemented = new HashSet<>();
           for (Concrete.ClassFieldImpl classFieldImpl : expr.getStatements()) {
             Referable fieldRef = classFieldImpl.getImplementedField();
             if (fieldRef instanceof TCDefReferable) {
@@ -1297,6 +1298,8 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
               }
             }
           }
+        }
+        if (withoutUniverses && classDef.getUniverseKind() != UniverseKind.NO_UNIVERSES) {
           for (ClassField field : classDef.getNotImplementedFields()) {
             if (field.getUniverseKind() != UniverseKind.NO_UNIVERSES && !implemented.contains(field)) {
               withoutUniverses = false;
@@ -1305,7 +1308,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
           }
         }
       }
-      typeCheckedBaseClass = tResultToResult(null, visitReference((Concrete.ReferenceExpression) baseClassExpr, withoutUniverses), baseClassExpr);
+      typeCheckedBaseClass = tResultToResult(null, visitReference((Concrete.ReferenceExpression) baseClassExpr, withoutUniverses, implemented), baseClassExpr);
     } else {
       typeCheckedBaseClass = checkExpr(baseClassExpr, null);
     }
@@ -1895,13 +1898,14 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     result.add(new Level(var));
   }
 
-  private void typecheckLevels(List<Concrete.LevelExpression> levels, List<? extends LevelVariable> params, LevelSubstitution defaultLevels, boolean useMinAsDefault, boolean isUniverseLike, Concrete.SourceNode sourceNode, List<Level> result) {
+  private void typecheckLevels(List<Concrete.LevelExpression> levels, List<? extends LevelVariable> params, int additionalArgs, LevelSubstitution defaultLevels, boolean useMinAsDefault, boolean isUniverseLike, Concrete.SourceNode sourceNode, List<Level> result) {
     if (levels == null) {
       for (LevelVariable param : params) {
         generateLevel(param, defaultLevels, useMinAsDefault, isUniverseLike, sourceNode, result);
       }
     } else {
-      if (levels.size() > params.size()) {
+      int s = params.size() + additionalArgs;
+      if (levels.size() > s) {
         Concrete.LevelExpression level = levels.get(params.size());
         errorReporter.report(new TypecheckingError("Too many level arguments" + (level == null ? ", expected " + params.size() : ""), level == null ? sourceNode : level));
       }
@@ -1917,6 +1921,10 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   }
 
   public Levels typecheckLevels(Definition def, Concrete.ReferenceExpression expr, Levels defaultLevels, boolean useMinAsDefault) {
+    return typecheckLevels(def, expr, defaultLevels, useMinAsDefault, Collections.emptySet());
+  }
+
+  public Levels typecheckLevels(Definition def, Concrete.ReferenceExpression expr, Levels defaultLevels, boolean useMinAsDefault, Set<ClassField> implementedFields) {
     List<Concrete.LevelExpression> pLevels = expr.getLevels();
     boolean isUniverseLike = def == myDefinition || def.getUniverseKind() != UniverseKind.NO_UNIVERSES;
     if (pLevels == null) {
@@ -1926,13 +1934,34 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     List<? extends LevelVariable> params = def.getLevelParameters();
     List<? extends LevelVariable> pParams = params == null ? Collections.singletonList(LevelVariable.PVAR) : params;
 
+    // Fields implemented alongside these level arguments (e.g. `R.{3} { | A => ... }`) don't need
+    // an override level and so don't consume a slot; this only affects how many extra level
+    // arguments are allowed, not how the resulting list lines up with fields (see below).
+    List<ClassField> overridableFields = def instanceof ClassDefinition classDef ? classDef.getOverridableInfiniteFields() : Collections.emptyList();
+    int additionalArgs = def instanceof ClassDefinition classDef ? classDef.getOverridableInfiniteFields(implementedFields).size() : 0;
+
     List<Level> result = new ArrayList<>();
     LevelSubstitution defaultSubst = defaultLevels == null ? null : defaultLevels.makeSubstitution(def);
-    typecheckLevels(pLevels, pParams, defaultSubst, useMinAsDefault, isUniverseLike, expr, result);
+    typecheckLevels(pLevels, pParams, additionalArgs, defaultSubst, useMinAsDefault, isUniverseLike, expr, result);
+
+    // The list is indexed by `overridableFields` (ignoring `implementedFields`), so implemented
+    // fields get an (unused) placeholder to keep the remaining fields' positions aligned.
+    int consumed = 0;
+    for (ClassField field : overridableFields) {
+      if (implementedFields.contains(field)) {
+        result.add(new Level(BigInteger.ZERO));
+      } else if (consumed < additionalArgs && pParams.size() + consumed < pLevels.size()) {
+        result.add(pLevels.get(pParams.size() + consumed).accept(this, null));
+        consumed++;
+      } else {
+        break;
+      }
+    }
+
     return params == null ? new SingleLevel(result.getFirst()) : new ListLevels(result);
   }
 
-  private TResult typeCheckDefCall(TCDefReferable resolvedDefinition, Concrete.ReferenceExpression expr, boolean withoutUniverses) {
+  private TResult typeCheckDefCall(TCDefReferable resolvedDefinition, Concrete.ReferenceExpression expr, boolean withoutUniverses, Set<ClassField> implementedFields) {
     CallableDefinition definition = getTypeCheckedDefinition(resolvedDefinition, expr);
     if (definition == null) {
       return null;
@@ -1942,14 +1971,14 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     boolean isMin = definition instanceof DataDefinition && !definition.getParameters().hasNext() && definition.getUniverseKind() == UniverseKind.NO_UNIVERSES;
     if (definition == myDefinition || myRecursiveDefinitions.contains(definition.getRef()) && expr.getLevels() == null) {
       levels = definition.makeIdLevels();
-      Levels levels1 = typecheckLevels(definition, expr, null, false);
+      Levels levels1 = typecheckLevels(definition, expr, null, false, implementedFields);
       if (!levels.compare(levels1, CMP.EQ, myEquations, expr)) {
         errorReporter.report(new TypecheckingError("Recursive call must have the same levels as the definition", expr));
       }
     } else if (expr.getLevels() == null) {
       levels = isMin ? definition.makeMinLevels() : definition.generateInferVars(myEquations, !withoutUniverses && (definition == myDefinition || definition.getUniverseKind() != UniverseKind.NO_UNIVERSES), expr);
     } else {
-      levels = typecheckLevels(definition, expr, null, isMin);
+      levels = typecheckLevels(definition, expr, null, isMin, implementedFields);
     }
 
     return DefCallResult.makeTResult(expr, definition, levels);
@@ -1987,6 +2016,10 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   }
 
   private TResult visitReference(Concrete.ReferenceExpression expr, boolean withoutUniverses) {
+    return visitReference(expr, withoutUniverses, Collections.emptySet());
+  }
+
+  private TResult visitReference(Concrete.ReferenceExpression expr, boolean withoutUniverses, Set<ClassField> implementedFields) {
     Referable ref = expr.getReferent();
     if (ref instanceof CoreReferable) {
       TypecheckingResult result = ((CoreReferable) ref).result;
@@ -2000,7 +2033,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     if (!(ref instanceof GlobalReferable) && expr.getLevels() != null) {
       errorReporter.report(new IgnoredLevelsError(expr));
     }
-    return ref instanceof TCDefReferable ? typeCheckDefCall((TCDefReferable) ref, expr, withoutUniverses) : getLocalVar(expr.getReferent(), expr);
+    return ref instanceof TCDefReferable ? typeCheckDefCall((TCDefReferable) ref, expr, withoutUniverses, implementedFields) : getLocalVar(expr.getReferent(), expr);
   }
 
   @Override

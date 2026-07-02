@@ -10,6 +10,7 @@ import org.arend.core.expr.visitor.ExpressionVisitor;
 import org.arend.core.expr.visitor.ExpressionVisitor2;
 import org.arend.core.expr.visitor.StripVisitor;
 import org.arend.core.pattern.ConstructorExpressionPattern;
+import org.arend.core.sort.Level;
 import org.arend.core.subst.*;
 import org.arend.ext.core.definition.CoreClassField;
 import org.arend.ext.core.expr.CoreClassCallExpression;
@@ -192,7 +193,9 @@ public class ClassCallExpression extends LeveledDefCallExpression implements Cor
   }
 
   public @NotNull Expression getFieldType(@NotNull ClassField field, @NotNull Levels levels) {
-    return getDefinition().getFieldType(field, levels, new ReferenceExpression(myThisBinding));
+    Expression type = getDefinition().getFieldType(field, levels, new ReferenceExpression(myThisBinding));
+    Level overrideLevel = getDefinition().getFieldLevelOverride(field, levels);
+    return overrideLevel == null ? type : type.replaceInfinityLevel(overrideLevel);
   }
 
   public @NotNull Expression getFieldType(@NotNull ClassField field) {
@@ -200,11 +203,15 @@ public class ClassCallExpression extends LeveledDefCallExpression implements Cor
   }
 
   public @NotNull Expression getFieldType(@NotNull ClassField field, @NotNull Expression thisExpr) {
-    return getDefinition().getFieldType(field, getLevels(), thisExpr);
+    Expression type = getDefinition().getFieldType(field, getLevels(), thisExpr);
+    Level overrideLevel = getDefinition().getFieldLevelOverride(field, getLevels());
+    return overrideLevel == null ? type : type.replaceInfinityLevel(overrideLevel);
   }
 
   public @NotNull PiExpression getFieldPiType(@NotNull ClassField field) {
-    return getDefinition().getFieldType(field, getLevels());
+    PiExpression type = getDefinition().getFieldType(field, getLevels());
+    Level overrideLevel = getDefinition().getFieldLevelOverride(field, getLevels());
+    return overrideLevel == null ? type : type.replaceInfinityLevel(overrideLevel);
   }
 
   private static void checkImplementation(CoreClassField field, Expression type) {
@@ -278,7 +285,7 @@ public class ClassCallExpression extends LeveledDefCallExpression implements Cor
   @Override
   public boolean isInfinityLevel() {
     for (ClassField field : getDefinition().getNotImplementedFields()) {
-      if (field.isInfiniteField() && !myImplementations.containsKey(field)) {
+      if (field.isInfiniteField() && !myImplementations.containsKey(field) && getDefinition().getFieldLevelOverride(field, getLevels()) == null) {
         return true;
       }
     }

@@ -5,6 +5,7 @@ import org.arend.core.context.param.DependentLink;
 import org.arend.core.expr.*;
 import org.arend.core.expr.visitor.FindBindingVisitor;
 import org.arend.core.expr.visitor.GetTypeVisitor;
+import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.ExprSubstitution;
@@ -186,10 +187,52 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     return null;
   }
 
-  public SortExpression computeSort(Map<ClassField,Expression> implemented, Binding thisBinding, LevelSubstitution levelSubstitution, boolean ignoreErrors, GetTypeVisitor visitor) {
+  /**
+   * Fields that are eligible for a level override via an extra level argument on a class call
+   * (e.g. {@code R.{3}}), in the order in which they consume override slots. Fields in
+   * {@code implemented} (e.g. implemented by a class extension co-occurring with the level
+   * arguments) don't need a level and so don't consume a slot.
+   */
+  public List<ClassField> getOverridableInfiniteFields(Set<ClassField> implemented) {
+    List<ClassField> result = new ArrayList<>();
+    for (ClassField field : myNotImplementedFields) {
+      if (!implemented.contains(field) && field.isInfiniteField()) {
+        if (field.getType().isPiInfinityLevel()) {
+          result.add(field);
+        } else {
+          break;
+        }
+      }
+    }
+    return result;
+  }
+
+  public List<ClassField> getOverridableInfiniteFields() {
+    return getOverridableInfiniteFields(Collections.emptySet());
+  }
+
+  /**
+   * The level overriding {@code field}'s type in a class call with the given levels, if any
+   * (see {@link #getOverridableInfiniteFields}); {@code levels} is expected to contain, after
+   * the definition's own level parameters, one extra entry per overridable field, in order.
+   */
+  public @Nullable Level getFieldLevelOverride(ClassField field, Levels levels, Set<ClassField> implemented) {
+    int index = getOverridableInfiniteFields(implemented).indexOf(field);
+    if (index < 0) return null;
+    int paramCount = getLevelParameters() == null ? 1 : getLevelParameters().size();
+    List<? extends Level> levelList = levels.toList();
+    int pos = paramCount + index;
+    return pos < levelList.size() ? levelList.get(pos) : null;
+  }
+
+  public @Nullable Level getFieldLevelOverride(ClassField field, Levels levels) {
+    return getFieldLevelOverride(field, levels, Collections.emptySet());
+  }
+
+  public SortExpression computeSort(Map<ClassField,Expression> implemented, Binding thisBinding, Levels levels, LevelSubstitution levelSubstitution, boolean ignoreErrors, GetTypeVisitor visitor) {
     Levels idLevels = makeIdLevels();
-    ReferenceExpression thisExpr1 = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, idLevels, implemented, myBaseUniverseKind)));
-    Expression thisExpr2 = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, idLevels)));
+    ReferenceExpression thisExpr1 = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, levels, implemented, myBaseUniverseKind)));
+    Expression thisExpr2 = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, levels)));
     BigInteger hLevel = getUseLevel(implemented, thisBinding, true);
     if (hLevel != null && hLevel.equals(ConstLevel.PROP.value())) {
       return new SortExpression.Const(Sort.PROP);
@@ -199,6 +242,10 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     for (ClassField field : myNotImplementedFields) {
       if (implemented.containsKey(field)) continue;
       Expression fieldType = getFieldTypeSubstInfiniteFields(field, idLevels, thisExpr1).normalize(NormalizationMode.WHNF);
+      Level overrideLevel = getFieldLevelOverride(field, levels);
+      if (overrideLevel != null) {
+        fieldType = fieldType.replaceInfinityLevel(overrideLevel);
+      }
       if (!fieldType.isInstance(ErrorExpression.class)) {
         SortExpression fieldSort = fieldType.accept(visitor, null).toSortExpression();
         if (fieldSort == null || fieldSort instanceof SortExpression.Const(Sort sort) && sort.isOmega()) {
@@ -226,7 +273,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
   }
 
   public void updateSort() {
-    mySort = computeSort(Collections.emptyMap(), null, LevelSubstitution.EMPTY, true, GetTypeVisitor.INSTANCE);
+    mySort = computeSort(Collections.emptyMap(), null, makeIdLevels(), LevelSubstitution.EMPTY, true, GetTypeVisitor.INSTANCE);
   }
 
   @NotNull
@@ -551,6 +598,11 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
 
   @Override
   public Expression getTypeWithParams(List<? super DependentLink> params, Levels levels) {
+    for (ClassField field : getOverridableInfiniteFields()) {
+      if (getFieldLevelOverride(field, levels) != null) {
+        return new UniverseExpression(computeSort(Collections.emptyMap(), null, levels, levels.makeSubstitution(this), true, GetTypeVisitor.INSTANCE));
+      }
+    }
     return new UniverseExpression(mySort.subst(levels.makeSubstitution(this)));
   }
 

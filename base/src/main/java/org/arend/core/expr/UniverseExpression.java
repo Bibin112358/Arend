@@ -4,6 +4,7 @@ import org.arend.core.context.binding.inference.InferenceVariable;
 import org.arend.core.definition.ClassField;
 import org.arend.core.expr.visitor.ExpressionVisitor;
 import org.arend.core.expr.visitor.ExpressionVisitor2;
+import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
 import org.arend.ext.core.level.LevelSubstitution;
@@ -51,6 +52,11 @@ public class UniverseExpression extends Expression implements CoreUniverseExpres
   @Override
   public Expression replaceInfinityLevel(int index, List<ClassField> fields) {
     return mySortExpression instanceof SortExpression.Const(Sort sort) && sort.getPLevel().isInfinity() || mySortExpression instanceof SortExpression.Var ? new UniverseExpression(new SortExpression.Var(index, fields)) : null;
+  }
+
+  @Override
+  public Expression replaceInfinityLevel(Level level) {
+    return mySortExpression instanceof SortExpression.Const(Sort sort) ? new UniverseExpression(new Sort(level, sort.getHLevel())) : null;
   }
 
   @Override

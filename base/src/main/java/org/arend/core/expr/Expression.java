@@ -8,6 +8,7 @@ import org.arend.core.elimtree.ElimClause;
 import org.arend.core.elimtree.IntervalElim;
 import org.arend.core.pattern.ConstructorExpressionPattern;
 import org.arend.core.pattern.Pattern;
+import org.arend.core.sort.Level;
 import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.UnfoldVisitor;
 import org.arend.ext.concrete.ConcreteSourceNode;
@@ -646,11 +647,7 @@ public abstract class Expression implements Body, CoreExpression {
     }
 
     if (expr instanceof ClassCallExpression classCall) {
-      for (ClassField field : classCall.getDefinition().getNotImplementedFields()) {
-        if (field.isInfiniteField() && !classCall.isImplementedHere(field)) {
-          return true;
-        }
-      }
+      return classCall.isInfinityLevel();
     }
 
     return false;
@@ -669,6 +666,10 @@ public abstract class Expression implements Body, CoreExpression {
   }
 
   public Expression replaceInfinityLevel(int index, List<ClassField> fields) {
+    return null;
+  }
+
+  public Expression replaceInfinityLevel(Level level) {
     return null;
   }
 
