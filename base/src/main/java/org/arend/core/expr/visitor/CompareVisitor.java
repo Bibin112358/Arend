@@ -12,6 +12,7 @@ import org.arend.core.elimtree.*;
 import org.arend.core.expr.*;
 import org.arend.core.pattern.ConstructorExpressionPattern;
 import org.arend.core.pattern.Pattern;
+import org.arend.core.sort.Level;
 import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.*;
 import org.arend.ext.core.level.LevelSubstitution;
@@ -1396,7 +1397,25 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
     return cmp == CMP.GE ? compareClassCallLevelsLE(classCall2, classCall1, cmp.not(), equations) : compareClassCallLevelsLE(classCall1, classCall2, cmp, equations);
   }
 
+  private boolean compareFieldLevelOverrides(ClassCallExpression classCall1, ClassCallExpression classCall2) {
+    for (ClassField field : classCall2.getDefinition().getOverridableInfiniteFields()) {
+      Level level1 = classCall1.getDefinition().getFieldLevelOverride(field, classCall1.getLevels());
+      Level level2 = classCall2.getDefinition().getFieldLevelOverride(field, classCall2.getLevels());
+      if (level1 == null || level2 == null) {
+        continue;
+      }
+      if (!Level.compare(level1, level2, myCMP, myNormalCompare ? myEquations : DummyEquations.getInstance(), mySourceNode)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   public boolean compareClassCallLevels(ClassCallExpression classCall1, ClassCallExpression classCall2) {
+    if (!compareFieldLevelOverrides(classCall1, classCall2)) {
+      return false;
+    }
+
     UniverseKind kind1 = classCall1.getUniverseKind();
     UniverseKind kind2 = classCall2.getUniverseKind();
     if (kind1 == UniverseKind.NO_UNIVERSES && kind2 == UniverseKind.NO_UNIVERSES) {

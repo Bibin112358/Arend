@@ -1,5 +1,6 @@
 package org.arend.typechecking.levels;
 
+import org.arend.Matchers;
 import org.arend.core.definition.FunctionDefinition;
 import org.arend.core.expr.Expression;
 import org.arend.core.expr.UniverseExpression;
@@ -145,5 +146,22 @@ public class SortOverrideTest extends TypeCheckingTestCase {
       \\func test (r : R.{3}) : \\Type 3 => r.A
       """);
     assertEquals(new UniverseExpression(new Sort(new Level(BigInteger.valueOf(3)), ConstLevel.INFINITY)), ((Expression) Objects.requireNonNull(((FunctionDefinition) getDefinition("test")).getBody())).getType());
+  }
+
+  @Test
+  public void compareTest() {
+    typeCheckModule("""
+      \\record R (A : \\Sort) (a : A)
+      \\func test (r : R.{3}) : R.{4} => r
+      """);
+  }
+
+  @Test
+  public void compareError() {
+    typeCheckModule("""
+      \\record R (A : \\Sort) (a : A)
+      \\func test (r : R.{4}) : R.{3} => r
+      """, 1);
+    assertThatErrorsAre(Matchers.typeMismatchError());
   }
 }
