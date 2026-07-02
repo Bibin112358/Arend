@@ -137,4 +137,13 @@ public class SortOverrideTest extends TypeCheckingTestCase {
       \\func test : \\Type4 => R.{3,2} { | A => Nat }
       """, 1);
   }
+
+  @Test
+  public void fieldType() {
+    typeCheckModule("""
+      \\record R (A : \\Sort) (a : A)
+      \\func test (r : R.{3}) : \\Type 3 => r.A
+      """);
+    assertEquals(new UniverseExpression(new Sort(new Level(BigInteger.valueOf(3)), ConstLevel.INFINITY)), ((Expression) Objects.requireNonNull(((FunctionDefinition) getDefinition("test")).getBody())).getType());
+  }
 }

@@ -11,6 +11,7 @@ import org.arend.core.definition.*;
 import org.arend.core.expr.*;
 import org.arend.core.expr.visitor.CompareVisitor;
 import org.arend.core.expr.visitor.FreeVariablesCollector;
+import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.ExprSubstitution;
@@ -263,7 +264,15 @@ public class StdImplicitArgsInference implements ImplicitArgsInference {
       if (piType == null) {
         piType = field.getType(defCallResult.getLevels());
       }
-      return new TypecheckingResult(FieldCallExpression.make(field, argResult.expression), piType.applyExpression(argResult.expression));
+      Expression fieldResultType = piType.applyExpression(argResult.expression);
+      Level overrideLevel = classCall == null ? null : classCall.getDefinition().getFieldLevelOverride(field, classCall.getLevels());
+      if (overrideLevel != null) {
+        Expression replaced = fieldResultType.replaceInfinityLevel(overrideLevel);
+        if (replaced != null) {
+          fieldResultType = replaced;
+        }
+      }
+      return new TypecheckingResult(FieldCallExpression.make(field, argResult.expression), fieldResultType);
     }
 
     if (result instanceof DefCallResult && ((DefCallResult) result).getDefinition() == Prelude.SUC) {

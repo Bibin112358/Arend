@@ -201,6 +201,13 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
     if (actualType == null) {
       actualType = expr.getDefinition().getResultType().subst(new ExprSubstitution(expr.getDefinition().getType().getParameters(), expr.getArgument()), argClassCall.getDefinition().castLevels(expr.getDefinition().getParentClass(), levels).makeSubstitution(expr.getDefinition()));
     }
+    Level overrideLevel = argClassCall.getDefinition().getFieldLevelOverride(expr.getDefinition(), argClassCall.getLevels());
+    if (overrideLevel != null) {
+      Expression replaced = actualType.replaceInfinityLevel(overrideLevel);
+      if (replaced != null) {
+        actualType = replaced;
+      }
+    }
     return check(expectedType, actualType, expr);
   }
 
