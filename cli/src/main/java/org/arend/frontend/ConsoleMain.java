@@ -365,82 +365,30 @@ public class ConsoleMain {
       }
     }
 
+    // Collect libraries and modules requested on the command line (shared by batch and REPL modes).
+    Set<Pair<ModulePath, LongName>> requestedModules = new LinkedHashSet<>();
+    List<SourceLibrary> requestedLibraries = new ArrayList<>();
+    classifyRequestedTargets(cmdLine, libDirs, requestedLibraries, requestedModules);
+
     if (cmdLine.hasOption("i")) {
+      // In REPL mode, positional arguments are libraries to add and modules to auto-load; the
+      // batch-only options do not apply, so warn and ignore them rather than silently dropping them.
+      warnUnsupportedReplOptions(cmdLine);
+      List<ModulePath> autoloadModules = requestedModules.stream().map(pair -> pair.proj1).distinct().toList();
       String replKind = cmdLine.getOptionValue("i", "jline");
       switch (replKind.toLowerCase()) {
         case "plain":
-          PlainCliRepl.launch(false, libDirs, server);
+          PlainCliRepl.launch(requestedLibraries, autoloadModules, libDirs, server);
           break;
         case "jline":
-          JLineCliRepl.launch(false, libDirs, server);
+          JLineCliRepl.launch(requestedLibraries, autoloadModules, libDirs, server);
           break;
         default:
           System.err.println("[ERROR] Unrecognized repl type: " + replKind);
           return false;
       }
+      // A failed argument only prints a diagnostic; the interactive prompt still starts.
       return true;
-    }
-
-    // Get source and output directories
-    String sourceDirStr = cmdLine.getOptionValue("s");
-    Path sourceDir = sourceDirStr == null ? null : Paths.get(sourceDirStr);
-
-    String binaryDirStr = cmdLine.getOptionValue("b");
-    Path outDir = binaryDirStr != null ? Paths.get(binaryDirStr) : null;
-
-    String extDirStr = cmdLine.getOptionValue("e");
-    Path extDir = extDirStr != null ? Paths.get(extDirStr) : null;
-    String extMainClass = cmdLine.getOptionValue("m");
-
-    // Collect modules and libraries for which typechecking was requested
-    Collection<String> argFiles = cmdLine.getArgList();
-    Set<Pair<ModulePath, LongName>> requestedModules = new LinkedHashSet<>();
-    List<SourceLibrary> requestedLibraries = new ArrayList<>();
-    for (String fileName : argFiles) {
-      Path path = Paths.get(fileName);
-      if (Files.exists(path)) {
-        if (Files.isDirectory(path)) {
-          loadFileLibrary(path.resolve(FileUtils.LIBRARY_CONFIG_FILE), requestedLibraries);
-        } else if (path.endsWith(FileUtils.LIBRARY_CONFIG_FILE)) {
-          loadFileLibrary(path, requestedLibraries);
-        } else if (fileName.endsWith(FileUtils.ZIP_EXTENSION)) {
-          loadZipLibrary(path, requestedLibraries);
-        } else {
-          mySystemErrErrorReporter.report(new LibraryIOError(fileName, "not a library"));
-        }
-      } else if (!findLibrary(fileName, libDirs, requestedLibraries)) {
-        int colonIndex = fileName.indexOf(':');
-        if (colonIndex >= 0) {
-          Pair<ModulePath, LongName> parsed = parseFullName(fileName);
-          if (parsed != null && parsed.proj2 != null) {
-            requestedModules.add(parsed);
-          } else if (parsed != null) {
-            mySystemErrErrorReporter.report(new GeneralError(GeneralError.Level.ERROR, "Definition name missing after ':' in " + fileName));
-          }
-        } else {
-          ModulePath modulePath = ModulePath.fromString(fileName);
-          if (FileUtils.isCorrectModulePath(modulePath)) {
-            requestedModules.add(new Pair<>(modulePath, null));
-          } else {
-            mySystemErrErrorReporter.report(new GeneralError(GeneralError.Level.ERROR, "File " + fileName + " not found"));
-          }
-        }
-      }
-    }
-
-    if (sourceDir != null) {
-      if (outDir != null) {
-        try {
-          Files.createDirectories(outDir);
-        } catch (IOException e) {
-          mySystemErrErrorReporter.report(new LibraryIOError(outDir.toString(), "Cannot create output directory", e.getLocalizedMessage()));
-          outDir = null;
-        }
-      }
-
-      requestedLibraries.add(new FileSourceLibrary("\\default", false, -1,
-          requestedLibraries.stream().map(SourceLibrary::getLibraryName).toList(), null, null, extMainClass, null,
-          sourceDir, outDir, null, extDir == null ? null : new FileClassLoaderDelegate(extDir)));
     }
 
     if (requestedLibraries.isEmpty()) {
@@ -733,6 +681,92 @@ public class ConsoleMain {
     }
 
     return true;
+  }
+
+  /**
+   * Interprets the positional arguments and the {@code -s}/{@code -e}/{@code -m} options into the
+   * libraries to load and modules to typecheck. Shared by batch mode and REPL ({@code -i}) mode so
+   * the two never disagree on what an argument means.
+   */
+  private void classifyRequestedTargets(CommandLine cmdLine, List<Path> libDirs,
+      List<SourceLibrary> requestedLibraries, Set<Pair<ModulePath, LongName>> requestedModules) {
+    // Source and output directories
+    String sourceDirStr = cmdLine.getOptionValue("s");
+    Path sourceDir = sourceDirStr == null ? null : Paths.get(sourceDirStr);
+
+    String binaryDirStr = cmdLine.getOptionValue("b");
+    Path outDir = binaryDirStr != null ? Paths.get(binaryDirStr) : null;
+
+    String extDirStr = cmdLine.getOptionValue("e");
+    Path extDir = extDirStr != null ? Paths.get(extDirStr) : null;
+    String extMainClass = cmdLine.getOptionValue("m");
+
+    // Collect modules and libraries for which typechecking was requested
+    Collection<String> argFiles = cmdLine.getArgList();
+    for (String fileName : argFiles) {
+      Path path = Paths.get(fileName);
+      if (Files.exists(path)) {
+        if (Files.isDirectory(path)) {
+          loadFileLibrary(path.resolve(FileUtils.LIBRARY_CONFIG_FILE), requestedLibraries);
+        } else if (path.endsWith(FileUtils.LIBRARY_CONFIG_FILE)) {
+          loadFileLibrary(path, requestedLibraries);
+        } else if (fileName.endsWith(FileUtils.ZIP_EXTENSION)) {
+          loadZipLibrary(path, requestedLibraries);
+        } else {
+          mySystemErrErrorReporter.report(new LibraryIOError(fileName, "not a library"));
+        }
+      } else if (!findLibrary(fileName, libDirs, requestedLibraries)) {
+        int colonIndex = fileName.indexOf(':');
+        if (colonIndex >= 0) {
+          Pair<ModulePath, LongName> parsed = parseFullName(fileName);
+          if (parsed != null && parsed.proj2 != null) {
+            requestedModules.add(parsed);
+          } else if (parsed != null) {
+            mySystemErrErrorReporter.report(new GeneralError(GeneralError.Level.ERROR, "Definition name missing after ':' in " + fileName));
+          }
+        } else {
+          ModulePath modulePath = ModulePath.fromString(fileName);
+          if (FileUtils.isCorrectModulePath(modulePath)) {
+            requestedModules.add(new Pair<>(modulePath, null));
+          } else {
+            mySystemErrErrorReporter.report(new GeneralError(GeneralError.Level.ERROR, "File " + fileName + " not found"));
+          }
+        }
+      }
+    }
+
+    if (sourceDir != null) {
+      if (outDir != null) {
+        try {
+          Files.createDirectories(outDir);
+        } catch (IOException e) {
+          mySystemErrErrorReporter.report(new LibraryIOError(outDir.toString(), "Cannot create output directory", e.getLocalizedMessage()));
+          outDir = null;
+        }
+      }
+
+      requestedLibraries.add(new FileSourceLibrary("\\default", false, -1,
+          requestedLibraries.stream().map(SourceLibrary::getLibraryName).toList(), null, null, extMainClass, null,
+          sourceDir, outDir, null, extDir == null ? null : new FileClassLoaderDelegate(extDir)));
+    }
+  }
+
+  /** Options REPL ({@code -i}) mode acts on: the mode selector plus everything feeding library/module resolution. */
+  private static final Set<String> REPL_CONSUMED_OPTIONS = Set.of("i", "L", "s", "e", "m");
+
+  /**
+   * Warns about every parsed option that REPL ({@code -i}) mode does not act on. Rather than track a
+   * list of batch-only options, this ignores anything not in {@link #REPL_CONSUMED_OPTIONS}, so newly
+   * added batch options are covered automatically.
+   */
+  private void warnUnsupportedReplOptions(CommandLine cmdLine) {
+    for (Option option : cmdLine.getOptions()) {
+      // Every consumed option has a short name, so a null short name is necessarily not consumed
+      // (and Set.of rejects a null argument to contains).
+      if (option.getOpt() != null && REPL_CONSUMED_OPTIONS.contains(option.getOpt())) continue;
+      String name = option.getLongOpt() != null ? "--" + option.getLongOpt() : "-" + option.getOpt();
+      System.out.println("[WARNING] Option " + name + " is not supported in REPL (-i) mode and will be ignored.");
+    }
   }
 
   private void typecheckUncachedDependencyModules(ArendServer server, BinaryLoader binaryLoader, SourceLibrary library) {

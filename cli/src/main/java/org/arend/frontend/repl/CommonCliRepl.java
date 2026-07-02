@@ -66,6 +66,8 @@ public abstract class CommonCliRepl extends Repl {
   protected String prompt = ">";
   private FileSourceLibrary myReplLibrary;
   private final Map<String, SourceLibrary> myReplLibraries = new HashMap<>();
+  /** Library search path from the {@code -L} option, used to resolve libraries referenced by name. */
+  private final @NotNull List<Path> myLibDirs;
 
   //region Tricky constructors (expand to read more...)
   // These two constructors are used for convincing javac that the
@@ -74,21 +76,31 @@ public abstract class CommonCliRepl extends Repl {
   // and one cannot introduce them as variable before the `this` or
   // `super` call because that's the rule of javac.
   public CommonCliRepl(@NotNull ArendServer server) {
-    this(server, new ListErrorReporter(new ArrayList<>()));
+    this(server, Collections.emptyList());
+  }
+
+  public CommonCliRepl(@NotNull ArendServer server, @NotNull Collection<? extends Path> libDirs) {
+    this(server, libDirs, new ListErrorReporter(new ArrayList<>()));
   }
 
   private CommonCliRepl(
       @NotNull ArendServer server,
+      @NotNull Collection<? extends Path> libDirs,
       @NotNull ListErrorReporter errorReporter) {
     super(
       errorReporter,
       server
     );
+    myLibDirs = List.copyOf(libDirs);
     Path configFile = pwd.resolve(FileUtils.LIBRARY_CONFIG_FILE);
     myReplLibrary = getNewFileSourceLibrary();
-    FileSourceLibrary sourceLibrary = FileSourceLibrary.fromConfigFile(configFile, false, errorReporter);
-    if (sourceLibrary != null) {
-      loadLibrary(sourceLibrary);
+    // Only auto-load the current directory as a project when it actually is one; otherwise starting
+    // the REPL from a directory without an arend.yaml would report a spurious read error.
+    if (Files.isRegularFile(configFile)) {
+      FileSourceLibrary sourceLibrary = FileSourceLibrary.fromConfigFile(configFile, false, errorReporter);
+      if (sourceLibrary != null) {
+        loadLibrary(sourceLibrary);
+      }
     }
     try {
       if (Files.exists(config)) {
@@ -220,7 +232,49 @@ public abstract class CommonCliRepl extends Repl {
       myReplLibraries.put(libraryName, sourceLibrary);
       return sourceLibrary;
     }
+    // Fall back to the library search path (-L) for named libraries not found under pwd.
+    for (Path libDir : myLibDirs) {
+      Path candidate = libDir.resolve(libraryName).resolve(FileUtils.LIBRARY_CONFIG_FILE);
+      if (Files.exists(candidate)) {
+        SourceLibrary sourceLibrary = FileSourceLibrary.fromConfigFile(candidate, false, errorReporter);
+        myReplLibraries.put(libraryName, sourceLibrary);
+        return sourceLibrary;
+      }
+    }
     return null;
+  }
+
+  /**
+   * Loads the libraries requested on the command line together with their declared dependencies, then
+   * for each requested module both loads it (making its definitions available, as {@code :load} does)
+   * and imports it (bringing its names into scope, as {@code :import} does). Errors are reported but
+   * never abort startup — the user can inspect the result or run {@code :reset_context} afterwards.
+   */
+  public void loadStartupTargets(@NotNull Collection<? extends ArendLibrary> libraries, @NotNull Collection<? extends ModulePath> modules) {
+    Set<String> loaded = new HashSet<>();
+    for (ArendLibrary library : libraries) {
+      loadLibraryWithDependencies(library, loaded);
+    }
+    for (ModulePath module : modules) {
+      loadModule(module);
+      checkStatements("\\import " + module);
+      checkErrors();
+    }
+  }
+
+  private void loadLibraryWithDependencies(@NotNull ArendLibrary library, @NotNull Set<String> loaded) {
+    if (!loaded.add(library.getLibraryName())) return;
+    loadLibrary(library);
+    checkErrors();
+    for (String dependency : library.getLibraryDependencies()) {
+      if (loaded.contains(dependency) || myServer.getLibrary(dependency) != null) continue;
+      ArendLibrary dependencyLibrary = createLibrary(dependency);
+      if (dependencyLibrary != null) {
+        loadLibraryWithDependencies(dependencyLibrary, loaded);
+      } else {
+        eprintln("[ERROR] Cannot find dependency library '" + dependency + "' required by '" + library.getLibraryName() + "'.");
+      }
+    }
   }
 
   @Override
