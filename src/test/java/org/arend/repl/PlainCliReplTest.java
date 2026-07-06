@@ -35,7 +35,7 @@ public class PlainCliReplTest extends ArendTestCase {
 
   @Test
   public void func() {
-    var repl = new PlainCliRepl(server);
+    var repl = new PlainCliRepl(server, List.of());
     repl.initialize();
 
     String funcF = "\\func f => 0";
@@ -84,7 +84,7 @@ public class PlainCliReplTest extends ArendTestCase {
   // See https://github.com/arend-lang/Arend/issues/128
   @Test
   public void errorPropagation() {
-    var repl = new PlainCliRepl(server);
+    var repl = new PlainCliRepl(server, List.of());
     repl.initialize();
 
     // A definition with an outright error must not be added to the context.
@@ -134,7 +134,7 @@ public class PlainCliReplTest extends ArendTestCase {
 
   @Test
   public void importAndGetModules() {
-    var repl = new PlainCliRepl(server);
+    var repl = new PlainCliRepl(server, List.of());
     repl.initialize();
 
     String setUp = ":lib arend-lib\n:load Combinatorics.Factorial\n:import Combinatorics.Factorial\n";
