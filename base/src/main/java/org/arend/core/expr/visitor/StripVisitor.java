@@ -217,6 +217,7 @@ public class StripVisitor implements ExpressionVisitor<Void, Expression> {
       case SortExpression.Var var -> var;
       case SortExpression.RecursiveData var -> var;
       case SortExpression.InfVar infVar -> {
+        infVar.withInfLevel();
         SortExpression simplified = infVar.simplify();
         if (simplified instanceof SortExpression.InfVar infVar1) {
           myErrorReporter.report(infVar1.getVariable().getErrorInfer());

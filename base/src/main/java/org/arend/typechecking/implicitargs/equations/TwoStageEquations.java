@@ -950,7 +950,7 @@ public class TwoStageEquations implements Equations {
       return inferenceError(var, expr);
     }
 
-    Expression expectedType = var.getType().normalize(NormalizationMode.WHNF);
+    Expression expectedType = var.getType().normalize(NormalizationMode.WHNF).replaceInferenceVariable();
     Expression result = ElimBindingVisitor.keepBindings(expr, var.getBounds(), isLowerBound);
 
     // boolean ok = true;

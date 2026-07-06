@@ -65,8 +65,8 @@
     | f_sec (h,p) => ext idp
   }
 
-\instance SetBicat : BicompleteCat
-  | Cat => SetCat
+\instance SetBicat.{p} : BicompleteCat
+  | Cat => SetCat.{p}
   | limit F => \new Limit {
     | apex => LimitSet F
     | coneMap j l => l.1 j
@@ -95,12 +95,12 @@
     | pbBeta2 => idp
     | pbEta c1 c2 => ext \lam w => ext (path \lam i => c1 i w, path \lam i => c2 i w)
   }
-  | colimit {J : Precat} G => limits<=pr+eq {SetCat.op} (\lam J G => SetCoproduct G) (\lam {X} {Y} f g => SetCoequalizer f g) {J.op} (Functor.op {G})
+  | colimit {J} G => limits<=pr+eq {SetCat.op} (\lam J G => SetCoproduct G) (\lam {X} {Y} f g => SetCoequalizer f g) {Precat.op {J}} (Functor.op {G})
   \where {
-    \type LimitSet {J : Precat} (F : Functor J SetCat) : \Set
+    \type LimitSet.{p} {J : Precat.{p,p}} (F : Functor J SetCat.{p}) : \Set p
       => Given (f : \Pi (j : J) -> F j) ∀ {j j' : J} (h : Hom j j') (F.Func h (f j) = f j')
 
-    \lemma cone-isLim.{o,h,v} (c : Cone.{o,h} { | D => SetCat.{v} }) (e : IsEquiv (conePullback c (\Sigma))) : Limit { | Cone => c } \cowith
+    \lemma cone-isLim.{v} (c : Cone { | D => SetCat.{v} }) (e : IsEquiv (conePullback c (\Sigma))) : Limit { | Cone => c } \cowith
       | isLimit Z =>
         \have coneMap (z : Z) (c' : Cone c.G Z) : Cone c.G (\Sigma) => \new Cone {
           | coneMap j _ => c'.coneMap j z
@@ -115,12 +115,12 @@
       => path \lam i => IsEquiv.isInj (cl (\Sigma)) {\lam _ => x} {\lam _ => y} (exts \lam j => ext \lam _ => p j) i ()
   }
 
-\type SetColimit.{o,h,p} {J : Precat.{o,h}} (F : Functor J SetCat.{p})
+\type SetColimit.{p} {J : Precat} (F : Functor J SetCat.{p})
   => Quotient {\Sigma (j : J) (F j)} \lam s s' => \Sigma (p : Hom s.1 s'.1) (F.Func p s.2 = s'.2)
   \where {
-    \func inC.{o,h,p} {J : Precat.{o,h}} {F : Functor J SetCat.{p}} (s : \Sigma (j : J) (F j)) : SetColimit F => in~ s
+    \func inC.{p} {J : Precat} {F : Functor J SetCat.{p}} (s : \Sigma (j : J) (F j)) : SetColimit F => in~ s
 
-    \lemma ~-cequiv.{o,h,p} {J : Precat.{o,h}} {F : Functor J SetCat.{p}} {s s' : \Sigma (j : J) (F j)} (f : Hom s.1 s'.1) (p : F.Func f s.2 = s'.2)
+    \lemma ~-cequiv {s s' : \Sigma (j : J) (F j)} (f : Hom s.1 s'.1) (p : F.Func f s.2 = s'.2)
       : in~ s = {SetColimit F} in~ s'
       => path (\lam i => ~-equiv s s' (f,p) i)
 
@@ -132,7 +132,7 @@
         | ~-symmetric => later \lam (inP s) => inP (s.1, s.3, s.2, inv s.4)
       }) (later \lam {x} {y} s => inP (x.1 ∨ y.1, join-left, join-right, Func-app F *> pmap (F.Func join-right) s.2)) (path \lam i => p i)
 
-    \lemma Func-app.{o,h,p} {J : Precat.{o,h}} (F : Functor J SetCat.{p}) {j1 j2 j3 : J} {f : Hom j1 j2} {g : Hom j2 j3} {a : F j1} : F.Func (g ∘ f) a = F.Func g (F.Func f a)
+    \lemma Func-app.{p} {J : Precat} (F : Functor J SetCat.{p}) {j1 j2 j3 : J} {f : Hom j1 j2} {g : Hom j2 j3} {a : F j1} : F.Func (g ∘ f) a = F.Func g (F.Func f a)
       => pmap (__ a) F.Func-o
 
     \lemma poset-app.{s,p} {J : Poset.{s}} {F : Functor J SetCat.{p}} {j j' : J} {f g : j <= j'} {a : F j} : F.Func f a = F.Func g a

@@ -30,7 +30,7 @@ class ShrinkAbstractVisitor(val textRange: TextRange) : AbstractExpressionVisito
     override fun visitPi(data: Any?, parameters: MutableCollection<out Abstract.Parameter>, codomain: Abstract.Expression?, params: Unit?): String =
             """\Pi $DOTS -> ${codomain?.accept(this, Unit) ?: "INVALID"}"""
 
-    override fun visitUniverse(data: Any?, pLevelNum: BigInteger?, hLevelNum: BigInteger?, pLevel: Abstract.LevelExpression?, params: Unit?): String =
+    override fun visitUniverse(data: Any?, pLevelNum: BigInteger?, hLevelNum: BigInteger?, pLevel: Abstract.LevelExpression?, isInfinite: Boolean, params: Unit?): String =
             """\Type"""
 
     override fun visitCatUniverse(data: Any?, pLevelNum: BigInteger?, pLevel: Abstract.LevelExpression?, params: Unit?): String =
@@ -77,7 +77,7 @@ class ShrinkAbstractVisitor(val textRange: TextRange) : AbstractExpressionVisito
         return """\case ${arguments.joinToString(", ") { DOTS }} \with { $DOTS }"""
     }
 
-    override fun visitFieldAccs(data: Any?, expression: Abstract.Expression, pLevels: Collection<Abstract.LevelExpression>?, fieldAccs: MutableList<Abstract.FieldAcc>, infixReference: AbstractReference?, infixName: String?, fixity: Fixity?, params: Unit?): String {
+    override fun visitFieldAccs(data: Any?, expression: Abstract.Expression, fieldAccs: MutableList<Abstract.FieldAcc>, infixReference: AbstractReference?, infixName: String?, fixity: Fixity?, params: Unit?): String {
         return "${expression.accept(this, Unit)}.${fieldAccs.joinToString(".") { it.number?.toString() ?: it.fieldRef?.refName ?: "_" }}"
     }
 

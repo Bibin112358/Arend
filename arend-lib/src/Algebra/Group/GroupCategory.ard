@@ -22,7 +22,7 @@
 \import Paths.Meta
 \import Set.SetCategory
 
-\instance GroupCat : Cat Group
+\instance GroupCat.{s} : Cat Group.{s}
   | Hom => GroupHom
   | id _ => GroupHom.id
   | o => GroupHom.∘
@@ -122,7 +122,7 @@
     | inP a => inP (inverse a.1, rewrite (f.func-inverse, a.2) idp)
   }
 
-\instance AddGroupCat : Cat AddGroup
+\instance AddGroupCat.{s} : Cat AddGroup.{s}
   | Hom G H => AddGroupHom G H
   | id _ => AddGroupHom.id
   | o g f => \new AddGroupHom {
@@ -147,26 +147,26 @@
       | Func-o => idp
   }
 
-\instance AbGroupCat : Cat AbGroup
-=> subCat \new Embedding {AbGroup} {AddGroup} {
-  | f A => A
-  | isEmb A B => \new Retraction {
-    | sec => AbGroup.equals A B
-    | f_sec => idpe
-  }
-} \where {
-  \func forgetToAddGroup : Functor AbGroupCat AddGroupCat \cowith
-    | F A => A
-    | Func f => f
-    | Func-id => idp
-    | Func-o => idp
+\instance AbGroupCat.{s} : Cat AbGroup.{s}
+  => subCat \new Embedding {AbGroup} {AddGroup} {
+    | f A => A
+    | isEmb A B => \new Retraction {
+      | sec => AbGroup.equals A B
+      | f_sec => idpe
+    }
+  } \where {
+    \func forgetToAddGroup : Functor AbGroupCat AddGroupCat \cowith
+      | F A => A
+      | Func f => f
+      | Func-id => idp
+      | Func-o => idp
 
-  \func forget : Functor AbGroupCat SetCat \cowith
-    | F R => R
-    | Func f => f
-    | Func-id => idp
-    | Func-o => idp
-}
+    \func forget : Functor AbGroupCat SetCat \cowith
+      | F R => R
+      | Func f => f
+      | Func-id => idp
+      | Func-o => idp
+  }
 
 \instance KerAddGroup (f : AddGroupHom) : AddGroup
   | AddMonoid => KerAddMonoid f

@@ -369,10 +369,12 @@
   \elim n, k
   | 0, 0 => inv QModule.ide_*q
   | 0, suc k => inv QModule.*q_*n
-  | suc n', k =>
+  | suc n', k => {?}
+  {- TODO[sorts]
     \have ih-series : pow-conv (\lam m => A.fromRat (b m)) n' = (\lam j => A.fromRat (pow-conv b n' j))
                     => ext \lam j => fromRat-pow-conv
     \in pmap (conv __ (\lam m => A.fromRat (b m)) k) ih-series *> conv_fromRat (pow-conv b n') b k
+  -}
 
 \lemma compose-coef-fromRat {A : RealBanachAlgebra} (a b : Series Rat) (k : Nat)
   : fcompose (\lam n => A.fromRat (a n)) (\lam n => A.fromRat (b n)) k = A.fromRat (fcompose a b k)

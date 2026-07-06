@@ -10,7 +10,7 @@
 \import Paths
 \import Paths.Meta
 
-\func subPrecat.{obj,hom} {C : Precat.{obj,hom}} {X : \Type obj} (f : X -> C) : Precat X \cowith
+\func subPrecat {C : Precat} {X : \Sort} (f : X -> C) : Precat X \cowith
   | Hom x y => Hom (f x) (f y)
   | id x => id (f x)
   | o h g => o h g
@@ -18,7 +18,7 @@
   | id-right => id-right
   | o-assoc => o-assoc
   \where {
-    \func embedding.{obj,hom} {C : Precat.{obj,hom}} {X : \Type obj} (f : X -> C) : FullyFaithfulFunctor (subPrecat f) C f \cowith
+    \func embedding {C : Precat} {X : \Sort} (f : X -> C) : FullyFaithfulFunctor (subPrecat f) C f \cowith
       | Func h => h
       | Func-id => idp
       | Func-o => idp
@@ -34,7 +34,7 @@
       | Func-o => rewrite G.Func-o $ later (rewrite (p.f_hinv, id-left) $ pmap (`∘ _) (inv o-assoc) *> o-assoc) *> pmap (_ ∘) (pmap (`∘ _) o-assoc *> o-assoc) *> inv o-assoc
   }
 
-\func subCat.{obj,hom} {C : Cat.{obj,hom}} {X : \Type obj} (e : Embedding {X} {C}) : Cat \cowith
+\func subCat {C : Cat} {X : \Sort} (e : Embedding {X} {C}) : Cat \cowith
   | Precat => subPrecat e
   | univalence => faithful-univalence (subPrecat.embedding e) e
   \where {
@@ -49,12 +49,12 @@
          \in transport (Iso __) (F.isFaithful $ coh p *> pmap D.=_hom ((e.isEmb a b).f_sec (D.isotoid fi)) *> D.idtoiso_isotoid) (C.idtoiso p)
   }
 
-\lemma subCat-iso.{obj,hom} {C : Precat.{obj,hom}} {X : \Type obj} {f : X -> C} (e : Iso {subPrecat f}) : Iso {C} {f e.dom} {f e.cod} e \cowith
+\lemma subCat-iso {C : Precat} {X : \Sort} {f : X -> C} (e : Iso {subPrecat f}) : Iso {C} {f e.dom} {f e.cod} e \cowith
   | hinv => e.hinv
   | hinv_f => e.hinv_f
   | f_hinv => e.f_hinv
   \where {
-    \protected \lemma conv.{obj,hom} {C : Precat.{obj,hom}} {X : \Type obj} {f : X -> C} {x x' : X} (e : Iso {C} {f x} {f x'}) : Iso {subPrecat f} {x} {x'} e \cowith
+    \protected \lemma conv {C : Precat} {X : \Sort} {f : X -> C} {x x' : X} (e : Iso {C} {f x} {f x'}) : Iso {subPrecat f} {x} {x'} e \cowith
       | hinv => e.hinv
       | hinv_f => e.hinv_f
       | f_hinv => e.f_hinv

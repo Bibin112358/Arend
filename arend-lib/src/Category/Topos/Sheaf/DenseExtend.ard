@@ -18,7 +18,7 @@
 \import Set.Subset
 \import Topology.Locale.PreorderSite
 
-\lemma denseSite-FF.{o,h,o1,h1,o2,h2} (f : SiteDensePrehom.{o1,h1,o2,h2}) {E : Precat.{o,h}} {F : Functor f.D.op E} {G : Functor f.D.op E} (G-sheaf : IsSheaf G)
+\lemma denseSite-FF (f : SiteDensePrehom) {E : Precat} {F : Functor f.D.op E} {G : Functor f.D.op E} (G-sheaf : IsSheaf G)
   : IsEquiv {NatTrans F G} {NatTrans (Comp F f.op) (Comp G f.op)} (\lam a => NatTrans.Comp-left a f.op)
   => \let GS => \new VSheaf E f.D G G-sheaf
      \in IsEquiv.fromInjSurj (\lam {alpha} {beta} p => exts \lam y => GS.separated-covering f.Func-dense-image \lam {py} (inP (x,py=fx)) => inv (alpha.natural py.2) *> pmap (`∘ _) (NatTrans.equals-mono {f.D.op} {E} {F} {G} (Iso.reverse {Iso.op {py=fx}}) $ unfold in path \lam i => p i x) *> beta.natural py.2)
@@ -38,7 +38,7 @@
                  }, exts \lam x => inv (pmap (`∘ _) G.Func-id *> id-left) *> (e (f x)).2 (x, id _) *> pmap (_ ∘) F.Func-id *> id-right)
 
 -- TODO: Genralize this from the map P -> SiteLocale P to a dense morphism of sites
-\lemma SiteLocaleSheaf.{s,o,h} {P : PreorderSite.{s}} {D : CompleteCat.{s,o,h}} (F : Functor P.op D) (FS : IsPreorderSheaf F) : VSheaf D (SiteLocale P) extend \cowith
+\lemma SiteLocaleSheaf.{s} {P : PreorderSite.{s}} {D : CompleteCat.{s}} (F : Functor P.op D) (FS : IsPreorderSheaf F) : VSheaf D (SiteLocale P) extend \cowith
   | isSheaf {U} {S} U<=S {d} =>
     \let | cover {a} (Ua : U.1 a) : Covering a (\lam b => ∃ (V : Opens P) (V<=U : V <= U) (S (V,V<=U)) (V.1 b.1))
             => Cover.Cover_Covering $ Cover.cover-sub (Cover.cover-down (U<=S Ua)) \lam {y} (inP (z, inP (V, (V<=U, SV), Vz), y<=z, y<=a)) => (y<=a, inP (V, V<=U, SV, V.2 $ cover-inj y<=z Vz))

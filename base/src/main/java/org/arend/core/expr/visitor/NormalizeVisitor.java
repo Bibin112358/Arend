@@ -806,6 +806,18 @@ public class NormalizeVisitor extends ExpressionTransformer<NormalizationMode>  
     return normType instanceof ClassCallExpression ? ((ClassCallExpression) normType).getImplementation(field, arg) : null;
   }
 
+  public static boolean compareFieldCalls(Expression expr1, Expression expr2) {
+    while (expr1.getUnderlyingExpression() instanceof FieldCallExpression fieldCall1) {
+      if (expr2.getUnderlyingExpression() instanceof FieldCallExpression fieldCall2) {
+        expr1 = fieldCall1.getArgument();
+        expr2 = fieldCall2.getArgument();
+      } else {
+        return false;
+      }
+    }
+    return expr1.getUnderlyingExpression() instanceof InferenceReferenceExpression infRef1 && expr2.getUnderlyingExpression() instanceof InferenceReferenceExpression infRef2 && infRef1.getVariable() == infRef2.getVariable();
+  }
+
   @Override
   public Expression visitFieldCall(FieldCallExpression expr, NormalizationMode mode) {
     if (expr.getDefinition().isProperty()) {
@@ -823,7 +835,7 @@ public class NormalizeVisitor extends ExpressionTransformer<NormalizationMode>  
     Expression thisExpr = expr.getArgument().accept(this, mode);
     if (mode != NormalizationMode.RNF || thisExpr instanceof NewExpression || expr.getDefinition().getReferable().isParameterField() && expr.getDefinition().getParentClass().getClassifyingField() != expr.getDefinition()) {
       Expression impl = evalFieldCall(expr.getDefinition(), thisExpr);
-      if (impl != null) {
+      if (impl != null && !compareFieldCalls(expr, impl)) {
         return impl.accept(this, mode);
       }
     }

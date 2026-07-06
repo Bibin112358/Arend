@@ -271,7 +271,7 @@
       | func-dense-map p => p (cover-refl idp)
   }
 
-\record PreorderSiteHom \extends PreorderHom, SiteHom.{\lp,\lp,\lp,\lp} {
+\record PreorderSiteHom \extends PreorderHom, SiteHom {
   \override Dom : PreorderSite
   \override Cod : PreorderSite
 
@@ -310,7 +310,7 @@
         \lam a<=fxfy => transportInv (Cover _) SetIm_o $ g.func-Cover (f.func-flat-meet a<=fxfy.1 a<=fxfy.2)
 }
 
-\record PreorderSitePredenseHom \extends PreorderSiteHom, SiteDensePrehom.{\lp,\lp,\lp,\lp}
+\record PreorderSitePredenseHom \extends PreorderSiteHom, SiteDensePrehom
   | func-dense-image {u : Cod} : Cover u (SetIm func \lam x => func x <= u)
   | func-dense-map {a b : Dom} : func a <= func b -> Cover1 a b
 

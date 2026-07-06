@@ -37,7 +37,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
   }
 
   private String getVar(AtomFieldsAccContext ctx) {
-    if (!(ctx.DOT().isEmpty() && ctx.levelArgs() == null && ctx.atom() instanceof AtomLiteralContext)) {
+    if (!(ctx.DOT().isEmpty() && ctx.atom() instanceof AtomLiteralContext)) {
       return null;
     }
     LiteralContext literal = ((AtomLiteralContext) ctx.atom()).literal();
@@ -1406,6 +1406,12 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
     return new Concrete.UniverseExpression(pos, null, null, ConcreteUniverseExpression.Kind.SORT);
   }
 
+  @Override
+  public Concrete.UniverseExpression visitSetInf(SetInfContext ctx) {
+    Position pos = tokenPosition(ctx.start);
+    return new Concrete.UniverseExpression(pos, null, BigInteger.ZERO, ConcreteUniverseExpression.Kind.SORT);
+  }
+
   private Concrete.LevelExpression visitLevel(LevelAtomContext ctx) {
     return (Concrete.LevelExpression) visit(ctx);
   }
@@ -1681,7 +1687,6 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
     TerminalNode infixCtx = ctx.INFIX();
     TerminalNode postfixCtx = infixCtx == null ? ctx.POSTFIX() : null;
     AtomContext atomCtx = ctx.atom();
-    LevelArgsContext levelArgs = ctx.levelArgs();
     List<FieldAccContext> fieldAccs = ctx.fieldAcc();
     int i = 0;
     Concrete.Expression expression;
@@ -1697,6 +1702,12 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
         }
       }
 
+      LevelArgsContext levelArgs = null;
+      if (i < fieldAccs.size() && fieldAccs.get(i) instanceof FieldAccLevelsContext levelsCtx) {
+        levelArgs = levelsCtx.levelArgs();
+        i++;
+      }
+
       Position position = tokenPosition(i == fieldAccs.size() && infixCtx != null ? infixCtx.getSymbol() : i == fieldAccs.size() && postfixCtx != null ? postfixCtx.getSymbol() : i == 0 ? id.getSymbol() : fieldAccs.get(i - 1).start);
       if (i == fieldAccs.size()) {
         if (infixCtx != null) {
@@ -1709,16 +1720,20 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
       expression = new Concrete.ReferenceExpression(position, Objects.requireNonNull(LongUnresolvedReference.make(position, names)), visitLevelArgs(levelArgs));
     } else {
       expression = visitExpr(atomCtx);
-      if (levelArgs != null) {
-        myErrorReporter.report(new ParserError(tokenPosition(levelArgs.start), "Level annotations are allowed only after a reference"));
-      }
     }
 
     for (; i < fieldAccs.size(); i++) {
       FieldAccContext fieldAcc = fieldAccs.get(i);
-      TerminalNode node = fieldAcc instanceof FieldAccNumberContext ? ((FieldAccNumberContext) fieldAcc).NUMBER() : ((FieldAccIdContext) fieldAcc).ID();
-      Position position = tokenPosition(node.getSymbol());
-      expression = fieldAcc instanceof FieldAccNumberContext ? new Concrete.ProjExpression(position, expression, Integer.parseInt(node.getText()) - 1) : new Concrete.FieldCallExpression(position, new NamedUnresolvedReference(position, node.getText()), Fixity.UNKNOWN, expression);
+      if (fieldAcc instanceof FieldAccNumberContext numberCtx) {
+        TerminalNode node = numberCtx.NUMBER();
+        expression = new Concrete.ProjExpression(tokenPosition(node.getSymbol()), expression, Integer.parseInt(node.getText()) - 1);
+      } else if (fieldAcc instanceof FieldAccIdContext idCtx) {
+        TerminalNode node = idCtx.ID();
+        Position position = tokenPosition(node.getSymbol());
+        expression = new Concrete.FieldCallExpression(position, new NamedUnresolvedReference(position, node.getText()), Fixity.UNKNOWN, expression);
+      } else {
+        myErrorReporter.report(new ParserError(GeneralError.Level.WARNING_UNUSED, tokenPosition(fieldAcc.start), "Level aruments are ignored"));
+      }
     }
 
     if (infixCtx == null && postfixCtx == null) {

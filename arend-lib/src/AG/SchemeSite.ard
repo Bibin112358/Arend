@@ -81,7 +81,7 @@
     => SiteLocale toSite
 
   \func toRLSite : RingedSite toSite R \cowith
-    | R-sheaf => IsPreorderSheaf.fromSheaf (sheaf-reflect forget forget.reflectsLimit (IsPreorderSheaf.toSheaf setPreorderSheaf)) __
+    | R-sheaf => IsPreorderSheaf.fromSheaf (sheaf-reflect forget (\lam {J} => forget.reflectsLimit {J}) (IsPreorderSheaf.toSheaf setPreorderSheaf)) __
     \where {
       \private \lemma setPreorderSheaf : IsPreorderSheaf {toSite} (Comp forget.{s} R)
         => \lam {a} {U} a<=U U<=a {D} => IsPreorderSheaf.SetSheafCond a U

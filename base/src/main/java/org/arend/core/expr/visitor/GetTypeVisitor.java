@@ -258,11 +258,7 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
     if (type.getDefinition().getOverriddenType(field) != null) {
       return type.getDefinition().getOverriddenType(field, myMinimal ? minimizeLevels(type) : type.getLevels()).applyExpression(argument);
     }
-    if (myMinimal) {
-      return field.getType(minimizeLevelsToSuperClass(type, field.getParentClass())).applyExpression(argument);
-    } else {
-      return type.getFieldType(field, argument);
-    }
+    return type.getFieldType(field, argument);
   }
 
   @Override

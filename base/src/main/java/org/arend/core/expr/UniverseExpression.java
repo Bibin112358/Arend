@@ -7,6 +7,7 @@ import org.arend.core.expr.visitor.ExpressionVisitor2;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.ext.core.level.LevelSubstitution;
 import org.arend.ext.core.expr.CoreExpressionVisitor;
 import org.arend.ext.core.expr.CoreUniverseExpression;
@@ -46,7 +47,22 @@ public class UniverseExpression extends Expression implements CoreUniverseExpres
 
   @Override
   public Expression replaceInfinityLevel(InferenceVariable variable) {
-    return mySortExpression instanceof SortExpression.Const(Sort sort) && sort.getPLevel().isInfinity() || mySortExpression instanceof SortExpression.Var ? new UniverseExpression(new SortExpression.InfVar(variable)) : null;
+    if (mySortExpression instanceof SortExpression.Const(Sort sort) && sort.getPLevel().isInfinity()) {
+      variable.setHLevel(sort.getHLevel());
+      return new UniverseExpression(new SortExpression.InfVar(variable));
+    } else {
+      return null;
+    }
+  }
+
+  @Override
+  public Expression replaceInferenceVariable() {
+    if (mySortExpression instanceof SortExpression.InfVar var) {
+      ConstLevel hLevel = var.getVariable().getHLevel();
+      return hLevel == null ? UniverseExpression.OMEGA : new UniverseExpression(new Sort(Level.INFINITY, hLevel));
+    } else {
+      return this;
+    }
   }
 
   @Override

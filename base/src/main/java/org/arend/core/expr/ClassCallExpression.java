@@ -194,7 +194,7 @@ public class ClassCallExpression extends LeveledDefCallExpression implements Cor
 
   public @NotNull Expression getFieldType(@NotNull ClassField field, @NotNull Levels levels) {
     Expression type = getDefinition().getFieldType(field, levels, new ReferenceExpression(myThisBinding));
-    Level overrideLevel = getDefinition().getFieldLevelOverride(field, levels);
+    Level overrideLevel = getDefinition().getFieldLevelOverride(field, levels, myImplementations.keySet());
     return overrideLevel == null ? type : type.replaceInfinityLevel(overrideLevel);
   }
 
@@ -204,13 +204,13 @@ public class ClassCallExpression extends LeveledDefCallExpression implements Cor
 
   public @NotNull Expression getFieldType(@NotNull ClassField field, @NotNull Expression thisExpr) {
     Expression type = getDefinition().getFieldType(field, getLevels(), thisExpr);
-    Level overrideLevel = getDefinition().getFieldLevelOverride(field, getLevels());
+    Level overrideLevel = getFieldLevelOverride(field);
     return overrideLevel == null ? type : type.replaceInfinityLevel(overrideLevel);
   }
 
   public @NotNull PiExpression getFieldPiType(@NotNull ClassField field) {
     PiExpression type = getDefinition().getFieldType(field, getLevels());
-    Level overrideLevel = getDefinition().getFieldLevelOverride(field, getLevels());
+    Level overrideLevel = getFieldLevelOverride(field);
     return overrideLevel == null ? type : type.replaceInfinityLevel(overrideLevel);
   }
 
@@ -285,11 +285,15 @@ public class ClassCallExpression extends LeveledDefCallExpression implements Cor
   @Override
   public boolean isInfinityLevel() {
     for (ClassField field : getDefinition().getNotImplementedFields()) {
-      if (field.isInfiniteField() && !myImplementations.containsKey(field) && getDefinition().getFieldLevelOverride(field, getLevels()) == null) {
+      if (field.isInfiniteField() && !myImplementations.containsKey(field) && getFieldLevelOverride(field) == null) {
         return true;
       }
     }
     return false;
+  }
+
+  public @Nullable Level getFieldLevelOverride(ClassField field) {
+    return getDefinition().getFieldLevelOverride(field, getLevels(), myImplementations.keySet());
   }
 
   public boolean isUnit() {

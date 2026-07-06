@@ -359,4 +359,53 @@ public class SortTest extends TypeCheckingTestCase {
       """);
     assertEquals(new Sort(new Level(BigInteger.valueOf(8)), new ConstLevel(BigInteger.valueOf(8))), ((FunctionDefinition) getDefinition("test")).getResultType().toSort());
   }
+
+  @Test
+  public void overrideTest() {
+    typeCheckModule("""
+      \\record R (A : \\Sort)
+      \\record S \\extends R
+      \\record T (r : R)
+      \\record U \\extends T {
+        \\override r : S
+      }
+      """);
+  }
+
+  @Test
+  public void customClassLevelsTest() {
+    typeCheckModule("""
+      \\record T (A : \\Sort)
+      \\record R.{s} (F : T.{s} -> T.{s})
+      \\func test (r : R.{3}) : R.{4} => r
+      """, 1);
+    assertThatErrorsAre(Matchers.typeMismatchError());
+  }
+
+  @Test
+  public void overriddenClassLevelsTest() {
+    typeCheckModule("""
+      \\record T (A : \\Sort)
+      \\record R.{s} (B : T.{s} -> T.{s})
+      \\func test (r : R) : R.{4} => r
+      """, 1);
+    assertThatErrorsAre(Matchers.typeMismatchError());
+  }
+
+  @Test
+  public void overriddenClassLevelsTest2() {
+    typeCheckModule("""
+      \\record R (A : \\Sort)
+      \\func test (r : R) : R.{4} => r
+      """, 1);
+    assertThatErrorsAre(Matchers.typeMismatchError());
+  }
+
+  @Test
+  public void implementedFieldTest() {
+    typeCheckModule("""
+      \\record R (A : \\Sort) (a : A)
+      \\func test (r : R Nat) : R.{0} => r
+      """);
+  }
 }

@@ -3,6 +3,7 @@ package org.arend.core.expr.visitor;
 import org.arend.core.constructor.SingleConstructor;
 import org.arend.core.context.LinkList;
 import org.arend.core.context.binding.Binding;
+import org.arend.core.context.binding.LevelVariable;
 import org.arend.core.context.binding.inference.InferenceVariable;
 import org.arend.core.context.binding.inference.MetaInferenceVariable;
 import org.arend.core.context.binding.inference.TypeClassInferenceVariable;
@@ -1399,8 +1400,8 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
 
   private boolean compareFieldLevelOverrides(ClassCallExpression classCall1, ClassCallExpression classCall2) {
     for (ClassField field : classCall2.getDefinition().getOverridableInfiniteFields()) {
-      Level level1 = classCall1.getDefinition().getFieldLevelOverride(field, classCall1.getLevels());
-      Level level2 = classCall2.getDefinition().getFieldLevelOverride(field, classCall2.getLevels());
+      Level level1 = classCall1.getFieldLevelOverride(field);
+      Level level2 = classCall2.getFieldLevelOverride(field);
       if (level1 == null || level2 == null) {
         continue;
       }
@@ -1414,6 +1415,20 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
   public boolean compareClassCallLevels(ClassCallExpression classCall1, ClassCallExpression classCall2) {
     if (!compareFieldLevelOverrides(classCall1, classCall2)) {
       return false;
+    }
+
+    ClassCallExpression superCall = myCMP == CMP.GE ? classCall1 : classCall2;
+    ClassDefinition definition = superCall.getDefinition();
+    List<? extends LevelVariable> params = definition.getLevelParameters();
+    if (params != null) {
+      List<? extends Level> superLevels = superCall.getLevels().toList();
+      List<? extends Level> subLevels = (myCMP == CMP.GE ? classCall2 : classCall1).getLevels(definition).toList();
+      for (int i = 0; i < params.size(); i++) {
+        if (!Level.compare(subLevels.get(i), superLevels.get(i), CMP.EQ, myNormalCompare ? myEquations : DummyEquations.getInstance(), mySourceNode)) {
+          return false;
+        }
+      }
+      return true;
     }
 
     UniverseKind kind1 = classCall1.getUniverseKind();
@@ -2361,7 +2376,7 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
       return false;
     }
 
-    if (type == null && !compare(expr.getType(), other.getType(), UniverseExpression.OMEGA, false)) {
+    if (!myNormalCompare || type == null && !compare(expr.getType(), other.getType(), UniverseExpression.OMEGA, false)) {
       return false;
     }
 

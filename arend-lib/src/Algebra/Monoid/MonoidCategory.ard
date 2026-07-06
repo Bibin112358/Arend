@@ -21,7 +21,7 @@
 \import Set.Fin
 \import Set.Fin.Instances
 
-\instance MonoidCat : Cat Monoid
+\instance MonoidCat.{s} : Cat Monoid.{s}
   | Hom M N => MonoidHom M N
   | id _ => MonoidHom.id
   | o => MonoidHom.∘
@@ -30,26 +30,26 @@
   | o-assoc => idp
   | univalence => sip \lam p1 p2 => exts (p1.func-ide, \lam _ _ => p1.func-*)
   \where {
-    \func forget : Functor MonoidCat SetCat \cowith
+    \func forget.{s} : Functor MonoidCat.{s} SetCat.{s} \cowith
       | F R => R
       | Func f => f
       | Func-id => idp
       | Func-o => idp
   }
 
-\instance LimitMonoid {J : Precat} (F : Functor J MonoidCat) : Monoid (SetBicat.LimitSet (Comp MonoidCat.forget F))
+\instance LimitMonoid.{s} {J : Precat.{s,s}} (F : Functor J MonoidCat.{s}) : Monoid (SetBicat.LimitSet (Comp MonoidCat.forget F))
   | ide => (\lam _ => ide, \lam h => func-ide)
   | * f g => (\lam j => f.1 j * g.1 j, \lam h => func-* *> pmap2 (*) (f.2 h) (g.2 h))
   | *-assoc => exts \lam j => *-assoc
   | ide-left => exts \lam j => ide-left
   | ide-right => exts \lam j => ide-right
   \where {
-    \func limProj {J : Precat} {F : Functor J MonoidCat} (j : J) : MonoidHom (LimitMonoid F) (F j) \cowith
+    \func limProj (j : J) : MonoidHom (LimitMonoid F) (F j) \cowith
       | func l => l.1 j
       | func-ide => idp
       | func-* => idp
 
-    \func limMap {J : Precat} {F : Functor J MonoidCat} {M : Monoid} (c : Cone F M) : MonoidHom M (LimitMonoid F) \cowith
+    \func limMap.{s} {J : Precat.{s,s}} {F : Functor J MonoidCat.{s}} {M : Monoid.{s}} (c : Cone F M) : MonoidHom M (LimitMonoid F) \cowith
       | func x => (\lam j => c.coneMap j x, \lam h => path \lam i => c.coneCoh h i x)
       | func-ide => exts \lam j => func-ide
       | func-* => exts \lam j => func-*

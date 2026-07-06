@@ -665,6 +665,10 @@ public abstract class Expression implements Body, CoreExpression {
     return null;
   }
 
+  public Expression replaceInferenceVariable() {
+    return this;
+  }
+
   public Expression replaceInfinityLevel(int index, List<ClassField> fields) {
     return null;
   }

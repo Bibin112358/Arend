@@ -6,7 +6,7 @@
 \import Set
 \import Set.SetHom
 
-\class Preorder \extends BaseSet, Precat.{\lp,\lp} {
+\class Preorder \extends BaseSet, Precat {
   | \infix 4 <= : E -> E -> \Prop
   | <=-refl {x : E} : x <= x
   | <=-transitive \alias \infixr 9 <=∘ {x y z : E} : x <= y -> y <= z -> x <= z
@@ -68,7 +68,7 @@
 \lemma \infixr 9 =<= {E : Preorder} {x y z : E} (p : x = y) (q : y <= z) : x <= z
   => =_<= p <=∘ q
 
-\class Poset \extends Preorder, Cat.{\lp,\lp} {
+\class Poset \extends Preorder, Cat {
   | <=-antisymmetric {x y : E} : x <= y -> y <= x -> x = y
   | univalence => Cat.makeUnivalence \lam (e : Iso) => (<=-antisymmetric e.f e.hinv, prop-pi)
 
@@ -98,7 +98,7 @@
   | <=-transitive => <=-transitive
   | <=-antisymmetric p q => ext (<=-antisymmetric p q)
 
-\record PreorderHom \extends SetHom, Functor.{\lp,\lp,\lp,\lp} {
+\record PreorderHom \extends SetHom, Functor {
   \override Dom : Preorder
   \override Cod : Preorder
 

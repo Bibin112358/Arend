@@ -18,7 +18,8 @@
 \func inso~ {C : Precat} {obj : C} (m : Mono {C} { | cod => obj }) : Subobj m.cod
   => in~ m
 
-\instance SubobjPoset {C : Precat} (obj : C) : Poset (Subobj obj)
+-- TODO[sorts]: Remove levels after making Poset infinite
+\instance SubobjPoset.{o,h} {C : Precat.{o,h}} (obj : C) : Poset (Subobj obj)
   | <= (s1 s2 : Subobj obj) : \Prop \with {
     | in~ m1, in~ m2 => ∃ (f : Hom m1.dom m2.dom) (m2.f ∘ f = m1.f)
     | in~ m, ~-equiv x y r => propExt (\lam (inP (f,xf=m)) => inP (r.1 ∘ f, inv o-assoc *> pmap (`∘ _) r.2 *> xf=m))
@@ -63,8 +64,9 @@
 \sfunc subobjTop {C : Precat} {obj : C} : Subobj obj
   => inso~ idIso
 
-\instance SubobjectSemilattice {C : PrecatWithPullbacks} (obj : C) : TopMeetSemilattice
-  | Poset => SubobjPoset obj
+-- TODO[sorts]: Remove levels after making Poset infinite
+\instance SubobjectSemilattice.{o,h} {C : PrecatWithPullbacks.{o,h}} (obj : C) : TopMeetSemilattice
+  | Poset => SubobjPoset.{o,h} obj
   | meet (x y : Subobj obj) : Subobj obj \with {
     | in~ m1, in~ m2 => inso~ $ Mono.comp m1 $ Mono_pullback (pullback m1.f m2.f) m2
     | in~ m, ~-equiv x y r => <=-antisymmetric
@@ -127,8 +129,11 @@
         | pbBeta2 => o-assoc *> pmap (_ ∘) (inv o-assoc *> pmap (`∘ _) (~-unsoequiv.left-right=id {_} {_} {Mono_pullback _ s} r) *> id-left) *> pbBeta2
         | pbEta e _ => m.isMono e
       }
-      | contraction P => exts (s.isMono $ inv o-assoc *> pmap (`∘ _) (inv pbCoh) *> o-assoc *> pmap (_ ∘) r.4 *> pbCoh,
+      | contraction P => {?}
+       {- TODO[sorts]
+       exts (s.isMono $ inv o-assoc *> pmap (`∘ _) (inv pbCoh) *> o-assoc *> pmap (_ ∘) r.4 *> pbCoh,
                                \lam p1 p2 c => m.isMono $ inv o-assoc *> pmap (`∘ _) r.2 *> pbBeta1 *> inv P.pbBeta1)
+       -}
     }
   }
 

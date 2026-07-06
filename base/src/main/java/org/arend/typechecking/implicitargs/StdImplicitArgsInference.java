@@ -127,7 +127,7 @@ public class StdImplicitArgsInference implements ImplicitArgsInference {
 
       // Generate ordinary inference variable
       if (infVar == null) {
-        if (classVarsOnly) {
+        if (classVarsOnly && !type.isInfinityLevel()) {
           return result;
         }
         Definition definition;
@@ -265,7 +265,7 @@ public class StdImplicitArgsInference implements ImplicitArgsInference {
         piType = field.getType(defCallResult.getLevels());
       }
       Expression fieldResultType = piType.applyExpression(argResult.expression);
-      Level overrideLevel = classCall == null ? null : classCall.getDefinition().getFieldLevelOverride(field, classCall.getLevels());
+      Level overrideLevel = classCall == null ? null : classCall.getFieldLevelOverride(field);
       if (overrideLevel != null) {
         Expression replaced = fieldResultType.replaceInfinityLevel(overrideLevel);
         if (replaced != null) {

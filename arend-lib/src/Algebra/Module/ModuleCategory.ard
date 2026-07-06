@@ -14,7 +14,7 @@
 \import Algebra.Ring.RingHom
 \import Category \hiding (id,∘)
 \import Category.Meta
-\import Category.PreAdditive
+-- \import Category.PreAdditive
 \import Data.Array
 \import Equiv
 \import Function \hiding (id,o)
@@ -42,28 +42,28 @@
   \lemma in-mono {N : LModule R} (S : SubLModule R N) : IsInj (in S) => \lam p => exts p
 }
 
+{- TODO[sorts]
 \instance LModulePreAdditive (R : Ring) : PreAdditivePrecat \cowith
   | Precat => LModuleCat R
-  | AbHom => \new AbGroup {
-    | zro => linearMap_zro
-    | + => linearMap_+
-    | zro-left => exts \lam _ => LModule.zro-left
-    | zro-right => exts \lam _ => LModule.zro-right
-    | +-assoc => exts \lam _ => LModule.+-assoc
-    | negative => linearMap_negative
-    | negative-left => exts \lam _ => LModule.negative-left
-    | +-comm => exts \lam _ => LModule.+-comm
-  }
+  | AbHom => LinearMapAbGroup
   | l-bilinear => exts \lam _ => func-+
   | r-bilinear => exts \lam _ => idp
+-}
+
+-- TODO[sorts]: Move these instances somewhere else.
+\instance LinearMapAbGroup {R : Ring} (A B : LModule R) : AbGroup (LinearMap A B)
+  | zro => linearMap_zro
+  | + => linearMap_+
+  | zro-left => exts \lam _ => LModule.zro-left
+  | zro-right => exts \lam _ => LModule.zro-right
+  | +-assoc => exts \lam _ => LModule.+-assoc
+  | negative => linearMap_negative
+  | negative-left => exts \lam _ => LModule.negative-left
+  | +-comm => exts \lam _ => LModule.+-comm
 
 \instance LinearMapLModule {R : CRing} (A B : LModule R) : LModule R \cowith
-  | AbGroup => AbHom {LModulePreAdditive R} {A} {B}
-  | *c (c : R) (f : LinearMap A B) : LinearMap A B \cowith {
-    | func a => c B.*c f a
-    | func-+ => rewrite (f.func-+, B.*c-ldistr) idp
-    | func-*c => rewrite (f.func-*c, inv B.*c-assoc, inv B.*c-assoc, R.*-comm) idp
-  }
+  | AbGroup => LinearMapAbGroup A B
+  | *c r f => linearMap_*c {R} {A} {B} {r} f
   | *c-assoc => exts \lam _ => B.*c-assoc
   | *c-ldistr => exts \lam _ => B.*c-ldistr
   | *c-rdistr => exts \lam _ => B.*c-rdistr

@@ -9,7 +9,6 @@
 \import Algebra.Monoid
 \import Algebra.Ring
 \import Category
-\import Category.PreAdditive
 \import Data.Array
 \import Equiv
 \import Function \hiding (id, o)
@@ -63,7 +62,7 @@ produces an interwining linear map $f'$ via the following formula
   | LinearMap => int
   | func-** {a} {h} => rewrite (bring_h_out h a, inv $ ap-rearrange h a) idp
   \where {
-    \func Ab : AbGroup => PreAdditivePrecat.AbHom {LModulePreAdditive R} {A} {B}
+    \func Ab : AbGroup => LinearMapAbGroup A B
 
     \func adjust(g : G) (f : LinearMap A B) : LinearMap A B \cowith
       | func a => g B.** f ( inverse g A.** a)

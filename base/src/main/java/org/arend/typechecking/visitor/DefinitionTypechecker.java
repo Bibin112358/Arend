@@ -1004,11 +1004,12 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
         ? new TypeExpression(new ErrorExpression(), new SortExpression.Const(Sort.PROP))
         : def.getBody() instanceof Concrete.CoelimFunctionBody && !def.isRecursive()
           ? null // The result type will be typechecked together with all field implementations during body typechecking.
-          : def.getBody() instanceof Concrete.TermFunctionBody && cResultType instanceof Concrete.UniverseExpression universe && universe.getKind() == ConcreteUniverseExpression.Kind.SORT
-            ? new TypeExpression(UniverseExpression.OMEGA, new SortExpression.Const(Sort.INFINITY))
+          : def.getBody() instanceof Concrete.TermFunctionBody && cResultType instanceof Concrete.UniverseExpression universe && universe.isInfSort()
+            ? new TypeExpression(universe.getHLevel() == null ? UniverseExpression.OMEGA : new UniverseExpression(new Sort(Level.INFINITY, new ConstLevel(universe.getHLevel()))),
+                new SortExpression.Const(universe.getHLevel() == null ? Sort.INFINITY : new Sort(Level.INFINITY, new ConstLevel(universe.getHLevel().add(BigInteger.ONE)))))
             : checkResultTypeLater(def)
-              ? typechecker.checkType(cResultType, UniverseExpression.OMEGA)
-              : typechecker.finalCheckType(cResultType, UniverseExpression.OMEGA);
+              ? typechecker.checkType(cResultType, def.getBody() instanceof Concrete.ElimFunctionBody ? UniverseExpression.OMEGA : UniverseExpression.INF_OMEGA)
+              : typechecker.finalCheckType(cResultType, def.getBody() instanceof Concrete.ElimFunctionBody ? UniverseExpression.OMEGA : UniverseExpression.INF_OMEGA);
       if (expectedTypeResult != null) {
         expectedType = expectedTypeResult.expression();
       }
@@ -2977,7 +2978,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       instancePool.setInstancePool(localInstancePool);
       typechecker.setInstancePool(instancePool);
       ClassFieldKind kind = def instanceof Concrete.ClassField ? ((Concrete.ClassField) def).getKind() : typedDef == null ? ClassFieldKind.ANY : typedDef.isProperty() ? ClassFieldKind.PROPERTY : ClassFieldKind.FIELD;
-      TypeExpression typeResult = typechecker.finalCheckType(codomain, def instanceof Concrete.ClassField ? UniverseExpression.INF_OMEGA : UniverseExpression.OMEGA);
+      TypeExpression typeResult = typechecker.finalCheckType(codomain, UniverseExpression.INF_OMEGA);
       ok = typeResult != null;
       piType = new PiExpression(thisParam, ok ? typeResult.expression() : new ErrorExpression());
 

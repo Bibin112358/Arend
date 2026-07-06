@@ -20,7 +20,8 @@
     | in0 a1 => pmap in0 (inv_*> a1)
   }
 
-\func End {C : Precat} (c : C) : Monoid (Hom c c) \cowith
+-- TODO[sorts]: Delete s after making Monoid infinite
+\func End.{s} {C : Precat.{s,s}} (c : C) : Monoid (C.Hom c c) \cowith
   | ide => id c
   | * => ∘
   | ide-left => id-left

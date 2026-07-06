@@ -46,7 +46,7 @@
     => R top
 
   \lemma R-equals {a : L} {U : Set L} (a<=U : a <= Join U) {x y : R a} (p : ∀ {b} {c : U} (ba : b <= a) (b <= c) (R.F.Func ba x = R.F.Func ba y)) : x = y
-    => path \lam i => (IsSheaf.makeSheaf (sheaf-preserve CRingCat.forget CRingCat.forget.preservesLimit R)).separated-covering {a} {\lam b => ∃ (c : U) (b.1 <= c)}
+    => path \lam i => (IsSheaf.makeSheaf (sheaf-preserve CRingCat.forget (\lam {J} => CRingCat.forget.preservesLimit {J}) R)).separated-covering {a} {\lam b => ∃ (c : U) (b.1 <= c)}
         (Covering.covering-basic $ meet-univ <=-refl a<=U <=∘ Join-ldistr>= <=∘ L.SJoin-univ \lam {c} Uc => Join-cond $ later (meet-left, inP (c, Uc, meet-right)))
         (\lam {b} (inP (c,Uc,b<=c)) => ext \lam _ => p Uc b.2 b<=c) i ()
 
@@ -264,7 +264,7 @@
 
 \record RingedSite.{s} (\coerce P : PreorderSite.{s}) (R : Functor P.op CRingBicat.{s}) (R-sheaf : IsPreorderSheaf R) {
   \lemma R-equals {a : P} {U : Set P} (a<=U : Cover a U) {x y : R a} (p : ∀ {b} {c : U} (ba : b <= a) (b <= c) (R.Func ba x = R.Func ba y)) : x = y
-    => path \lam i => (IsSheaf.makeSheaf (sheaf-preserve CRingCat.forget CRingCat.forget.preservesLimit (IsPreorderSheaf.makeSheaf R-sheaf))).separated-covering
+    => path \lam i => (IsSheaf.makeSheaf (sheaf-preserve CRingCat.forget (\lam {J} => CRingCat.forget.preservesLimit {J}) (IsPreorderSheaf.makeSheaf R-sheaf))).separated-covering
         (toCovering a<=U) {\Sigma} {\lam _ => x} {\lam _ => y} (\lam {u} (inP (z,Uz,u<=z)) => exts \lam _ => p Uz u.2 u<=z) i ()
 }
 

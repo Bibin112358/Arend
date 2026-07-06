@@ -30,14 +30,14 @@
     | apply f d => func-op f _ *> pmap (operation f) (exts \lam j => funcs-interpret (d j))
 }
 
-\instance ModelCat (T : Theory) : BicompleteCat (Model T)
+\instance ModelCat.{s} (T : Theory.{s}) : BicompleteCat.{s} (Model T)
   | Precat => ModelPrecat T
   | univalence => Cat.makeUnivalence $ later \lam (e : Iso) =>
     \have t => SIP (FamCat SetCat) (Model T) (\lam M N f => ModelHom M N f)
                    (\lam {E} {M} {N} (p1 : ModelHom M N) (p2 : ModelHom N M) => exts (\lam h d => p1.func-op h d, \lam P d => ext (p1.func-rel P d, p2.func-rel P d)))
         (\new Iso (\lam {j} => e.f {j}) (\lam {j} => e.hinv {j}) (path (\lam i {j} => (e.hinv_f @ i) {j})) (path (\lam i {j} => (e.f_hinv @ i) {j}))) e.dom e.cod e.f e.hinv
     \in (t.2, simp_coe t.3)
-  | limit {J} (G : Functor) => \new Limit {
+  | limit {J} G => \new Limit {
     | apex => \new Model {
       | Structure => limitStructure T G
       | isModel S a rho h => propExt.conv (limitStructureTruth S.4) (\lam j => isModel S a (\lam v => (rho v).1 j) (\lam k => propExt.dir (limitStructureTruth (S.3 k)) (h k) j))
@@ -158,7 +158,7 @@
         | axioms S => OneOf ((\Sigma (S' : Sequent) (T.axioms S') (S = liftSequent S')) ::
             (\Sigma (j : J) (s : Sort) (f : Symb s) (vars : DArray (\lam i => G j (domain f i))) (S = (\lam _ => Empty, emptyFin, nil, equality (apply (inl f) (\lam i => apply (inr (in0 (j, vars i))) nil)) (apply (inr (in0 (j, operation f vars))) nil)))) ::
             (\Sigma (j : J) (P : PredSymb) (vars : DArray (\lam i => G j (predDomain P i))) (relation P vars) (S = (\lam _ => Empty, emptyFin, nil, predicate P (\new DArray { | at i => apply (inr (in0 (j, vars i))) nil })))) ::
-            (\Sigma (j j' : J) (h : Hom j j') (s : Sort) (x : G j s) (S = (\lam _ => Empty, emptyFin, nil, equality (apply (inr (in0 (j', G.Func h x))) nil) (apply (inr (in0 (j, x))) nil)))) :: nil)
+            (\Sigma (j j' : J) (h : J.Hom j j') (s : Sort) (x : G j s) (S = (\lam _ => Empty, emptyFin, nil, equality (apply (inr (in0 (j', G.Func h x))) nil) (apply (inr (in0 (j, x))) nil)))) :: nil)
 
       \instance ColimitStr : Structure T
         | E => QTerm (\lam _ => Empty)
@@ -248,17 +248,17 @@
       }
     }
 
-    \func limitStructure (T : Theory) {J : Precat} (G : Functor J (ModelPrecat T)) : Structure T \cowith
+    \func limitStructure.{s} (T : Theory.{s}) {J : Precat.{s,s}} (G : Functor J (ModelPrecat T)) : Structure T \cowith
       | E s => \Sigma (P : \Pi (j : J) -> G j s) (\Pi {j j' : J} (h : Hom j j') -> G.Func h (P j) = P j')
       | operation h d => (\lam j => operation h (\lam k => (d k).1 j), \lam {j} {j'} f => func-op {G.Func f} h (\lam k => (d k).1 j) *> cong (ext (\lam k => (d k).2 f)))
       | relation P d => \Pi (j : J) -> relation P (\lam k => (d k).1 j)
 
-    \lemma limitStructureInterp {T : Theory} {J : Precat} {G : Functor J (ModelPrecat T)} {V : Sort -> \Set} {rho : Env {limitStructure T G} V} {s : Sort} (t : Term V s) {j : J}
+    \lemma limitStructureInterp.{p} {T : Theory.{p}} {J : Precat.{p,p}} {G : Functor J (ModelPrecat T)} {V : Sort -> \Set p} {rho : Env {limitStructure T G} V} {s : Sort} (t : Term V s) {j : J}
       : (interpret rho t).1 j = interpret (\lam v => (rho v).1 j) t \elim t
       | var v => idp
       | apply f d => unfold $ cong $ ext (\lam k => limitStructureInterp (d k))
 
-    \lemma limitStructureTruth {T : Theory} {J : Precat} {G : Functor J (ModelPrecat T)} {V : Sort -> \Set} {rho : Env {limitStructure T G} V} (phi : Formula V)
+    \lemma limitStructureTruth.{p} {T : Theory.{p}} {J : Precat.{p,p}} {G : Functor J (ModelPrecat T)} {V : Sort -> \Set p} {rho : Env {limitStructure T G} V} (phi : Formula V)
       : isFormulaTrue rho phi = (\Pi (j : J) -> isFormulaTrue (\lam v => (rho v).1 j) phi) \elim phi
       | equality t t' => ext (\lam ft j => inv (limitStructureInterp t) *> rewrite ft idp *> limitStructureInterp t', \lam ft => exts (\lam j => limitStructureInterp t *> ft j *> inv (limitStructureInterp t')))
       | predicate P d => ext (\lam ft j => transport (relation P) (exts (\lam k => limitStructureInterp (d k))) (ft j), \lam ft j => transport (relation P) (exts (\lam k => inv $ limitStructureInterp (d k))) (ft j))

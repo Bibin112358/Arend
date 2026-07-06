@@ -111,6 +111,13 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
    * @param index   refers to one of the parameters of the (data or function) definition.
    */
   record Var(int index, List<ClassField> fields) implements SortExpression {
+    private static SortExpression getTypeUniverse(Expression expr) {
+      while (expr instanceof PiExpression piExpr) {
+        expr = piExpr.getCodomain();
+      }
+      return expr instanceof UniverseExpression universe ? universe.getSortExpression() : new Const(Sort.INFINITY);
+    }
+
     @Override
     public @NotNull SortExpression subst(@NotNull List<? extends Expression> arguments, @NotNull LevelSubstitution substitution, @NotNull GetTypeVisitor visitor) {
       if (index >= arguments.size()) return this;
@@ -118,17 +125,18 @@ public sealed interface SortExpression extends CoreSortExpression permits SortEx
       if (arg == null) return this;
 
       for (ClassField field : fields) {
-        arg = arg.normalize(NormalizationMode.WHNF).accept(visitor, null).normalize(NormalizationMode.WHNF);
-        while (arg instanceof PiExpression piExpr) {
-          arg = piExpr.getCodomain().normalize(NormalizationMode.WHNF);
+        arg = arg.normalize(NormalizationMode.WHNF);
+        Expression argType = arg.accept(visitor, null).normalize(NormalizationMode.WHNF);
+        while (argType instanceof PiExpression piExpr) {
+          argType = piExpr.getCodomain().normalize(NormalizationMode.WHNF);
         }
-        if (!(arg instanceof ClassCallExpression classCall)) {
-          return new Const(Sort.INFINITY);
+        if (!(argType instanceof ClassCallExpression classCall)) {
+          return getTypeUniverse(field.getType());
         }
 
         arg = classCall.getImplementation(field, arg);
         if (arg == null) {
-          return new Const(Sort.INFINITY);
+          return getTypeUniverse(classCall.getFieldType(field));
         }
       }
 

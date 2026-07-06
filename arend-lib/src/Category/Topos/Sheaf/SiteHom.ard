@@ -10,9 +10,9 @@
 \import Paths.Meta
 \open Covering
 
-\record SitePrehom.{o1,h1,o2,h2} \extends Functor.{o1,h1,o2,h2} {
-  \override C : Site.{o1,h1}
-  \override D : Site.{o2,h2}
+\record SitePrehom \extends Functor {
+  \override C : Site
+  \override D : Site
 
   | Func-cover {x : C} {P : Presieve x} : isCover x P -> Covering (F x) (Presieve.pushforward \this P)
 
@@ -27,7 +27,7 @@
   | Func-flat-pullback {x y1 y2 : C} {p1 : Hom y1 x} {p2 : Hom y2 x} {u : D} {f : Hom u (F y1)} {g : Hom u (F y2)} (f_g : Func p1 ∘ f = Func p2 ∘ g)
     : Covering u \lam v => ∃ (w : C) (f' : Hom w y1) (g' : Hom w y2) (p1 ∘ f' = p2 ∘ g') (h : Hom v.1 (F w)) (Func f' ∘ h = f ∘ v.2) (Func g' ∘ h = g ∘ v.2)
 } \where {
-  \func id.{o,h} {C : Site.{o,h}} : SiteHom C C \cowith
+  \func id {C : Site} : SiteHom C C \cowith
     | Functor => Id
     | Func-cover {x} {P} c => covering-basic $ transport (isCover x) (ext \lam px => ext (\lam Ppx => inP (px,Ppx,idp), \lam (inP (py,Ppy,q)) => transportInv P q Ppy)) c
     | Func-flat-terminal {u} => covering-id $ inP (u, C.id u)

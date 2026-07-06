@@ -69,7 +69,7 @@ import org.arend.term.concrete.Concrete
 @Deprecated("Obsolete") private fun getExpression(expr: Abstract.Expression?): Concrete.Expression {
     val ref = expr?.accept(object : BaseAbstractExpressionVisitor<Void, Concrete.Expression?>(null) {
         override fun visitReference(data: Any?, referent: Referable, fixity: Fixity?, pLevels: Collection<Abstract.LevelExpression>?, params: Void?) = resolveReference(data, referent, fixity)
-        override fun visitFieldAccs(data: Any?, expression: Abstract.Expression, pLevels: Collection<Abstract.LevelExpression>?, fieldAccs: List<Abstract.FieldAcc?>, infixReference: AbstractReference?, infixName: String?, fixity: Fixity?, params: Void?): Concrete.Expression? {
+        override fun visitFieldAccs(data: Any?, expression: Abstract.Expression, fieldAccs: List<Abstract.FieldAcc?>, infixReference: AbstractReference?, infixName: String?, fixity: Fixity?, params: Void?): Concrete.Expression? {
           return fieldAccs.lastOrNull()?.let { fieldAcc -> fieldAcc.fieldRef?.let { resolveReference(data, it, fixity) } }
         }
     }, null)

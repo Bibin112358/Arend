@@ -24,9 +24,10 @@
 \import Set.SetCategory
 \open SetColimit
 
-\instance MonoidLatticeColimit.{s,p} {D : BottomJoinSemilattice.{s}} (F : Functor D MonoidCat.{p}) : Monoid (SetColimit (Comp MonoidCat.forget F))
+-- TODO[sorts]: Delete level parameter 's' after making Monoid infinite.
+\instance MonoidLatticeColimit.{s,p} {D : BottomJoinSemilattice.{s}} (F : Functor D MonoidCat.{p}) : Monoid (SetColimit (Comp MonoidCat.forget.{p} F))
   | ide => in~ (D.bottom, ide)
-  | * (x y : SetColimit (Comp MonoidCat.forget F)) : SetColimit (Comp MonoidCat.forget F) \with {
+  | * (x y : SetColimit (Comp MonoidCat.forget.{p} F)) : SetColimit (Comp MonoidCat.forget.{p} F) \with {
     | in~ a, in~ b => in~ (a.1 ∨ b.1, F.Func join-left a.2 Monoid.* F.Func join-right b.2)
     | in~ a, ~-equiv x y r => ~-cequiv (D.join-monotone <=-refl r.1) $ func-* *> pmap2 (Monoid.*) (inv Func-app *> poset-app)
                                                                                      (inv Func-app *> poset-app *> Func-app *> pmap (F.Func _) r.2)
@@ -45,14 +46,14 @@
         (inv Func-app *> poset-app *> Func-app) *> *-assoc *> pmap (_ Monoid.*) (inv func-*)
   }
   \where {
-    \private \lemma Func-app {j1 j2 j3 : D} {f : Hom j1 j2} {g : Hom j2 j3} {a : F j1} : F.Func (g ∘ f) a = F.Func g (F.Func f a)
-      => SetColimit.Func-app (Comp MonoidCat.forget F)
+    \private \lemma Func-app.{s,p} {D : BottomJoinSemilattice.{s}} {F : Functor D MonoidCat.{p}} {j1 j2 j3 : D} {f : Hom j1 j2} {g : Hom j2 j3} {a : F j1} : F.Func (g ∘ f) a = F.Func g (F.Func f a)
+      => SetColimit.Func-app (Comp MonoidCat.forget.{p} F)
 
     \private \lemma poset-app {j j' : D} {f g : j <= j'} {a : F j} : F.Func f a = F.Func g a
       => pmap (F.Func __ a) prop-pi
 
-    \private \lemma poset-id {j : D} {p : j <= j} {a : F j} : F.Func p a = a
-      => SetColimit.poset-id {D} {Comp MonoidCat.forget F}
+    \private \lemma poset-id.{s,p} {D : BottomJoinSemilattice.{s}} {F : Functor D MonoidCat.{p}} {j : D} {p : j <= j} {a : F j} : F.Func p a = a
+      => SetColimit.poset-id {D} {Comp MonoidCat.forget.{p} F}
 
     \func inMap (d : D) : MonoidHom (F d) (MonoidLatticeColimit F) \cowith
       | func a => in~ (d,a)
@@ -65,7 +66,7 @@
 
 \instance AddMonoidLatticeColimit.{s,p} {D : BottomJoinSemilattice.{s}} (F : Functor D AddMonoidCat.{p}) : AddMonoid (SetColimit (Comp AddMonoidCat.forget F))
   | zro => in~ (D.bottom, zro)
-  | + (x y : SetColimit (Comp AddMonoidCat.forget F)) : SetColimit (Comp AddMonoidCat.forget F) \with {
+  | + (x y : SetColimit (Comp AddMonoidCat.forget.{p} F)) : SetColimit (Comp AddMonoidCat.forget.{p} F) \with {
     | in~ a, in~ b => in~ (a.1 ∨ b.1, F.Func join-left a.2 AddMonoid.+ F.Func join-right b.2)
     | in~ a, ~-equiv x y r => ~-cequiv (D.join-monotone <=-refl r.1) $ func-+ *> pmap2 (AddMonoid.+) (inv Func-app *> poset-app)
         (inv Func-app *> poset-app *> Func-app *> pmap (F.Func _) r.2)
@@ -84,8 +85,8 @@
         (inv Func-app *> poset-app *> Func-app) *> +-assoc *> pmap (_ AddMonoid.+) (inv func-+)
   }
   \where {
-    \private \lemma Func-app {j1 j2 j3 : D} {f : Hom j1 j2} {g : Hom j2 j3} {a : F j1} : F.Func (g ∘ f) a = F.Func g (F.Func f a)
-      => SetColimit.Func-app (Comp AddMonoidCat.forget F)
+    \private \lemma Func-app.{s,p} {D : BottomJoinSemilattice.{s}} {F : Functor D AddMonoidCat.{p}} {j1 j2 j3 : D} {f : Hom j1 j2} {g : Hom j2 j3} {a : F j1} : F.Func (g ∘ f) a = F.Func g (F.Func f a)
+      => SetColimit.Func-app (Comp AddMonoidCat.forget.{p} F)
 
     \private \lemma poset-app {j j' : D} {f g : j <= j'} {a : F j} : F.Func f a = F.Func g a
       => pmap (F.Func __ a) prop-pi
@@ -104,7 +105,7 @@
 
 \instance AddGroupLatticeColimit.{s,p} {D : BottomJoinSemilattice.{s}} (F : Functor D AddGroupCat.{p}) : AddGroup (SetColimit (Comp AddGroupCat.forget F))
   | AddMonoid => AddMonoidLatticeColimit (Comp AddGroupCat.forgetToAddMonoid F)
-  | negative (x : SetColimit (Comp AddGroupCat.forget F)) : SetColimit (Comp AddGroupCat.forget F) \with {
+  | negative (x : SetColimit (Comp AddGroupCat.forget.{p} F)) : SetColimit (Comp AddGroupCat.forget.{p} F) \with {
     | in~ a => in~ (a.1, AddGroup.negative a.2)
     | ~-equiv x y r => ~-cequiv r.1 $ AddGroupHom.func-negative *> pmap AddGroup.negative r.2
   }
@@ -129,7 +130,7 @@
     | in~ a, in~ b => ~-cequiv (=_<= D.join-comm) $ func-+ *> +-comm *> pmap2 (+) (inv (Func-app (Comp AbGroupCat.forget F)) *> poset-app) (inv (Func-app (Comp AbGroupCat.forget F)) *> poset-app)
   }
   \where {
-    \func inMap.{s,p} {D : BottomJoinSemilattice.{s}} {F : Functor D AbGroupCat.{p}} (d : D) : AddGroupHom (F d) (AddGroupLatticeColimit F) \cowith
+    \func inMap (d : D) : AddGroupHom (F d) (AbGroupLatticeColimit F) \cowith
       | func a => in~ (d,a)
       | func-zro => inv $ ~-cequiv D.bottom-univ func-zro
       | func-+ => ~-cequiv join-left func-+
@@ -154,8 +155,8 @@
           (func-* *> pmap2 (*) (inv Func-app *> inv Func-app *> poset-app *> Func-app) (inv Func-app *> poset-app *> Func-app) *> inv func-*)
   }
   \where {
-    \private \lemma Func-app {j1 j2 j3 : D} {f : Hom j1 j2} {g : Hom j2 j3} {a : F j1} : F.Func (g ∘ f) a = F.Func g (F.Func f a)
-      => SetColimit.Func-app (Comp RingCat.forget F)
+    \private \lemma Func-app.{s,p} {D : BottomJoinSemilattice.{s}} {F : Functor D RingCat.{p}} {j1 j2 j3 : D} {f : Hom j1 j2} {g : Hom j2 j3} {a : F j1} : F.Func (g ∘ f) a = F.Func g (F.Func f a)
+      => SetColimit.Func-app (Comp RingCat.forget.{p} F)
 
     \private \lemma poset-app {j j' : D} {f g : j <= j'} {a : F j} : F.Func f a = F.Func g a
       => pmap (F.Func __ a) prop-pi

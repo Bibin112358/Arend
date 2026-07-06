@@ -11,9 +11,6 @@ class ArendAtomFieldsAcc(node: ASTNode) : ArendExpr(node) {
     val atom: ArendAtom
         get() = childOfTypeStrict()
 
-    val levels: List<ArendLevelExpr>?
-        get() = childOfType<ArendLevelArgs>()?.levelExprList
-
     val fieldAccList: List<ArendFieldAcc>
         get() = getChildrenOfType()
 
@@ -21,13 +18,12 @@ class ArendAtomFieldsAcc(node: ASTNode) : ArendExpr(node) {
         get() = childOfType()
 
     override fun <P, R> accept(visitor: AbstractExpressionVisitor<in P, out R>, params: P?): R {
-        val levels = levels
         val fieldAccs = fieldAccList
         val ipName = ipName
-        return if (levels == null && fieldAccs.isEmpty() && ipName == null) {
+        return if (fieldAccs.isEmpty() && ipName == null) {
             atom.accept(visitor, params)
         } else {
-            visitor.visitFieldAccs(this, atom, levels, fieldAccs, ipName, ipName?.referenceName, ipName?.fixity, params)
+            visitor.visitFieldAccs(this, atom, fieldAccs, ipName, ipName?.referenceName, ipName?.fixity, params)
         }
     }
 }

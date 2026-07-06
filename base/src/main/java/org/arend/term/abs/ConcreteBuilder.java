@@ -672,14 +672,14 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
   }
 
   @Override
-  public Concrete.UniverseExpression visitUniverse(@Nullable Object data, @Nullable BigInteger pLevelNum, @Nullable BigInteger hLevelNum, @Nullable Abstract.LevelExpression pLevel, Void params) {
+  public Concrete.UniverseExpression visitUniverse(@Nullable Object data, @Nullable BigInteger pLevelNum, @Nullable BigInteger hLevelNum, @Nullable Abstract.LevelExpression pLevel, boolean isInfinite, Void params) {
     if (pLevelNum != null) {
       pLevel = null;
     }
 
     return new Concrete.UniverseExpression(data,
             pLevelNum != null ? new Concrete.NumberLevelExpression(data, pLevelNum) : pLevel != null ? pLevel.accept(this, null) : null,
-            hLevelNum, ConcreteUniverseExpression.Kind.TYPE);
+            hLevelNum, isInfinite ? ConcreteUniverseExpression.Kind.SORT : ConcreteUniverseExpression.Kind.TYPE);
   }
 
   @Override
@@ -792,20 +792,8 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
   }
 
   @Override
-  public Concrete.Expression visitFieldAccs(@Nullable Object data, @NotNull Abstract.Expression expression, @Nullable Collection<? extends Abstract.LevelExpression> pLevels, @NotNull List<Abstract.FieldAcc> fieldAccs, @Nullable AbstractReference infixReference, @Nullable String infixName, @Nullable Fixity fixity, Void params) {
+  public Concrete.Expression visitFieldAccs(@Nullable Object data, @NotNull Abstract.Expression expression, @NotNull List<Abstract.FieldAcc> fieldAccs, @Nullable AbstractReference infixReference, @Nullable String infixName, @Nullable Fixity fixity, Void params) {
     Concrete.Expression result = expression.accept(this, null);
-
-    if (pLevels != null) {
-      if (result instanceof Concrete.ReferenceExpression refExpr) {
-        if (refExpr.getLevels() == null) {
-          result = new Concrete.ReferenceExpression(refExpr.getData(), refExpr.getReferent(), visitLevels(pLevels));
-        } else {
-          myErrorReporter.report(new AbstractExpressionError(GeneralError.Level.ERROR, "The levels are already specified", expression));
-        }
-      } else {
-        myErrorReporter.report(new AbstractExpressionError(GeneralError.Level.ERROR, "Level annotations are allowed only after a reference", expression));
-      }
-    }
 
     int i = 0;
     if (result instanceof Concrete.ReferenceExpression refExpr && refExpr.getReferent() instanceof UnresolvedReference unresolved && (!fieldAccs.isEmpty() && fieldAccs.getFirst().getFieldRef() != null || infixName != null)) {
@@ -828,6 +816,18 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
       result = infixName != null ? new Concrete.FixityReferenceExpression(data, referable, fixity == Fixity.INFIX ? Fixity.INFIX : Fixity.POSTFIX) : new Concrete.ReferenceExpression(data, referable);
     }
 
+    if (i < fieldAccs.size() && result instanceof Concrete.ReferenceExpression refExpr) {
+      Collection<? extends Abstract.LevelExpression> levelArgs = fieldAccs.get(i).getLevels();
+      if (!levelArgs.isEmpty()) {
+        if (refExpr.getLevels() == null) {
+          refExpr.setLevels(visitLevels(levelArgs));
+        } else {
+          myErrorReporter.report(new AbstractExpressionError(GeneralError.Level.ERROR, "The levels are already specified", fieldAccs.get(i)));
+        }
+        i++;
+      }
+    }
+
     for (; i < fieldAccs.size(); i ++) {
       Integer number = fieldAccs.get(i).getNumber();
       if (number != null) {
@@ -836,6 +836,11 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
         Referable fieldRef = fieldAccs.get(i).getFieldRef();
         if (fieldRef != null) {
           result = new Concrete.FieldCallExpression(data, fieldRef, Fixity.UNKNOWN, result);
+        } else {
+          Collection<? extends Abstract.LevelExpression> levels = fieldAccs.get(i).getLevels();
+          if (!levels.isEmpty()) {
+            myErrorReporter.report(new AbstractExpressionError(GeneralError.Level.WARNING_UNUSED, "Level arguments are ignored", levels.iterator().next()));
+          }
         }
       }
     }

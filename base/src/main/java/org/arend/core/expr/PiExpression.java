@@ -86,6 +86,12 @@ public class PiExpression extends Expression implements CorePiExpression, CoreAb
   }
 
   @Override
+  public Expression replaceInferenceVariable() {
+    Expression codomain = myCodomain.replaceInferenceVariable();
+    return codomain == null ? null : new PiExpression(myLink, codomain);
+  }
+
+  @Override
   public Expression replaceInfinityLevel(int index, List<ClassField> fields) {
     Expression codomain = myCodomain.replaceInfinityLevel(index, fields);
     return codomain == null ? null : new PiExpression(myLink, codomain);

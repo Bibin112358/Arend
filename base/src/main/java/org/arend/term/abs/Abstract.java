@@ -178,6 +178,7 @@ public final class Abstract {
     @Nullable Object getData();
     @Nullable Integer getNumber();
     @Nullable UnresolvedReference getFieldRef();
+    @NotNull Collection<? extends LevelExpression> getLevels();
   }
 
   public interface ReferenceExpression extends SourceNode {

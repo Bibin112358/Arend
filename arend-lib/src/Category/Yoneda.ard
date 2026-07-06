@@ -14,13 +14,13 @@
 \import Set.SetCategory
 \import Set.SetHom
 
-\func HomLeft {C : Precat} (c : C) : Functor C.op SetCat \cowith
-  | F x => Hom x c
+\func HomLeft.{o,h} {C : Precat.{o,h}} (c : C) : Functor C.op SetCat.{h} \cowith
+  | F x => C.Hom x c
   | Func f g => g ∘ f
   | Func-id => exts (\lam _ => id-right)
   | Func-o => exts (\lam _ => inv o-assoc)
 
-\func HomPresheaf {C : Precat} (c : C) : Presheaf C \cowith
+\func HomPresheaf.{o,h} {C : Precat.{o,h}} (c : C) : Presheaf C \cowith
   | F => HomLeft c
 
 \func Yoneda-trans.{s,o,h} {C : Precat.{o,h}} {a : C} {F : Functor C.op SetCat.{s}} (x : F a) : NatTrans (HomLeft a) F \cowith
@@ -156,7 +156,10 @@
       }
   }
 
-\func presheaf-mono-char.{o,h} {C : Precat.{o,h}} {S T : Presheaf.{h} C} {f : NatTrans S T} : Mono {PresheafCat C} f <-> ∀ {a} (IsInj (f a))
-  => (\lam fm {a} p => (symQEquiv Yoneda-lemma).isInj $ fm.isMono {Yoneda a} $ Yoneda-apply S T f *> pmap Yoneda-trans p *> inv (Yoneda-apply S T f), \lam fi => \new Mono {
+\lemma presheaf-mono-char.{o,h} {C : Precat.{o,h}} {S T : Presheaf.{h} C} {f : NatTrans S T} : Mono {PresheafCat.{h} C} f <-> ∀ {a} (IsInj (f a))
+  => {?}
+  {- TODO[sorts]
+    (\lam fm {a} p => (symQEquiv Yoneda-lemma).isInj $ fm.isMono {Yoneda a} $ Yoneda-apply S T f *> pmap Yoneda-trans p *> inv (Yoneda-apply S T f), \lam fi => \new Mono {
         | isMono p => exts \lam a => ext \lam x => fi $ path \lam i => p i a x
       })
+  -}

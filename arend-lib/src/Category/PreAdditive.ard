@@ -8,8 +8,9 @@
 \import Paths
 \import Paths.Meta
 
+{- TODO[sorts]: Uncomment after making AbGroup infinite
 \class PreAdditivePrecat \extends Precat
-  | AbHom {X Y : Ob} : AbGroup(Hom X Y)
+  | AbHom {X Y : Ob} : AbGroup (Hom X Y)
   | l-bilinear {X Y Z : Ob} {g h : Hom X Y} {f : Hom Y Z} : (g AbHom.+ h) >> f = g >> f AbHom.+ h >> f
   | r-bilinear {X Y Z : Ob} {g h : Hom Y Z} {f : Hom X Y} : f >> (g AbHom.+ h) = f >> g AbHom.+ f >> h
 
@@ -47,3 +48,4 @@
   }
 
 \class AdditivePrecat \extends PreAdditivePrecat, CartesianPrecat
+-}

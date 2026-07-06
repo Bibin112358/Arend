@@ -51,7 +51,7 @@ definition  : funcKw topDefId tele* (':' returnExpr2)? functionBody where?      
             | instanceKw topDefId tele* (':' returnExpr2)? instanceBody where?                                          # defInstance
             ;
 
-superClass : longName levelArgs?;
+superClass : longName (DOT levelArgs)?;
 
 returnExpr  : expr ('\\level' expr)?                # returnExprExpr
             | '\\level' atomFieldsAcc atomFieldsAcc # returnExprLevel
@@ -247,12 +247,13 @@ atom  : literal                                     # atomLiteral
       | '\\this'                                    # atomThis
       ;
 
-atomFieldsAcc : atom levelArgs? (DOT fieldAcc)* (DOT (INFIX | POSTFIX))?;
+atomFieldsAcc : atom (DOT fieldAcc)* (DOT (INFIX | POSTFIX))?;
 
-levelArgs : DOT '{' levelExpr (',' levelExpr)* '}';
+levelArgs : '{' levelExpr (',' levelExpr)* '}';
 
-fieldAcc : NUMBER   # fieldAccNumber
-         | ID       # fieldAccId
+fieldAcc : NUMBER       # fieldAccNumber
+         | ID           # fieldAccId
+         | levelArgs    # fieldAccLevels
          ;
 
 implementStatements : '{' ('|' localCoClause)* '}';
@@ -262,6 +263,7 @@ longName : ID (DOT ID)*;
 literal : ID                                # name
         | '\\Prop'                          # prop
         | '\\Sort'                          # sort
+        | '\\SET'                           # setInf // TODO[sorts]: Delete this
         | '_'                               # unknown
         | INFIX                             # infix
         | POSTFIX                           # postfix

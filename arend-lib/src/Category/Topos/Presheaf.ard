@@ -11,11 +11,11 @@
 \import Set.SetCategory
 
 -- | Presheaves valued in {D}
-\record VPresheaf.{o2,h2,o1,h1} (D : Precat.{o2,h2}) (C : Precat.{o1,h1}) (\coerce F : Functor C.op D) {
-  \func toPresheaf.{s} (U : Functor D SetCat.{s}) : Presheaf.{s} C \cowith
+\record VPresheaf (D : Precat) (C : Precat) (\coerce F : Functor C.op D) {
+  \func toPresheaf.{s} (U : Functor D SetCat.{s}) : Presheaf C \cowith
     | F => Comp U F
 } \where {
-    \func functor-at-point.{s,o2,h2,o1,h1} {D : Cat.{o2,h2}} {C : Precat.{o1,h1}} {J : Precat.{s,s}} (G : Functor J (VPresheafCat D C)) (c : C) : Functor J D \cowith
+    \func functor-at-point {D : Cat} {C : Precat} {J : Precat} (G : Functor J (VPresheafCat D C)) (c : C) : Functor J D \cowith
       | F j => G j c
       | Func f => G.Func f c
       | Func-id {X} => rewrite (G.Func-id {X}) idp
@@ -23,9 +23,9 @@
   }
 
 -- | Presheaves valued in sets
-\func Presheaf.{s,o,h} (C : Precat.{o,h}) => VPresheaf.{\suc s, s, o, h} SetCat.{s} C
+\func Presheaf.{s} (C : Precat) => VPresheaf SetCat.{s} C
 
-\instance VPresheafCat.{o2,h2,o1,h1} (D : Cat.{o2,h2}) (C : Precat.{o1,h1}) : Cat
+\instance VPresheafCat (D : Cat) (C : Precat) : Cat
   => subCat {FunctorCat C.op D} {VPresheaf D C} (\new Embedding {
     | f P => P
     | isEmb _ _ => \new Retraction {
@@ -34,10 +34,10 @@
     }
   })
 
-\instance PresheafCat.{s,o,h} (C : Precat.{o,h}) : Cat
+\instance PresheafCat.{s} (C : Precat) : Cat
   => VPresheafCat SetCat.{s} C
 
-\instance VPresheafComplete.{s,o2,h2,o1,h1} (D : CompleteCat.{s,o2,h2}) (C : Precat.{o1,h1}) : CompleteCat.{s}
+\instance VPresheafComplete.{s} (D : CompleteCat.{s}) (C : Precat) : CompleteCat.{s}
   | Cat => VPresheafCat D C
   | limit => limit
   | terminal {
@@ -75,7 +75,7 @@
     | tupleEq c => exts \lam a => D.pair-unique (path \lam i => c 0 i a) (path \lam i => c 1 i a)
   }
   \where {
-    \protected \func limit.{s,o2,h2,o1,h1} {D : CompleteCat.{s,o2,h2}} {C : Precat.{o1,h1}} {J : Precat.{s,s}} (G : Functor J (VPresheafCat D C)) : Limit G \cowith
+    \protected \func limit.{s} {D : CompleteCat.{s}} {C : Precat} {J : Precat.{s,s}} (G : Functor J (VPresheafCat D C)) : Limit G \cowith
       | apex => apex
       | coneMap => cone-nat-map
       | coneCoh h => exts \lam _ => coneCoh h
@@ -96,9 +96,12 @@
             | F c => L c
             | Func f => limMap (cone f)
             | Func-id {X} => limUnique \lam j => limBeta {L X} (cone (id X)) j *> pmap (`∘ _) Func-id *> id-left *> inv id-right
-            | Func-o {_} {Y} {Z} {g} {f} => limUnique (\lam j => rewrite (limBeta {L Z} (cone (f ∘ g)) j, inv o-assoc,
+            | Func-o {_} {Y} {Z} {g} {f} => {?}
+             {- TODO[sorts]
+              limUnique (\lam j => rewrite (limBeta {L Z} (cone (f ∘ g)) j, inv o-assoc,
                                                                           limBeta {L Z} (cone g) j) (unfold coneMap
                 (rewrite (Func-o {G j}, o-assoc, o-assoc) (rewrite (limBeta {L Y} (cone f) j) (unfold coneMap idp)))))
+             -}
           }
 
         \func cone-nat-map (j : J) : Hom apex (G j) => \new NatTrans {
@@ -112,12 +115,15 @@
 
         \func lim-nat-map {z : VPresheaf D C} (z-cone : Cone G z) : Hom z apex => \new NatTrans {
           | trans X => limMap $ cone-at-point X z z-cone
-          | natural {X} {Y} f => limUnique (\lam (j : J) => unfold
+          | natural {X} {Y} f => {?}
+         {- TODO[sorts]
+           limUnique (\lam (j : J) => unfold
             $ rewrite (inv o-assoc, limBeta {L Y} (cone-at-point Y z z-cone) j,
                        inv o-assoc, limBeta {L Y} (cone f), o-assoc,
                        limBeta {L X} (cone-at-point X z z-cone))
                 $ natural {coneMap {z-cone} j} f
           )
+         -}
         }
       }
 
@@ -138,19 +144,20 @@
       }
   }
 
+{-
 -- the proof of this should be completely analogues to the CompleteCat (VPresheafCat) instance.
 -- For example, it could be proven with a transport along the equality [C, D]^op = [C^op, D^op].
-
 \instance VPresheafCocomplete.{s,o2,h2,o1,h1} (D : CocompleteCat.{s,o2,h2}) (C : Precat.{o1,h1}) : CocompleteCat.{s} (VPresheafCat D C)
- => {?}
+  => {?}
 
-\instance VPresheafCatBicomplete.{s,o2,h2,o1,h1} (D : BicompleteCat.{s,o2,h2}) (C : Precat.{o1,h1}) : BicompleteCat.{s} (VPresheafCat D C)
+\instance VPresheafCatBicomplete.{s} (D : BicompleteCat.{s}) (C : Precat) : BicompleteCat.{s} (VPresheafCat D C)
   | Cat => VPresheafCat D C
   | limit => limit {VPresheafComplete D C}
   | colimit => colimit {VPresheafCocomplete D C}
 
-\func PresheafCatBicomplete.{s,o,h} (C : Precat.{o,h}) : BicompleteCat.{s, \max (\suc s) (\max o h), \max s (\max o h)} (PresheafCat.{s} C)
-  => VPresheafCatBicomplete.{s, \suc s, s, o, h} SetBicat.{s} C
+\func PresheafCatBicomplete.{s} (C : Precat) : BicompleteCat.{s} (PresheafCat.{s} C)
+  => VPresheafCatBicomplete SetBicat.{s} C
+-}
 
 --\open PrecatWithBprod
 

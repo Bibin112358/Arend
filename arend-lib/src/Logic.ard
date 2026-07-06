@@ -36,7 +36,7 @@
     \lemma rec-eval {A B : \Sort} {p : isProp B} {a : A} {f : A -> B} : rec p (inP a) f = f a \level isProp.=>isSet p _ _
       => p _ _
 
-    \lemma rec-set {A : \Sort} {B : \Set} (t : TruncP A) (f : A -> B) (p : \Pi (a a' : A) -> f a = f a')
+    \lemma rec-set {A : \Sort} {B : \SET} (t : TruncP A) (f : A -> B) (p : \Pi (a a' : A) -> f a = f a')
       : \Sigma (b : B) (∃ (a : A) (f a = b)) \level level p \elim t
       | inP a => (f a, inP (a, idp))
       \where {
@@ -44,7 +44,7 @@
           => \lam (b, inP (a,fa=b)) (b', inP (a',fa'=b')) => ext $ inv fa=b *> p a a' *> fa'=b'
       }
 
-    \lemma rec-set-eval {A : \Sort} {B : \Set} (a : A) {f : A -> B} {p : \Pi (a a' : A) -> f a = f a'} : (rec-set (inP a) f p).1 = f a
+    \lemma rec-set-eval {A : \Sort} {B : \SET} (a : A) {f : A -> B} {p : \Pi (a a' : A) -> f a = f a'} : (rec-set (inP a) f p).1 = f a
       => \case (rec-set (inP a) f p).2 \with {
         | inP (a',q) => inv q *> p a' a
       }

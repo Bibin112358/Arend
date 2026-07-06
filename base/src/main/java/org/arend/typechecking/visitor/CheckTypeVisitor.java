@@ -1958,7 +1958,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       }
     }
 
-    return params == null ? new SingleLevel(result.getFirst()) : new ListLevels(result);
+    return params == null && consumed == 0 ? new SingleLevel(result.getFirst()) : new ListLevels(result);
   }
 
   private TResult typeCheckDefCall(TCDefReferable resolvedDefinition, Concrete.ReferenceExpression expr, boolean withoutUniverses, Set<ClassField> implementedFields) {
@@ -2427,6 +2427,13 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
                 paramType = FunCallExpression.make((FunctionDefinition) definition, levels, new ArrayList<>(defCallParamType.getDefCallArguments()));
               } else {
                 ClassCallExpression classCall = (ClassCallExpression) defCallParamType;
+                if (classCall.getLevels().size() > levels.size()) {
+                  List<? extends Level> oldLevels = classCall.getLevels().toList();
+                  List<Level> list = new ArrayList<>();
+                  list.addAll(levels.toList());
+                  list.addAll(oldLevels.subList(levels.size(), oldLevels.size()));
+                  levels = new ListLevels(list);
+                }
                 paramType = new ClassCallExpression((ClassDefinition) definition, levels, classCall.getImplementedHere(), classCall.getUniverseKind());
               }
             }
@@ -3410,12 +3417,9 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   @Override
   public TypecheckingResult visitUniverse(Concrete.UniverseExpression expr, Expression expectedType) {
     if (expr.isInfSort() && expectedType == UniverseExpression.INF_OMEGA) {
-      return checkResult(expectedType, new TypecheckingResult(UniverseExpression.OMEGA, UniverseExpression.OMEGA), expr);
-    }
-
-    if (expr.getKind() == ConcreteUniverseExpression.Kind.SORT) {
-      errorReporter.report(new TypecheckingError("\\Sort is not allowed here", expr));
-      return null;
+      return checkResult(expectedType, expr.getHLevel() == null
+          ? new TypecheckingResult(UniverseExpression.OMEGA, UniverseExpression.OMEGA)
+          : new TypecheckingResult(new UniverseExpression(new Sort(Level.INFINITY, new ConstLevel(expr.getHLevel()))), new UniverseExpression(new Sort(Level.INFINITY, new ConstLevel(expr.getHLevel().add(BigInteger.ONE))))), expr);
     }
 
     if (expr.isInfSort()) {
@@ -3443,7 +3447,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
 
     Sort sort;
-    if (expr.getKind() != ConcreteUniverseExpression.Kind.TYPE) {
+    if (expr.getKind() == ConcreteUniverseExpression.Kind.CAT) {
       if (hLevel != null) {
         errorReporter.report(new TypecheckingError("\\Cat cannot have an h-level", expr));
       }
