@@ -36,7 +36,7 @@
 \lemma Yoneda-apply.{o,h} {C : Precat.{o,h}} {a : C} (S T : Functor C.op SetCat.{h}) (f : NatTrans S T) {x : S a} : f ∘ Yoneda-trans x = Yoneda-trans (f a x)
   => (Yoneda-lemma {C} {a} {T}).adjoint $ pmap (f a) $ path \lam i => S.Func-id i x
 
-\func Yoneda {C : Precat} : FullyFaithfulFunctor C (PresheafCat C) \cowith
+\func Yoneda.{o,h} {C : Precat.{o,h}} : FullyFaithfulFunctor C (PresheafCat C) \cowith
   | F => HomPresheaf
   | Func {x y : C} (f : Hom x y) : NatTrans (HomLeft x) (HomLeft y) \cowith {
     | trans _ => \lam g => f ∘ g
@@ -157,9 +157,6 @@
   }
 
 \lemma presheaf-mono-char.{o,h} {C : Precat.{o,h}} {S T : Presheaf.{h} C} {f : NatTrans S T} : Mono {PresheafCat.{h} C} f <-> ∀ {a} (IsInj (f a))
-  => {?}
-  {- TODO[sorts]
-    (\lam fm {a} p => (symQEquiv Yoneda-lemma).isInj $ fm.isMono {Yoneda a} $ Yoneda-apply S T f *> pmap Yoneda-trans p *> inv (Yoneda-apply S T f), \lam fi => \new Mono {
+  => (\lam fm {a} p => (symQEquiv Yoneda-lemma).isInj $ fm.isMono {Yoneda a} $ Yoneda-apply S T f *> pmap Yoneda-trans p *> inv (Yoneda-apply S T f), \lam fi => \new Mono {
         | isMono p => exts \lam a => ext \lam x => fi $ path \lam i => p i a x
       })
-  -}

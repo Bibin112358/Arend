@@ -31,7 +31,7 @@
     | trans a s => s.1
     | natural _ => idp
 } \where {
-  \func fromSubobj.{s} {C : Precat} {S : Presheaf.{s} C} (T : Subobj S) : PrelocalPredicate S \elim T
+  \func fromSubobj.{s,o,h} {C : Precat.{o,h}} {S : Presheaf.{s} C} (T : Subobj S) : PrelocalPredicate S \elim T
     | in~ m => \new PrelocalPredicate {
       | pred {a} x => ∃ (y : m.dom a) (m.f a y = x)
       | isPrelocalPredicate {a} {b} {f} (inP s) => inP (m.dom.F.Func f s.1, path (\lam i => m.f.natural f i s.1) *> pmap (S.F.Func f) s.2)
@@ -44,7 +44,7 @@
       => TruncP.remove (\lam s s' => ext $ presheaf-mono-char.1 m $ s.2 *> inv s'.2) p
 }
 
-\func PrelocalPredicate_Subobj.{s} {C : Precat} (S : Presheaf.{s} C) : QEquiv {PrelocalPredicate S} {Subobj S} \cowith
+\func PrelocalPredicate_Subobj.{s,o,h} {C : Precat.{o,h}} (S : Presheaf.{s} C) : QEquiv {PrelocalPredicate S} {Subobj S} \cowith
   | f P => inso~ \new Mono {
     | dom => P.toSubPresheaf
     | f => P.embedding

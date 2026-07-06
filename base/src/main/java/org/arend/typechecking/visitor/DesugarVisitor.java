@@ -100,10 +100,11 @@ public class DesugarVisitor extends BaseConcreteExpressionVisitor<Void> {
   private Concrete.Expression makeThisClassCall(Object data, TCDefReferable classRef, Concrete.LevelParameters levelParams) {
     List<Concrete.LevelExpression> levelArgs = levelParams == null ? null : new ArrayList<>(levelParams.referables.size());
     if (levelParams != null) {
-      Concrete.LevelParameters classParams = myConcreteProvider.getConcrete(classRef) instanceof Concrete.ResolvableDefinition classDef ? classDef.getLevelParameters() : levelParams;
-      int size = classParams == null ? Math.min(1, levelParams.referables.size()) : classParams.referables.size();
-      for (int i = 0; i < size; i++) {
-        levelArgs.add(new Concrete.VarLevelExpression(data, levelParams.referables.get(i)));
+      Concrete.LevelParameters classParams = myConcreteProvider.getConcrete(classRef) instanceof Concrete.ResolvableDefinition classDef ? classDef.getLevelParameters() : null;
+      if (classParams != null) {
+        for (int i = 0; i < classParams.referables.size(); i++) {
+          levelArgs.add(new Concrete.VarLevelExpression(data, levelParams.referables.get(i)));
+        }
       }
     }
     return Concrete.ClassExtExpression.make(data, new Concrete.ReferenceExpression(data, classRef, levelArgs), new Concrete.Coclauses(data, Collections.emptyList()));

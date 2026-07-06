@@ -14,6 +14,7 @@ import org.arend.core.expr.*;
 import org.arend.core.pattern.ConstructorExpressionPattern;
 import org.arend.core.pattern.Pattern;
 import org.arend.core.sort.Level;
+import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.*;
 import org.arend.ext.core.level.LevelSubstitution;
@@ -1398,14 +1399,33 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
     return cmp == CMP.GE ? compareClassCallLevelsLE(classCall2, classCall1, cmp.not(), equations) : compareClassCallLevelsLE(classCall1, classCall2, cmp, equations);
   }
 
-  private boolean compareFieldLevelOverrides(ClassCallExpression classCall1, ClassCallExpression classCall2) {
-    for (ClassField field : classCall2.getDefinition().getOverridableInfiniteFields()) {
-      Level level1 = classCall1.getFieldLevelOverride(field);
-      Level level2 = classCall2.getFieldLevelOverride(field);
-      if (level1 == null || level2 == null) {
+  private boolean compareFieldLevelOverrides(ClassCallExpression subClassCall, ClassCallExpression superClassCall) {
+    for (ClassField field : subClassCall.getDefinition().getOverridableInfiniteFields()) {
+      if (superClassCall.isImplemented(field)) {
         continue;
       }
-      if (!Level.compare(level1, level2, myCMP, myNormalCompare ? myEquations : DummyEquations.getInstance(), mySourceNode)) {
+      Level superLevel = superClassCall.getFieldLevelOverride(field);
+      if (superLevel == null) {
+        continue;
+      }
+
+      Level subLevel = null;
+      AbsExpression subImpl = subClassCall.getAbsImplementation(field);
+      if (subImpl != null) {
+        Expression type = subImpl.getExpression().getType();
+        while (type instanceof PiExpression piExpr) {
+          type = piExpr.getCodomain();
+        }
+        Sort sort = type.toSort();
+        if (sort != null) {
+          subLevel = sort.getPLevel();
+        }
+      }
+      if (subLevel == null) {
+        subLevel = subClassCall.getFieldLevelOverride(field);
+      }
+
+      if (subLevel == null || !Level.compare(subLevel, superLevel, CMP.LE, myNormalCompare ? myEquations : DummyEquations.getInstance(), mySourceNode)) {
         return false;
       }
     }
@@ -1413,7 +1433,7 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
   }
 
   public boolean compareClassCallLevels(ClassCallExpression classCall1, ClassCallExpression classCall2) {
-    if (!compareFieldLevelOverrides(classCall1, classCall2)) {
+    if (myCMP != CMP.EQ && !compareFieldLevelOverrides(myCMP == CMP.LE ? classCall1 : classCall2, myCMP == CMP.LE ? classCall2 : classCall1)) {
       return false;
     }
 

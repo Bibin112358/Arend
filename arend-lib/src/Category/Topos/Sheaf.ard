@@ -344,8 +344,10 @@
 
 \lemma sheaf-reflect.{s} {C : Site.{s,s}} {D E : Cat} (G : Functor D E)
                          (G-lim : \Pi {J : Precat.{s,s}} (H : Functor J D) -> ReflectsLimit G H) {F : Functor C.op D} (Fs : IsSheaf (Comp G F)) : IsSheaf F
-  => \lam {x} {S} x<=S {d} => IsSheaf.sheaf-lim.2 $ G-lim {IsSheaf.sheaf-lim.coneJ {C} {x} {S}} IsSheaf.sheaf-lim.coneF IsSheaf.sheaf-lim.cone (\lam d => (IsSheaf.sheaf-lim {C} {E} {Comp G F}).1 (Fs x<=S)) d
+  => \lam x<=S {d} => IsSheaf.sheaf-lim.2 $ G-lim {IsSheaf.sheaf-lim.coneJ {C}} -- TODO[sorts]: Why do we have to specify this explicitly?
+                                              _ IsSheaf.sheaf-lim.cone (\lam d => (IsSheaf.sheaf-lim {C} {E} {Comp G F}).1 (Fs x<=S)) d
 
-\lemma sheaf-preserve.{s} {C : Site} {D E : Cat} (G : Functor D E)
+\lemma sheaf-preserve.{s} {C : Site.{s,s}} {D E : Cat} (G : Functor D E)
                           (G-lim : \Pi {J : Precat.{s,s}} (H : Functor J D) -> PreservesLimit G H) (F : VSheaf D C) : IsSheaf (Comp G F)
-  => \lam x<=S {d} => (IsSheaf.sheaf-lim {C} {E} {Comp G F}).2 $ G-lim IsSheaf.sheaf-lim.coneF IsSheaf.sheaf-lim.cone (\lam d' => IsSheaf.sheaf-lim.1 (F.isSheaf x<=S)) d
+  => \lam x<=S {d} => (IsSheaf.sheaf-lim {C} {E} {Comp G F}).2 $ G-lim {IsSheaf.sheaf-lim.coneJ {C}} -- TODO[sorts]: Why do we have to specify this explicitly?
+                                                                   _ IsSheaf.sheaf-lim.cone (\lam d' => IsSheaf.sheaf-lim.1 (F.isSheaf x<=S)) d

@@ -405,7 +405,16 @@ public class SortTest extends TypeCheckingTestCase {
   public void implementedFieldTest() {
     typeCheckModule("""
       \\record R (A : \\Sort) (a : A)
-      \\func test (r : R Nat) : R.{0} => r
+      \\func test (X : \\Set3) (r : R X) : R.{3} => r
       """);
+  }
+
+  @Test
+  public void implementedFieldError() {
+    typeCheckModule("""
+      \\record R (A : \\Sort) (a : A)
+      \\func test (X : \\Set4) (r : R X) : R.{3} => r
+      """, 1);
+    assertThatErrorsAre(Matchers.typeMismatchError());
   }
 }

@@ -1664,6 +1664,14 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     return expr;
   }
 
+  private static ClassCallExpression removeOverriddenLevels(ClassCallExpression classCall) {
+    if (classCall == null) return null;
+    List<? extends LevelVariable> params = classCall.getDefinition().getLevelParameters();
+    int n = params == null ? 1 : params.size();
+    List<? extends Level> levels = classCall.getLevels().toList();
+    return levels.size() <= n ? classCall : new ClassCallExpression(classCall.getDefinition(), params == null ? new SingleLevel(levels.getFirst()) : new ListLevels(new ArrayList<>(levels.subList(0, n))), classCall.getImplementedHere(), classCall.getUniverseKind());
+  }
+
   @Override
   public TypecheckingResult visitNew(Concrete.NewExpression expr, Expression expectedType) {
     if (expr.getExpression() instanceof Concrete.ClassExtExpression classExt) {
@@ -1732,7 +1740,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
           expectedClassCall.updateHasUniverses();
         }
         pseudoImplemented = new HashSet<>();
-        exprResult = typecheckClassExt(classExpr instanceof Concrete.ClassExtExpression ? ((Concrete.ClassExtExpression) classExpr).getStatements() : Collections.emptyList(), null, expectedClassCall, pseudoImplemented, classExpr, true);
+        exprResult = typecheckClassExt(classExpr instanceof Concrete.ClassExtExpression ? ((Concrete.ClassExtExpression) classExpr).getStatements() : Collections.emptyList(), null, removeOverriddenLevels(expectedClassCall), pseudoImplemented, classExpr, true);
         if (exprResult == null) {
           return null;
         }

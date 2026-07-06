@@ -35,7 +35,7 @@
       \have r => inv S.F.Func-o *> pmap S.F.Func f_z *> S.F.Func-o
       \in transport pred (path \lam i => r i x) $ isPrelocalPredicate (Ux Ub)
 } \where {
-  \lemma localPredicate_locale.{s} {L : Locale} (P : LocalPredicate.{s} {L}) {U : Set L} {x : P.S (L.Join U)}
+  \lemma localPredicate_locale.{s} {L : Locale.{s}} (P : LocalPredicate.{s} {L}) {U : Set L} {x : P.S (L.Join U)}
                                    (Ux : ∀ {y} (Uy : U y) {z} (zy : z <= y) (P (P.S.F.Func (zy <=∘ L.Join-cond Uy) x))) : P x
     => P.byCovering {_} {\lam b => ∃ (y : U) (b.1 <= y)} (Covering.covering-basic $ L.Join-univ \lam {y} Uy => L.Join-cond (L.Join-cond Uy, inP (y, Uy, <=-refl)))
         \lam {z} (inP (y,Uy,z<=y)) => transport (\lam r => P.pred (P.S.F.Func r x)) prop-pi (Ux Uy z<=y)
@@ -60,7 +60,7 @@
   | PrelocalPredicate => equality-prelocalPredicate S
   | isLocalPredicate a<=U c => path \lam i => S.isSeparated a<=U (exts \lam j => ext \lam _ => c j.2) i ()
 
-\lemma inv-localPredicate.{s} {C : Site} {S : VSheaf CRingCat.{s} C} : LocalPredicate (S.toPresheaf CRingCat.forget) Monoid.Inv
+\lemma inv-localPredicate.{s} {C : Site.{s,s}} {S : VSheaf CRingCat.{s} C} : LocalPredicate (S.toPresheaf CRingCat.forget) Monoid.Inv
   => \have Ss => sheaf-preserve CRingCat.forget (\lam {J} => CRingCat.forget.preservesLimit {J}) S
      \in transport {\Pi {a : C} -> S a -> \Prop} (LocalPredicate (S.toPresheaf CRingCat.forget)) (later $ ext \lam x => propExt (\lam (inP (y,xy=1)) => Monoid.Inv.lmake y xy=1) (\lam xi => inP (xi.inv,xi.inv-left))) $
       exists-localPredicate {C} {S.toPresheaf CRingCat.forget} {\new Sheaf { | F => Comp CRingCat.forget S.F | isSheaf => Ss }} (\new LocalPredicate {

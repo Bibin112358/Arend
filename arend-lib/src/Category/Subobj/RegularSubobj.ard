@@ -9,7 +9,7 @@
 \import Paths
 \import Relation.Equivalence
 
-\func IsRegularSubobj {C : Precat} {obj : C} (s : Subobj obj) : \Prop \elim s
+\func IsRegularSubobj.{o,h} {C : Precat.{o,h}} {obj : C} (s : Subobj obj) : \Prop \elim s
   | in~ m => IsRegularMono m.f
   | ~-equiv m1 m2 r =>
     \have lem {m1 m2 : Mono {C} { | cod => obj }} (m1<=m2 : inso~ m1 <= inso~ m2) (m2<=m1 : inso~ m2 <= inso~ m1) (m1r : IsRegularMono m1.f) : IsRegularMono m2.f => \case \elim m1<=m2, \elim m2<=m1, \elim m1r \with {
@@ -19,7 +19,7 @@
     }
     \in propExt (lem (inP (r.1,r.2)) (inP (r.3,r.4))) (lem (inP (r.3,r.4)) (inP (r.1,r.2)))
 
-\lemma regularSubobj-meet {C : FinCompletePrecat} {obj : C} {s1 s2 : Subobj obj} (r1 : IsRegularSubobj s1) (r2 : IsRegularSubobj s2)
+\lemma regularSubobj-meet.{o,h} {C : FinCompletePrecat.{o,h}} {obj : C} {s1 s2 : Subobj obj} (r1 : IsRegularSubobj s1) (r2 : IsRegularSubobj s2)
   : IsRegularSubobj (SubobjectSemilattice.meet s1 s2) \elim s1, s2
   | in~ m1, in~ m2 => pullback-isRegularMono r1 r2
   \where {
