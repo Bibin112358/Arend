@@ -76,7 +76,7 @@
         | f_sec => \case __.2
       }
 
-    \instance ModelPrecat (T : Theory) : Precat (Model T)
+    \instance ModelPrecat.{u} (T : Theory) : Precat (Model.{u} T)
       | Hom M N => ModelHom M N
       | id M => \new ModelHom {
         | funcs x => x
@@ -92,13 +92,13 @@
       | id-right => idp
       | o-assoc => idp
 
-    \func Forget {T : Theory} : Functor (ModelPrecat T) (FamPrecat SetCat) \cowith
+    \func Forget.{u} {T : Theory} : Functor (ModelPrecat.{u} T) (FamPrecat SetCat.{u}) \cowith
       | F M => M
       | Func f => f.funcs
       | Func-id => idp
       | Func-o => idp
 
-    \func ForgetAdjunction {T : Theory} : Adjunction.FromReflector (FamPrecat SetCat) (ModelPrecat T) Forget \cowith
+    \func ForgetAdjunction.{u} {T : Theory} : Adjunction.FromReflector (FamPrecat SetCat.{u}) (ModelPrecat.{u} T) Forget \cowith
       | LOb => FreeModel
       | etaMap x => qinj (var x)
       | eta-adjoint => inP \new QEquiv {
@@ -113,7 +113,7 @@
         | f_sec => idpe
       }
 
-    \func ForgetToSetAdjunction {T : Theory (\Sigma)} : Adjunction SetCat (ModelPrecat T)
+    \func ForgetToSetAdjunction.{u} {T : Theory (\Sigma)} : Adjunction SetCat.{u} (ModelPrecat.{u} T)
       => Adjunction.comp (later \new Adjunction.FromReflector {
         | RAdj {
           | F M => M ()

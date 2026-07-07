@@ -17,7 +17,7 @@
 \import Relation.Equivalence
 \import Set
 
-\instance SetCat.{p} : Cat (\Set p)
+\instance SetCat.{u} : Cat (\Set u)
   | Hom X Y => X -> Y
   | id _ => \lam x => x
   | o g f => \lam x => g (f x)
@@ -34,14 +34,14 @@
       })
   }
 
-\sfunc SIP_Set.{p} (Str : \Set p -> \Type (\suc p)) (isHom : \Pi {x y : \Set p} -> Str x -> Str y -> (x -> y) -> \Type (\suc p))
-                   (st : \Pi {X : \Set p} {S1 S2 : Str X} -> isHom S1 S2 (\lam x => x) -> isHom S2 S1 (\lam x => x) -> S1 = S2)
-                   {X Y : \Set p} (e : Iso {SetCat} {X} {Y}) (S1 : Str X) (S2 : Str Y) (p : isHom S1 S2 e.f) (q : isHom S2 S1 e.hinv)
+\sfunc SIP_Set.{u} (Str : \Set u -> \Type (\suc u)) (isHom : \Pi {x y : \Set u} -> Str x -> Str y -> (x -> y) -> \Type (\suc u))
+                   (st : \Pi {X : \Set u} {S1 S2 : Str X} -> isHom S1 S2 (\lam x => x) -> isHom S2 S1 (\lam x => x) -> S1 = S2)
+                   {X Y : \Set u} (e : Iso {SetCat} {X} {Y}) (S1 : Str X) (S2 : Str Y) (p : isHom S1 S2 e.f) (q : isHom S2 S1 e.hinv)
   : \Sigma (p : X = Y) (Path (\lam i => Str (p @ i)) S1 S2) (\Pi (x : X) -> transport (\lam Z => Z) p x = e.f x)
   => \have (p,q,s) => SIP SetCat Str isHom st e S1 S2 p q
      \in (p, q, \lam x => inv (transport_pi (\lam _ => X) (\lam Z => Z) p (\lam z => z) x) *> path (\lam i => (s @ i) x))
 
-\instance SetCoproduct {J : \Type} (F : J -> \Set) : Product {J} {SetCat.op} F
+\instance SetCoproduct.{u} {J : \Type u} (F : J -> \Set u) : Product {J} {SetCat.op} F
   | apex => Trunc0 (\Sigma (j : J) (F j))
   | proj j x => in0 (j,x)
   | tupleMap f (in0 (j,x)) => f j x
@@ -50,7 +50,7 @@
     | in0 (j,x) => pmap (__ x) (e j)
   }
 
-\instance SetCoequalizer {X Y : \Set} (f g : X -> Y) : Equalizer {SetCat.op} f g
+\instance SetCoequalizer.{u} {X Y : \Set u} (f g : X -> Y) : Equalizer {SetCat.op} f g
   | apex => Quotient (\lam y y' => \Sigma (x : X) (f x = y) (g x = y'))
   | eql => in~
   | equal => ext (\lam x => path (~-equiv _ _ (later (x,idp,idp))))
@@ -65,8 +65,8 @@
     | f_sec (h,p) => ext idp
   }
 
-\instance SetBicat.{p} : BicompleteCat
-  | Cat => SetCat.{p}
+\instance SetBicat.{u} : BicompleteCat
+  | Cat => SetCat.{u}
   | limit F => \new Limit {
     | apex => LimitSet F
     | coneMap j l => l.1 j
@@ -97,10 +97,10 @@
   }
   | colimit {J} G => limits<=pr+eq {SetCat.op} (\lam J G => SetCoproduct G) (\lam {X} {Y} f g => SetCoequalizer f g) {Precat.op {J}} (Functor.op {G})
   \where {
-    \type LimitSet.{p} {J : Precat.{p,p}} (F : Functor J SetCat.{p}) : \Set p
+    \type LimitSet.{u} {J : Precat.{u,u}} (F : Functor J SetCat.{u}) : \Set u
       => Given (f : \Pi (j : J) -> F j) ∀ {j j' : J} (h : Hom j j') (F.Func h (f j) = f j')
 
-    \lemma cone-isLim.{v} (c : Cone { | D => SetCat.{v} }) (e : IsEquiv (conePullback c (\Sigma))) : Limit { | Cone => c } \cowith
+    \lemma cone-isLim.{u} (c : Cone { | D => SetCat.{u} }) (e : IsEquiv (conePullback c (\Sigma))) : Limit { | Cone => c } \cowith
       | isLimit Z =>
         \have coneMap (z : Z) (c' : Cone c.G Z) : Cone c.G (\Sigma) => \new Cone {
           | coneMap j _ => c'.coneMap j z
@@ -115,16 +115,16 @@
       => path \lam i => IsEquiv.isInj (cl (\Sigma)) {\lam _ => x} {\lam _ => y} (exts \lam j => ext \lam _ => p j) i ()
   }
 
-\type SetColimit.{p} {J : Precat} (F : Functor J SetCat.{p})
+\type SetColimit.{u} {J : Precat} (F : Functor J SetCat.{u})
   => Quotient {\Sigma (j : J) (F j)} \lam s s' => \Sigma (p : Hom s.1 s'.1) (F.Func p s.2 = s'.2)
   \where {
-    \func inC.{p} {J : Precat} {F : Functor J SetCat.{p}} (s : \Sigma (j : J) (F j)) : SetColimit F => in~ s
+    \func inC.{u} {J : Precat} {F : Functor J SetCat.{u}} (s : \Sigma (j : J) (F j)) : SetColimit F => in~ s
 
     \lemma ~-cequiv {s s' : \Sigma (j : J) (F j)} (f : Hom s.1 s'.1) (p : F.Func f s.2 = s'.2)
       : in~ s = {SetColimit F} in~ s'
       => path (\lam i => ~-equiv s s' (f,p) i)
 
-    \lemma unext-ub.{s,p} {J : JoinSemilattice.{s}} {F : Functor J SetCat.{p}} {s s' : \Sigma (j : J) (F j)} (p : inC s = inC s')
+    \lemma unext-ub.{s,u} {J : JoinSemilattice.{s}} {F : Functor J SetCat.{u}} {s s' : \Sigma (j : J) (F j)} (p : inC s = inC s')
       : ∃ (j : J) (p : s.1 <= j) (q : s'.1 <= j) (F.Func p s.2 = F.Func q s'.2)
       => Quotient.equalityClosure (\new Equivalence (\Sigma (j : J) (F j)) _ {
         | ~-transitive => later \lam (inP s) (inP t) => inP (s.1 ∨ t.1, s.2 <=∘ join-left, t.3 <=∘ join-right, Func-app F *> pmap (F.Func join-left) s.4 *> inv (Func-app F) *> poset-app *> Func-app F *> pmap (F.Func join-right) t.4 *> inv (Func-app F))
@@ -132,13 +132,13 @@
         | ~-symmetric => later \lam (inP s) => inP (s.1, s.3, s.2, inv s.4)
       }) (later \lam {x} {y} s => inP (x.1 ∨ y.1, join-left, join-right, Func-app F *> pmap (F.Func join-right) s.2)) (path \lam i => p i)
 
-    \lemma Func-app.{p} {J : Precat} (F : Functor J SetCat.{p}) {j1 j2 j3 : J} {f : Hom j1 j2} {g : Hom j2 j3} {a : F j1} : F.Func (g ∘ f) a = F.Func g (F.Func f a)
+    \lemma Func-app.{u} {J : Precat} (F : Functor J SetCat.{u}) {j1 j2 j3 : J} {f : Hom j1 j2} {g : Hom j2 j3} {a : F j1} : F.Func (g ∘ f) a = F.Func g (F.Func f a)
       => pmap (__ a) F.Func-o
 
-    \lemma poset-app.{s,p} {J : Poset.{s}} {F : Functor J SetCat.{p}} {j j' : J} {f g : j <= j'} {a : F j} : F.Func f a = F.Func g a
+    \lemma poset-app.{s,u} {J : Poset.{s}} {F : Functor J SetCat.{u}} {j j' : J} {f g : j <= j'} {a : F j} : F.Func f a = F.Func g a
       => pmap (F.Func __ a) prop-pi
 
-    \lemma poset-id.{s,p} {J : Poset.{s}} {F : Functor J SetCat.{p}} {j : J} {p : j <= j} {a : F j} : F.Func p a = a
+    \lemma poset-id.{s,u} {J : Poset.{s}} {F : Functor J SetCat.{u}} {j : J} {p : j <= j} {a : F j} : F.Func p a = a
       => poset-app *> pmap (__ a) F.Func-id
 
     \func inMap (j : J) (a : F j) : SetColimit F

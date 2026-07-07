@@ -242,7 +242,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     for (ClassField field : myNotImplementedFields) {
       if (implemented.containsKey(field)) continue;
       Expression fieldType = getFieldTypeSubstInfiniteFields(field, idLevels, thisExpr1).normalize(NormalizationMode.WHNF);
-      Level overrideLevel = getFieldLevelOverride(field, levels);
+      Level overrideLevel = getFieldLevelOverride(field, levels, implemented.keySet());
       if (overrideLevel != null) {
         fieldType = fieldType.replaceInfinityLevel(overrideLevel);
       }

@@ -51,7 +51,7 @@
     | inP e => {?} -- TODO[sorts]: (rewrite (path (QEquiv_= e) : Fin finCard = {\Set} E) in \lam (B : Fin finCard -> \Set) => finiteAC {finCard} {B}) B
   }
 
-  \lemma liftDepSurj {A : E -> \Set} {B : E -> \1-Type} {f : \Pi {x : E} -> A x -> B x} (isSur : \Pi {x : E} (y : B x) -> ∃ (x : A) (f x = y)) (g : \Pi (x : E) -> B x) : ∃ (g' : \Pi (x : E) -> A x) ∀ x (f (g' x) = g x)
+  \lemma liftDepSurj {A : E -> \Set} {B : E -> \1-Type} {f : \Pi {x : E} -> A x -> B x} (isSur : \Pi {x : E} (y : B x) -> ∃ (a : A x) (f a = y)) (g : \Pi (x : E) -> B x) : ∃ (g' : \Pi (x : E) -> A x) ∀ x (f (g' x) = g x)
     => TruncP.map (choice (\lam x => isSur (g x))) (\lam h => (\lam x => (h x).1, \lam x => (h x).2))
 
   \lemma liftSurj {A : \Set} {B : \1-Type} {f : A -> B} (isSur : \Pi (y : B) -> ∃ (x : A) (f x = y)) (g : E -> B) : ∃ (g' : E -> A) ∀ x (f (g' x) = g x)

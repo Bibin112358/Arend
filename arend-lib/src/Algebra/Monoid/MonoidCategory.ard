@@ -21,23 +21,23 @@
 \import Set.Fin
 \import Set.Fin.Instances
 
-\instance MonoidCat.{s} : Cat Monoid.{s}
+\instance MonoidCat.{u} : Cat Monoid.{u}
   | Hom M N => MonoidHom M N
   | id _ => MonoidHom.id
   | o => MonoidHom.∘
   | id-left => idp
   | id-right => idp
   | o-assoc => idp
-  | univalence => sip \lam p1 p2 => exts (p1.func-ide, \lam _ _ => p1.func-*)
+  | univalence => {?} -- TODO[sorts]: sip \lam p1 p2 => exts (p1.func-ide, \lam _ _ => p1.func-*)
   \where {
-    \func forget.{s} : Functor MonoidCat.{s} SetCat.{s} \cowith
+    \func forget.{u} : Functor MonoidCat.{u} SetCat.{u} \cowith
       | F R => R
       | Func f => f
       | Func-id => idp
       | Func-o => idp
   }
 
-\instance LimitMonoid.{s} {J : Precat.{s,s}} (F : Functor J MonoidCat.{s}) : Monoid (SetBicat.LimitSet (Comp MonoidCat.forget F))
+\instance LimitMonoid.{u} {J : Precat.{u,u}} (F : Functor J MonoidCat.{u}) : Monoid (SetBicat.LimitSet (Comp MonoidCat.forget F))
   | ide => (\lam _ => ide, \lam h => func-ide)
   | * f g => (\lam j => f.1 j * g.1 j, \lam h => func-* *> pmap2 (*) (f.2 h) (g.2 h))
   | *-assoc => exts \lam j => *-assoc
@@ -49,7 +49,7 @@
       | func-ide => idp
       | func-* => idp
 
-    \func limMap.{s} {J : Precat.{s,s}} {F : Functor J MonoidCat.{s}} {M : Monoid.{s}} (c : Cone F M) : MonoidHom M (LimitMonoid F) \cowith
+    \func limMap.{u} {J : Precat.{u,u}} {F : Functor J MonoidCat.{u}} {M : Monoid.{u}} (c : Cone F M) : MonoidHom M (LimitMonoid F) \cowith
       | func x => (\lam j => c.coneMap j x, \lam h => path \lam i => c.coneCoh h i x)
       | func-ide => exts \lam j => func-ide
       | func-* => exts \lam j => func-*

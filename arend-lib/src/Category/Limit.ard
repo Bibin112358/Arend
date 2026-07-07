@@ -378,11 +378,13 @@
       }
     }
 } \where {
-  \instance Shape : Graph => \new Graph (Fin 3) \case __, __ \with {
-    | 0, 2 => \Sigma
-    | 1, 2 => \Sigma
-    | _, _ => Empty
-  }
+  \instance Shape : Graph.{0,0}
+    | V => Fin 3
+    | E => \case __, __ \with {
+      | 0, 2 => \Sigma
+      | 1, 2 => \Sigma
+      | _, _ => Empty
+    }
 
   \func diagram {D : Precat} {x y z : D} (f : Hom x z) (g : Hom y z) : Diagram Shape D \cowith
     | F => \case __ \with {

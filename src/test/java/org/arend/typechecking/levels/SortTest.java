@@ -2,11 +2,10 @@ package org.arend.typechecking.levels;
 
 import org.arend.Matchers;
 import org.arend.core.context.param.TypedSingleDependentLink;
+import org.arend.core.definition.ClassField;
 import org.arend.core.definition.Definition;
 import org.arend.core.definition.FunctionDefinition;
-import org.arend.core.expr.ExpressionFactory;
-import org.arend.core.expr.PiExpression;
-import org.arend.core.expr.UniverseExpression;
+import org.arend.core.expr.*;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
@@ -17,6 +16,7 @@ import org.junit.Test;
 
 import java.math.BigInteger;
 import java.util.Collections;
+import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
 
@@ -427,5 +427,50 @@ public class SortTest extends TypeCheckingTestCase {
         | suc _ => Nat
         }
       """);
+  }
+
+  @Test
+  public void classImplTest2() {
+    typeCheckModule("""
+      \\record R (f : Nat -> \\Set)
+      \\func rrr => \\new R.{0} \\case __ \\with {
+        | 0 => \\Sigma
+        | suc _ => Nat
+        }
+      \\func test : R.{0} => rrr
+      """);
+    ClassCallExpression classCall = (ClassCallExpression) ((FunctionDefinition) getDefinition("rrr")).getResultType();
+    assertEquals(new UniverseExpression(Sort.SET0), ((CaseExpression) ((LamExpression) Objects.requireNonNull(classCall.getAbsImplementationHere((ClassField) getDefinition("R.f")))).getBody()).getResultType());
+    assertEquals(0, classCall.getLevels().size());
+  }
+
+  @Test
+  public void classImplTest3() {
+    typeCheckModule("""
+      \\record R (f : Nat -> \\Set)
+      \\func rrr : R.{0} => \\new R \\case __ \\with {
+        | 0 => \\Sigma
+        | suc _ => Nat
+        }
+      \\func test : R.{0} => rrr
+      """);
+    ClassCallExpression classCall = (ClassCallExpression) ((FunctionDefinition) getDefinition("rrr")).getResultType();
+    assertEquals(new UniverseExpression(Sort.SET0), ((CaseExpression) ((LamExpression) Objects.requireNonNull(classCall.getAbsImplementationHere((ClassField) getDefinition("R.f")))).getBody()).getResultType());
+    assertEquals(0, classCall.getLevels().size());
+  }
+
+  @Test
+  public void classImplTest4() {
+    typeCheckModule("""
+      \\record R (f : Nat -> \\Set)
+      \\func rrr : R => \\new R.{0} \\case __ \\with {
+        | 0 => \\Sigma
+        | suc _ => Nat
+        }
+      \\func test : R.{0} => rrr
+      """);
+    ClassCallExpression classCall = (ClassCallExpression) ((FunctionDefinition) getDefinition("rrr")).getResultType();
+    assertEquals(new UniverseExpression(Sort.SET0), ((CaseExpression) ((LamExpression) Objects.requireNonNull(classCall.getAbsImplementationHere((ClassField) getDefinition("R.f")))).getBody()).getResultType());
+    assertEquals(0, classCall.getLevels().size());
   }
 }
