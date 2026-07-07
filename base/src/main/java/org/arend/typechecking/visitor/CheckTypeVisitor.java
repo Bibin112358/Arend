@@ -3424,7 +3424,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
   @Override
   public TypecheckingResult visitUniverse(Concrete.UniverseExpression expr, Expression expectedType) {
-    if (expr.isInfSort() && expectedType == UniverseExpression.INF_OMEGA) {
+    if ((expr.isInfSort() || expr.getPLevel() == null && expr.getHLevel() != null) && expectedType == UniverseExpression.INF_OMEGA) {
       return checkResult(expectedType, expr.getHLevel() == null
           ? new TypecheckingResult(UniverseExpression.OMEGA, UniverseExpression.OMEGA)
           : new TypecheckingResult(new UniverseExpression(new Sort(Level.INFINITY, new ConstLevel(expr.getHLevel()))), new UniverseExpression(new Sort(Level.INFINITY, new ConstLevel(expr.getHLevel().add(BigInteger.ONE))))), expr);

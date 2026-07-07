@@ -349,7 +349,7 @@ public class InferLevelTest extends TypeCheckingTestCase {
   @Test
   public void pathTest() {
     typeCheckModule("""
-      \\func eq {A : \\Type} (x y : A) => x = y
+      \\func eq {A : \\Sort} (x y : A) => x = y
       \\func id {A : \\Prop} (a : A) => a
       \\func test {A : \\Set} {x y : A} (p : eq x y) => id p
       """);
@@ -385,7 +385,7 @@ public class InferLevelTest extends TypeCheckingTestCase {
     typeCheckModule("""
       \\record SomeSigma (A : \\Type) (J : \\Set)
       \\class SomeWrapper (X : SomeSigma Nat)
-      \\func test (w : SomeWrapper) : \\Type => w.X.J
+      \\func test (w : SomeWrapper) : \\Sort => w.X.J
       """);
   }
 

@@ -8,7 +8,6 @@ import org.arend.ext.core.expr.CoreExpressionVisitor;
 import org.arend.ext.core.expr.CoreInferenceReferenceExpression;
 import org.arend.ext.core.ops.CMP;
 import org.arend.ext.core.ops.NormalizationMode;
-import org.arend.prelude.Prelude;
 import org.arend.typechecking.implicitargs.equations.Equations;
 import org.arend.util.Decision;
 import org.jetbrains.annotations.NotNull;
@@ -45,17 +44,12 @@ public class InferenceReferenceExpression extends Expression implements CoreInfe
 
     ClassCallExpression classCall = type.cast(ClassCallExpression.class);
     if (classCall != null && !classCall.getDefinition().getNotImplementedFields().isEmpty()) {
-      Map<ClassField, Expression> newImpls = new LinkedHashMap<>();
-      type = new ClassCallExpression(classCall.getDefinition(), classCall.getLevels(), newImpls, classCall.getUniverseKind());
+      type = new ClassCallExpression(classCall.getDefinition(), classCall.getLevels());
       binding.setType(type);
       result.myImplementedFields = new HashSet<>();
       for (Map.Entry<ClassField, Expression> entry : classCall.getImplementedHere().entrySet()) {
         ClassField field = entry.getKey();
         if (field.isProperty()) continue;
-        if (classCall.getDefinition() != Prelude.DEP_ARRAY && field.getType().isInfinityLevel()) {
-          newImpls.put(field, entry.getValue());
-          continue;
-        }
         equations.addEquation(FieldCallExpression.make(field, result), entry.getValue().normalize(NormalizationMode.WHNF), classCall.getFieldType(field, result), CMP.EQ, binding.getSourceNode(), binding, entry.getValue().getStuckInferenceVariable(), false);
         if (result.getSubstExpression() != null) {
           Expression solution = result.getSubstExpression();
@@ -82,10 +76,6 @@ public class InferenceReferenceExpression extends Expression implements CoreInfe
   @Override
   public InferenceVariable getVariable() {
     return mySubstExpression == null ? myVar : null;
-  }
-
-  public InferenceVariable getOriginalVariable() {
-    return myVar;
   }
 
   public boolean isFieldImplemented(ClassField field) {

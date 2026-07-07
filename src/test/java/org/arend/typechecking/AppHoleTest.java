@@ -195,7 +195,7 @@ public class AppHoleTest extends TypeCheckingTestCase {
 
   @Test
   public void appPiTest4() {
-    typeCheckDef("\\func test (f : (Nat -> \\Set) -> Nat) (g : Nat -> \\Set) => f (g __ -> Nat)");
+    typeCheckDef("\\func test (f : (Nat -> \\Set0) -> Nat) (g : Nat -> \\Set0) => f (g __ -> Nat)");
   }
 
   @Test

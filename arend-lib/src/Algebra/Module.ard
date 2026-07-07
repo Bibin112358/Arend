@@ -18,7 +18,6 @@
 \import Function.Meta
 \import Logic.Unique
 \import Logic
-\import Logic.Classical
 \import Logic.Meta
 \import Meta
 \import Order.Biordered
@@ -350,7 +349,7 @@
   \lemma generated-fin-comp (f : RingHom) {M : LModule f.Cod} {I J : FinSet} {a : I -> f.Cod} {b : J -> M} (Cg : (homLModule f).IsGeneratedFin a) (Mg : M.IsGeneratedFin b)
     : LModule.IsGeneratedFin {pullback f M} (\lam (p : \Sigma J I) => a p.2 *c b p.1)
     => \lam x => \have | (inP (d,p)) => Mg x
-                       | (inP g) => choice (\lam j => Cg (d j))
+                       | (inP g) => FinSet.choice (\lam j => Cg (d j))
                  \in inP (\lam s => (g s.1).1 s.2, p *> path (\lam i => FinSum (\lam j => (g j).2 i *c b j)) *>
                             path (\lam i' => FinSum (\lam j => M.*c_FinSum-rdistr {I} {\lam i => (g j).1 i *c a i} {b j} i')) *> FinSum-double *> pmap FinSum (ext \lam s => *c-assoc))
 

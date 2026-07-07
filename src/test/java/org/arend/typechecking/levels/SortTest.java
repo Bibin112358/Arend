@@ -417,4 +417,15 @@ public class SortTest extends TypeCheckingTestCase {
       """, 1);
     assertThatErrorsAre(Matchers.typeMismatchError());
   }
+
+  @Test
+  public void classImplTest() {
+    typeCheckModule("""
+      \\record R (f : Nat -> \\Set)
+      \\func test : R => \\new R \\case __ \\with {
+        | 0 => \\Sigma
+        | suc _ => Nat
+        }
+      """);
+  }
 }

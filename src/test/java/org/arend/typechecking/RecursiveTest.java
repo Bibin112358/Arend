@@ -186,8 +186,8 @@ public class RecursiveTest extends TypeCheckingTestCase {
   public void mutualRecursionOrder() {
     typeCheckModule("""
       \\func g => D'
-      \\data D : \\Set | con1 | con2 (d : D) (D' d)
-      \\data D' (d : D) : \\Set \\with
+      \\data D : \\Set0 | con1 | con2 (d : D) (D' d)
+      \\data D' (d : D) : \\Set0 \\with
         | con1 => con1'
         | con2 _ _ => con2'
       """);

@@ -828,8 +828,8 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
   Expression checkCase(CaseExpression expr, Expression expectedType, BigInteger level) {
     ExprSubstitution substitution = new ExprSubstitution();
     checkList(expr.getArguments(), expr.getParameters(), substitution, LevelSubstitution.EMPTY);
-    checkDependentLink(expr.getParameters(), UniverseExpression.OMEGA, expr, false);
-    expr.getResultType().accept(this, UniverseExpression.OMEGA);
+    checkDependentLink(expr.getParameters(), UniverseExpression.INF_OMEGA, expr, false);
+    expr.getResultType().accept(this, UniverseExpression.INF_OMEGA);
 
     BigInteger level2 = expr.getResultTypeLevel() == null ? null : checkLevelProof(expr.getResultTypeLevel(), expr.getResultType());
 

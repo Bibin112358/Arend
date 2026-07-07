@@ -97,7 +97,7 @@
 
 \meta Colimit G => Limit (Functor.op {G})
 
-\class Diagram.{s} (G : Graph.{s}) (D : Precat) (F : G -> D) (Func : \Pi {x y : G} -> G.E x y -> Hom (F x) (F y)) {
+\class Diagram (G : Graph) (D : Precat) (F : G -> D) (Func : \Pi {x y : G} -> G.E x y -> Hom (F x) (F y)) {
   \protected \func functor : Functor G.FreeCat D \cowith
     | F => F
     | Func {x y : G} (h : G.Paths x y) : Hom (F x) (F y) \elim h {
@@ -111,7 +111,7 @@
     }
 }
 
-\class DiagramCone.{s} \extends Diagram.{s}, Cone
+\class DiagramCone \extends Diagram, Cone
   | J => G.FreeCat
   | Cone.D => Diagram.D
   | Cone.G => Diagram.functor
@@ -137,7 +137,7 @@
       | f_sec c => idp
   }
 
-\class LimitDiagram.{s} \extends DiagramCone.{s}, Limit
+\class LimitDiagram \extends DiagramCone, Limit
   | isLimitDiagram (Z : D) : IsEquiv (DiagramCone.pullback Z)
   | isLimit Z => IsEquiv.trans (isLimitDiagram Z) $ inP (DiagramCone.equiv Z)
 
@@ -694,7 +694,7 @@
 
 \class CompletePrecat.{s} \extends FinCompletePrecat {
   | limit {J : Precat.{s,s}} (G : Functor J \this) : Limit G
-  \default pullback f g => Pullback.fromLimit (limit (Pullback.diagram f g).functor)
+  \default pullback f g => Pullback.fromLimit (limit {_} {Pullback.Shape.FreeCat} (Pullback.diagram f g).functor)
   \default terminal => Product.fromLimit (limit (Product.functor absurd))
   \default Bprod x y => Product.fromLimit (limit (Product.functor (x :: y :: nil)))
 

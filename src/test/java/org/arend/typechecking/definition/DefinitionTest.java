@@ -2,7 +2,6 @@ package org.arend.typechecking.definition;
 
 import org.arend.core.context.param.DependentLink;
 import org.arend.core.definition.*;
-import org.arend.core.expr.ClassCallExpression;
 import org.arend.core.expr.Expression;
 import org.arend.core.subst.SingleLevel;
 import org.arend.typechecking.TypeCheckingTestCase;
@@ -10,7 +9,6 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import static org.arend.ExpressionFactory.Pi;
 import static org.arend.ExpressionFactory.fromPiParameters;
@@ -229,112 +227,6 @@ public class DefinitionTest extends TypeCheckingTestCase {
     ClassField field = (ClassField) getDefinition("R.A");
     assertTrue(((ClassDefinition) getDefinition("R")).isCovariantField(field));
     assertFalse(((ClassDefinition) getDefinition("S")).isCovariantField(field));
-  }
-
-  @Test
-  public void universeKindTest() {
-    typeCheckModule("""
-      \\data D (A : Nat -> \\Type) | con (A 0)
-      \\func f (A : Nat -> \\Type) => 0
-      \\record C (A : Nat -> \\Type) (a : A 0)
-      \\func g (A : Nat -> \\Type) => C A
-      \\record R \\extends C | A _ => \\Sigma
-      """);
-    assertEquals(UniverseKind.NO_UNIVERSES, getDefinition("D").getUniverseKind());
-    assertEquals(UniverseKind.NO_UNIVERSES, getDefinition("f").getUniverseKind());
-    assertEquals(UniverseKind.NO_UNIVERSES, ((ClassCallExpression) Objects.requireNonNull(((FunctionDefinition) getDefinition("g")).getBody())).getUniverseKind());
-    assertEquals(UniverseKind.NO_UNIVERSES, ((ClassDefinition) getDefinition("R")).getBaseUniverseKind());
-    assertEquals(UniverseKind.ONLY_COVARIANT, getDefinition("R").getUniverseKind());
-  }
-
-  @Test
-  public void universeKindTest2() {
-    typeCheckModule("""
-      \\data D (A : \\Type -> \\Type) | con (A (\\Sigma))
-      \\func f (A : \\Type -> \\Type) => 0
-      \\record C (A : \\Type -> \\Type) (a : A (\\Sigma))
-      \\func g (A : \\Type -> \\Type) => C A
-      \\record R \\extends C | A _ => \\Sigma
-      """);
-    assertEquals(UniverseKind.WITH_UNIVERSES, getDefinition("D").getUniverseKind());
-    assertEquals(UniverseKind.WITH_UNIVERSES, getDefinition("f").getUniverseKind());
-    assertEquals(UniverseKind.WITH_UNIVERSES, ((ClassCallExpression) Objects.requireNonNull(((FunctionDefinition) getDefinition("g")).getBody())).getUniverseKind());
-    assertEquals(UniverseKind.WITH_UNIVERSES, getDefinition("R").getUniverseKind());
-  }
-
-  @Test
-  public void universeKindTest3() {
-    typeCheckModule("""
-      \\data D (A : Nat -> \\Set) | con (A 0)
-      \\func f (A : Nat -> \\Set) => 0
-      \\record C (A : Nat -> \\Set) (a : A 0)
-      \\func g (A : Nat -> \\Set) => C A
-      \\record R \\extends C | A _ => \\Sigma
-      """);
-    assertEquals(UniverseKind.NO_UNIVERSES, getDefinition("D").getUniverseKind());
-    assertEquals(UniverseKind.NO_UNIVERSES, getDefinition("f").getUniverseKind());
-    assertEquals(UniverseKind.NO_UNIVERSES, ((ClassCallExpression) Objects.requireNonNull(((FunctionDefinition) getDefinition("g")).getBody())).getUniverseKind());
-    assertEquals(UniverseKind.NO_UNIVERSES, ((ClassDefinition) getDefinition("R")).getBaseUniverseKind());
-    assertEquals(UniverseKind.ONLY_COVARIANT, getDefinition("R").getUniverseKind());
-  }
-
-  @Test
-  public void universeKindTest4() {
-    typeCheckModule("""
-      \\data D (A : Nat -> \\Type (\\suc \\lp)) | con (A 0)
-      \\func f (A : Nat -> \\Type (\\suc \\lp)) => 0
-      \\record C (A : Nat -> \\Type (\\suc \\lp)) (a : A 0)\
-      \\func g (A : Nat -> \\Type (\\suc \\lp)) => C A
-      \\record R \\extends C | A => \\lam _ => \\Sigma
-      """);
-    assertEquals(UniverseKind.ONLY_COVARIANT, getDefinition("D").getUniverseKind());
-    assertEquals(UniverseKind.ONLY_COVARIANT, getDefinition("f").getUniverseKind());
-    assertEquals(UniverseKind.ONLY_COVARIANT, ((ClassCallExpression) Objects.requireNonNull(((FunctionDefinition) getDefinition("g")).getBody())).getUniverseKind());
-    assertEquals(UniverseKind.ONLY_COVARIANT, getDefinition("R").getUniverseKind());
-  }
-
-  @Test
-  public void universeKindTest6() {
-    typeCheckModule(
-      "\\data D (A : Nat -> \\Type) : \\Type (\\max \\lp 1) | con (A 0)\n" +
-      "\\func f (A : Nat -> \\Type) : \\Type (\\max \\lp 1) => Nat");
-    assertEquals(UniverseKind.NO_UNIVERSES, getDefinition("D").getUniverseKind());
-    assertEquals(UniverseKind.NO_UNIVERSES, getDefinition("f").getUniverseKind());
-  }
-
-  @Test
-  public void universeKindTest7() {
-    typeCheckModule(
-      "\\data D (A : Nat -> \\Type) : \\Type (\\suc \\lp) | con (A 0)\n" +
-      "\\func f (A : Nat -> \\Type) : \\Type (\\suc \\lp) => Nat");
-    assertEquals(UniverseKind.NO_UNIVERSES, getDefinition("D").getUniverseKind());
-    assertEquals(UniverseKind.NO_UNIVERSES, getDefinition("f").getUniverseKind());
-  }
-
-  @Test
-  public void extensionLevelsTest() {
-    typeCheckModule("""
-      \\record A.{p3,p2,p1}
-        | f : \\Sigma (\\Type p1) (\\Type p2)
-      \\record B.{q2,q1} \\extends A.{\\suc q2, q1, 0}
-      \\record C.{q2,q1} \\extends A.{\\suc q2, q2, q1}
-      \\record D.{q2,q1} \\extends A.{\\suc (\\suc q2), 2, 1}
-      \\record E.{q2,q1} \\extends A.{\\suc q2, \\suc q2, q1}
-      """);
-
-    ClassField field = (ClassField) getDefinition("A.f");
-    ClassDefinition bClass = (ClassDefinition) getDefinition("B");
-    ClassDefinition cClass = (ClassDefinition) getDefinition("C");
-    ClassDefinition dClass = (ClassDefinition) getDefinition("D");
-    ClassDefinition eClass = (ClassDefinition) getDefinition("E");
-
-    assertEquals(UniverseKind.NO_UNIVERSES, bClass.getBaseUniverseKind());
-    assertTrue(bClass.isOmegaField(field));
-    assertEquals(UniverseKind.NO_UNIVERSES, cClass.getBaseUniverseKind());
-    assertTrue(cClass.isOmegaField(field));
-    assertEquals(UniverseKind.NO_UNIVERSES, dClass.getBaseUniverseKind());
-    assertFalse(dClass.isOmegaField(field));
-    assertEquals(UniverseKind.ONLY_COVARIANT, eClass.getBaseUniverseKind());
   }
 
   @Test

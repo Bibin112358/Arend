@@ -263,7 +263,6 @@ longName : ID (DOT ID)*;
 literal : ID                                # name
         | '\\Prop'                          # prop
         | '\\Sort'                          # sort
-        | '\\SET'                           # setInf // TODO[sorts]: Delete this
         | '_'                               # unknown
         | INFIX                             # infix
         | POSTFIX                           # postfix

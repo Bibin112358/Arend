@@ -3,7 +3,6 @@
 \import Data.Or
 \import Homotopy.Fibration
 \import Logic
-\import Logic.Classical
 \import Logic.FirstOrder.Term
 \import Logic.Meta
 \import Paths

@@ -325,7 +325,7 @@ public class RecordsTest extends TypeCheckingTestCase {
   @Test
   public void higherFunctionsTest() {
     typeCheckModule("""
-      \\class C { | A : \\Set | a : A }
+      \\class C { | A : \\Set0 | a : A }
       \\func const (c : C) => \\new C { | A => c.A -> c.A | a => \\lam _ => c.a }
       \\func const' (c : C) : C { | A => c.A -> c.A } => \\new C { | A => c.A -> c.A | a => \\lam _ => c.a }
       \\func test' (f : (C -> C) -> Nat) => f const'

@@ -35,6 +35,9 @@
 
   \func Cosets => Quotient (equivalence.~)
 
+  \func inc~ (x : S) : Cosets
+    => in~ x
+
   \lemma contains->equiv {x : S} (p : contains x) : 1 equivalence.~ x =>
     transport (\lam x => contains x) (x ==< inv ide-left >== ide * x ==< pmap (\lam z => z * x) (inv inverse_ide)) p
 

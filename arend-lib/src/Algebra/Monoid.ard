@@ -13,7 +13,6 @@
 \import Function.Meta
 \import Logic.Unique
 \import Logic
-\import Logic.Classical
 \import Logic.Meta
 \import Meta
 \import Order.Biordered
@@ -605,7 +604,7 @@
 
   \lemma FinSum-double-dep {A : FinSet} (B : A -> FinSet) {x : (\Sigma (a : A) (B a)) -> E}
     : FinSum (\lam a => FinSum (\lam b => x (a,b))) = FinSum {_} {SigmaFin A B} x
-    => \case FinSum_char _, choice (\lam a => FinSum_char (\lam b => x (a,b))) \with {
+    => \case FinSum_char _, FinSet.choice (\lam a => FinSum_char (\lam b => x (a,b))) \with {
       | inP p, inP f => p.2 *> cong (ext \lam j => (f _).2) *> BigSum-double-dep (\lam j => (B (p.1 j)).finCard) (\lam s => x (p.1 s.1, (f _).1 s.2)) *>
                           inv (FinSum_char2 (unfold $ =-to-QEquiv (pmap Fin $ FinSum_char2 {NatSemiring} p.1) `transQEquiv` SigmaFin.aux `transQEquiv` sigma-equiv p.1 (\lam j => (f _).1)) *> pmap BigSum (exts $ (FinSum_char2 {NatSemiring} p.1, \lam j => idp)))
     }

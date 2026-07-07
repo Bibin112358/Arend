@@ -17,7 +17,6 @@
 \import Function.Meta
 \import Logic
 \import Logic.Bar
-\import Logic.Classical
 \import Logic.Meta
 \import Meta
 \import Order.Biordered

@@ -18,7 +18,7 @@ public class TruncationsTest extends TypeCheckingTestCase {
   @Test
   public void elimInSet1() {
     typeCheckModule(
-      "\\truncated \\data TrS (A : \\Type) : \\Set | inS A\n" +
+      "\\truncated \\data TrS (A : \\Sort) : \\Set | inS A\n" +
       "\\func inS-inv (A : \\Set) (x : TrS A) : A \\elim x | inS x => x");
   }
 

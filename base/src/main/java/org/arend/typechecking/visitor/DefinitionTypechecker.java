@@ -102,7 +102,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
         DataDefinition dataDef = new DataDefinition(definition.getData());
         dataDef.setStatus(Definition.TypeCheckingStatus.TYPE_CHECKING);
         typecheckDataHeader(dataDef, dataDefinition, localInstancePool);
-        if (dataDef.getSort() == null || dataDef.getSort().getPLevel().isInfinity()) {
+        if (dataDef.getSort() == null) {
           errorReporter.report(new TypecheckingError("Cannot infer the sort of a recursive data type", definition));
           dataDef.addStatus(Definition.TypeCheckingStatus.HAS_ERRORS);
           dataDef.setSort(Sort.SET0);
@@ -1760,7 +1760,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
     checkNoStrictParameters(def.getParameters());
 
     if (def.getUniverse() != null) {
-      TypecheckingResult userTypeResult = typechecker.finalCheckExpr(def.getUniverse(), UniverseExpression.OMEGA);
+      TypecheckingResult userTypeResult = typechecker.finalCheckExpr(def.getUniverse(), UniverseExpression.INF_OMEGA);
       if (userTypeResult != null) {
         Sort userSort = userTypeResult.expression.toSort();
         if (userSort == null) {

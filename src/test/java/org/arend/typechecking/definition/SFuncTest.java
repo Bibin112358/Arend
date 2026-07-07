@@ -105,13 +105,13 @@ public class SFuncTest extends TypeCheckingTestCase {
   @Test
   public void recursiveSetSquashed() {
     typeCheckModule("""
-      \\data D (X : \\Set) (p : \\Pi (X : \\Set) (x y : X) -> x = y)
+      \\data D (X : \\Set0) (p : \\Pi (X : \\Set0) (x y : X) -> x = y)
         | con1 X
         | con2 (D X p)
         \\where
-          \\use \\level levelProp {X : \\Set} {p : \\Pi (X : \\Set) (x y : X) -> x = y} (d d' : D X p) : d = d'
+          \\use \\level levelProp {X : \\Set0} {p : \\Pi (X : \\Set0) (x y : X) -> x = y} (d d' : D X p) : d = d'
             => p (D X p) d d'
-      \\func test {X : \\Set} {p : \\Pi (X : \\Set) (x y : X) -> x = y} (d : D X p) : Nat \\elim d
+      \\func test {X : \\Set0} {p : \\Pi (X : \\Set0) (x y : X) -> x = y} (d : D X p) : Nat \\elim d
         | con1 _ => 0
         | con2 _ => 0
       """, 1);

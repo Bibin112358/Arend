@@ -1,6 +1,5 @@
 \import Function.Meta
 \import Logic
-\import Logic.Classical
 \import Logic.FirstOrder.Algebraic
 \import Logic.FirstOrder.Term
 \import Logic.Meta
@@ -25,7 +24,7 @@
 
     \func qinj-surj {V : T -> \Set} {s : T} (q : QTerm V s) : ∃ (t : Term V s) (qinj t = q) \elim q
       | qinj t => inP (t, idp)
-      | qapply f d => TruncP.map (choice (\lam j => qinj-surj (d j)))
+      | qapply f d => TruncP.map (FinSet.choice (\lam j => qinj-surj (d j)))
         \lam g => (apply f (\lam j => (g j).1), path (qmerge _) *> pmap (\lam x => qapply f (\new DArray (\lam j => QTerm V (domain f j)) x)) (ext \lam j => (g j).2))
 
     \lemma qinj-equality {V : T -> \Set} {s : T} {t t' : Term V s} : (qinj t = qinj t') <-> isTheorem nil (equality t t')
@@ -62,7 +61,7 @@
 \instance FreeModel {T : Theory} (X : T -> \Set) : Model T
   | Structure => FreeStructure X
   | isModel S ax rho phiT =>
-    \let | (inP (tau',p)) => Choice.liftDepSurj {S.2} (\lam {v} => FreeStructure.qinj-surj {_} {X} {v.1}) (\lam v => rho v.2)
+    \let | (inP (tau',p)) => S.2.liftDepSurj (\lam {v} => FreeStructure.qinj-surj {_} {X} {v.1}) (\lam v => rho v.2)
          | tau {s'} v => tau' (s',v)
          | eq : \Pi (phi : Formula {T} S.1) -> Structure.isFormulaTrue rho phi <-> T.isTheorem nil (substF phi tau)
          => rewrite (path (\lam i {s'} v => inv (p (s',v)) i)) (FreeStructure.interpretF=substF tau)

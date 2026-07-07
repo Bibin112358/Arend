@@ -255,7 +255,7 @@ public class TypeClassesGlobalTest extends TypeCheckingTestCase {
       \\class A (C : \\Type) { | c : C }
       \\data D | con \\Set0
       \\instance a : A \\1-Type1 | c => D
-      \\func f : \\1-Type => c
+      \\func f : \\1-Type1 => c
       """);
   }
 

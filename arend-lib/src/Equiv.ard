@@ -77,7 +77,7 @@
   \func adjointInv {a : A} {b : B} (p : a = ret b) : f a = b
     => pmap f p *> f_ret b
 } \where {
-    \sfunc fromInjSurj {A B : \SET} {f : A -> B} (inj : IsInj f) (surj : IsSurj f) : QEquiv f
+    \sfunc fromInjSurj {A B : \Set} {f : A -> B} (inj : IsInj f) (surj : IsSurj f) : QEquiv f
       => \have s b => TruncP.remove (\lam t t' => ext $ inj $ t.2 *> inv t'.2) (surj b)
          \in \new QEquiv {
            | ret b => (s b).1
@@ -85,7 +85,7 @@
            | f_sec b => (s b).2
          }
 
-    \lemma equals {A B : \SET} {e e' : QEquiv {A} {B}} (p : \Pi (a : A) -> e a = e' a) : e = e'
+    \lemma equals {A B : \Set} {e e' : QEquiv {A} {B}} (p : \Pi (a : A) -> e a = e' a) : e = e'
       => exts (p, \lam b => e.isInj $ e.f_ret b *> inv (p _ *> e'.f_ret b))
 
     \func leftFactor {A B C : \Sort} {f : A -> B} {g : B -> C} (e2 : Section g) (e3 : QEquiv (g `o` f)) : QEquiv f \cowith
@@ -154,10 +154,10 @@
         | f_sec b => (emb.surj-split surj b).2
       }
 
-    \lemma fromInjSurj {A B : \SET} {f : A -> B} (inj : IsInj f) (surj : IsSurj f) : IsEquiv f
+    \lemma fromInjSurj {A B : \Set} {f : A -> B} (inj : IsInj f) (surj : IsSurj f) : IsEquiv f
       => inP (QEquiv.fromInjSurj inj surj)
 
-    \lemma fromInjInv {A B : \SET} {f : A -> B} (g : B -> A) (inj : IsInj g) (surj : \Pi (a : A) -> g (f a) = a) : IsEquiv f
+    \lemma fromInjInv {A B : \Set} {f : A -> B} (g : B -> A) (inj : IsInj g) (surj : \Pi (a : A) -> g (f a) = a) : IsEquiv f
       => inP \new QEquiv {
         | ret => g
         | ret_f => surj

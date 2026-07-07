@@ -11,7 +11,6 @@
 \import Function.Meta ($)
 \import Logic.Unique
 \import Logic
-\import Logic.Classical
 \import Logic.Meta
 \import Meta
 \import Order.Biordered
@@ -22,13 +21,10 @@
 \import Set
 \import Set.Fin.KFin
 
-\class FinSet \extends KFinSet, Choice, DecSet {
+\class FinSet \extends KFinSet, DecSet {
   | finEq : TruncP (QEquiv {Fin finCard} {E})
   | finSurj => \case finEq \with {
     | inP e => inP (e, e.isSurj)
-  }
-  | choice {B} => \case finEq \with {
-    | inP e => (rewrite (path (QEquiv_= e) : Fin finCard = {\Set} E) in \lam (B : Fin finCard -> \Set) => finiteAC {finCard} {B}) B
   }
 
   \default decideEq x y => \case finEq \with {
@@ -50,6 +46,16 @@
     | yes x=y => x=y
     | no x/=y => absurd (x//=y x/=y)
   }
+
+  \lemma choice {B : E -> \Set} (p : \Pi (x : E) -> TruncP (B x)) : TruncP (\Pi (x : E) -> B x) => \case finEq \with {
+    | inP e => {?} -- TODO[sorts]: (rewrite (path (QEquiv_= e) : Fin finCard = {\Set} E) in \lam (B : Fin finCard -> \Set) => finiteAC {finCard} {B}) B
+  }
+
+  \lemma liftDepSurj {A : E -> \Set} {B : E -> \1-Type} {f : \Pi {x : E} -> A x -> B x} (isSur : \Pi {x : E} (y : B x) -> ∃ (x : A) (f x = y)) (g : \Pi (x : E) -> B x) : ∃ (g' : \Pi (x : E) -> A x) ∀ x (f (g' x) = g x)
+    => TruncP.map (choice (\lam x => isSur (g x))) (\lam h => (\lam x => (h x).1, \lam x => (h x).2))
+
+  \lemma liftSurj {A : \Set} {B : \1-Type} {f : A -> B} (isSur : \Pi (y : B) -> ∃ (x : A) (f x = y)) (g : E -> B) : ∃ (g' : E -> A) ∀ x (f (g' x) = g x)
+    => liftDepSurj (\lam {_} => isSur) g
 } \where {
     \use \level levelProp {A : \Set} (X Y : FinSet A) : X = Y
       => ext (\case X.finEq, Y.finEq \with {

@@ -8,7 +8,6 @@
 \import Equiv
 \import Function.Meta
 \import Logic
-\import Logic.Classical
 \import Logic.FirstOrder.Algebraic
 \import Logic.FirstOrder.Algebraic.FreeModel
 \import Logic.FirstOrder.Term
@@ -180,7 +179,7 @@
       \func Colimit : Model T \cowith
         | Structure => ColimitStr
         | isModel S ax => \lam rho phiT =>
-            \let | (inP (tau',p)) => Choice.liftDepSurj {S.2} (\lam {v} => qinj-surj {_} {\lam _ => Empty} {v.1}) (\lam v => rho v.2)
+            \let | (inP (tau',p)) => S.2.liftDepSurj (\lam {v} => qinj-surj {_} {\lam _ => Empty} {v.1}) (\lam v => rho v.2)
                  | tau {s'} v => tau' (s',v)
                  | eq : \Pi (phi : Formula {T} S.1) -> isFormulaTrue rho phi <-> isTheorem nil (substF (liftFormula phi) tau)
                       => rewrite (path (\lam i {s'} v => inv (p (s',v)) i)) (substInterpF tau)

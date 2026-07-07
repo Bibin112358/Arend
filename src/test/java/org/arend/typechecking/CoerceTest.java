@@ -369,9 +369,10 @@ public class CoerceTest extends TypeCheckingTestCase {
   public void coerceOverriddenField() {
     typeCheckModule(
       """
-        \\record R (\\coerce f : \\Type)
+        \\record R (\\coerce f : \\Sort)
         \\record S \\extends R {
-          \\override f : \\Set}
+          \\override f : \\Set
+        }
         \\func test (s : S) : \\Set => s
         """);
   }

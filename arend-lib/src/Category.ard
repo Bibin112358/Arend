@@ -8,7 +8,7 @@
 \import Set
 
 \class Precat (Ob : \Sort) {
-  | Hom : Ob -> Ob -> \SET
+  | Hom : Ob -> Ob -> \Set
   | id (X : Ob) : Hom X X
   | \fixl 8 o \alias \infixl 8 ∘ {X Y Z : Ob} : Hom Y Z -> Hom X Y -> Hom X Z
   | id-left {X Y : Ob} {f : Hom X Y} : id Y ∘ f = f
