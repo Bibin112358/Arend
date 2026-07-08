@@ -473,4 +473,24 @@ public class SortTest extends TypeCheckingTestCase {
     assertEquals(new UniverseExpression(Sort.SET0), ((CaseExpression) ((LamExpression) Objects.requireNonNull(classCall.getAbsImplementationHere((ClassField) getDefinition("R.f")))).getBody()).getResultType());
     assertEquals(0, classCall.getLevels().size());
   }
+
+  @Test
+  public void skipImplementedTest() {
+    typeCheckModule("""
+      \\record T (A : \\Sort)
+      \\record R (t : T) (B : \\Sort)
+      \\func test => R.{0} (\\new T Nat)
+      """);
+  }
+
+  @Test
+  public void doubleFieldTest() {
+    typeCheckModule("""
+      \\record R (A : \\Set)
+      \\record S (r : R)
+      \\func K (s : S) : \\Set => s.r.A
+      \\func foo (X : \\Set) => X
+      \\func test (s : S) => foo (K s)
+      """);
+  }
 }

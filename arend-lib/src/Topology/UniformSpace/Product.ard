@@ -17,8 +17,8 @@
 \open Set
 \open UniformMap
 
-\instance RegularPreuniformSpaceHasProduct : HasProduct RegularPreuniformSpace
-  | Operations.HasProduct.Product => ProductRegularPreuniformSpace
+\instance RegularPreuniformSpaceHasProduct.{u} : HasProduct RegularPreuniformSpace.{u}
+  | Product X Y => ProductRegularPreuniformSpace X Y
 
 \instance ProductRegularPreuniformSpace (X Y : RegularPreuniformSpace) : RegularPreuniformSpace (\Sigma X Y)
   | CoverSpace => ProductCoverSpace X Y
@@ -43,8 +43,8 @@
       | inP (W,CW,q) => inP (W, CW, inP (_, inP (_, <=*-char.1 q1, _, <=*-char.1 q2, Refines-refl), \lam {s} (inP (_,(inP (U',h1,V',h2,idp), ((x,y),((U1x,U2y),(U'x,V'y)))), (U's,V's))) => q (h1 (x, (rewrite p1 in U1x, U'x)) U's, h2 (y, (rewrite p2 in U2y, V'y)) V's)))
     }
 
-\instance UniformSpaceHasProduct : HasProduct UniformSpace
-  | Operations.HasProduct.Product => ProductUniformSpace
+\instance UniformSpaceHasProduct.{u} : HasProduct UniformSpace.{u}
+  | Product X Y => ProductUniformSpace X Y
 
 \instance ProductUniformSpace (X Y : UniformSpace) : UniformSpace (\Sigma X Y)
   | RegularPreuniformSpace => ProductRegularPreuniformSpace X Y
@@ -61,15 +61,15 @@
         | inP (W,EW,W'<=W) => inP (W, (EW, inP ((x,y), W'<=W $ rewrite p (Ux,Vy))), W'<=W)
       })
 
-    \func proj1 {X Y : UniformSpace} : UniformMap (X ⨯ Y) X \cowith
+    \func proj1 {X Y : UniformSpace} : UniformMap (ProductUniformSpace X Y) X \cowith
       | func s => s.1
       | func-uniform {D} Du => inP (D, Du, single top, uniform-top, \lam {_} (inP (U,DU,V,_,idp)) => inP (_, inP (U, DU, idp), __.1))
 
-    \func proj2 {X Y : UniformSpace} : UniformMap (X ⨯ Y) Y \cowith
+    \func proj2 {X Y : UniformSpace} : UniformMap (ProductUniformSpace X Y) Y \cowith
       | func s => s.2
       | func-uniform {D} Du => inP (single top, uniform-top, D, Du, \lam {_} (inP (U,_,V,DV,idp)) => inP (_, inP (V, DV, idp), __.2))
 
-    \func tuple {X Y Z : UniformSpace} (f : UniformMap Z X) (g : UniformMap Z Y) : UniformMap Z (X ⨯ Y) \cowith
+    \func tuple {X Y Z : UniformSpace} (f : UniformMap Z X) (g : UniformMap Z Y) : UniformMap Z (ProductUniformSpace X Y) \cowith
       | func z => (f z, g z)
       | func-uniform => \case \elim __ \with {
         | inP (C,Cu,D,Du,r) => uniform-refine (uniform-inter (f.func-uniform Cu) (g.func-uniform Du)) \lam {_} (inP (_, inP (U,CU,idp), _, inP (V,DV,idp), idp)) => \case r $ inP (U,CU,V,DV,idp) \with {
@@ -77,11 +77,11 @@
         }
       }
 
-    \func prod {X X' Y Y' : UniformSpace} (f : UniformMap X Y) (f' : UniformMap X' Y') : UniformMap (X ⨯ X') (Y ⨯ Y')
+    \func prod {X X' Y Y' : UniformSpace} (f : UniformMap X Y) (f' : UniformMap X' Y') : UniformMap (ProductUniformSpace X X') (ProductUniformSpace Y Y')
       => tuple (f ∘ proj1) (f' ∘ proj2)
 
     \lemma prodCover {X Y : UniformSpace} {C : Set (Set X)} (Cu : X.isUniform C) {D : Set (Set Y)} (Du : Y.isUniform D)
-      : isUniform {X ⨯ Y} \lam W => ∃ (U : C) (V : D) (W = \lam s => \Sigma (U s.1) (V s.2))
-      => uniform-subset {X ⨯ Y} (uniform-inter {X ⨯ Y} (proj1.func-uniform Cu) (proj2.func-uniform Du))
+      : isUniform {ProductUniformSpace X Y} \lam W => ∃ (U : C) (V : D) (W = \lam s => \Sigma (U s.1) (V s.2))
+      => uniform-subset {ProductUniformSpace X Y} (uniform-inter {ProductUniformSpace X Y} (proj1.func-uniform Cu) (proj2.func-uniform Du))
           \lam {_} (inP (_, inP (U,CU,idp), _, inP (V,DV,idp), idp)) => inP $ later (U, CU, V, DV, idp)
   }

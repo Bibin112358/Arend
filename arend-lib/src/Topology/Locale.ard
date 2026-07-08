@@ -33,7 +33,7 @@
 \open Locale
 \open CompleteLattice
 
-\class Locale \extends CompleteLattice, HeytingAlebra, Site.{\lp,\lp} {
+\class Locale \extends CompleteLattice, HeytingAlebra, Site {
   | join x y => Join \lam z => (z = x) || (z = y)
   | join-left => Join-cond (byLeft idp)
   | join-right => Join-cond (byRight idp)

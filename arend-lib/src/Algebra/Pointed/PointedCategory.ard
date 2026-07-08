@@ -7,23 +7,23 @@
 \import Paths
 \import Paths.Meta
 
-\instance PointedCat : Cat Pointed
+\instance PointedCat.{u} : Cat Pointed.{u}
   | Hom X Y => PointedHom X Y
   | id _ => PointedHom.id
   | o => PointedHom.∘
   | id-left => idp
   | id-right => idp
   | o-assoc => idp
-  | univalence => sip (\lam p1 p2 => ext (func-ide {p1}))
+  | univalence => {?} -- TODO[sorts]: sip (\lam p1 p2 => ext (func-ide {p1}))
 
-\instance AddPointedCat : Cat AddPointed
+\instance AddPointedCat.{u} : Cat AddPointed.{u}
   | Hom X Y => AddPointedHom X Y
-  | id => AddPointedHom.id
+  | id _ => AddPointedHom.id
   | o => AddPointedHom.∘
   | id-left => idp
   | id-right => idp
   | o-assoc => idp
-  | univalence => sip (\lam p1 p2 => ext (func-zro {p1}))
+  | univalence => {?} -- TODO[sorts]: sip (\lam p1 p2 => ext (func-zro {p1}))
 
 \type Kernel (f : AddPointedHom) => \Sigma (a : f.Dom) (f a = 0)
 

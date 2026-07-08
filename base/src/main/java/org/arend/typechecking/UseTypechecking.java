@@ -252,14 +252,13 @@ public class UseTypechecking {
   private static void registerParametersLevel(FunctionDefinition useDefinition, Definition useParent, ParametersLevel parametersLevel) {
     if (useParent instanceof DataDefinition dataDef) {
       if (parametersLevel.parameters == null) {
-        Sort dataSort = dataDef.getSortExpression().withInfLevel();
-        Sort newSort = parametersLevel.level.equals(ConstLevel.PROP.value()) ? Sort.PROP : new Sort(dataSort.getPLevel(), new ConstLevel(parametersLevel.level));
-        if (!dataSort.isLessOrEquals(newSort)) {
-          if (!(parametersLevel.level.equals(ConstLevel.PROP.value()) && dataSort.isSet() && dataDef.getRecursiveDefinitions().isEmpty())) {
+        BigInteger dataHLevel = dataDef.getSortExpression().getSortHLevel();
+        if (dataHLevel == null || dataHLevel.compareTo(parametersLevel.level) > 0) {
+          if (!(parametersLevel.level.equals(ConstLevel.PROP.value()) && BigInteger.ZERO.equals(dataHLevel) && dataDef.getRecursiveDefinitions().isEmpty())) {
             dataDef.setSquashed(true);
           }
           dataDef.setSquasher(useDefinition);
-          dataDef.setSort(newSort);
+          dataDef.setSortExpression(parametersLevel.level.equals(ConstLevel.PROP.value()) ? new SortExpression.Const(Sort.PROP) : SortExpression.makeTrunc(dataDef.getSortExpression(), parametersLevel.level));
         }
       } else {
         dataDef.addParametersLevel(parametersLevel);

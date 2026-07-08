@@ -397,7 +397,7 @@
     \use \coerce fromCGroup (G : CGroup) => \new AbGroup G.E G.ide (G.*) G.ide-left G.ide-right G.*-assoc G.inverse G.inverse-left G.*-comm
     \use \coerce toCGroup (G : AbGroup) => \new CGroup G.E G.zro (G.+) G.+-assoc G.zro-left G.zro-right G.negative G.negative-left G.+-comm
 
-    \func equals (A B : AbGroup) (p : A = {AddGroup} B) : A = B
+    \func equals.{u} (A B : AbGroup.{u}) (p : A = {AddGroup.{u}} B) : A = {AbGroup.{u}} B
       => path (\lam i => \new AbGroup {
         | AddGroup => p @ i
         | +-comm => prop-dpi (\Pi {x y : p @ __} -> x + y = y + x) A.+-comm B.+-comm @ i

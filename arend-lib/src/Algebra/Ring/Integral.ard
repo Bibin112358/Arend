@@ -23,7 +23,6 @@
 \import Algebra.Ring.Sub
 \import Algebra.Semiring
 \import Arith.Nat
-\import Category
 \import Category.Functor
 \import Data.Array
 \import Equiv
@@ -34,12 +33,14 @@
 \import Logic.TFAE
 \import Meta
 \import Order.Lattice
+\import Order.PartialOrder
 \import Paths
 \import Paths.Meta
 \import Relation.Equivalence
 \import Set.SetCategory
 \import Set.Fin
 \open Monoid
+\open RingHom (id, ∘)
 
 \func polyImage {R : Ring} {E : CRing} (f : RingHom R E) (a : E) : SubRing E
   => ringHomImage (polyMapEvalRingHom f a)
@@ -155,11 +156,11 @@
 \lemma integralExt-surj (f : RingHom) (s : IsSurj f) : isIntegralExt f
   => \lam a => TruncP.map (s a) \lam (b,fb=a) => (padd 1 (negative b), inP (1, idp, idp), rewrite (f.func-ide,f.func-negative,fb=a) simplify)
 
-\lemma integralExt_id {R : Ring} : isIntegralExt (id R)
+\lemma integralExt_id {R : Ring} : isIntegralExt (id {R})
   => integralExt-surj _ \lam a => inP (a,idp)
 
 \lemma integral_image (f : RingHom) (a : f.Dom) : isIntegral f (f a)
-  => integral_image-comp {_} {_} {_} {id f.Dom} f {a} $ integralExt-surj (id f.Dom) (\lam y => inP (y, idp)) a
+  => integral_image-comp f $ integralExt-surj id (\lam y => inP (y, idp)) a
 
 \lemma poly-integralExt {R : CRing} {I : Ideal (PolyAlgebra R)} {p : Poly R} (pm : isMonic p) (Ip : I p) : isIntegralExt (factorHom {I} ∘ polyHom)
   => integralExt-finite-char {R} {FactorRing I} (in~ (padd 1 0) :: nil) (RingHom.isAlgebraGenerated-poly $ later \lam (in~ q) => inP (q, factorHom_polyMapEval)) 1 0
@@ -169,7 +170,7 @@
   => \let | g => factorHom {Ideal.closure1 p} ∘ polyHom
           | fgi => integralExt-comp f g fi $ poly-integralExt pm (Ideal.closure1_LDiv.2 $ inP LDiv.id-div)
      \in \case fgi (in~ (padd 1 0)) \with {
-       | inP (q,qm,r) => TruncP.map (Ideal.closure1_LDiv.1 (FactorRing.unfequiv0 {Ideal.closure1 p} $ inv factorHom_polyMapEval *> pmap (polyEval __ _) (later $ polyMap-comp _ _) *> r)) \lam d => (q,qm,d)
+       | inP (q,qm,r) => {?} -- TODO[sorts]: TruncP.map (Ideal.closure1_LDiv.1 (FactorRing.unfequiv0 {Ideal.closure1 p} $ inv factorHom_polyMapEval *> pmap (polyEval __ _) (later $ polyMap-comp _ _) *> r)) \lam d => (q,qm,d)
      }
 
 \lemma integralExt-left {R S E : Ring} (f : RingHom R S) (g : RingHom S E) (inj : IsInj g) (int : isIntegralExt (g ∘ f)) : isIntegralExt f
@@ -207,7 +208,7 @@
              | S' => SubRing.cStruct SR
              | f' : RingHom R S' => SR.corestrict f \lam y => inP (msMonomial y ide, simplify)
              | fi' : isIntegralExt f' => integralExt-left f' SR.embed (\lam q => ext q) fi
-             | g' : RingHom S' T => g ∘ {_} {S'} SR.embed
+             | g' : RingHom S' T => g ∘ {S'} SR.embed
              | l' => \new Array S' d' (\lam j => (polyCoef p j, mPolyImage-element f (\new Array S d' (\lam j => polyCoef p j)) j))
         \in module-integral (g' ∘ f') a (polyImage g' a) (\lam y => polyImage-ext (g ∘ SR.embed) a (f y, inP (msMonomial y ide, simplify))) (LModule.generated-comp f' (polyImageHom g' a) (integralExt-generated f' {l'} (\lam j => fi' (l' j))
             (\lam x => TruncP.map x.2 \lam t => (t.1, ext $ inv t.2 *> unfold (unfold $ unfold $ pmap2 evalMS (later $ cases t.1 \with {
@@ -265,7 +266,7 @@
     | inP (d,q=pd) => rewrite (q=pd, (polyMapEvalRingHom f a).func-*) equation
   }
 
-\lemma integralExt-directColimit.{s,p} {J : BottomJoinSemilattice.{s}} (F : Functor J RingCat.{p}) (p : \Pi {j j' : J} (f : Hom j j') -> isIntegralExt (F.Func f)) (j : J) : isIntegralExt (RingLatticeColimit.inMap j)
+\lemma integralExt-directColimit.{s,p} {J : BottomJoinSemilattice.{s}} (F : Functor J RingCat.{p}) (p : \Pi {j j' : J} (f : j <= j') -> isIntegralExt (F.Func f)) (j : J) : isIntegralExt (RingLatticeColimit.inMap j)
   => \lam (in~ (j',a)) =>
       \let b => F.Func (join-right {_} {j}) a
       \in rewrite (SetColimit.~-cequiv {_} {Comp RingCat.forget F} {j', a} {j ∨ j', b} join-right idp) $

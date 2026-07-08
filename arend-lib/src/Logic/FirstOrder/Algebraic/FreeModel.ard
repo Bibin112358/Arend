@@ -7,7 +7,7 @@
 \import Paths.Meta
 \import Set.Fin
 
-\instance FreeStructure.{u} {T : Theory} (X : T -> \Set u) : Structure T \cowith
+\instance FreeStructure.{u} {T : Theory.{u,u,u}} (X : T -> \Set u) : Structure T \cowith
   | E => QTerm X
   | operation h args => qapply h args
   | relation P args => ∃ (args' : DArray (\lam i => Term X (predDomain P i)))
@@ -16,49 +16,49 @@
   \where {
     \open Theory
 
-    \truncated \data QTerm.{u} (V : T -> \Set u) (s : T) : \Set
+    \truncated \data QTerm.{u} {T : Theory.{u,u,u}} (V : T -> \Set u) (s : T) : \Set
       | qinj (Term V s)
       | qapply (f : Symb s) (DArray (\lam j => QTerm V (domain f j)))
       | qquot {t t' : Term V s} (isTheorem nil (equality t t')) : qinj t = qinj t'
       | qmerge {f : Symb s} (ds : DArray (\lam j => Term V (domain f j))) : qinj (apply f ds) = qapply f (\new DArray { | at j => qinj (ds j) })
 
-    \func qinj-surj.{u} {V : T -> \Set u} {s : T} (q : QTerm V s) : ∃ (t : Term V s) (qinj t = q) \elim q
+    \func qinj-surj.{u} {T : Theory.{u,u,u}} {V : T -> \Set u} {s : T} (q : QTerm V s) : ∃ (t : Term V s) (qinj t = q) \elim q
       | qinj t => inP (t, idp)
       | qapply f d => TruncP.map (FinSet.choice (\lam j => qinj-surj (d j)))
         \lam g => (apply f (\lam j => (g j).1), path (qmerge _) *> pmap (\lam x => qapply f (\new DArray (\lam j => QTerm V (domain f j)) x)) (ext \lam j => (g j).2))
 
-    \lemma qinj-equality.{u} {V : T -> \Set u} {s : T} {t t' : Term V s} : (qinj t = qinj t') <-> isTheorem nil (equality t t')
+    \lemma qinj-equality.{u} {T : Theory.{u,u,u}} {V : T -> \Set u} {s : T} {t t' : Term V s} : (qinj t = qinj t') <-> isTheorem nil (equality t t')
       => (transport (code t) __ (refl idp), \lam p => path (qquot p))
       \where {
-        \func code.{u} {V : T -> \Set u} {s : T} (t : Term V s) (q : QTerm V s) : \Prop \elim q
+        \func code.{u} {T : Theory.{u,u,u}} {V : T -> \Set u} {s : T} (t : Term V s) (q : QTerm V s) : \Prop \elim q
           | qinj t' => isTheorem nil (equality t t')
           | qapply f d => \Pi (d' : DArray (\lam j => Term V (domain f j))) -> (\Pi (j : Fin (DArray.len {domain f})) -> code (d' j) (d j)) -> isTheorem nil (equality t (apply f d'))
           | qquot {t1} {t2} p => ext (transitivity __ p, transitivity __ (symmetry p))
           | qmerge {f} ds => ext (\lam t~fds ds' ds'~ds => transitivity t~fds (symmetry (congruence ds'~ds)), \lam g => g ds (\lam j => refl idp))
       }
 
-    \lemma interpret=subst.{u} {X V : T -> \Set u} {rho : \Pi {s : T} -> V s -> Term X s} {s : T} (t : Term V s)
+    \lemma interpret=subst.{u} {T : Theory.{u,u,u}} {X V : T -> \Set u} {rho : \Pi {s : T} -> V s -> Term X s} {s : T} (t : Term V s)
       : (FreeStructure X).interpret (\lam v => qinj (rho v)) t = qinj (subst t rho) \elim t
       | var v => idp
       | apply f d => pmap (qapply f) (exts \lam j => interpret=subst (d j)) *> inv (path (qmerge _))
 
-    \lemma interpretF=substF.{u} {X V : T -> \Set u} (rho : \Pi {s : T} -> V s -> Term X s) (phi : Formula V)
+    \lemma interpretF=substF.{u} {T : Theory.{u,u,u}} {X V : T -> \Set u} (rho : \Pi {s : T} -> V s -> Term X s) (phi : Formula V)
       : (FreeStructure X).isFormulaTrue (\lam v => qinj (rho v)) phi <-> isTheorem nil (substF phi (\lam v => rho v)) \elim phi
       | equality t t' => <->trans (<->_=.2 $ pmap2 (=) (interpret=subst t) (interpret=subst t')) qinj-equality
       | predicate P d => (\lam (inP (d',q,e)) => congruenceF (\lam j => qinj-equality.1 (e j *> interpret=subst (d j))) q,
                           \lam q => inP (\new DArray { | at j => subst (d j) (\lam {s} => rho) }, q, \lam i => inv (interpret=subst (d i))))
 
-    \func qinterpret.{u} {M : Model T} {V : T -> \Set u} (rho : \Pi {s : T} -> V s -> M s) {s : T} (t : QTerm V s) : M s \elim t
+    \func qinterpret.{u} {T : Theory.{u,u,u}} {M : Model T} {V : T -> \Set u} (rho : \Pi {s : T} -> V s -> M s) {s : T} (t : QTerm V s) : M s \elim t
       | qinj t => M.interpret rho t
       | qapply f d => operation f (\lam j => qinterpret rho (d j))
       | qquot p => M.theoremIsTrue p rho (\case __)
       | qmerge {f} ds _ => operation f (\new DArray _ (\lam j => M.interpret rho (ds j)))
 
-    \func qinterpret0 {M : Model T} {s : T} (t : QTerm (\lam _ => Empty) s) : M s
+    \func qinterpret0.{u} {T : Theory.{u,u,u}} {M : Model T} {s : T} (t : QTerm (\lam _ => Empty) s) : M s
       => qinterpret (\lam {_} => absurd) t
   }
 
-\instance FreeModel.{u} {T : Theory} (X : T -> \Set u) : Model T
+\instance FreeModel.{u} {T : Theory.{u,u,u}} (X : T -> \Set u) : Model T
   | Structure => FreeStructure X
   | isModel S ax rho phiT =>
     \let | (inP (tau',p)) => S.2.liftDepSurj (\lam {v} => FreeStructure.qinj-surj {_} {X} {v.1}) (\lam v => rho v.2)

@@ -1635,6 +1635,11 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   }
 
   private TypecheckingResult typecheckImplementation(ClassField field, Concrete.Expression implBody, ClassCallExpression fieldSetClass, ClassCallExpression originalClassCall, boolean addImplicitLambdas) {
+    // `fieldSetClass`'s own levels no longer carry an override for `field` once it's about to be
+    // implemented here (see stripImplementedOverrides), so the pre-implementation override --
+    // used as `field`'s expected type while checking its implementation -- is read from the
+    // original, unstripped class call instead (which has no implementations of its own, so its
+    // exclusion set is consistently empty, matching how its levels were built).
     Expression type = fieldSetClass.getDefinition().getFieldType(field, fieldSetClass.getLevels(), new ReferenceExpression(fieldSetClass.getThisBinding()));
     Level fieldOverrideLevel = originalClassCall.getFieldLevelOverride(field);
     if (fieldOverrideLevel != null) {

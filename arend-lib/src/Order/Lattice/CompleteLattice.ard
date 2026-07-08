@@ -8,7 +8,7 @@
 \import Paths
 \import Paths.Meta
 
-\class CompleteLattice \extends BoundedLattice, CompleteCat.{\lp,\lp} {
+\class CompleteLattice \extends BoundedLattice, CompleteCat {
   | Join : (E -> \Prop) -> E
   | Join-cond {C : E -> \Prop} {x : E} : C x -> x <= Join C
   | Join-univ {C : E -> \Prop} {e : E} : ∀ {w : C} (w <= e) -> Join C <= e

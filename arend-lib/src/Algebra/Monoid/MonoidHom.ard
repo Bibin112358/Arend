@@ -46,12 +46,12 @@
   \func equals {M N : Monoid} {f g : MonoidHom M N} (p : \Pi (x : M) -> f x = g x) : f = g
     => exts p
 
-  \func id {M : Monoid} : MonoidHom M M \cowith
+  \protected \func id {M : Monoid} : MonoidHom M M \cowith
     | func x => x
     | func-ide => idp
     | func-* => idp
 
-  \func \fixl 8 compose \alias \infixl 8 ∘ {M N K : Monoid} (g : MonoidHom N K) (f : MonoidHom M N) : MonoidHom M K \cowith
+  \protected \func \fixl 8 compose \alias \infixl 8 ∘ {M N K : Monoid} (g : MonoidHom N K) (f : MonoidHom M N) : MonoidHom M K \cowith
     | func x => g (f x)
     | func-ide => pmap g f.func-ide *> g.func-ide
     | func-* => pmap g f.func-* *> g.func-*
@@ -79,10 +79,15 @@
     | func-* => func-+
     | func-ide => func-zro
 
-  \func id {M : AddMonoid} : AddMonoidHom M M \cowith
+  \protected \func id {M : AddMonoid} : AddMonoidHom M M \cowith
     | func x => x
     | func-zro => idp
     | func-+ => idp
+
+  \protected \func \fixl 8 compose \alias \infixl 8 ∘ {A B C : AddMonoid} (g : AddMonoidHom B C) (f : AddMonoidHom A B) : AddMonoidHom A C \cowith
+    | func x => g (f x)
+    | func-zro => pmap g func-zro *> func-zro
+    | func-+ => pmap g func-+ *> func-+
 
   \lemma func-FinSum {A B : AbMonoid} (f : AddMonoidHom A B) {J : FinSet} {a : J -> A} : f (A.FinSum a) = B.FinSum (\lam j => f (a j))
     => \case A.FinSum_char a \with {

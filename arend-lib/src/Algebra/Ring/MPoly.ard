@@ -3,7 +3,6 @@
 \import Algebra.Meta
 \import Algebra.Module
 \import Algebra.Monoid
-\import Algebra.Monoid.MonoidCategory
 \import Algebra.Monoid.MonoidHom
 \import Algebra.Monoid.PermSet
 \import Algebra.Pointed
@@ -45,7 +44,7 @@
   => monoidSet-map (\lam x => x) f p
 
 \lemma mPoly-map-comp {J : \Set} {R E S : CRing} {f : AddMonoidHom R E} {g : AddMonoidHom E S} {p : MPoly J R}
-  : mPoly-map (g AddMonoidCat.∘ f) p = mPoly-map g (mPoly-map f p) \elim p
+  : mPoly-map (g AddMonoidHom.∘ f) p = mPoly-map g (mPoly-map f p) \elim p
   | in~ l => idp
 
 \func mPoly-mapHom {J : \Set} {R S : CRing} (f : RingHom R S) : RingHom (MPoly J R) (MPoly J S) (mPoly-map f)

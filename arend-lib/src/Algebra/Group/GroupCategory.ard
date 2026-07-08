@@ -29,7 +29,7 @@
   | id-left => idp
   | id-right => idp
   | o-assoc => idp
-  | univalence => sip \lam f _ => exts (f.func-ide, \lam _ _ => f.func-*, \lam _ => f.func-inverse)
+  | univalence => {?} -- TODO[sorts]: sip \lam f _ => exts (f.func-ide, \lam _ _ => f.func-*, \lam _ => f.func-inverse)
   \where {
     \func ForgetSet : FaithfulFunctor GroupCat SetCat \cowith
       | F G => G
@@ -132,7 +132,7 @@
   | id-left => idp
   | id-right => idp
   | o-assoc => idp
-  | univalence => sip \lam {X} {A} {B} p1 p2 => exts (p1.func-zro, \lam _ _ => p1.func-+, AddGroup.negative-equality A B p1.func-zro p1.func-+)
+  | univalence => {?} -- TODO[sorts]: sip \lam {X} {A} {B} p1 p2 => exts (p1.func-zro, \lam _ _ => p1.func-+, AddGroup.negative-equality A B p1.func-zro p1.func-+)
   \where {
     \func forgetToAddMonoid : Functor AddGroupCat AddMonoidCat \cowith
       | F A => A
@@ -147,8 +147,8 @@
       | Func-o => idp
   }
 
-\instance AbGroupCat.{s} : Cat AbGroup.{s}
-  => subCat \new Embedding {AbGroup} {AddGroup} {
+\instance AbGroupCat.{u} : Cat AbGroup.{u}
+  => subCat \new Embedding {AbGroup.{u}} {AddGroup.{u}} {
     | f A => A
     | isEmb A B => \new Retraction {
       | sec => AbGroup.equals A B

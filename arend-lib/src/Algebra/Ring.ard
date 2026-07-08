@@ -179,7 +179,7 @@
   \func IsStrictBezout => \Pi (a b : E) -> ∃ (s t u v : E) (a * u = b * v) (s * u + t * v = 1)
 
   \lemma bezout_finitelyGenerated_principal : IsBezout <-> (\Pi {I : Ideal \this} -> I.IsFinitelyGenerated -> I.IsPrincipal)
-    => (\lam bez {I : Ideal} Ifg =>
+    => (\lam bez {I} Ifg =>
           \have | (inP s) => Ifg
                 | (inP t) => BezoutRing.bezoutArray_LDiv {\new BezoutRing { | CRing => \this | isBezout => bez }} s.1
           \in inP (BigSum (\lam j => t.1 j * s.1 j), (I.bigSum _ \lam j => ideal-left $ later (s.2.1 j), \lam {b} Ib =>

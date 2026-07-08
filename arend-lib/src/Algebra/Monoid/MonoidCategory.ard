@@ -134,7 +134,7 @@
       | ide-right {x} => M.isModel _ (inP (1,idp)) (\lam _ => x) (\case __)
       | *-assoc {x} {y} {z} => M.isModel _ (inP (2,idp)) (\lam {_} => x :: y :: z :: nil) (\case __)
       \where {
-        \func functor : Functor (ModelCat theory) MonoidCat modToMonoid \cowith
+        \func functor.{u} : Functor (ModelCat.{u} theory) MonoidCat.{u} (modToMonoid __) \cowith
           | Func f => \new MonoidHom {
             | func => f.funcs
             | func-ide => f.func-op 0 nil
@@ -156,8 +156,8 @@
         | _, inP (2,idp) => \lam rho _ => *-assoc
       }
       \where {
-        \func functor : Functor MonoidCat (ModelCat theory) monoidToMod \cowith
-          | Func (f : MonoidHom) => \new ModelHom {
+        \func functor.{u} : Functor MonoidCat.{u} (ModelCat.{u} theory) (monoidToMod __) \cowith
+          | Func f => \new ModelHom {
             | funcs => f
             | func-op => \case \elim __ \with {
               | 0 => \lam _ => f.func-ide
@@ -170,18 +170,14 @@
       }
   }
 
-\instance AddMonoidCat : Cat AddMonoid
+\instance AddMonoidCat.{u} : Cat AddMonoid.{u}
   | Hom M N => AddMonoidHom M N
   | id _ => AddMonoidHom.id
-  | o g f => \new AddMonoidHom {
-    | func x => g (f x)
-    | func-zro => pmap g func-zro *> func-zro
-    | func-+ => pmap g func-+ *> func-+
-  }
+  | o => AddMonoidHom.∘
   | id-left => idp
   | id-right => idp
   | o-assoc => idp
-  | univalence => sip \lam p1 p2 => exts (p1.func-zro, \lam _ _ => p1.func-+)
+  | univalence => {?} -- TODO[sorts]: sip \lam p1 p2 => exts (p1.func-zro, \lam _ _ => p1.func-+)
   \where {
     \func forget : Functor AddMonoidCat SetCat \cowith
       | F R => R

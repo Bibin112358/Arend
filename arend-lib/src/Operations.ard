@@ -1,19 +1,19 @@
 \import Data.Or
 
-\class HasProduct (E : \Type)
+\class HasProduct (E : \Sort)
   | Product \alias \infixl 7 ⨯ : E -> E -> E
 
-\instance TypeHasProduct : HasProduct \Type
+\instance TypeHasProduct.{u} : HasProduct (\Type u)
   | Product A B => \Sigma A B
 
-\instance SetHasProduct : HasProduct \Set
+\instance SetHasProduct.{u} : HasProduct (\Set u)
   | Product A B => \Sigma A B
 
-\class HasCoproduct (E : \Type)
+\class HasCoproduct (E : \Sort)
   | Coproduct \alias \infixl 6 ⨿ : E -> E -> E
 
-\instance TypeHasCoproduct : HasCoproduct \Type
+\instance TypeHasCoproduct.{u} : HasCoproduct (\Type u)
   | Coproduct A B => Or A B
 
-\instance SetHasCoproduct : HasCoproduct \Set
+\instance SetHasCoproduct.{u} : HasCoproduct (\Set u)
   | Coproduct A B => Or A B

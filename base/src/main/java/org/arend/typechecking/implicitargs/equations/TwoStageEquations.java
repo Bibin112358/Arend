@@ -230,8 +230,13 @@ public class TwoStageEquations implements Equations {
       Expression prev = myNotSolvableFromEquationsVars.putIfAbsent(inf1 != null ? inf1 : inf2, inf1 != null ? expr2 : expr1);
       if (prev != null) {
         Expression normalizedPrev = prev.normalize(NormalizationMode.WHNF);
-        if (normalizedPrev instanceof InferenceReferenceExpression infRefExpr && infRefExpr.getInferenceVariable().equals(inf1 != null ? inf1 : inf2)) {
-          myNotSolvableFromEquationsVars.put(inf1 != null ? inf1 : inf2, inf1 != null ? expr2 : expr1);
+        if (normalizedPrev instanceof InferenceReferenceExpression infRefExpr) {
+          if (infRefExpr.getInferenceVariable().equals(inf1 != null ? inf1 : inf2)) {
+            myNotSolvableFromEquationsVars.put(inf1 != null ? inf1 : inf2, inf1 != null ? expr2 : expr1);
+          } else {
+            myNotSolvableFromEquationsVars.put(inf1 != null ? inf1 : inf2, inf1 != null ? expr2 : expr1);
+            myNotSolvableFromEquationsVars.put(infRefExpr.getInferenceVariable(), inf1 != null ? expr2 : expr1);
+          }
         } else {
           return CompareVisitor.compare(this, CMP.EQ, prev, inf1 != null ? expr2 : expr1, type, sourceNode);
         }

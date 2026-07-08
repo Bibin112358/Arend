@@ -21,7 +21,7 @@
   \override Cod : AddPointed
   | func-zro : func zro = zro
 } \where {
-  \func id (X : AddPointed) : AddPointedHom X X \cowith
+  \func id {X : AddPointed} : AddPointedHom X X \cowith
     | func x => x
     | func-zro => idp
 
