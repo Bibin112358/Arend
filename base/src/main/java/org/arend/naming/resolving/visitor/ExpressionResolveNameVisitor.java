@@ -415,7 +415,14 @@ public class ExpressionResolveNameVisitor extends BaseConcreteExpressionVisitor<
 
   private Concrete.Expression visitArguments(Concrete.Expression function, List<Concrete.Argument> arguments) {
     for (Concrete.Argument argument : arguments) {
-      function = Concrete.AppExpression.make(function.getData(), function, argument.expression.accept(this, null), argument.isExplicit());
+      // Do not reuse a complete-value head's `data` for the synthetic application wrapper. A
+      // reference/field-call/application head is the natural source anchor and keeps its data, but a
+      // complete-value head -- e.g. the lambda produced for a `__` section fed to a meta such as `run`
+      // -- owns its own PSI, so a wrapper reusing it would collide with it in
+      // ArendBinOpUtils.exprToConcrete1, which relies on `data` identifying a unique PSI node.
+      Object data = function instanceof Concrete.ReferenceExpression || function instanceof Concrete.FieldCallExpression || function instanceof Concrete.AppExpression
+        ? function.getData() : null;
+      function = Concrete.AppExpression.make(data, function, argument.expression.accept(this, null), argument.isExplicit());
     }
     return function;
   }
