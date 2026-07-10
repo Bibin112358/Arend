@@ -164,6 +164,32 @@ tasks.withType<Test>().configureEach {
     }
 }
 
+// Keep the expensive whole-standard-library formatter stress test out of the normal suite; it runs
+// only through its own `formatterStressTest` task below (see ArendLibReformatStressTest).
+tasks.named<Test>("test") {
+    exclude("**/ArendLibReformatStressTest*")
+}
+
+// Dedicated task for the whole-standard-library formatter stress test, analogous to the root
+// project's `roundTripTest`. It clones the platform configuration of the default `test` task (test
+// framework classpath, sandbox JVM arguments and its task dependencies), then narrows it to the
+// stress test, builds arend-lib's StdExtension (loaded at runtime so metas resolve) and gives the
+// JVM enough heap to resolve+reformat all of arend-lib. Run with:
+//   ./gradlew :intellij:formatterStressTest
+tasks.register<Test>("formatterStressTest") {
+    val defaultTest = tasks.named<Test>("test").get()
+    group = "verification"
+    description = "Reformats every arend-lib source file to surface formatter exceptions"
+    testClassesDirs = defaultTest.testClassesDirs
+    classpath = defaultTest.classpath
+    jvmArgumentProviders.addAll(defaultTest.jvmArgumentProviders)
+    systemProperties(defaultTest.systemProperties)
+    dependsOn(defaultTest.dependsOn)
+    dependsOn(":arend-lib:meta:classes")
+    maxHeapSize = "6g"
+    filter { includeTestsMatching("org.arend.formatting.ArendLibReformatStressTest") }
+}
+
 tasks.register<Copy>("prelude") {
     from(projectDir.resolve("lib/Prelude.ard"))
     into("src/main/resources/lib")
