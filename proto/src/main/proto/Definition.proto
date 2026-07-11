@@ -22,7 +22,6 @@ message Definition {
     int32 levels_parent = 9;
     bool levels_derived = 11;
     repeated LevelParameter level_param = 13;
-    bool is_std_levels = 14;
     repeated ParameterOriginalDef parameter_original_def = 15;
     repeated int32 axiom = 16;
     bool no_errors = 17;

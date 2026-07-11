@@ -59,13 +59,13 @@
 
 \instance Sphere1_HSpace : HSpaceConn (Sphere 1) => rewriteI (path (QEquiv_= Sphere1-equiv)) Circle_HSpace
 
-\func hopf {A : HSpaceConn} (x : Susp A) : \Type \elim x
+\func hopf.{u} {A : HSpaceConn.{u}} (x : Susp A) : \Type u \elim x
   | north => A
   | south => A
   | pglue a => QEquiv_= (IsEquiv.toQEquiv (HSpaceConn-left a))
   \where
-    \func total-equiv {A : HSpaceConn} : (\Sigma (x : Susp A) (hopf x)) = Join A A
-      => inv (PushoutData.flattening hopf) *> QEquiv_= total_join-equiv
+    \func total-equiv.{u} {A : HSpaceConn.{u}} : (\Sigma (x : Susp A) (hopf x)) = Join A A
+      => inv (PushoutData.flattening hopf) *> QEquiv_= {total A} total_join-equiv
       \where {
         \open PushoutData(ppglue)
 

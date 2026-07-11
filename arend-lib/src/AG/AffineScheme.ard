@@ -68,7 +68,7 @@
   }
 
 -- | The unit of the adjunction between affine schemes and locally ringed spaces
-\func specUnit {X : LocallyRingedLocale} : LocallyRingedLocaleHom X (Spec X.GlobalSections)
+\func specUnit.{u} {X : LocallyRingedLocale.{u}} : LocallyRingedLocaleHom X (Spec X.GlobalSections)
   => siteHom.toLRLHom
   \where {
     \func adjoint.{u} {X : LocallyRingedLocale.{u}} {R : CRing.{u}} (f : RingHom R X.GlobalSections) : LRLSchemeSiteHom X (Spec.satSite R) \cowith

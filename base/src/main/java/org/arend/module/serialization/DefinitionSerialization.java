@@ -48,11 +48,8 @@ public class DefinitionSerialization implements ArendSerializer {
       out.setLevelsParent(myCallTargetIndexProvider.getDefIndex(definition.getLevelsParent()) + 1);
     }
     out.setLevelsDerived(definition.areLevelsDerived());
-    out.setIsStdLevels(definition.getLevelParameters() == null);
     out.setNoErrors(definition.status().noErrors());
-    if (definition.getLevelParameters() != null) {
-      out.addAllLevelParam(writeLevelParameters(definition.getLevelParameters()));
-    }
+    out.addAllLevelParam(writeLevelParameters(definition.getLevelParameters()));
     for (Pair<TCDefReferable, Integer> pair : definition.getParametersOriginalDefinitions()) {
       out.addParameterOriginalDef(writeParameterOriginalDef(pair));
     }

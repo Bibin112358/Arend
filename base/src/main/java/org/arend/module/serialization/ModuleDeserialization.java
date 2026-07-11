@@ -255,8 +255,7 @@ public class ModuleDeserialization {
     return group;
   }
 
-  private List<LevelVariable> readLevelParameters(List<DefinitionProtos.Definition.LevelParameter> parameters, boolean isStd) {
-    if (isStd) return null;
+  private List<LevelVariable> readLevelParameters(List<DefinitionProtos.Definition.LevelParameter> parameters) {
     List<LevelVariable> result = new ArrayList<>(parameters.size());
     for (DefinitionProtos.Definition.LevelParameter parameter : parameters) {
       result.add(new ParamLevelVariable(parameter.getName(), parameter.getIndex()));
@@ -306,9 +305,9 @@ public class ModuleDeserialization {
       default -> throw new DeserializationException("Unknown Definition kind: " + defProto.getDefinitionDataCase());
     }
     if (def instanceof TopLevelDefinition) {
-      ((TopLevelDefinition) def).setLevelParameters(readLevelParameters(defProto.getLevelParamList(), defProto.getIsStdLevels()));
+      ((TopLevelDefinition) def).setLevelParameters(readLevelParameters(defProto.getLevelParamList()));
     } else {
-      ((MetaTopDefinition) def).setLevelParameters(readLevelParameters(defProto.getLevelParamList(), defProto.getIsStdLevels()));
+      ((MetaTopDefinition) def).setLevelParameters(readLevelParameters(defProto.getLevelParamList()));
     }
     return def;
   }

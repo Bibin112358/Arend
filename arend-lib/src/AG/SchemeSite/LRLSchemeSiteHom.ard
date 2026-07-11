@@ -196,7 +196,7 @@
     => inv (LRL-equiv.f_ret _) *> path (\lam i => (LRL-equiv.ret_f g i ∘l f).toLRLHom)
 }
 
-\func saturatePrehom {X Y : SatSchemeSite} (f : SchemeSitePrehom X Y) : SatSchemeSiteHom X Y \cowith
+\func saturatePrehom.{u} {X Y : SatSchemeSite.{u}} (f : SchemeSitePrehom X Y) : SatSchemeSiteHom X Y \cowith
   | <=f* b a => Cover {X.toSite} b (f.`<=f* a)
   | <=f*-cover-left c => cover-trans* c \lam d => d
   | <=f*-right c aa' => cover-sub c \lam {b} ba => <=f*-right ba aa'
@@ -216,7 +216,7 @@
     }
   }
   \where {
-    \protected \lemma equals {T S : SatSchemeSite} {f g : SchemeSitePrehom T S}
+    \protected \lemma equals.{u} {T S : SatSchemeSite.{u}} {f g : SchemeSitePrehom T S}
       (p1 : \Pi {b : T} {a : S} -> b f.<=f* a -> Cover {T.toSite} b (g.`<=f* a))
       (p2 : \Pi {b : T} {a : S} -> b g.<=f* a -> Cover {T.toSite} b (f.`<=f* a))
       (q : \Pi {b : T} {a : S} {b<=fa : b f.<=f* a} {b<=ga : b g.<=f* a} {x : S.R a} -> f.f# b<=fa x = g.f# b<=ga x)
@@ -234,7 +234,7 @@
       | ~-f# {b} {a} {bfa} {bga} {x} => f.f#-cover_f# bga
   }
 
-\func saturateHom {X Y : SatSchemeSite} (f : SchemeSiteHom X Y) : SatSchemeSiteHom X Y \elim f
+\func saturateHom.{u} {X Y : SatSchemeSite.{u}} (f : SchemeSiteHom X Y) : SatSchemeSiteHom X Y \elim f
   | in~ f => saturatePrehom f
   | ~-equiv f g r => saturatePrehom.equals {X} {Y} r.~-dir r.~-conv r.~-f#
   \where {

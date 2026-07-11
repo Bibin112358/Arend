@@ -217,8 +217,9 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     myInstancePool = pool;
   }
 
+  // TODO[sorts]: Delete this
   public boolean isPBased() {
-    return myLevelContext == null || myLevelContext.isPBased;
+    return myLevelContext != null && !myLevelContext.getVariables().isEmpty();
   }
 
   public void setLevelContext(LevelContext levelContext) {
@@ -1390,8 +1391,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
   private static Levels stripImplementedOverrides(ClassCallExpression classCallExpr, Set<ClassField> implemented) {
     ClassDefinition definition = classCallExpr.getDefinition();
-    List<? extends LevelVariable> params = definition.getLevelParameters();
-    int paramCount = params == null ? 1 : params.size();
+    int paramCount = definition.getLevelParameters().size();
     List<? extends Level> fullLevels = classCallExpr.getLevels().toList();
     if (fullLevels.size() <= paramCount) {
       return classCallExpr.getLevels();
@@ -1408,7 +1408,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
         result.add(fullLevels.get(pos));
       }
     }
-    return params == null && result.size() == 1 ? new SingleLevel(result.getFirst()) : new ListLevels(result);
+    return new ListLevels(result);
   }
 
   private TypecheckingResult typecheckClassExt(List<? extends Concrete.ClassFieldImpl> classFieldImpls, Expression expectedType, Expression renewExpr, ClassCallExpression classCallExpr, Set<ClassField> pseudoImplemented, Concrete.Expression expr, boolean useDefaults) {
@@ -1981,7 +1981,6 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
 
     List<? extends LevelVariable> params = def.getLevelParameters();
-    List<? extends LevelVariable> pParams = params == null ? Collections.singletonList(LevelVariable.PVAR) : params;
 
     // Fields implemented alongside these level arguments (e.g. `R.{3} { | A => ... }`) don't need
     // an override level and so don't consume a slot; this only affects how many extra level
@@ -1991,7 +1990,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
     List<Level> result = new ArrayList<>();
     LevelSubstitution defaultSubst = defaultLevels == null ? null : defaultLevels.makeSubstitution(def);
-    typecheckLevels(pLevels, pParams, additionalArgs, defaultSubst, useMinAsDefault, isUniverseLike, expr, result);
+    typecheckLevels(pLevels, params, additionalArgs, defaultSubst, useMinAsDefault, isUniverseLike, expr, result);
 
     // The list is indexed by `overridableFields` (ignoring `implementedFields`), so implemented
     // fields get an (unused) placeholder to keep the remaining fields' positions aligned.
@@ -1999,15 +1998,15 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     for (ClassField field : overridableFields) {
       if (implementedFields.contains(field)) {
         result.add(new Level(BigInteger.ZERO));
-      } else if (consumed < additionalArgs && pParams.size() + consumed < pLevels.size()) {
-        result.add(pLevels.get(pParams.size() + consumed).accept(this, null));
+      } else if (consumed < additionalArgs && params.size() + consumed < pLevels.size()) {
+        result.add(pLevels.get(params.size() + consumed).accept(this, null));
         consumed++;
       } else {
         break;
       }
     }
 
-    return params == null && consumed == 0 ? new SingleLevel(result.getFirst()) : new ListLevels(result);
+    return new ListLevels(result);
   }
 
   private TResult typeCheckDefCall(TCDefReferable resolvedDefinition, Concrete.ReferenceExpression expr, boolean withoutUniverses, Set<ClassField> implementedFields) {
@@ -3239,14 +3238,14 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     int numberOfErrors = getNumberOfErrors();
     TypecheckingResult result;
     Concrete.LevelParameters levelParams = meta instanceof DefaultMetaDefinition defaultMeta ? defaultMeta.getConcrete().getLevelParameters() : null;
-    if (def != null && def.getLevelParameters() != null && !def.getLevelParameters().isEmpty() && levelParams != null && levelParams.referables.size() == def.getLevelParameters().size()) {
+    if (def != null && !def.getLevelParameters().isEmpty() && levelParams != null && levelParams.referables.size() == def.getLevelParameters().size()) {
       LevelContext levelContext = myLevelContext;
       try {
         Map<LevelReferable, LevelVariable> levelsMap = new HashMap<>(myLevelContext == null ? Collections.emptyMap() : myLevelContext.getVariables());
         for (int i = 0; i < levelParams.referables.size(); i++) {
           levelsMap.put(levelParams.referables.get(i), def.getLevelParameters().get(i));
         }
-        myLevelContext = new LevelContext(levelsMap, myLevelContext == null || myLevelContext.isPBased);
+        myLevelContext = new LevelContext(levelsMap);
         result = invokeMeta(meta, contextData);
         if (result != null) {
           result.expression = result.expression.subst(new ExprSubstitution(), levelSubst);

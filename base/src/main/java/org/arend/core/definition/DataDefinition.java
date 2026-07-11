@@ -37,7 +37,6 @@ public class DataDefinition extends TopLevelDefinition implements CoreDataDefini
   private Set<TopLevelDefinition> myRecursiveDefinitions = Collections.emptySet();
   private boolean myHasEnclosingClass;
   private List<Boolean> myOmegaParameters = Collections.emptyList();
-  private boolean myHasInfiniteParameters;
 
   public DataDefinition(TCDefReferable referable) {
     super(referable, TypeCheckingStatus.NEEDS_TYPE_CHECKING);
@@ -158,12 +157,6 @@ public class DataDefinition extends TopLevelDefinition implements CoreDataDefini
 
   public void setParameters(DependentLink parameters) {
     myParameters = parameters;
-    myHasInfiniteParameters = hasInfiniteParameters(parameters);
-  }
-
-  @Override
-  public boolean hasInfiniteParameters() {
-    return myHasInfiniteParameters;
   }
 
   @Override

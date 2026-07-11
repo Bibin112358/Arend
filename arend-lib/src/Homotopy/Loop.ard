@@ -26,19 +26,19 @@
   : X ofHLevel_-1+ suc n
   => \lam x x' => hLevel-inh n (later rewriteI __ (p x))
 
-\lemma loop-level-iter {X : \Type}
-                       (n : Nat)
-                       (c : \Pi (x0 : X) -> Contr (iterl Loop n (\new Pointed X x0)))
+\lemma loop-level-iter.{u} {X : \Type u}
+                           (n : Nat)
+                           (c : \Pi (x0 : X) -> Contr (iterl {Pointed.{u}} (Loop __) n (\new Pointed X x0)))
   : X ofHLevel_-1+ n \elim n
   | 0 => toProp (isContr'=>isProp c)
-  | suc n => \lam x x' => loop-level-iter n (\lam x=x' => Jl (\lam x'' x=x'' => Contr (iterl Loop n (\new Pointed (x = x'') x=x''))) (c x) x=x')
+  | suc n => \lam x x' => loop-level-iter n (\lam x=x' => Jl (\lam x'' x=x'' => Contr (iterl {Pointed.{u}} (Loop __) n (\new Pointed (x = x'') x=x''))) (c x) x=x')
 
-\lemma loop-level-iter-inv {X : \Type} (n : Nat) (h : X ofHLevel_-1+ n) (x0 : X)
-  : Contr (iterl Loop n (\new Pointed X x0)) \elim n
+\lemma loop-level-iter-inv.{u} {X : \Type u} (n : Nat) (h : X ofHLevel_-1+ n) (x0 : X)
+  : Contr (iterl {Pointed.{u}} (Loop __) n (\new Pointed X x0)) \elim n
   | 0 => isProp=>isContr (ToProp.fromProp h) x0
   | suc n => loop-level-iter-inv n (h x0 x0) idp
 
-\func SuspLoopEquiv (A B : Pointed) : (Susp.pointed A ->* B) = (A ->* Loop B) =>
+\func SuspLoopEquiv.{u} (A B : Pointed.{u}) : (Susp.pointed A ->* B) = (A ->* Loop B) =>
   \let S => Square { | Y => B | U => A | V => \Sigma | X => \Sigma | uv _ => () | ux _ => () } \in
   (\Sigma (f : Susp A -> B) (f north = base))                                              ==< sigma-left.path-func (QEquiv_= (IsEquiv.toQEquiv (Susp.pushout A).pushout-univ)) >==
   (\Sigma (s : S) (Square.vy {s} () = base))                                               ==< path (iso {\Sigma (s : S) (Square.vy {s} () = base)}
@@ -56,7 +56,7 @@
   (\Sigma (p : \Sigma (b2 : B) (base = b2)) (\Sigma (g : A -> base = p.1) (g base = p.2))) ==< QEquiv_= (contr-left (lsigma base)) >==
   (\Sigma (g : A -> Loop B) (g base = base))                                               `qed
 
-\func SphereLoopEquiv (n : Nat) (B : Pointed) : (Sphere.pointed n ->* B) = iterl Loop n B \elim n
+\func SphereLoopEquiv.{u} (n : Nat) (B : Pointed.{u}) : (Sphere.pointed n ->* B) = iterl {Pointed.{u}} (Loop __) n B \elim n
   | 0 => \let smap (b : B) (s : Sphere 0) : B => \case s \with { | pinl _ => base | pinr _ => b | pglue () _ }
          \in path (iso {Sphere.pointed 0 ->* B} {B}
                        (__.1 south)
@@ -70,8 +70,9 @@
                        (\lam b => idp))
   | suc n => SuspLoopEquiv (Sphere.pointed n) B *> SphereLoopEquiv n (Loop B)
 
-\func Omega^ (n : Nat) (X : Pointed) : Pointed => iterr Loop n X
+\func Omega^.{u} (n : Nat) (X : Pointed.{u}) : Pointed.{u}
+  => iterr {Pointed.{u}} (Loop __) n X
 
-\func Omega^-Func (n : Nat){X Y : Pointed}(f : X ->* Y) : Omega^ n X ->* Omega^ n Y \elim n
+\func Omega^-Func.{u} (n : Nat) {X Y : Pointed.{u}} (f : X ->* Y) : Omega^ n X ->* Omega^ n Y \elim n
   | 0 => f
   | suc n => Loop-Func (Omega^-Func n f)

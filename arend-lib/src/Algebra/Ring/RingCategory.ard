@@ -220,7 +220,8 @@
           (\lam _ => Fin 3,  finSet, nil, equality (apply 3 (var 0 :: apply 2 (var 1 :: var 2 :: nil) :: nil)) (apply 2 (apply 3 (var 0 :: var 1 :: nil) :: apply 3 (var 0 :: var 2 :: nil) :: nil))) ::
           nil)
 
-    \func catEquiv : CatEquiv CRingCat (ModelCat theory) \cowith
+    -- TODO[sorts]: Removing .{u} after ModelCat makes it resolve to .{0}. Shouldn't this be impossible?
+    \func catEquiv.{u} : CatEquiv CRingCat.{u} (ModelCat.{u} theory) \cowith
       | LAdj => ringtoMod.functor
       | RAdj => modToRing.functor
       | eta {

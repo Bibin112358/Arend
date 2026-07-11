@@ -13,7 +13,6 @@ import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.ExprSubstitution;
-import org.arend.core.subst.SingleLevel;
 import org.arend.core.subst.Levels;
 import org.arend.core.subst.ListLevels;
 import org.arend.ext.core.level.LevelSubstitution;
@@ -124,9 +123,6 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
   private boolean isMinimalLevels(LeveledDefCallExpression defCall) {
     Levels levels = defCall.getLevels();
     if (levels.size() == 0) return true;
-    if (defCall.getDefinition().getLevelParameters() == null) {
-      return false;
-    }
 
     List<? extends LevelVariable> params = defCall.getDefinition().getLevelParameters();
     List<? extends Level> list = levels.toList();
@@ -168,31 +164,26 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
 
     Levels levels = defCall.getLevels();
     if (ok) {
-      if (defCall.getDefinition().getLevelParameters() == null) {
-        Level pLevel = levelMap.get(LevelVariable.PVAR);
-        levels = new SingleLevel(pLevel == null ? new Level(BigInteger.ZERO) : pLevel);
-      } else {
-        List<Level> list = new ArrayList<>();
-        List<? extends LevelVariable> vars = defCall.getDefinition().getLevelParameters();
-        for (LevelVariable var : vars) {
-          Level level = levelMap.get(var);
-          list.add(level == null ? new Level(BigInteger.ZERO) : level);
+      List<Level> list = new ArrayList<>();
+      List<? extends LevelVariable> vars = defCall.getDefinition().getLevelParameters();
+      for (LevelVariable var : vars) {
+        Level level = levelMap.get(var);
+        list.add(level == null ? new Level(BigInteger.ZERO) : level);
+      }
+      for (int i = 0; i < list.size() - 1; i++) {
+        Level maxLevel = list.get(i).max(list.get(i + 1)) /* TODO[sorts] */;
+        if (maxLevel == null) {
+          ok = false;
+          break;
         }
-        for (int i = 0; i < list.size() - 1; i++) {
-          Level maxLevel = list.get(i).max(list.get(i + 1)) /* TODO[sorts] */;
-          if (maxLevel == null) {
-            ok = false;
-            break;
-          }
-          if (vars.get(i).compare(vars.get(i + 1), CMP.LE)) {
-            list.set(i + 1, maxLevel);
-          } else {
-            list.set(i, maxLevel);
-          }
+        if (vars.get(i).compare(vars.get(i + 1), CMP.LE)) {
+          list.set(i + 1, maxLevel);
+        } else {
+          list.set(i, maxLevel);
         }
-        if (ok) {
-          levels = new ListLevels(list);
-        }
+      }
+      if (ok) {
+        levels = new ListLevels(list);
       }
     }
     return levels;

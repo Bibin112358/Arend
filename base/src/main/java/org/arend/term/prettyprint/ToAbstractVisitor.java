@@ -319,13 +319,9 @@ public class ToAbstractVisitor extends BaseExpressionVisitor<Void, Concrete.Expr
     if (defCall instanceof LeveledDefCallExpression) {
       List<? extends LevelVariable> params = def.getLevelParameters();
       LevelSubstitution subst = defCall.getLevelSubstitution();
-      if (params == null) {
-        pLevels = Collections.singletonList((Level) subst.get(LevelVariable.PVAR));
-      } else {
-        pLevels = new ArrayList<>(params.size());
-        for (LevelVariable param : params) {
-          pLevels.add((Level) subst.get(param));
-        }
+      pLevels = new ArrayList<>(params.size());
+      for (LevelVariable param : params) {
+        pLevels.add((Level) subst.get(param));
       }
     } else {
       pLevels = Collections.singletonList(null);
@@ -1082,7 +1078,7 @@ public class ToAbstractVisitor extends BaseExpressionVisitor<Void, Concrete.Expr
   }
 
   public static Concrete.LevelParameters visitLevelParameters(List<? extends LevelVariable> parameters) {
-    if (parameters == null || parameters.size() == 1 && parameters.getFirst().equals(LevelVariable.PVAR)) {
+    if (parameters.isEmpty()) {
       return null;
     }
     List<LevelReferable> refs = new ArrayList<>(parameters.size());

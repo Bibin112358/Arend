@@ -179,7 +179,7 @@
   | o-assoc => idp
   | univalence => {?} -- TODO[sorts]: sip \lam p1 p2 => exts (p1.func-zro, \lam _ _ => p1.func-+)
   \where {
-    \func forget : Functor AddMonoidCat SetCat \cowith
+    \func forget.{u} : Functor AddMonoidCat.{u} SetCat.{u} \cowith
       | F R => R
       | Func f => f
       | Func-id => idp

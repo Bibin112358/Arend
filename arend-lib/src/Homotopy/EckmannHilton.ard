@@ -59,7 +59,7 @@
  - It has some minor changes that are possible with Arend features.
  - -}
 \class Omega^2-Commutative (X : HPointed) {
-  \func Omega^2_X => Omega^ 2 X
+  \func Omega^2_X => Loop (Loop X)
 
   \func LeftHorizontalWhiskering-relation {b c : X} {r s : b = c} (bet : r = s)
     : LeftHorizontalWhiskering (idp {X} {b}) bet = idp_*> r *> bet *> inv (idp_*> s) \elim bet

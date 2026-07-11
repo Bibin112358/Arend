@@ -2,7 +2,6 @@ package org.arend.core.expr;
 
 import org.arend.core.definition.CallableDefinition;
 import org.arend.core.expr.visitor.GetTypeVisitor;
-import org.arend.core.subst.SingleLevel;
 import org.arend.core.subst.Levels;
 import org.arend.ext.core.level.LevelSubstitution;
 import org.jetbrains.annotations.NotNull;
@@ -12,7 +11,6 @@ public abstract class LeveledDefCallExpression extends DefCallExpression {
 
   public LeveledDefCallExpression(CallableDefinition definition, Levels levels) {
     super(definition);
-    assert definition.status().needsTypeChecking() || (definition.getLevelParameters() == null) == (levels instanceof SingleLevel);
     myLevels = levels;
   }
 

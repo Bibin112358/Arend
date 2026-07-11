@@ -26,7 +26,7 @@
 \open SubMonoid
 \open Localization
 
-\record SchemeSitePrehom.{s} (Dom Cod : SchemeSite.{s}) {
+\record SchemeSitePrehom.{u} (Dom Cod : SchemeSite.{u}) {
   | \infix 4 <=f* : Dom -> Cod -> \Prop
   | <=f*-left {b' b : Dom} {a : Cod} : b' <= b -> b <=f* a -> b' <=f* a
   | <=f*-right {b : Dom} {a a' : Cod} : b <=f* a -> a <= a' -> b <=f* a'
@@ -65,7 +65,7 @@
   \lemma f#-cover_f# {b : Dom} {a : Cod} {b<<a : Cover {Dom.toSite} b (`<=f* a)} (b<=a : b <=f* a) {x : Cod.R a} : (f#-cover b<<a).1 x = f# b<=a x
     => inv (path \lam i => Dom.R.Func-id i _) *> path (\lam i => (f#-cover b<<a).2 b<=a <=-refl <=-refl i x) *> path (\lam i => Dom.R.Func-id i _)
 } \where {
-  \protected \func id {S : SchemeSite} : SchemeSitePrehom S S \cowith
+  \protected \func id.{u} {S : SchemeSite.{u}} : SchemeSitePrehom S S \cowith
     | <=f* => <=
     | <=f*-left => <=∘
     | <=f*-right => <=∘
@@ -76,7 +76,7 @@
     | <=f*-meet b<=a1 b<=a2 => cover-refl $ inP (_, b<=a1, b<=a2, <=-refl)
     | <=f*-loc a'<=a b<=a => loc-stable b<=a a'<=a
 
-  \protected \func compose \alias \infixl 8 ∘ {S T U : SchemeSite} (g : SchemeSitePrehom T U) (f : SchemeSitePrehom S T) : SchemeSitePrehom S U \cowith
+  \protected \func compose \alias \infixl 8 ∘.{u} {S T U : SchemeSite.{u}} (g : SchemeSitePrehom T U) (f : SchemeSitePrehom S T) : SchemeSitePrehom S U \cowith
     | <=f* c a => ∃ (b : T) (c f.<=f* b) (b g.<=f* a)
     | <=f*-left {c'} {c} c'<=c (inP (b,c<=b,b<=a)) => inP (b, <=f*-left c'<=c c<=b, b<=a)
     | <=f*-right {c} {a} {a'} (inP (b,c<=b,b<=a)) a<=a' => inP (b, c<=b, <=f*-right b<=a a<=a')
@@ -120,7 +120,7 @@
         | inP e => f#-eval *> f#-coh
     }
 
-  \protected \lemma equals {T S : SchemeSite} {f g : SchemeSitePrehom T S}
+  \protected \lemma equals.{u} {T S : SchemeSite.{u}} {f g : SchemeSitePrehom T S}
     (p : \Pi (b : T) (a : S) -> b f.<=f* a <-> b g.<=f* a)
     (q : \Pi (a : S) (b : T) (b<=fa : b f.<=f* a) (b<=ga : b g.<=f* a) (x : S.R a) -> f.f# b<=fa x = g.f# b<=ga x) : f = g
     => exts (\lam b a => ext (p b a), \lam {a} {b} r => exts $ q a b r _)
@@ -128,7 +128,7 @@
 
 \type SchemeSiteHom (X Y : SchemeSite) => Quotient (~ {X} {Y})
   \where {
-    \record \infix 4 ~ {X Y : SchemeSite} (f g : SchemeSitePrehom X Y)
+    \record \infix 4 ~.{u} {X Y : SchemeSite.{u}} (f g : SchemeSitePrehom X Y)
       | ~-dir {b : X} {a : Y} : b f.<=f* a -> Cover {X.toSite} b (g.`<=f* a)
       | ~-conv {b : X} {a : Y} : b g.<=f* a -> Cover {X.toSite} b (f.`<=f* a)
       | ~-f# {b : X} {a : Y} {bfa : b f.<=f* a} {bga : b g.<=f* a} {y : Y.R a} : f.f# bfa y = g.f# bga y
@@ -151,13 +151,13 @@
           f.f#_f*-left *> f~g.~-f# {_} {_} {_} {<=f*-left cb' b'a} *> g~h.~-f# *> inv h.f#_f*-left
       }
 
-    \func inh~ {X Y : SchemeSite} (f : SchemeSitePrehom X Y) : SchemeSiteHom X Y
+    \func inh~.{u} {X Y : SchemeSite.{u}} (f : SchemeSitePrehom X Y) : SchemeSiteHom X Y
       => in~ f
 
-    \lemma ~-hequiv {X Y : SchemeSite} (f g : SchemeSitePrehom X Y) (p : f ~ g) : inh~ f = inh~ g
+    \lemma ~-hequiv.{u} {X Y : SchemeSite.{u}} (f g : SchemeSitePrehom X Y) (p : f ~ g) : inh~ f = inh~ g
       => path \lam i => ~-equiv f g p i
 
-    \lemma ~-unhequiv {X Y : SchemeSite} {f g : SchemeSitePrehom X Y} (p : inh~ f = inh~ g) : f ~ g
+    \lemma ~-unhequiv.{u} {X Y : SchemeSite.{u}} {f g : SchemeSitePrehom X Y} (p : inh~ f = inh~ g) : f ~ g
       => Quotient.equalityEquiv ~-equivalence (path \lam i => p i)
 
     \protected \func id {S : SchemeSite} : SchemeSiteHom S S

@@ -45,7 +45,6 @@ import org.arend.typechecking.implicitargs.equations.Equations;
 import org.arend.typechecking.patternmatching.ExpressionMatcher;
 import org.arend.typechecking.result.TypecheckingResult;
 import org.arend.typechecking.visitor.FindSubexpressionVisitor;
-import org.arend.typechecking.visitor.FixLevelParameters;
 import org.arend.util.Decision;
 import org.arend.util.GraphClosure;
 import org.jetbrains.annotations.NotNull;
@@ -99,9 +98,6 @@ public abstract class Expression implements Body, CoreExpression {
 
   @Override
   public void prettyPrint(@NotNull StringBuilder builder, ExpressionPrettifier prettifier, @NotNull PrettyPrinterConfig config) {
-    if (config.getNormalizationMode() != null) {
-      FixLevelParameters.fix(this); // Expressions created in errors might have not fixed levels, so we fix them here
-    }
     ToAbstractVisitor.convert(this, prettifier, config).accept(new PrettyPrintVisitor(builder, 0, !config.isSingleLine(), config.getLineLength()), new Precedence(Concrete.Expression.PREC));
   }
 

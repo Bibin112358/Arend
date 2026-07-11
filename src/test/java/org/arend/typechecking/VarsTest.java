@@ -20,7 +20,6 @@ import java.util.Collections;
 import static org.arend.Matchers.argInferenceError;
 import static org.arend.Matchers.notInScope;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class VarsTest extends TypeCheckingTestCase {
   private Concrete.Definition getConcreteFixed(String path) {
@@ -322,7 +321,6 @@ public class VarsTest extends TypeCheckingTestCase {
           \\func bar (a : A) => a
       """);
     Definition bar = getDefinition("foo.bar");
-    assertNotNull(bar.getLevelParameters());
     assertEquals(2, bar.getLevelParameters().size());
     assertEquals(new UniverseExpression(new Sort(new Level(bar.getLevelParameters().get(1)), ConstLevel.INFINITY)), getDefinition("foo.bar").getParameters().getType());
   }
@@ -335,7 +333,6 @@ public class VarsTest extends TypeCheckingTestCase {
           \\func bar (a : A) => a
       """);
     Definition bar = getDefinition("foo.bar");
-    assertNotNull(bar.getLevelParameters());
     assertEquals(2, bar.getLevelParameters().size());
     assertEquals(new UniverseExpression(new Sort(new Level(bar.getLevelParameters().getFirst()), ConstLevel.INFINITY)), bar.getParameters().getType());
   }
@@ -358,7 +355,6 @@ public class VarsTest extends TypeCheckingTestCase {
           \\func bar (a : A) => a
       """);
     Definition bar = getDefinition("foo.bar");
-    assertNotNull(bar.getLevelParameters());
     assertEquals(2, bar.getLevelParameters().size());
     assertEquals(new UniverseExpression(new Sort(new Level(bar.getLevelParameters().getFirst()), ConstLevel.INFINITY)), bar.getParameters().getType());
   }
@@ -441,7 +437,6 @@ public class VarsTest extends TypeCheckingTestCase {
               \\func baz => bar
       """);
     Definition baz = getDefinition("foo.bar.baz");
-    assertNotNull(baz.getLevelParameters());
     assertEquals(2, baz.getLevelParameters().size());
     assertEquals(new UniverseExpression(new Sort(new Level(baz.getLevelParameters().get(1)), ConstLevel.INFINITY)), getDefinition("foo.bar.baz").getParameters().getType());
   }

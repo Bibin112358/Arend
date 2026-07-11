@@ -1,6 +1,6 @@
 \import Logic
 
-\class BaseSpace (E : \Type)
+\class BaseSpace (E : \Sort)
 
 \class InhSpace \extends BaseSpace
   | isInh : TruncP E

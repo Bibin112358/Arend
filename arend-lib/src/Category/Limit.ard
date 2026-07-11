@@ -458,10 +458,10 @@
     }
 }
 
-\func limits<=pr+eq.{s} {D : Precat}
-  (pr : \Pi (J : \Type s) (G : J -> D) -> Product G)
+\func limits<=pr+eq.{u} {D : Precat}
+  (pr : \Pi (J : \Type u) (G : J -> D) -> Product G)
   (eq : \Pi {X Y : D} (f g : Hom X Y) -> Equalizer f g)
-  {J : Precat.{s,s}} (G : Functor J D) : Limit G
+  {J : Precat.{u,u}} (G : Functor J D) : Limit G
   => \have | X => pr J G
            | Y => pr (\Sigma (j j' : J) (J.Hom j j')) (\lam t => G t.2)
            | eql => eq {X.apex} {Y.apex}
@@ -694,19 +694,19 @@
             (inv o-assoc *> pmap (`∘ _) beta2 *> inv id-left *> pmap (`∘ _) (inv beta2) *> o-assoc), pbBeta1)
 }
 
-\class CompletePrecat.{s} \extends FinCompletePrecat {
-  | limit {J : Precat.{s,s}} (G : Functor J \this) : Limit G
+\class CompletePrecat.{u} \extends FinCompletePrecat {
+  | limit {J : Precat.{u,u}} (G : Functor J \this) : Limit G
   \default pullback f g => Pullback.fromLimit (limit {_} {Pullback.Shape.FreeCat} (Pullback.diagram f g).functor)
   \default terminal => Product.fromLimit (limit (Product.functor absurd))
   \default Bprod x y => Product.fromLimit (limit (Product.functor (x :: y :: nil)))
 
-  \func product {J : \Type s} (G : J -> Ob) : Product G => Product.fromLimit (limit (Product.functor G))
+  \func product {J : \Type u} (G : J -> Ob) : Product G => Product.fromLimit (limit (Product.functor G))
 
-  \protected \func op : CocompletePrecat.{s} \cowith
+  \protected \func op : CocompletePrecat.{u} \cowith
     | Precat => Precat.op
     | colimit G => limit $ Functor.op {G}
 } \where {
-  \func applyEquiv.{s} {D : CompletePrecat.{s}} (E : CatEquiv { | D => D }) {J : Precat.{s,s}} (G : Functor J E.C) : Limit G
+  \func applyEquiv.{u} {D : CompletePrecat.{u}} (E : CatEquiv { | D => D }) {J : Precat.{u,u}} (G : Functor J E.C) : Limit G
     => \have lim : Limit => limit (Comp E.LAdj G)
        \in \new Limit {
         | apex => E.RAdj lim
@@ -719,31 +719,31 @@
       }
 }
 
-\class CompleteCat.{s} \extends CompletePrecat.{s}, Cat {
-  \protected \func op : CocompleteCat.{s} \cowith
+\class CompleteCat.{u} \extends CompletePrecat.{u}, Cat {
+  \protected \func op : CocompleteCat.{u} \cowith
     | Cat => Cat.op
     | colimit G => limit $ Functor.op {G}
 }
 
-\class CocompletePrecat.{s} \extends Precat {
-  | colimit {J : Precat.{s,s}} (G : Functor J \this) : Colimit G
+\class CocompletePrecat.{u} \extends Precat {
+  | colimit {J : Precat.{u,u}} (G : Functor J \this) : Colimit G
 
-  \protected \func op : CompletePrecat.{s} \cowith
+  \protected \func op : CompletePrecat.{u} \cowith
     | Precat => Precat.op
     | limit G => colimit $ Functor.op {G}
 } \where {
-  \func applyEquiv.{s} {D : CocompletePrecat.{s}} (E : CatEquiv { | D => D }) {J : Precat.{s,s}} (G : Functor J E.C) : Colimit G
+  \func applyEquiv.{u} {D : CocompletePrecat.{u}} (E : CatEquiv { | D => D }) {J : Precat.{u,u}} (G : Functor J E.C) : Colimit G
     => CompletePrecat.applyEquiv {D.op} E.op G.op
 }
 
-\class CocompleteCat.{s} \extends CocompletePrecat.{s}, Cat {
-  \protected \func op : CompleteCat.{s} \cowith
+\class CocompleteCat.{u} \extends CocompletePrecat.{u}, Cat {
+  \protected \func op : CompleteCat.{u} \cowith
     | Cat => Cat.op
     | limit G => colimit $ Functor.op {G}
 }
 
-\class BicompleteCat.{s} \extends CompleteCat.{s}, CocompleteCat.{s} {
-  \protected \func op : BicompleteCat.{s} \cowith
+\class BicompleteCat.{u} \extends CompleteCat.{u}, CocompleteCat.{u} {
+  \protected \func op : BicompleteCat.{u} \cowith
     | Cat => Cat.op
     | limit G => colimit $ Functor.op {G}
     | colimit G => limit $ Functor.op {G}

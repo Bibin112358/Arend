@@ -16,27 +16,27 @@
 \import Paths
 \import Paths.Meta
 
-\func Separated (U : Universe) : Universe \cowith
+\func Separated.{u} (U : Universe.{u}) : Universe.{u} \cowith
   | isLocal Z => \Pi (z z' : Z) -> isLocal (z = z')
 
-\func ReflSeparated (U : ReflUniverse) : ReflUniverse \cowith
+\func ReflSeparated.{u} (U : ReflUniverse.{u}) : ReflUniverse \cowith
   | Universe => Separated U
   | localization A =>
     \have | p (a a' : A) : Local (F a = F a') => transport (Local __) (inv (pathEquiv a a')) (LType (a = a'))
-          | q (a a' : A) : LType (a = a') = {\Type \lp} (F a = F a') => inv (pathEquiv a a')
+          | q (a a' : A) : LType (a = a') = {\Type u} (F a = F a') => inv (pathEquiv a a')
           | r (a a' : A) : Localization (a = a') (p a a') =>
              coe (\lam i => Localization (a = a') (\new Local (q a a' @ i) (prop-dpi (\lam j => isLocal (q a a' @ j)) (local {LType (a = a')}) (local {p a a'}) @ i)))
                  (localization (a = a')) right
     \in (separatedLocalization YImage.dom-map-surj (\lam a a' => (p a a', r a a'))).2
   \where {
-    \func S {U : ReflUniverse} {A : \Type} (a a' : A) : \Type
+    \func S.{u} {U : ReflUniverse.{u}} {A : \Type u} (a a' : A) : \Type u
       => LType (a = a')
 
     -- | The localization map for the type {A}.
-    \func F {U : ReflUniverse} {A : \Type} (a : A) : YImage S
+    \func F.{u} {U : ReflUniverse.{u}} {A : \Type u} (a : A) : YImage S
       => YImage.dom-map a
 
-    \func pathEquiv {U : ReflUniverse} {A : \Type} (a a' : A) : (F a = F a') = LType (a = a') => Equiv_= $ =_Equiv
+    \func pathEquiv.{u} {U : ReflUniverse.{u}} {A : \Type u} (a a' : A) : (F a = F a') = LType (a = a') => Equiv_= $ =_Equiv
       \let | E => \Pi (x : A) -> Equiv (S a' x) (S a x)
            | emb => transEmbedding (piEmbedding \lam a'' => Equiv.toFunc-embedding {LType (a' = a'')} {LType (a = a'')})
                                    (Embedding.fromIsEquiv (localYoneda a' (\lam y => LType (a = y))))
@@ -51,7 +51,7 @@
                                                               (\lam p => Jl (\lam x p' => transport (\lam y => Equiv (S y x) (S a x)) p' (mkEquiv (inP idEquiv)) (lEta idp) = inL p') idp p)) >==
           (LType (a = a') : \Type)        `qed
 
-    \lemma separatedLocalization {U : Universe} {A B : \Type} {f : A -> B} (fs : IsSurj f) (p : \Pi (a a' : A) -> \Sigma (P : Local (f a = f a')) (Localization (a = a') P))
+    \lemma separatedLocalization.{u} {U : Universe.{u}} {A B : \Type u} {f : A -> B} (fs : IsSurj f) (p : \Pi (a a' : A) -> \Sigma (P : Local (f a = f a')) (Localization (a = a') P))
       : \Sigma (L : Local {Separated U} B) (Localization {Separated U} A L f)
       => \have B-local (b b' : B) : isLocal (b = b') =>
                 \case fs b, fs b' \with {

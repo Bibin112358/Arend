@@ -13,10 +13,10 @@
 \import Paths
 \import Paths.Meta
 
-\func MJoin {A B : \Type} (R : A -> B -> \Type) => PushoutData {\Sigma (x : A) (y : B) (R x y)} __.1 __.2
+\func MJoin {A B : \Sort} (R : A -> B -> \Sort) => PushoutData {\Sigma (x : A) (y : B) (R x y)} __.1 __.2
   \where
-    \class MData \noclassifying {A : \Type} {B : \Type (\suc \lp)} (f : A -> B) (R : B -> B -> \Type) (ret : \Pi (b b' : B) -> R b b' -> b = b') {
-      \func MImageAppr (n : Nat) : \Sigma (X : \Type) (X -> B) \elim n
+    \class MData.{u} \noclassifying {A : \Type u} {B : \Type (\suc u)} (f : A -> B) (R : B -> B -> \Type u) (ret : \Pi (b b' : B) -> R b b' -> b = b') {
+      \func MImageAppr (n : Nat) : \Sigma (X : \Type u) (X -> B) \elim n
         | 0 => (A,f)
         | suc n =>
           \let (X,g) => MImageAppr n
@@ -58,7 +58,7 @@
                                        transport_path-left (ret (f a) ((MImageAppr n).2 p.1) (sec (inv p.2))) idp *> pmap inv (sec-ret (inv p.2)) *> inv_inv p.2)))))
     }
 
-\func YImage {A B : \Type} (S : A -> B -> \Type) => data.MImage
+\func YImage.{u} {A B : \Type u} (S : A -> B -> \Type u) => data.MImage
   \where {
     \open MJoin
 

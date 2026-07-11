@@ -141,7 +141,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
 
   public Levels castLevels(ClassDefinition superClass, Levels levels) {
     if (superClass == this) return levels;
-    if (superClass.getLevelParameters() != null && superClass.getLevelParameters().isEmpty()) return Levels.EMPTY;
+    if (superClass.getLevelParameters().isEmpty()) return Levels.EMPTY;
     Levels result = mySuperLevels.get(superClass);
     return result == null ? levels : result.subst(levels.makeSubstitution(this));
   }
@@ -152,7 +152,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
 
   public LevelSubstitution levelSubstitutionFor(ClassDefinition superClass) {
     if (superClass == this) return LevelSubstitution.EMPTY;
-    if (superClass.getLevelParameters() != null && superClass.getLevelParameters().isEmpty()) return LevelSubstitution.EMPTY;
+    if (superClass.getLevelParameters().isEmpty()) return LevelSubstitution.EMPTY;
     Levels result = mySuperLevels.get(superClass);
     return result == null ? LevelSubstitution.EMPTY : result.makeSubstitution(superClass);
   }
@@ -215,9 +215,8 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
   public @Nullable Level getFieldLevelOverride(ClassField field, Levels levels, Set<ClassField> implemented) {
     int index = getOverridableInfiniteFields(implemented).indexOf(field);
     if (index < 0) return null;
-    int paramCount = getLevelParameters() == null ? 1 : getLevelParameters().size();
     List<? extends Level> levelList = levels.toList();
-    int pos = paramCount + index;
+    int pos = getLevelParameters().size() + index;
     return pos < levelList.size() ? levelList.get(pos) : null;
   }
 

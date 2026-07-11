@@ -263,9 +263,6 @@ public class TypecheckingOrderingListener extends BooleanComputationRunner imple
       }
 
       setParametersOriginalDefinitionsDependency(typechecked);
-      if (!(definition instanceof Concrete.FunctionDefinition && ((Concrete.FunctionDefinition) definition).getKind().isCoclause()) && typechecked instanceof TopLevelDefinition) {
-        FixLevelParameters.fix(Collections.singleton((TopLevelDefinition) typechecked), Collections.singleton(typechecked));
-      }
       if (recursive && typechecked instanceof FunctionDefinition) {
         ((FunctionDefinition) typechecked).setRecursiveDefinitions(Collections.singleton((FunctionDefinition) typechecked));
       }
@@ -543,7 +540,6 @@ public class TypecheckingOrderingListener extends BooleanComputationRunner imple
     }
     myHeadersAreOK = true;
 
-    boolean fixLevels = true;
     Set<TopLevelDefinition> allDefinitions = new LinkedHashSet<>();
     List<DataDefinition> dataDefs = new ArrayList<>();
     for (Concrete.ResolvableDefinition definition : orderedDefinitions) {
@@ -557,16 +553,9 @@ public class TypecheckingOrderingListener extends BooleanComputationRunner imple
         allDefinitions.add(dataDef);
         dataDefs.add(dataDef);
       }
-      if (definition instanceof Concrete.FunctionDefinition && ((Concrete.FunctionDefinition) definition).getKind().isCoclause()) {
-        fixLevels = false;
-      }
     }
 
     fixDataSorts(dataDefs);
-
-    if (fixLevels) {
-      FixLevelParameters.fix(allDefinitions, newDefs);
-    }
 
     if (!functionDefinitions.isEmpty()) {
       FindDefCallVisitor<DataDefinition> visitor = new FindDefCallVisitor<>(dataDefinitions, false);

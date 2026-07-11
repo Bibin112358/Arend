@@ -26,6 +26,7 @@ public interface LevelVariable extends Variable {
     return true;
   }
 
+  // TODO[sorts]: Delete this
   LevelVariable PVAR = new LevelVariable() {
     @Override
     public LevelVariable min(LevelVariable other) {

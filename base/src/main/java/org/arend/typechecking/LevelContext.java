@@ -7,11 +7,9 @@ import java.util.Map;
 
 public class LevelContext {
   private final Map<LevelReferable, LevelVariable> myVariables;
-  public final boolean isPBased;
 
-  public LevelContext(Map<LevelReferable, LevelVariable> variables, boolean isPBased) {
+  public LevelContext(Map<LevelReferable, LevelVariable> variables) {
     myVariables = variables;
-    this.isPBased = isPBased;
   }
 
   public Map<LevelReferable, LevelVariable> getVariables() {

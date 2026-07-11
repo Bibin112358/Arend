@@ -1,16 +1,16 @@
 package org.arend.core.definition;
 
 import org.arend.core.context.binding.LevelVariable;
-import org.arend.core.context.param.DependentLink;
 import org.arend.ext.util.Pair;
 import org.arend.naming.reference.LocatedReferable;
 import org.arend.naming.reference.TCDefReferable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public abstract class TopLevelDefinition extends CallableDefinition {
   private UniverseKind myUniverseKind = UniverseKind.NO_UNIVERSES;
-  private List<? extends LevelVariable> myLevelParameters;
+  private List<? extends LevelVariable> myLevelParameters = Collections.emptyList();
   private LocatedReferable myLevelsParent;
   private boolean myLevelsDerived;
   private List<Pair<TCDefReferable,Integer>> myParametersOriginalDefinitions = Collections.emptyList();
@@ -36,22 +36,12 @@ public abstract class TopLevelDefinition extends CallableDefinition {
   }
 
   @Override
-  public List<? extends LevelVariable> getLevelParameters() {
+  public @NotNull List<? extends LevelVariable> getLevelParameters() {
     return myLevelParameters;
   }
 
-  public void setLevelParameters(List<LevelVariable> parameters) {
+  public void setLevelParameters(@NotNull List<LevelVariable> parameters) {
     myLevelParameters = parameters;
-  }
-
-  protected static boolean hasInfiniteParameters(DependentLink param) {
-    for (; param.hasNext(); param = param.getNext()) {
-      param = param.getNextTyped(null);
-      if (param.getType().isInfinityLevel()) {
-        return true;
-      }
-    }
-    return false;
   }
 
   @Override

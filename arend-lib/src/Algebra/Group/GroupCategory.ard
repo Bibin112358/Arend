@@ -134,13 +134,13 @@
   | o-assoc => idp
   | univalence => {?} -- TODO[sorts]: sip \lam {X} {A} {B} p1 p2 => exts (p1.func-zro, \lam _ _ => p1.func-+, AddGroup.negative-equality A B p1.func-zro p1.func-+)
   \where {
-    \func forgetToAddMonoid : Functor AddGroupCat AddMonoidCat \cowith
+    \func forgetToAddMonoid.{u} : Functor AddGroupCat.{u} AddMonoidCat.{u} \cowith
       | F A => A
       | Func f => f
       | Func-id => idp
       | Func-o => idp
 
-    \func forget : Functor AddGroupCat SetCat \cowith
+    \func forget.{u} : Functor AddGroupCat.{u} SetCat.{u} \cowith
       | F R => R
       | Func f => f
       | Func-id => idp

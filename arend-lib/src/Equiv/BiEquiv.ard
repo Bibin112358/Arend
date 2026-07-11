@@ -27,7 +27,7 @@
       }
   }
 
-\func BiEquiv~Equiv {A B : \Type} : QEquiv {BiEquiv {A} {B}} {Equiv A B} \cowith
+\func BiEquiv~Equiv {A B : \Sort} : QEquiv {BiEquiv {A} {B}} {Equiv A B} \cowith
   | f e => mkEquiv (inP e)
   | ret e => Equiv.toQEquiv e
   | ret_f e => BiEquiv.equals idp

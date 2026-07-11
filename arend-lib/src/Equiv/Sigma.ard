@@ -49,8 +49,8 @@
   | ret_f p => ext (e.ret_f p.1, path (\lam i => coe (\lam j => B' (e.f_ret_f=f_sec_f p.1 i j) ) _ right) *> transport_id_inv B' _ _)
   | f_sec p => ext (e.f_sec p.1, transport_id_inv B' _ _)
   \where {
-    \func path-func {A A' : \Type} {B' : A' -> \Type} (p : A = A') : (\Sigma (x : A) (B' (coe (p @) x right))) = (\Sigma (x' : A') (B' x')) =>
-      path (\lam i => \Sigma (x : p @ i) (B' (coe2 (p @) i x right)))
+    \func path-func.{u} {A A' : \Type u} {B' : A' -> \Type u} (p : A = A') : (\Sigma (x : A) (B' (coe (p @) x right))) = (\Sigma (x' : A') (B' x'))
+      => path \lam i => \Sigma (x : p i) (B' (coe2 p i x right))
   }
 
 \func sigma-right {A : \Sort} {B B' : A -> \Sort} (q : \Pi (a : A) -> QEquiv {B a} {B' a})
@@ -71,7 +71,7 @@
   | f_sec a => idp
 
 -- | The HoTT book, Theorem 4.7.7
-\lemma totalEquiv {J : \Type} {A B : J -> \Type} (f : \Pi (j : J) -> A j -> B j)
+\lemma totalEquiv.{u} {J : \Type u} {A B : J -> \Type u} (f : \Pi (j : J) -> A j -> B j)
   : (\Pi (j : J) -> IsEquiv (f j)) = IsEquiv total
   => propExt (\lam e => contrFibers=>IsEquiv (\lam p => rewrite (totalFiber p.1 p.2) (IsEquiv=>contrFibers (e p.1) p.2)))
              (\lam e j => contrFibers=>IsEquiv (\lam b => rewriteI (totalFiber j b) (IsEquiv=>contrFibers e ((j,b) : \Sigma (j : J) (B j)))))

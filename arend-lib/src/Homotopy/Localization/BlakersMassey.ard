@@ -19,16 +19,16 @@
 \import Paths
 \import Paths.Meta
 
-\lemma genBlakersMassey {d : Data} (x0 : X) (y0 : Y) : isConnectedMap (pbMap {d} {x0} {y0})
+\lemma genBlakersMassey.{u} {d : Data.{u}} (x0 : X) (y0 : Y) : isConnectedMap (pbMap {d} {x0} {y0})
   => \lam p => surjective (POData.pullback_pushout-surjective {\new POData Y X (\lam y x => Q x y)} y0 x0 (inv (pmap swap p))) p
   \where {
     \open Localization
 
     -- | It is easier to prove the theorem if the type ``\Sigma (y : Y) (Q x0 y)`` is inhabited.
-    \lemma surjective {d : Data} {x0 : X} {y0 : Y} (q : TruncP (\Sigma (y : Y) (Q x0 y))) : isConnectedMap (pbMap {d} {x0} {y0}) \elim q
+    \lemma surjective.{u} {d : Data.{u}} {x0 : X} {y0 : Y} (q : TruncP (\Sigma (y : Y) (Q x0 y))) : isConnectedMap (pbMap {d} {x0} {y0}) \elim q
       | inP (y,q0) => \lam p => contr=>isConnected (Fib pbMap p) (DataExt.code-contr {\new DataExt { | Data => d | x0 => x0 | y0 => y | q0 => q0 }} p)
 
-    \class EquivData \noclassifying (A B : \Type) \extends ReflUniverse {
+    \class EquivData.{u} \noclassifying (A B : \Type u) \extends ReflUniverse.{u} {
       | M : A -> Connected
       | N : B -> Connected
       | f : \Sigma (a : A) (M a) -> \Sigma (b : B) (N b)
@@ -64,10 +64,10 @@
                                                   inL b               `qed))
     }
 
-    \class POData {
-      | X : \Type
-      | Y : \Type
-      | Q : X -> Y -> \Type
+    \class POData.{u} {
+      | X : \Type u
+      | Y : \Type u
+      | Q : X -> Y -> \Type u
 
       \func PO => PushoutData {\Sigma (x : X) (y : Y) (Q x y)} __.1 __.2
 
@@ -99,28 +99,28 @@
 
     \open POData
 
-    \class Data \extends ReflUniverse, POData
+    \class Data.{u} \extends ReflUniverse.{u}, POData.{u}
       | ch {x x' : X} {y y' : Y} (q0 : Q x y) (q1 : Q x y') (q2 : Q x' y)
         : isConnectedType (Join (\Sigma (p : y = y') (transport (Q x) p q0 = q1)) (\Sigma (p : x = x') (transport (`Q y) p q0 = q2)))
 
-    \class DataExt \extends Data {
+    \class DataExt.{u} \extends Data.{u} {
       | x0 : X
       | y0 : Y
       | q0 : Q x0 y0
 
-      \func code-left {x : X} {w : PO} (p : pinl x = {PO} w) (p' : pinl x0 = w) : \Type
+      \func code-left {x : X} {w : PO} (p : pinl x = {PO} w) (p' : pinl x0 = w) : \Type u
         => LType (\Sigma (q1 : Q x y0) (pbMap q0 *> inv (pbMap q1) *> p = p'))
 
-      \func code-glue-gen {x : X} {w : PO} (code : pinl x0 = w -> \Type) (p : pinl x = w)
+      \func code-glue-gen {x : X} {w : PO} (code : pinl x0 = w -> \Type u) (p : pinl x = w)
                           (t : \Pi (p' : pinl x0 = w) -> Equiv (code-left p p') (code p'))
-        : transport (pinl x0 = __ -> \Type) p (code-left idp) = code \elim p
+        : transport (pinl x0 = __ -> \Type u) p (code-left idp) = code \elim p
         | idp => path (\lam i p' => Equiv_= (t p') @ i)
 
       \func code-glue {x : X} {y : Y} (q : Q x y)
-        : transport (pinl x0 = __ -> \Type) (pbMap q) (code-left idp) = (\lam p => LType (Fib pbMap p))
+        : transport (pinl x0 = __ -> \Type u) (pbMap q) (code-left idp) = (\lam p => LType (Fib pbMap p))
         => code-glue-gen (\lam p => LType (Fib pbMap p)) (pbMap q) \lam p => mkEquiv (code.equiv q p)
 
-      \func code {w : PO} (p : pinl x0 = w) : \Type \elim w
+      \func code {w : PO} (p : pinl x0 = w) : \Type u \elim w
         | pinl x => code-left idp p
         | pinr y => LType (Fib pbMap p)
         | pglue (x,y,q) i => (pathOver (code-glue q) @ i) p
@@ -147,16 +147,16 @@
             => (equivData q p).equiv-lemma
             \where \protected \func func => (equivData q p).ltype-map
 
-          \func pathLem1 {A : \Type} {a a' a'' : A} (p : a = a') (q : a'' = a') : p *> inv q *> q = p
+          \func pathLem1 {A : \Type u} {a a' a'' : A} (p : a = a') (q : a'' = a') : p *> inv q *> q = p
             | idp, idp => idp
 
-          \func pathLem2-gen {A : \Type} {a a' a'' : A} {p1 p2 : a = a'} {q : a = a''} (t : p1 *> inv p2 = idp) : p1 *> inv p2 *> q = q \elim q
+          \func pathLem2-gen {A : \Type u} {a a' a'' : A} {p1 p2 : a = a'} {q : a = a''} (t : p1 *> inv p2 = idp) : p1 *> inv p2 *> q = q \elim q
             | idp => t
 
-          \func pathLem2 {A : \Type} {a a' a'' : A} (p : a = a') (q : a = a'') : p *> inv p *> q = q
+          \func pathLem2 {A : \Type u} {a a' a'' : A} (p : a = a') (q : a = a'') : p *> inv p *> q = q
             => pathLem2-gen (*>_inv p)
 
-          \func pathLem3 {A : \Type} {a a' : A} (p : a = a') : pathLem1 p p = pathLem2 p p
+          \func pathLem3 {A : \Type u} {a a' : A} (p : a = a') : pathLem1 p p = pathLem2 p p
             | idp => idp
 
           \func LR {x : X} {y : Y} (q : Q x y) (p : pinl x0 = {PO} pinr y)
@@ -197,7 +197,7 @@
             | (b1,idp), pglue ((idp,idp),(idp,idp)) j => path (\lam i => (q0, inv_*> (pathLem3 (pbMap q0) @ j)       @ i))
         }
 
-      \func coerce-path-gen {w : PO} (p : pinl x0 = w) (t : transport (pinl x0 = __ -> \Type) p (code-left idp) = code)
+      \func coerce-path-gen {w : PO} (p : pinl x0 = w) (t : transport (pinl x0 = __ -> \Type u) p (code-left idp) = code)
         : code-left idp idp = code p \elim p
         | idp => path ((t @ __) idp)
 
@@ -221,7 +221,7 @@
       \func code-path (p : pinl x0 = {PO} pinr y0) (c : Fib pbMap p) : code-center p = lEta c \elim c
         | (q,idp) =>
             code-center (pbMap q)
-              ==< pmap (\lam s => transport (\lam T => T) (coerce-path-gen (pbMap q) s) (lEta code-center.point)) (pmapd_pathOver (pinl x0 = __ -> \Type) (\lam _ => code) (pbMap q) (code-glue q) idp) >==
+              ==< pmap (\lam s => transport (\lam T => T) (coerce-path-gen (pbMap q) s) (lEta code-center.point)) (pmapd_pathOver (pinl x0 = __ -> \Type u) (\lam _ => code) (pbMap q) (code-glue q) idp) >==
             transport (\lam T => T) (coerce-path-gen (pbMap q) (code-glue q)) (lEta code-center.point)
               ==< coerce-path-glue-gen (pbMap q) (\lam p => mkEquiv $ code.equiv q p) (lEta code-center.point) >==
             code.equiv.func (code-left-diag (pbMap q) (lEta code-center.point))

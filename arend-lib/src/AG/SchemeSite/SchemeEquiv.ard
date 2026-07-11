@@ -24,7 +24,7 @@
 \import Topology.Locale.PreorderSite
 \open SatSchemeSiteHom
 
-\func SchemeSiteFunctor : FullyFaithfulFunctor SatSchemeSitePrecat LocallyRingedLocaleCat \cowith
+\func SchemeSiteFunctor.{u} : FullyFaithfulFunctor SatSchemeSitePrecat.{u} LocallyRingedLocaleCat.{u} \cowith
   | F S => S.toScheme
   | Func f => (saturateHom f).toLRLSchemeSiteHom.toLRLHom
   | Func-id {X} => later (path \lam i => (id_toLRL i).toLRLHom) *> LRLSchemeSiteHom.LRL-equiv.f_ret _
