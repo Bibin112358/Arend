@@ -4,7 +4,7 @@
 \class Pointed \extends BaseSet
   | ide : E
   \where {
-    \func equals {X Y : Pointed} (p : X = {\Set} Y) (q : coe (p @) ide right = ide) : X = Y
+    \func equals.{u} {X Y : Pointed.{u}} (p : X = {\Set u} Y) (q : coe (p @) ide right = ide) : X = {Pointed.{u}} Y
       => path (\lam i => \new Pointed (p @ i) (pathOver {p @} q @ i))
   }
 

@@ -115,7 +115,7 @@
     | ide-right => ide-left
     | *-assoc => inv *-assoc
 } \where {
-  \protected \func equals {M N : Monoid} (p : M = {\Set} N) (q : \let f x => coe (p @) x right \in \Pi (x y : M) -> f (x * y) = f x * f y) : M = N
+  \protected \func equals.{u} {M N : Monoid.{u}} (p : M = {\Set u} N) (q : \let f x => coe (p @) x right \in \Pi (x y : M) -> f (x * y) = f x * f y) : M = {Monoid.{u}} N
     => exts (p, ide-equality, q)
     \where {
       \lemma ide-equality : coe (p @) ide right = ide

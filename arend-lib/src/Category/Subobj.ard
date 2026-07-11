@@ -18,8 +18,7 @@
 \func inso~ {C : Precat} {obj : C} (m : Mono {C} { | cod => obj }) : Subobj m.cod
   => in~ m
 
--- TODO[sorts]: Remove levels after making Poset infinite
-\instance SubobjPoset.{o,h} {C : Precat.{o,h}} (obj : C) : Poset (Subobj obj)
+\instance SubobjPoset {C : Precat} (obj : C) : Poset (Subobj obj)
   | <= (s1 s2 : Subobj obj) : \Prop \with {
     | in~ m1, in~ m2 => ∃ (f : Hom m1.dom m2.dom) (m2.f ∘ f = m1.f)
     | in~ m, ~-equiv x y r => propExt (\lam (inP (f,xf=m)) => inP (r.1 ∘ f, inv o-assoc *> pmap (`∘ _) r.2 *> xf=m))
@@ -48,7 +47,7 @@
       | f_hinv => g.isMono $ inv o-assoc *> pmap (`∘ _) (SubobjPoset.extractMap f<=g).2 *> (SubobjPoset.extractMap g<=f).2 *> inv id-right
   }
 
-\lemma ~-unsoequiv.{o,h} {C : Precat.{o,h}} {obj : C} {m1 m2 : Mono {C} { | cod => obj }} (p : inso~ m1 = inso~ m2)
+\lemma ~-unsoequiv {C : Precat} {obj : C} {m1 m2 : Mono {C} { | cod => obj }} (p : inso~ m1 = inso~ m2)
   : ∃ (f : Hom m1.dom m2.dom) (m2.f ∘ f = m1.f) (g : Hom m2.dom m1.dom) (m1.f ∘ g = m2.f)
   => \case =_<= p, =_<= (inv p) \with {
     | inP r1, inP r2 => inP (r1.1,r1.2,r2.1,r2.2)
@@ -64,9 +63,8 @@
 \sfunc subobjTop {C : Precat} {obj : C} : Subobj obj
   => inso~ idIso
 
--- TODO[sorts]: Remove levels after making Poset infinite
-\instance SubobjectSemilattice.{o,h} {C : PrecatWithPullbacks.{o,h}} (obj : C) : TopMeetSemilattice
-  | Poset => SubobjPoset.{o,h} obj
+\instance SubobjectSemilattice {C : PrecatWithPullbacks} (obj : C) : TopMeetSemilattice
+  | Poset => SubobjPoset obj
   | meet (x y : Subobj obj) : Subobj obj \with {
     | in~ m1, in~ m2 => inso~ $ Mono.comp m1 $ Mono_pullback (pullback m1.f m2.f) m2
     | in~ m, ~-equiv x y r => <=-antisymmetric
@@ -100,7 +98,7 @@
       | idp => TruncP.remove (\lam s s' => ext $ m.isMono $ s.2 *> inv s'.2) l
   }
 
-\lemma subobjLifts_id_top.{o,h} {C : Precat.{o,h}} {x : C} {s : Subobj x} : subobjLifts (id x) s <-> (s = subobjTop) \elim s
+\lemma subobjLifts_id_top {C : Precat} {x : C} {s : Subobj x} : subobjLifts (id x) s <-> (s = subobjTop) \elim s
   | in~ m => rewrite (\peval subobjTop {_} {x}) (<=-antisymmetric $ inP (m, id-left), \lam r => =_<= (inv r))
 
 \sfunc subobjEq {C : PrecatWithBprod} (c : C) : Subobj (Bprod c c)
@@ -111,13 +109,13 @@
     (\lam (inP (h,p)) => inv beta1 *> pmap (proj1 ∘) (inv p) *> inv o-assoc *> pmap (`∘ h) (beta1 *> inv beta2) *> o-assoc *> pmap (proj2 ∘) p *> beta2,
      \lam p => inP (f, pair-unique (inv o-assoc *> pmap (`∘ _) beta1 *> id-left *> inv beta1) (inv o-assoc *> pmap (`∘ _) beta2 *> id-left *> p *> inv beta2)))
 
-\func subobjPullback.{o,h} {C : PrecatWithPullbacks.{o,h}} {x y : C} (h : Hom x y) (s : Subobj y) : Subobj x \elim s
+\func subobjPullback {C : PrecatWithPullbacks} {x y : C} (h : Hom x y) (s : Subobj y) : Subobj x \elim s
   | in~ m => inso~ $ Mono_pullback (pullback h m.f) m
   | ~-equiv m1 m2 r => <=-antisymmetric
     (inP (pbMap pbProj1 (r.1 ∘ pbProj2) $ pbCoh *> pmap (`∘ _) (inv r.2) *> o-assoc, pbBeta1))
     (inP (pbMap pbProj1 (r.3 ∘ pbProj2) $ pbCoh *> pmap (`∘ _) (inv r.4) *> o-assoc, pbBeta1))
 
-\lemma subobjPullback-char.{o,h} {C : PrecatWithPullbacks.{o,h}} {s m : Mono {C}} {sub : Subobj s.cod} (p : sub = inso~ s) {h : Hom m.cod s.cod} (q : subobjPullback h sub = inso~ m)
+\lemma subobjPullback-char {C : PrecatWithPullbacks} {s m : Mono {C}} {sub : Subobj s.cod} (p : sub = inso~ s) {h : Hom m.cod s.cod} (q : subobjPullback h sub = inso~ m)
   : Contr (Pullback h s.f m.dom m) \elim p
   | idp => \case ~-unsoequiv {_} {_} {Mono_pullback _ s} q \with {
     | inP r => \new Contr {
@@ -129,46 +127,49 @@
         | pbBeta2 => o-assoc *> pmap (_ ∘) (inv o-assoc *> pmap (`∘ _) (~-unsoequiv.left-right=id {_} {_} {Mono_pullback _ s} r) *> id-left) *> pbBeta2
         | pbEta e _ => m.isMono e
       }
-      | contraction P => exts (s.isMono $ inv o-assoc *> pmap (`∘ _) (inv pbCoh) *> o-assoc *> pmap (_ ∘) r.4 *> pbCoh,
+      | contraction P => {?}
+       {- TODO[sorts]
+        exts (s.isMono $ inv o-assoc *> pmap (`∘ _) (inv pbCoh) *> o-assoc *> pmap (_ ∘) r.4 *> pbCoh,
                                \lam p1 p2 c => m.isMono $ inv o-assoc *> pmap (`∘ _) r.2 *> pbBeta1 *> inv P.pbBeta1)
+       -}
     }
   }
 
-\lemma subobjPullback-lifts.{o,h} {C : PrecatWithPullbacks.{o,h}} {x y z : C} {f : Hom x y} {g : Hom y z} {s : Subobj z}
+\lemma subobjPullback-lifts {C : PrecatWithPullbacks} {x y z : C} {f : Hom x y} {g : Hom y z} {s : Subobj z}
   : subobjLifts f (subobjPullback g s) <-> subobjLifts (g ∘ f) s \elim s
   | in~ m => (\lam (inP (h,p)) => inP (pbProj2 ∘ h, inv o-assoc *> pmap (`∘ h) (inv pbCoh) *> o-assoc *> pmap (g ∘) p),
               \lam (inP (h,p)) => inP (pbMap f h (inv p), pbBeta1))
 
-\lemma subobjLifts_top.{o,h} {C : PrecatWithPullbacks.{o,h}} {x y : C} {f : Hom x y} {s : Subobj y}
+\lemma subobjLifts_top {C : PrecatWithPullbacks} {x y : C} {f : Hom x y} {s : Subobj y}
   : subobjLifts f s <-> (subobjPullback f s = subobjTop)
   => transport (subobjLifts __ _ <-> _) id-right $ <->trans (<->sym subobjPullback-lifts) subobjLifts_id_top
 
-\lemma subobjPullback_id.{o,h} {C : PrecatWithPullbacks.{o,h}} {x : C} {s : Subobj x}
+\lemma subobjPullback_id {C : PrecatWithPullbacks} {x : C} {s : Subobj x}
   : subobjPullback (id x) s = s \elim s
   | in~ m => <=-antisymmetric (inP (pbProj2, inv pbCoh *> id-left)) (inP (pbMap m (id _) $ id-left *> inv id-right, pbBeta1))
 
-\lemma subobjPullback_o.{o,h} {C : PrecatWithPullbacks.{o,h}} {x y z : C} {f : Hom x y} {g : Hom y z} {s : Subobj z}
+\lemma subobjPullback_o {C : PrecatWithPullbacks} {x y z : C} {f : Hom x y} {g : Hom y z} {s : Subobj z}
   : subobjPullback (g ∘ f) s = subobjPullback f (subobjPullback g s) \elim s
   | in~ m => <=-antisymmetric
     (inP (pbMap pbProj1 (pbMap (f ∘ pbProj1) pbProj2 (inv o-assoc *> pbCoh)) (inv pbBeta1), pbBeta1))
     (inP (pbMap pbProj1 (pbProj2 ∘ pbProj2) $ o-assoc *> pmap (g ∘) pbCoh *> inv o-assoc *> pmap (`∘ _) pbCoh *> o-assoc, pbBeta1))
 
-\lemma subobjPullback-top.{o,h} {C : PrecatWithPullbacks.{o,h}} {x y : C} {f : Hom x y} {s : Subobj y} (p : s = inso~ idIso) : subobjPullback f s = inso~ idIso \elim p
+\lemma subobjPullback-top {C : PrecatWithPullbacks} {x y : C} {f : Hom x y} {s : Subobj y} (p : s = inso~ idIso) : subobjPullback f s = inso~ idIso \elim p
   | idp => <=-antisymmetric (inP (pbProj1, id-left)) (inP (pbMap (id x) f (id-right *> inv id-left), pbBeta1))
 
-\lemma subobjPullback_top.{o,h} {C : PrecatWithPullbacks.{o,h}} {x y : C} {f : Hom x y} : subobjPullback f subobjTop = subobjTop
+\lemma subobjPullback_top {C : PrecatWithPullbacks} {x y : C} {f : Hom x y} : subobjPullback f subobjTop = subobjTop
   => subobjPullback-top (\peval subobjTop {_} {y}) *> inv (\peval subobjTop {_} {x})
 
-\lemma subobjPullback-self.{o,h} {C : PrecatWithPullbacks.{o,h}} {h : Mono {C}} {s : Subobj h.cod} (p : s = inso~ h) : subobjPullback h.f s = inso~ idIso \elim p
+\lemma subobjPullback-self {C : PrecatWithPullbacks} {h : Mono {C}} {s : Subobj h.cod} (p : s = inso~ h) : subobjPullback h.f s = inso~ idIso \elim p
   | idp => <=-antisymmetric (inP (pbProj1, id-left)) (inP (pbMap (id _) (id _) idp, pbBeta1))
 
-\func subobjPullback_Iso-equiv.{o,h} {C : PrecatWithPullbacks.{o,h}} (h : Iso {C}) : QEquiv {Subobj h.cod} {Subobj h.dom} \cowith
+\func subobjPullback_Iso-equiv {C : PrecatWithPullbacks} (h : Iso {C}) : QEquiv {Subobj h.cod} {Subobj h.dom} \cowith
   | f => subobjPullback h.f
   | ret => subobjPullback h.hinv
   | ret_f s => inv subobjPullback_o *> pmap (subobjPullback __ s) h.f_hinv *> subobjPullback_id
   | f_sec s => inv subobjPullback_o *> pmap (subobjPullback __ s) h.hinv_f *> subobjPullback_id
 
-\func subobjPullback_Iso.{o,h} {C : PrecatWithPullbacks.{o,h}} (h : Iso {C}) {s : Subobj h.cod} {m : Mono {C} { | cod => h.cod }} (p : s = inso~ m)
+\func subobjPullback_Iso {C : PrecatWithPullbacks} (h : Iso {C}) {s : Subobj h.cod} {m : Mono {C} { | cod => h.cod }} (p : s = inso~ m)
   : subobjPullback h.f s = inso~ (Mono.comp h.reverse m) \elim p
   | idp => <=-antisymmetric
     (inP (pbProj2, o-assoc *> pmap (_ ∘) (inv pbCoh) *> inv o-assoc *> pmap (`∘ _) h.hinv_f *> id-left))

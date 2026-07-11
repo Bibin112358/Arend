@@ -81,8 +81,8 @@
         \in aux pd pm c (a - e * pow x d) $ rewrite (f.func-+,f.func-negative,f.func-*) equation
   }
 
-\func mPoly_integral {K : DiscreteField} {S : CRing} (f : RingHom K S) {a : S} {l : Array S} (p : MPoly (Fin (suc l.len)) K) (p/=0 : p /= 0) (pe : mPolyMapEval f p (a :: l) = 0)
-  : \Sigma (E : CRing) (g : RingHom K E) (l' : Array E l.len) (RingHom.isAlgebraGenerated g l') (h : RingHom E S) (\Pi (j : Fin l.len) -> \Sigma (q : Poly E) (l j = polyMapEval h q a)) (IsInj h) (isIntegral h a) (h RingHom.∘ g = f)
+\func mPoly_integral.{u} {K : DiscreteField} {S : CRing.{u}} (f : RingHom K S) {a : S} {l : Array S} (p : MPoly (Fin (suc l.len)) K) (p/=0 : p /= 0) (pe : mPolyMapEval f p (a :: l) = 0)
+  : \Sigma (E : CRing.{u}) (g : RingHom K E) (l' : Array E l.len) (RingHom.isAlgebraGenerated g l') (h : RingHom E S) (\Pi (j : Fin l.len) -> \Sigma (q : Poly E) (l j = polyMapEval h q a)) (IsInj h) (isIntegral h a) (h RingHom.∘ g = f)
   => \let | d j => pow (suc (mdegree p)) (suc j)
           | l' => mkArray \lam j => l j - pow a (d j)
           | subring : SubRing S => mPolyImage f l'
@@ -191,8 +191,8 @@
         }
     }
 
-\func mPoly_integralExt {K : DiscreteField} {S : CRing} (f : RingHom K S) {n : Nat} {l : Array S (suc n)} (gen : RingHom.isAlgebraGenerated f l) (p : MPoly (Fin (suc n)) K) (p/=0 : p /= zro) (pe : mPolyMapEval f p l = 0)
-  : \Sigma (E : CRing) (g : RingHom K E) (l' : Array E n) (RingHom.isAlgebraGenerated g l') (h : RingHom E S) (IsInj h) (isIntegralExt h) (h RingHom.∘ g = f)
+\func mPoly_integralExt.{u} {K : DiscreteField} {S : CRing.{u}} (f : RingHom K S) {n : Nat} {l : Array S (suc n)} (gen : RingHom.isAlgebraGenerated f l) (p : MPoly (Fin (suc n)) K) (p/=0 : p /= zro) (pe : mPolyMapEval f p l = 0)
+  : \Sigma (E : CRing.{u}) (g : RingHom K E) (l' : Array E n) (RingHom.isAlgebraGenerated g l') (h : RingHom E S) (IsInj h) (isIntegralExt h) (h RingHom.∘ g = f)
   => \case mPoly_integral f p p/=0 pe \with {
        | (E,g,l',gen',h,hg,hinj,hint,hg=f) => (E,g,l',gen',h,hinj, integralExt-finite-char (l 0 :: nil) (RingHom.isAlgebraGenerated-poly \lam x =>
            TruncP.map (gen x) \lam s => (mPolyEval (\lam j => (hg j).1) $ MPoly_Fin-suc' (mPoly-map g s.1), MPoly_Fin-suc'.mapEval-comm h {_} {_} {\lam j => (hg j).1} *> pmap2 (mPolyEval __ __) (exts \case \elim __ \with {
@@ -205,10 +205,10 @@
 
      It is actually enough to assume that {K} is reduced and 0-dimensional. Also, if {E} is local, then these equivalent conditions hold.
  -}
-\lemma finGenExt-char {K : DiscreteField} {E : CRing} {f : RingHom K E} (gen : RingHom.isFiniteAlgebra f) : isIntegralExt f <-> E.IsZeroDimensional \elim gen
+\lemma finGenExt-char.{u} {K : DiscreteField} {E : CRing.{u}} {f : RingHom K E} (gen : RingHom.isFiniteAlgebra f) : isIntegralExt f <-> E.IsZeroDimensional \elim gen
   | inP s => (integralExt-zeroDim, aux __ f s.2)
   \where {
-    \private \lemma aux {K : DiscreteField} {S : CRing} (Szd : S.IsZeroDimensional) (f : RingHom K S) {n : Nat} {l : Array S n} (gen : RingHom.isAlgebraGenerated f l) : isIntegralExt f \elim n, l
+    \private \lemma aux.{u} {K : DiscreteField} {S : CRing.{u}} (Szd : S.IsZeroDimensional) (f : RingHom K S) {n : Nat} {l : Array S n} (gen : RingHom.isAlgebraGenerated f l) : isIntegralExt f \elim n, l
       | 0, nil => integralExt-finite-char nil gen 1 0 \case __
       | suc n, a :: l =>
         \let | (inP (b,m,q)) => Szd a

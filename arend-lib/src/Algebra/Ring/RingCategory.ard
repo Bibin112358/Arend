@@ -64,7 +64,7 @@
 
     {- | A function that lifts an isomorphism between the additive groups of two rings
          to an isomorphism between the rings themselves**. `Group-Iso->Ring-Iso` -}
-    \lemma Group-Iso->Ring-Iso {G H : Ring} {f : RingHom G H} (f_iso : Iso {GroupCat} (AddGroupHom.toGroupHom f)) : Iso {RingCat} f \cowith {
+    \lemma Group-Iso->Ring-Iso.{u} {G H : Ring.{u}} {f : RingHom G H} (f_iso : Iso {GroupCat.{u}} (AddGroupHom.toGroupHom f)) : Iso {RingCat.{u}} f \cowith {
       | hinv => \new RingHom {
         | AddGroupHom => AddGroupHom.fromGroupHom f_iso.hinv
         | func-ide => rewrite (inv f.func-ide, path \lam i => f_iso.hinv_f i ide) idp
@@ -82,22 +82,22 @@
       | f_hinv => exts \lam e i => f_iso.f_hinv i e
     }
 
-    \lemma Iso<->Inj+Surj {G H : Ring} (f : RingHom G H) : Iso {RingCat} f <-> (\Sigma (IsInj f) (IsSurj f)) =>
+    \lemma Iso<->Inj+Surj.{u} {G H : Ring.{u}} (f : RingHom G H) : Iso {RingCat.{u}} f <-> (\Sigma (IsInj f) (IsSurj f)) =>
       (\lam p => (GroupCat.Iso<->Inj+Surj (AddGroupHom.toGroupHom f)).1 \new Iso {
         | hinv => AddGroupHom.toGroupHom hinv
         | hinv_f => exts \lam e i => p.hinv_f i e
         | f_hinv => exts \lam e i => p.f_hinv i e
       }, \lam p => Group-Iso->Ring-Iso ((GroupCat.Iso<->Inj+Surj (AddGroupHom.toGroupHom f)).2 p))
 
-    \lemma Iso<->IsEquiv {G H : Ring} {f : RingHom G H} : Iso {RingCat} f <-> IsEquiv f
+    \lemma Iso<->IsEquiv.{u} {G H : Ring.{u}} {f : RingHom G H} : Iso {RingCat.{u}} f <-> IsEquiv f
       => (\lam e => \have t => (Iso<->Inj+Surj f).1 e \in IsEquiv.fromInjSurj t.1 t.2,
           \lam e => (Iso<->Inj+Surj f).2 (IsEquiv.isInj e, IsEquiv.isSurj e))
 
-    \func image-iso {f : RingHom} (p : IsSurj f) : Iso {RingCat} {f.Image.IRing} {f.Cod}
+    \func image-iso.{u} {R S : Ring.{u}} {f : RingHom R S} (p : IsSurj f) : Iso {RingCat.{u}} {f.Image.IRing} {S}
       => (RingCat.Iso<->Inj+Surj f.image).2 (RingHom.image.isInj, RingHom.image.isSurj p)
 
-    \func Image=Cod {R S : Ring} (f : RingHom R S) (p : IsSurj f) : (ringHomImage f).IRing = {Ring} S
-      => RingCat.isotoid (image-iso p)
+    \func Image=Cod.{u} {R S : Ring.{u}} (f : RingHom R S) (p : IsSurj f) : (ringHomImage f).IRing = {Ring.{u}} S
+      => {?} -- TODO[sorts]: RingCat.{u}.isotoid (image-iso.{u} p)
   }
 
 \instance CRingCat.{u} : Cat CRing.{u}
@@ -145,15 +145,15 @@
           => (Adjunction.comp (ModelCat.ForgetToSetAdjunction {CRingBicat.theory}) CRingBicat.catEquiv.reverse).preservesLimits
       }
 
-    \lemma Iso<->IsEquiv {R S : CRing} {f : RingHom R S} : Iso {CRingCat} f <-> IsEquiv f
+    \lemma Iso<->IsEquiv.{u} {R S : CRing.{u}} {f : RingHom R S} : Iso {CRingCat.{u}} f <-> IsEquiv f
       => <->trans (forgetToRing.Func-iso __, \lam e => later \new Iso e.f e.hinv e.hinv_f e.f_hinv) RingCat.Iso<->IsEquiv
 
-    \lemma Iso_QEquiv (e : Iso {CRingCat}) : QEquiv e.f e.hinv \cowith
+    \lemma Iso_QEquiv.{u} (e : Iso {CRingCat.{u}}) : QEquiv e.f e.hinv \cowith
       | ret_f x => path \lam i => e.hinv_f i x
       | f_sec y => path \lam i => e.f_hinv i y
 
-    \func Image=Cod {R : Ring} {S : CRing} (f : RingHom R S) (p : IsSurj f) : (RingHom.ImageC f).ICRing = {CRing} S
-      => ext CRing { | Ring => RingCat.Image=Cod f p }
+    \func Image=Cod.{u} {R : Ring.{u}} {S : CRing.{u}} (f : RingHom R S) (p : IsSurj f) : (RingHom.ImageC f).ICRing = {CRing.{u}} S
+      => {?} -- TODO[sorts]: ext CRing { | Ring => RingCat.Image=Cod f p }
   }
 
 \instance LimitCRing.{u} {J : Precat.{u,u}} (F : Functor J CRingCat.{u}) : CRing

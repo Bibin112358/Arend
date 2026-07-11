@@ -1325,7 +1325,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     if (expr.getStatements().isEmpty()) {
       return checkInfiniteLevel(typeCheckedBaseClass, expectedType, expr) ? checkResult(expectedType, typeCheckedBaseClass, expr) : null;
     } else {
-      return typecheckClassExt(expr.getStatements(), expectedType, classCall, null, expr, false);
+      return typecheckClassExt(expr.getStatements(), expectedType, null, classCall, null, expr, false, true);
     }
   }
 
@@ -1412,6 +1412,15 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   }
 
   private TypecheckingResult typecheckClassExt(List<? extends Concrete.ClassFieldImpl> classFieldImpls, Expression expectedType, Expression renewExpr, ClassCallExpression classCallExpr, Set<ClassField> pseudoImplemented, Concrete.Expression expr, boolean useDefaults) {
+    return typecheckClassExt(classFieldImpls, expectedType, renewExpr, classCallExpr, pseudoImplemented, expr, useDefaults, false);
+  }
+
+  // `levelsExcludeDefined` tells us whether `classCallExpr`'s levels were already built (see
+  // visitClassExt) treating the fields implemented by `classFieldImpls` as excluded from the
+  // override list (skipping a slot for them) -- if so, a field being implemented here must use
+  // that same exclusion when reading back its own override (see typecheckImplementation), since
+  // otherwise the position of a later field's override would be misread.
+  private TypecheckingResult typecheckClassExt(List<? extends Concrete.ClassFieldImpl> classFieldImpls, Expression expectedType, Expression renewExpr, ClassCallExpression classCallExpr, Set<ClassField> pseudoImplemented, Concrete.Expression expr, boolean useDefaults, boolean levelsExcludeDefined) {
     ClassDefinition baseClass = classCallExpr.getDefinition();
 
     Set<ClassField> defined = new HashSet<>();
@@ -1445,6 +1454,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     Map<ClassField, Expression> fieldSet = new LinkedHashMap<>();
     Set<ClassField> implementedByEnd = new HashSet<>(classCallExpr.getImplementedHere().keySet());
     implementedByEnd.addAll(defined);
+    Set<ClassField> overrideExclusion = levelsExcludeDefined ? implementedByEnd : Collections.emptySet();
     ClassCallExpression resultClassCall = new ClassCallExpression(baseClass, stripImplementedOverrides(classCallExpr, implementedByEnd), fieldSet, baseClass.getUniverseKind());
     copyImplementationsFrom(resultClassCall, classCallExpr, expr);
     resultClassCall.updateHasUniverses();
@@ -1528,7 +1538,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       try {
         for (Pair<Definition, Concrete.ClassFieldImpl> pair : implementations) {
           if (pair.proj1 instanceof ClassField field) {
-            TypecheckingResult implResult = typecheckImplementation(field, pair.proj2.implementation, resultClassCall, classCallExpr, !(pair.proj2 instanceof Concrete.CoClauseFunctionReference));
+            TypecheckingResult implResult = typecheckImplementation(field, pair.proj2.implementation, resultClassCall, classCallExpr, overrideExclusion, !(pair.proj2 instanceof Concrete.CoClauseFunctionReference));
             if (implResult != null) {
               Expression oldImpl = null;
               if (!field.isProperty()) {
@@ -1634,19 +1644,20 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
   }
 
-  private TypecheckingResult typecheckImplementation(ClassField field, Concrete.Expression implBody, ClassCallExpression fieldSetClass, ClassCallExpression originalClassCall, boolean addImplicitLambdas) {
+  private TypecheckingResult typecheckImplementation(ClassField field, Concrete.Expression implBody, ClassCallExpression fieldSetClass, ClassCallExpression originalClassCall, Set<ClassField> excludedFromOverride, boolean addImplicitLambdas) {
     // `fieldSetClass`'s own levels no longer carry an override for `field` once it's about to be
     // implemented here (see stripImplementedOverrides), so the pre-implementation override --
     // used as `field`'s expected type while checking its implementation -- is read from the
-    // original, unstripped class call instead (which has no implementations of its own, so its
-    // exclusion set is consistently empty, matching how its levels were built).
+    // original, unstripped class call instead. `excludedFromOverride` must mirror whichever fields
+    // were already treated as excluded when `originalClassCall`'s levels were built (see
+    // visitClassExt/typecheckClassExt), or a later field's override would be misread; when nothing
+    // was excluded at that point (the common, "naive" case), this is empty, and `field`'s own
+    // override -- if any -- legitimately still applies to pin down its (possibly inferred) type.
     Expression type = fieldSetClass.getDefinition().getFieldType(field, fieldSetClass.getLevels(), new ReferenceExpression(fieldSetClass.getThisBinding()));
-    Level fieldOverrideLevel = originalClassCall.getFieldLevelOverride(field);
+    Level fieldOverrideLevel = originalClassCall.getDefinition().getFieldLevelOverride(field, originalClassCall.getLevels(), excludedFromOverride);
     if (fieldOverrideLevel != null) {
       type = type.replaceInfinityLevel(fieldOverrideLevel);
     }
-
-    // Expression type = FieldCallExpression.make(field, fieldSetClass.getLevels(), new ReferenceExpression(fieldSetClass.getThisBinding())).getType();
     if (implBody instanceof Concrete.HoleExpression && field.getReferable().isParameterField() && !field.getReferable().isExplicitField() && field.isTypeClass() && type instanceof ClassCallExpression && !((ClassCallExpression) type).getDefinition().isRecord()) {
       TypecheckingResult result;
       ClassDefinition classDef = ((ClassCallExpression) type).getDefinition();

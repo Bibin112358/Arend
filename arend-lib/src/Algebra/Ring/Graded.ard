@@ -311,7 +311,7 @@
     }
 
   \lemma sum-decomp (l : Array (\Sigma E E)) (c : \Pi (i : Fin l.len) -> ∃ (n : Nat) (isHomogen (l i).2 n))
-    : ∃ (N : Nat) (f : \Pi (n : Fin N) -> \Sigma (J : FinSet) (g : J -> E) (\Pi (j : J) -> \Sigma (n : Nat) (isHomogen (g j) n)) (h : J -> Fin l.len) (\Pi (j : J) -> isHomogen (g j * (l (h j)).2) n))
+    : ∃ (N : Nat) (f : \Pi (n : Fin N) -> \Sigma (J : FinSet.{0}) (g : J -> E) (\Pi (j : J) -> \Sigma (n : Nat) (isHomogen (g j) n)) (h : J -> Fin l.len) (\Pi (j : J) -> isHomogen (g j * (l (h j)).2) n))
         (BigSum (map (\lam s => s.1 * s.2) l) = BigSum (\lam n => FinSum (\lam j => (f n).2 j * (l ((f n).4 j)).2)))
     => \let | (inP c') => FinSet.finiteAC c
             | (inP d) => FinSet.finiteAC (\lam i => homogen-decomp (l i).1)

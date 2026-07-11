@@ -35,5 +35,5 @@
       => \lam {in~ a} {in~ a'} p => FactorRing.fequiv (unfold (rewrite (AddGroupHom.func-minus {f}) (AddGroup.toZero (pmap (\lam x => x.1) p))))
   }
 
-\lemma ringKerImageHom-iso {R S : CRing} (f : RingHom R S) : Iso {CRingCat} {FactorRing (RingHom.KernelC f)} {(RingHom.ImageC f).ICRing} (ringKerImageHom f)
-  => subCat-iso.conv $ (RingCat.Iso<->Inj+Surj (ringKerImageHom f)).2 (ringKerImageHom.isInj, ringKerImageHom.isSurj)
+\lemma ringKerImageHom-iso.{u} {R S : CRing.{u}} (f : RingHom R S) : Iso {CRingCat.{u}} {FactorRing (RingHom.KernelC f)} {(RingHom.ImageC f).ICRing} (ringKerImageHom f)
+  => subCat-iso.conv {_} {CRing.{u}} $ (RingCat.Iso<->Inj+Surj (ringKerImageHom f)).2 (ringKerImageHom.isInj, ringKerImageHom.isSurj)

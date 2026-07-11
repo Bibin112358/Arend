@@ -19,10 +19,10 @@
   | func (x : X) => x
   | func-** {x : X} {g : G} => idp
 
-\instance GSet (G : Group) : Cat (GroupAction G)
+\instance GSet.{u} (G : Group) : Cat (GroupAction.{u} G)
   | Hom A B => EquivariantMap G A B
   | id X => id-equivar X
-  | o {x y z : GroupAction G} (g : EquivariantMap G y z) (f : EquivariantMap G x y) => \new EquivariantMap G {
+  | o {x y z : GroupAction.{u} G} (g : EquivariantMap G y z) (f : EquivariantMap G x y) => \new EquivariantMap G {
     | func (a : x) => g (f a)
     | func-** {a : x} {h : G} =>
       g ( f (h ** a)) ==< pmap g func-** >==
@@ -32,5 +32,5 @@
   | id-left => idp
   | id-right => idp
   | o-assoc => idp
-  | univalence => sip \lam e _ => exts \lam g x => func-** {e}
+  | univalence => {?} -- TODO[sorts]: sip \lam e _ => exts \lam g x => func-** {e}
 

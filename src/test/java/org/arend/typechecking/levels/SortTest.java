@@ -493,4 +493,12 @@ public class SortTest extends TypeCheckingTestCase {
       \\func test (s : S) => foo (K s)
       """);
   }
+
+  @Test
+  public void skipImplementedInfiniteFieldTest() {
+    typeCheckModule("""
+      \\record R (A B : \\Sort)
+      \\func test (A : \\Type1) => R.{0} A
+      """);
+  }
 }

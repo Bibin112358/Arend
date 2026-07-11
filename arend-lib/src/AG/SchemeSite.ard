@@ -40,7 +40,7 @@
 \open Monoid
 \open Cover
 
-\record SchemeSite.{s} (\coerce P : Preorder.{s}) (R : Functor P.op CRingBicat.{s}) {
+\record SchemeSite.{u} (\coerce P : Preorder.{u}) (R : Functor P.op CRingBicat.{u}) {
   | loc-stable {a' a b : P} (r : a' <= a) (p : b <= a) : ∃ (b' : P) (p' : b' <= a') (b' <= b) (x : R a)
     (Localization (powers x) (R b) (R.Func p)) (Localization (powers (R.Func r x)) (R b') (R.Func p'))
 
@@ -83,7 +83,7 @@
   \func toRLSite : RingedSite toSite R \cowith
     | R-sheaf => IsPreorderSheaf.fromSheaf (sheaf-reflect forget (\lam {J} => forget.reflectsLimit {J}) (IsPreorderSheaf.toSheaf setPreorderSheaf)) __
     \where {
-      \private \lemma setPreorderSheaf : IsPreorderSheaf {toSite} (Comp forget.{s} R)
+      \private \lemma setPreorderSheaf : IsPreorderSheaf {toSite} (Comp forget.{u} R)
         => \lam {a} {U} a<=U U<=a {D} => IsPreorderSheaf.SetSheafCond a U
           \let | (inP (l,p)) => Cover_Ideal_<= U<=a (cover-basic a<=U)
                | (inP h) => FinSet.finiteAC (\lam j => (l j).2.2)
@@ -229,9 +229,9 @@
     }
 
   \lemma localization-merge {R : CRing} {l : Array (\Sigma R R)} (lc : R.BigSum (map (\lam s => s.1 * s.2) l) = 1)
-    (L : ∀ (s : l) (Localization (powers s.2)))
+    (L : \Pi (i : Fin l.len) -> Localization (powers (l i).2))
     (v : \Pi (j : Fin l.len) -> L j)
-    (Lc : ∀ (i j : Fin l.len) Given (T : Localization (powers (L i (l j).2))) (S : MonoidHom (L j) T) (∀ z (T (L i z) = S (L j z))) (T (v i) = S (v j)))
+    (Lc : \Pi (i j : Fin l.len) -> \Sigma (T : Localization (powers (L i (l j).2))) (S : MonoidHom (L j) T) (∀ z (T (L i z) = S (L j z))) (T (v i) = S (v j)))
     : ∃ (r : R) ∀ (j : Fin l.len) (L j r = v j)
     => \let | (inP v') => FinSet.finiteAC \lam j => Localization.localization-surj1 (L j) (v j)
             | am i j : (Lc i j).1 (L i ((v' i).1 * pow (l j).2 (v' j).2)) = (Lc i j).1 (L i ((v' j).1 * pow (l i).2 (v' i).2))
@@ -251,7 +251,7 @@
                 *> inv *-assoc *> pmap (`* _) *-comm *> *-assoc) *> inv R.BigSum-ldistr *> pmap (_ *) q *> ide-right) *> func-*) *> inv (v' i).3)
 }
 
-\record SatSchemeSite.{s} \extends SchemeSite.{s} {
+\record SatSchemeSite.{u} \extends SchemeSite.{u} {
   | loc-exists {a : P} (x : R a) : ∃ (b : P) (p : b <= a) (Localization (powers x) (R b) (R.Func p))
 
   \func toLRLSite : LocallyRingedSite toSite R \cowith
@@ -297,7 +297,7 @@
   \lemma top-affine {t : P} (tt : \Pi (x : P) -> x <= t) : toLRLSite.toLocale.IsAffineScheme
     => transport toLRLSite.toLocale.IsAffineOpen (<=-antisymmetric top-univ $ later \lam {x} _ => cover-inj (tt x) idp) $ basis-affineOpen {_} {t}
 
-  \func toScheme : Scheme \cowith
+  \func toScheme : Scheme.{u} \cowith
     | LocallyRingedLocale => toLRLSite.toLocale
     | isLocallyAffine {x} _ => cover-refl $ inP (SiteLocale.embed x, basis-affineOpen, cover-refl idp)
 }

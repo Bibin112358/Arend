@@ -52,33 +52,33 @@
 \func rMul-functorial {G : Group} (g g' : G) : (\lam x => rightMulEquiv g' (rightMulEquiv g x)) = rightMulEquiv (g * g')
   => ext (\lam x => *-assoc)
 
-\lemma equivPathComposition {G : Group} (g g' : G) : QEquiv-to-= (rightMulEquiv g) *> QEquiv-to-= (rightMulEquiv g') = QEquiv-to-= (rightMulEquiv (g * g'))
-  => QEquiv-to-=-functorial (rightMulEquiv g) (rightMulEquiv g') *> pmap QEquiv-to-= (QEquiv.equals {_} {_} {_} {rightMulEquiv (g * g')} \lam a => *-assoc)
+\lemma equivPathComposition.{u} {G : Group.{u}} (g g' : G) : QEquiv-to-= (rightMulEquiv g) *> QEquiv-to-= (rightMulEquiv g') = QEquiv-to-= (rightMulEquiv (g * g'))
+  => {?} -- TODO[sorts]: QEquiv-to-=-functorial (rightMulEquiv g) (rightMulEquiv g') *> pmap QEquiv-to-= (QEquiv.equals {_} {_} {_} {rightMulEquiv (g * g')} \lam a => *-assoc)
 
-\func code {G : Group} (x : K1 G) : \Set \elim x
+\func code.{u} {G : Group.{u}} (x : K1 G) : \Set u \elim x
   | base => G
   | loop g => QEquiv-to-= (rightMulEquiv g)
   | relation g g' i j => Cube2.map (QEquiv-to-= (rightMulEquiv g)) (QEquiv-to-= (rightMulEquiv (g * g'))) idp (QEquiv-to-= (rightMulEquiv g'))
                                    (movePath1 (equivPathComposition g g')) @ j @ i
 
-\func encode {G : Group} (x : K1 G) (p : base = x) : code x
+\func encode.{u} {G : Group.{u}} (x : K1 G) (p : base = x) : code x
    => transport code p ide
 
-\func decode {G : Group} (x : K1 G) : code x -> base = x \elim x
+\func decode.{u} {G : Group.{u}} (x : K1 G) : code x -> base = x \elim x
   | base => \lam c => path (loop c)
   | loop g => pathOver (decode_loop_homo g)
   \where {
     \func wind {G : Group} (g : G) : base {G} = base => path (loop g)
 
-    \func decode_loop_homo {G : Group} (g : G) : transport (\lam x => code {G} x -> base = x) (wind g) wind = wind
+    \func decode_loop_homo.{u} {G : Group.{u}} (g : G) : transport (\lam x => code {G} x -> base = x) (wind g) wind = wind
       => simp_coe (\lam c => simp_coe (K1.loop-comp c g))
   }
 
-\func encode_decode {G : Group} {x : K1 G} (p : base = x) : decode x (encode x p) = p
+\func encode_decode.{u} {G : Group.{u}} {x : K1 G} (p : base = x) : decode x (encode x p) = p
   | idp => K1.loop-ide
 
-\func decode_encode {G : Group} (x : K1 G) (c : code x) : encode x (decode x c) = c \elim x
+\func decode_encode.{u} {G : Group.{u}} (x : K1 G) (c : code x) : encode x (decode x c) = c \elim x
   | base => ide-left
 
-\func Loop_K1 {G : Group} : (base {G} = base) = G
+\func Loop_K1.{u} {G : Group.{u}} : (base {G} = base) = G
   => path (iso (encode base) (decode base) (encode_decode {G} {base}) (decode_encode base))

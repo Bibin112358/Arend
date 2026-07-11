@@ -39,10 +39,10 @@
 \open Cover
 \open CompleteLattice
 
-\func Spec (R : CRing) : Scheme
+\func Spec.{u} (R : CRing.{u}) : Scheme
   => (satSite R).toScheme
   \where {
-    \func site (R : CRing) : SchemeSite \cowith
+    \func site.{u} (R : CRing.{u}) : SchemeSite.{u} \cowith
       | P => TrivialPoset
       | R {
         | F _ => R
@@ -52,10 +52,10 @@
       }
       | loc-stable _ _ => inP ((), (), (), 1, Localization.id1, Localization.id1)
 
-    \func satSite (R : CRing) : SatSchemeSite
+    \func satSite.{u} (R : CRing.{u}) : SatSchemeSite
       => SatSite (site R)
 
-    \func preSite {R : CRing} => (satSite R).toSite
+    \func preSite => (satSite R).toSite
 
     \lemma isAffineScheme : (Spec R).IsAffineScheme
       => (satSite R).top-affine {(), 1} \lam x => ((), inP (LDiv.make x.2 ide-left))
@@ -71,7 +71,7 @@
 \func specUnit {X : LocallyRingedLocale} : LocallyRingedLocaleHom X (Spec X.GlobalSections)
   => siteHom.toLRLHom
   \where {
-    \func adjoint.{s} {X : LocallyRingedLocale.{s}} {R : CRing.{s}} (f : RingHom R X.GlobalSections) : LRLSchemeSiteHom X (Spec.satSite R) \cowith
+    \func adjoint.{u} {X : LocallyRingedLocale.{u}} {R : CRing.{u}} (f : RingHom R X.GlobalSections) : LRLSchemeSiteHom X (Spec.satSite R) \cowith
       | f* : PreorderHom (Spec.satSite R) X \cowith {
         | func x => X.principalOpen (f x.2)
         | func-<= (_, inP y|x) => Join-univ \lam s => Join-cond (s.1, Inv.Inv_LDiv s.2 $ MonoidHom.func-LDiv $ f.func-LDiv y|x)
@@ -94,7 +94,7 @@
       => adjoint RingHom.id
   }
 
-\lemma IsAffineScheme-char {X : LocallyRingedLocale} : X.IsAffineScheme <-> (specUnit {X}).IsIso
+\lemma IsAffineScheme-char.{u} {X : LocallyRingedLocale.{u}} : X.IsAffineScheme <-> (specUnit {X}).IsIso
   => (\lam ta => specUnit.siteHom.toLRLHom-iso
         (\lam {x} {U} _ x<=U => SatSite.Ideal_Cover {Spec.site _} $ (Ideal.sclosure _).radical-univ
           (Ideal.sclosure-univ {_} {_} {(Ideal.sclosure _).radical} $ later \lam {y} (inP (_, inP ((z,Vz),idp), c, cd, cx, cl)) =>

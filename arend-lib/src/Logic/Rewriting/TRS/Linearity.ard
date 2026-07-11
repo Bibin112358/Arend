@@ -32,7 +32,7 @@
 }
 
 \func LinearMetaContext {env : FSignature} {context : List Sort} {s : Sort} {allowVariables : \Prop}
-                        (term : GenericLinearTerm env context s allowVariables) : MetaContext Sort \elim term
+                        (term : GenericLinearTerm env context s allowVariables) : MetaContext.{0} Sort \elim term
   | l-func f arguments => ModularMetaContext (\lam i => LinearMetaContext (arguments i))
   | l-var index p _ => EmptyMetaContext
   | l-full-metavar => SingularMetaContext s context

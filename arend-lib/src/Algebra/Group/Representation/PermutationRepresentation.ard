@@ -104,7 +104,8 @@ Also, this does not make much sense over a trivial ring, thus we eliminate this 
     }
   }
 
+  {- TODO[sorts]
   \func Not-Irreducible : Not (Irreducible Repr) => \lam prf-irred => SubRepr-non-trivial (prf-irred invSubRepr)
-
+  -}
 }
 

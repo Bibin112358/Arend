@@ -30,7 +30,7 @@
   | norm_*_<= {x y : E} : norm (x * y) <= norm x ExUpperReal.* norm y
   | *-cont => bilinear-locally-uniform (*) rdistr_- ldistr_- norm_*_<=
 
-\lemma *-locally-uniform {X : ExPseudoNormedPseudoRing} : LocallyUniformMap (X ⨯ X) X (\lam s => s.1 * s.2)
+\lemma *-locally-uniform {X : ExPseudoNormedPseudoRing} : LocallyUniformMap (ProductUniformSpace X X) X (\lam s => s.1 * s.2)
   => bilinear-locally-uniform (*) X.rdistr_- X.ldistr_- norm_*_<=
 
 \class PseudoNormedPseudoRing \extends ExPseudoNormedPseudoRing, PseudoNormedAbGroup

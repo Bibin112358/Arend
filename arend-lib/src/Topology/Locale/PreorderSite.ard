@@ -23,7 +23,7 @@
 \open SiteLocale
 \open CompleteLattice
 
-\class PreorderSite \extends Preorder, Site.{\lp,\lp} {
+\class PreorderSite \extends Preorder, Site {
   | isBasicCover : E -> Set E -> \Prop
   | basic-cover-stable {a b : E} : a <= b -> ∀ {U : isBasicCover b} ∃ (V : isBasicCover a) (Refines V U) ∀ {t : V} (t <= a)
   | isCover x S => isBasicCover x \lam y => \Sigma (p : y <= x) (S (y,p))

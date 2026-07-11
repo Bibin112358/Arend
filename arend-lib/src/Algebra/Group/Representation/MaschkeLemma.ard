@@ -19,13 +19,14 @@
 \import Paths.Meta
 \import Set.Fin
 
-\class Maschke'sLemma {R : CRing} {G : FinGroup} {|G|^-1 : R} (q : R.natCoef G.finCard R.* |G|^-1 = R.ide)
-                      {E : LinRepres R G} {S : SubLRepres E} {
+{- TODO[sorts]: Redefine SubLRepres using subsets.
+\class Maschke'sLemma.{u} {R : CRing} {G : FinGroup} {|G|^-1 : R} (q : R.natCoef G.finCard R.* |G|^-1 = R.ide)
+                          {E : LinRepres.{u} R G} {S : SubLRepres E} {
 
   \func mean_func {E W : LinRepres R G} (f : LinearMap E W) : InterwiningMap E W
     => LModule.*c |G|^-1 (SumOverGroup f)
 
-  \func retracts (p : SplitMono {LModuleCat R} S.in) : SplitMono {RepresentationCat R G} {S} {E} S.in \cowith
+  \func retracts (p : SplitMono {LModuleCat.{u} R} S.in) : SplitMono {RepresentationCat.{u} R G} {S} {E} S.in \cowith
     | hinv => mean_func p.hinv
     | hinv_f => exts \lam e => rewrite (mean-func-preserve p-hinv-decypher e) idp
     \where {
@@ -153,3 +154,4 @@ produces an interwining linear map $f'$ via the following formula
           | suc n => rewrite (R.natCoefSuc n, E.*c-rdistr, inv $ BigSumEqual n, E.ide_*c, E.+-comm) idp
       }
   }
+-}

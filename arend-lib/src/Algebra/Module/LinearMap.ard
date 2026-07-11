@@ -222,7 +222,7 @@
     \type IsLinearComb {R : Ring} {U : LModule R} (x : U) {J : \Set} (g : J -> U)
       => \Sigma (c : Array (\Sigma R J)) (x = U.BigSum \lam j => (c j).1 *c g (c j).2)
 
-    \func makeLinearComb {R : Ring} {U : LModule R} {J : \Set} (g : J -> U) (c : Array (\Sigma R J)) : \Sigma (x : U) (J : \Set) (g : J -> U) (IsLinearComb x g)
+    \func makeLinearComb.{u} {R : Ring} {U : LModule R} {J : \Set u} (g : J -> U) (c : Array (\Sigma R J)) : \Sigma (x : U) (J : \Set u) (g : J -> U) (IsLinearComb x g)
       => (_, J, g, (c,idp))
 
     \func linearComb-map (f : LinearMap A B) {x : A} {J : \Set} {g : J -> A} (xg : IsLinearComb x g) : IsLinearComb (f x) (\lam j => f (g j))
@@ -244,7 +244,7 @@
            | inP f => inP $ rewrite c.2 $ Semiring.LDiv_BigSum \lam j => later $ Monoid.LDiv.factor-right (f j)
          }
 
-    \func multiLinear-comb (args : Array (\Sigma (x : A) (J : \Set) (g : J -> A) (IsLinearComb x g))) (f : Array A args.len -> B) (fm : isMultiLinear f)
+    \func multiLinear-comb.{u} (args : Array (\Sigma (x : A) (J : \Set u) (g : J -> A) (IsLinearComb x g))) (f : Array A args.len -> B) (fm : isMultiLinear f)
       : IsLinearComb (f (map __.1 args)) {\Pi (i : Fin args.len) -> (args i).2} \lam g => f \lam i => (args i).3 (g i) \elim args
       | nil => ((1, \case __) :: nil, inv $ zro-right *> ide_*c)
       | (x,J,g,xg) :: args => \let | t a => multiLinear-comb args (\lam l => f (a :: l)) (reduce f fm)

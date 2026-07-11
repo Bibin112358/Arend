@@ -215,7 +215,7 @@
     \open CoverMap
     \open TopAbGroupCompletion
 
-    \func *-cover : CoverMap (Completion X ⨯ Completion X) (Completion X)
+    \func *-cover : CoverMap (Completion X `ProductCoverSpace` Completion X) (Completion X)
       => lift2 *-locally-uniform
 
     \func *-func (x y : RegularCauchyFilter X) => *-cover (x,y)

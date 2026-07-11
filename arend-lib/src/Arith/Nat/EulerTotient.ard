@@ -102,10 +102,12 @@
         | (a, p) => inP ((a, ()) :: nil, simplify (rewrite (IntRing.*-comm, p) linarith))
       }, \lam c => unfold $ rewrite (intCoef-char, (rewrite AddGroup.minus_zro in ldiv-modEq i 0 n) $ Ideal.closure1_LDiv.1 c) idp)
 
+{- TODO[sorts]: Define an explicit function and prove it is an equivalence.
 \func Z/nZ=FinRing (n : Nat) : Iso {_} {FactorRing (Ideal.closure1 {IntRing} (suc n))} {FinRing {n}}
   => transport (\lam X => Iso {_} {FactorRing X} {FinRing {n}}) (ker-int-Coef n) $
       transport (\lam X => Iso {_} {_} {X}) (CRingCat.Image=Cod (intMap {FinRing {n}}) intCoef-surj) $
         ringKerImageHom-iso (intMap {FinRing {n}})
+-}
 
 \func EulerTotient (n : Nat) : Nat => (coPrimes n).finCard
 

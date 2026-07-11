@@ -16,8 +16,8 @@
 \open SiteLocale
 \open Cover
 
-\instance LocaleHasProduct : HasProduct Locale
-  | Product => ProductLocale
+\instance LocaleHasProduct.{u} : HasProduct Locale.{u}
+  | Product L M => ProductLocale L M
 
 \func ProductLocale (X Y : Locale) : Locale
   => SiteLocale site
@@ -34,7 +34,7 @@
            SetIm-elim $ later \lam {y} (y<=a, inP (v,Vv,y<=v)) => inP (_, SetIm-con Vv, (a<=b.1, y<=v)), SetIm-elim $ later \lam s => (<=-refl, s.1))
       }
 
-    \func proj1 : LocaleHom (X ⨯ Y) X \cowith
+    \func proj1 : LocaleHom (ProductLocale X Y) X \cowith
       | func x => closure \lam s => s.1 = x
       | func-<= {x} {x'} x<=x' => closure-univ \lam {s} p => mkcon cover-inj {x',top} (later (p =<= x<=x', top-univ)) idp
       | func-top>= {s} _ => mkcon cover-inj {top,top} (later (top-univ,top-univ)) idp
@@ -43,7 +43,7 @@
       | func-Join>= {C} => closure-univ $ later \lam {(_,y)} (idp) => cover-sub (cover-basic $ byLeft (C, <=-refl, idp)) $
         unfolds $ SetIm-elim \lam {x} Cx => inP $ later (_, SetIm-con Cx, cover-refl idp)
 
-    \func proj2 : LocaleHom (X ⨯ Y) Y \cowith
+    \func proj2 : LocaleHom (ProductLocale X Y) Y \cowith
       | func y => closure \lam s => s.2 = y
       | func-<= {y} {y'} y<=y' => closure-univ \lam {s} p => mkcon cover-inj {top,y'} (later (top-univ, p =<= y<=y')) idp
       | func-top>= {s} _ => mkcon cover-inj {top,top} (later (top-univ,top-univ)) idp
@@ -60,7 +60,7 @@
       | cover-trans (byRight (V,s<=V,idp)) T<=U => Z.meet-monotone <=-refl (func-<= s<=V <=∘ func-Join>=) <=∘
         Z.SJoin-ldistr>= <=∘ SJoin-univ \lam Va => coverMap f g (T<=U $ SetIm-con Va)
 
-    \func tuple {Z : Locale} (f : LocaleHom Z X) (g : LocaleHom Z Y) : LocaleHom Z (X ⨯ Y) \cowith
+    \func tuple {Z : Locale} (f : LocaleHom Z X) (g : LocaleHom Z Y) : LocaleHom Z (ProductLocale X Y) \cowith
       | func U => SJoin (\lam s => f s.1 ∧ g s.2) U.1
       | func-<= {U} {V} U<=V => SJoin-univ \lam Ua => SJoin-cond (U<=V Ua)
       | func-top>= => Join-cond $ inP (((top,top), ()), <=-antisymmetric top-univ $ meet-univ func-top>= func-top>=)
@@ -80,7 +80,7 @@
           (SJoin-univ \lam c => coverMap f g c <=∘ SJoin-univ \lam p => meet-right <=∘ func-<= (=_<= p))
           (meet-univ (top-univ <=∘ func-top>=) <=-refl <=∘ SJoin-conde (top,y) (cover-refl idp))
 
-    \lemma tupleEq {Z : Locale} {f g : LocaleHom Z (X ⨯ Y)} (p1 : proj1 LocaleHom.∘ f = proj1 LocaleHom.∘ g) (p2 : proj2 LocaleHom.∘ f = proj2 LocaleHom.∘ g) : f = g
+    \lemma tupleEq {Z : Locale} {f g : LocaleHom Z (ProductLocale X Y)} (p1 : proj1 LocaleHom.∘ f = proj1 LocaleHom.∘ g) (p2 : proj2 LocaleHom.∘ f = proj2 LocaleHom.∘ g) : f = g
       => SiteLocale.func-equality_ext \lam s =>
         \have | fg => f.func-meet *> pmap2 (∧) (pmap {FrameHom X Z} (FrameHom.func {__} s.1) p1) (pmap {FrameHom Y Z} (FrameHom.func {__} s.2) p2) *> inv g.func-meet
               | e : embed s = proj1 s.1 ∧ proj2 s.2 => <=-antisymmetric (embed-univ (cover-refl idp, cover-refl idp))
@@ -109,5 +109,5 @@
           }
   }
 
-\func localeDiagonal {L : Locale} : LocaleHom L (L ⨯ L)
+\func localeDiagonal {L : Locale} : LocaleHom L (ProductLocale L L)
   => ProductLocale.tuple LocaleHom.id LocaleHom.id

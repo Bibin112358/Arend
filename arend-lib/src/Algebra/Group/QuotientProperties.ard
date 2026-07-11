@@ -98,7 +98,7 @@
   \func univ : GroupHom (G // f.Kernel) H => UniversalProperties.universalQuotientMorph
   \func quot : GroupHom G (G // f.Kernel) => quotient-map
 
-  \lemma universalKerProp : univ GroupCat.∘ quot = f
+  \lemma universalKerProp : univ GroupHom.∘ quot = f
     => UniversalProperties.universalQuotientProperty
 
   \lemma universalQuotientKernel (g : G // f.Kernel)
@@ -125,7 +125,7 @@
     \where \lemma technical-helper  (a : G) : univ (in~ a) = f a =>
       univ (in~ a) ==< pmap univ {in~ a} {quot a} idp >==
       univ (quot a) ==< idp >==
-      (univ GroupCat.∘ quot) a ==< pmap (\lam (z : GroupHom G H) => z a) universalKerProp >==
+      (univ GroupHom.∘ quot) a ==< pmap (\lam (z : GroupHom G H) => z a) universalKerProp >==
       f a `qed
 
 
@@ -156,7 +156,7 @@
 
     }
 
-\func GroupFirstIsoCorollary{G H : Group} {N : NormalSubGroup G} (f : GroupHom G H) (p : N = f.Kernel) (q : IsSurj f):
-  \Sigma (f : GroupHom (G // N) H) (Iso {GroupCat} {G // N} {H} f) => ((GroupFirstIsoCorollary-setwise f p q).1,
-                                                                       (GroupCat.Iso<->Inj+Surj (GroupFirstIsoCorollary-setwise f p q).1).2
-                                                                      (GroupFirstIsoCorollary-setwise f p q).2)
+\func GroupFirstIsoCorollary.{u} {G H : Group.{u}} {N : NormalSubGroup G} (f : GroupHom G H) (p : N = f.Kernel) (q : IsSurj f)
+  : \Sigma (f : GroupHom (G // N) H) (Iso f)
+  => ((GroupFirstIsoCorollary-setwise f p q).1,
+      (GroupCat.Iso<->Inj+Surj (GroupFirstIsoCorollary-setwise f p q).1).2 (GroupFirstIsoCorollary-setwise f p q).2)

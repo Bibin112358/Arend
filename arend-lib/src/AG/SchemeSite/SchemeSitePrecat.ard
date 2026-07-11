@@ -9,7 +9,7 @@
 \open SchemeSitePrehom
 \open SchemeSiteHom (inh~)
 
-\func SchemeSitePrehomPrecat : Precat SchemeSite \cowith
+\func SchemeSitePrehomPrecat.{u} : Precat SchemeSite.{u} \cowith
   | Hom => SchemeSitePrehom
   | id _ => SchemeSitePrehom.id
   | o => SchemeSitePrehom.∘
@@ -24,7 +24,7 @@
       compose.f#-coh {_} {_} {_} {h SchemeSitePrehom.∘ g} {f} {_} {_} {_} {_} {_} {_} {_} {inP (z',y'<=z',z'<=a)} *>
       pmap (SchemeSitePrehom.f# _) compose.f#-eval *> inv compose.f#-eval *> inv compose.f#-eval
 
-\instance SchemeSitePrecat : Precat SchemeSite
+\instance SchemeSitePrecat.{u} : Precat SchemeSite.{u}
   | Hom => SchemeSiteHom
   | id _ => SchemeSiteHom.id
   | o => SchemeSiteHom.∘
@@ -38,5 +38,5 @@
     | in~ h, in~ g, in~ f => pmap inh~ SchemeSitePrehomPrecat.o-assoc
   }
 
-\instance SatSchemeSitePrecat : Precat SatSchemeSite
+\instance SatSchemeSitePrecat.{u} : Precat SatSchemeSite.{u}
   => subPrecat {SchemeSitePrecat} \lam X => X

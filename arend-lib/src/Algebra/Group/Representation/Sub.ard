@@ -14,10 +14,9 @@
   \func isTrivial => IsZeroMod S || IsSurj in
 
   \func \infix 7 **'in (g : G)(s : S) : S => (LinRepres.** {S}) g s
-
 }
 
-\func KernelSubLRepres{R : Ring} {G : Group} {A B : LinRepres R G} (f : InterwiningMap A B) : SubLRepres A \cowith
+\func KernelSubLRepres {R : Ring} {G : Group} {A B : LinRepres R G} (f : InterwiningMap A B) : SubLRepres A \cowith
   | S => KerLRepres f
   | in => KerLRepresHom f
   | in-mono {a a' : KerLRepres f} => \lam (p : KerLRepresHom f a = KerLRepresHom f a') => exts p

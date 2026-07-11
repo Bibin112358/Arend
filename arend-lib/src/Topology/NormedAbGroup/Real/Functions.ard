@@ -29,7 +29,7 @@
 \lemma lnorm-metric {X : PseudoNormedAbGroup} : MetricMap X RealNormed X.norm \cowith
   | func-dist => rewrite (X.norm-dist,RealNormed.norm-dist) $ Real.<=-upper.1 $ join-univ lnorm_-left $ simplify lnorm_-right
 
-\lemma dist-uniform-map {X : ExPseudoMetricSpace} : UniformMap (X ⨯ X) ExUpperRealMetric (\lam s => dist s.1 s.2) \cowith
+\lemma dist-uniform-map {X : ExPseudoMetricSpace} : UniformMap (ProductUniformSpace X X) ExUpperRealMetric (\lam s => dist s.1 s.2) \cowith
   | func-uniform Eu => \case dist-uniform.2 Eu \with {
     | inP (eps,eps>0,h) => inP (_, X.metricUniform {eps * ratio 1 4} linarith, _, X.metricUniform {eps * ratio 1 4} linarith, \lam {_} (inP (_, inP (x,idp), _, inP (x',idp), idp)) => \case h (X.dist x x') \with {
       | inP (W,EW,g) => inP (_, inP (W, EW, idp), \lam {(y,y')} (xy<eps/4,x'y'<eps/4) => g $ inP (eps * ratio 1 4 + eps * ratio 1 4, linarith, linarith,
@@ -46,7 +46,7 @@
 \lemma bnorm-metric-map {X : BoundedExPseudoNormedAbGroup} : MetricMap X UpperRealMetric bnorm \cowith
   | func-dist => norm-metric-map.func-dist
 
-\lemma ldist-uniform-map {X : PseudoMetricSpace} : UniformMap (X ⨯ X) RealNormed (\lam s => X.dist s.1 s.2) \cowith
+\lemma ldist-uniform-map {X : PseudoMetricSpace} : UniformMap (ProductUniformSpace X X) RealNormed (\lam s => X.dist s.1 s.2) \cowith
   | func-uniform Eu => \case dist-uniform.2 Eu \with {
     | inP (eps,eps>0,h) => inP (_, X.metricUniform (RatField.half>0 eps>0), _, X.metricUniform (RatField.half>0 eps>0), \lam {_} (inP (_, inP (x,idp), _, inP (x',idp), idp)) => \case h (X.dist x x') \with {
       | inP (W,EW,g) => inP (_, inP (W, EW, idp), \lam {(y,y')} (xy<eps/2,x'y'<eps/2) => g $ real_<_U.1 $ <_join-univ
@@ -55,7 +55,7 @@
     })
   }
 
-\lemma upper-meet-uniform : UniformMap (ExUpperRealMetric ⨯ ExUpperRealMetric) ExUpperRealMetric \lam s => s.1 ∧ s.2 \cowith
+\lemma upper-meet-uniform : UniformMap (ProductUniformSpace ExUpperRealMetric ExUpperRealMetric) ExUpperRealMetric \lam s => s.1 ∧ s.2 \cowith
   | func-uniform Eu => \case dist-uniform.2 Eu \with {
     | inP (eps,eps>0,h) => inP (_, ExUpperRealMetric.metricUniform eps>0, _, ExUpperRealMetric.metricUniform eps>0, \lam {_} (inP (_, inP (x,idp), _, inP (x',idp), idp)) => \case h (x ∧ x') \with {
       | inP (W,EW,g) => inP (_, inP (W,EW,idp), \lam {(y,y')} (inP (a,a<eps,a>=0,x<=y+a,y<=x+a), inP (b,b<eps,b>=0,x'<=y'+b,y'<=x'+b)) => g $ inP (a ∨ b, <_join-univ a<eps b<eps, a>=0 <=∘ join-left,
@@ -64,7 +64,7 @@
     })
   }
 
-\lemma real-meet-uniform : UniformMap (RealNormed ⨯ RealNormed) RealNormed \lam s => s.1 ∧ s.2 \cowith
+\lemma real-meet-uniform : UniformMap (ProductUniformSpace RealNormed RealNormed) RealNormed \lam s => s.1 ∧ s.2 \cowith
   | func-uniform Eu => \case dist-uniform.2 Eu \with {
     | inP (eps,eps>0,h) => inP (_, RealNormed.metricUniform eps>0, _, RealNormed.metricUniform eps>0, \lam {_} (inP (_, inP (x,idp), _, inP (x',idp), idp)) => \case h (x ∧ x') \with {
       | inP (W,EW,g) => inP (_, inP (W, EW, idp), \lam {(y,y')} (xy<eps,x'y'<eps) => g $ real_<_U.1 $ RealAbGroup.abs_-_<
@@ -77,7 +77,7 @@
     })
   }
 
-\lemma upper-join-uniform : UniformMap (ExUpperRealMetric ⨯ ExUpperRealMetric) ExUpperRealMetric \lam s => s.1 ∨ s.2 \cowith
+\lemma upper-join-uniform : UniformMap (ProductUniformSpace ExUpperRealMetric ExUpperRealMetric) ExUpperRealMetric \lam s => s.1 ∨ s.2 \cowith
   | func-uniform Eu => \case dist-uniform.2 Eu \with {
     | inP (eps,eps>0,h) => inP (_, ExUpperRealMetric.metricUniform eps>0, _, ExUpperRealMetric.metricUniform eps>0, \lam {_} (inP (_, inP (x,idp), _, inP (x',idp), idp)) => \case h (x ∨ x') \with {
       | inP (W,EW,g) => inP (_, inP (W,EW,idp), \lam {(y,y')} (inP (a,a<eps,a>=0,x<=y+a,y<=x+a), inP (b,b<eps,b>=0,x'<=y'+b,y'<=x'+b)) => g $ inP (a ∨ b, <_join-univ a<eps b<eps, a>=0 <=∘ join-left,
@@ -86,7 +86,7 @@
     })
   }
 
-\lemma real-join-uniform : UniformMap (RealNormed ⨯ RealNormed) RealNormed \lam s => s.1 ∨ s.2 \cowith
+\lemma real-join-uniform : UniformMap (ProductUniformSpace RealNormed RealNormed) RealNormed \lam s => s.1 ∨ s.2 \cowith
   | func-uniform Eu => \case dist-uniform.2 Eu \with {
     | inP (eps,eps>0,h) => inP (_, RealNormed.metricUniform eps>0, _, RealNormed.metricUniform eps>0, \lam {_} (inP (_, inP (x,idp), _, inP (x',idp), idp)) => \case h (x ∨ x') \with {
       | inP (W,EW,g) => inP (_, inP (W, EW, idp), \lam {(y,y')} (xy<eps,x'y'<eps) => g $ real_<_U.1 $ RealAbGroup.abs_-_<

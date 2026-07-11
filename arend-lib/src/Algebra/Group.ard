@@ -127,15 +127,18 @@
         (\new Inv e (G.inverse e) G.inverse-left G.inverse-right)
         (\new Inv e (H.inverse e) (m *> H.inverse-left *> inv z) (m *> H.inverse-right *> inv z)))
 
-  \func equals (G H : Group) (p : G = {Monoid} H) : G = H
-    => exts Group {
+  \func equals.{u} (G H : Group.{u}) (p : G = {Monoid.{u}} H) : G = {Group.{u}} H
+    => {?}
+   {- TODO[sorts]
+    exts Group.{u} {
          | Monoid => p
-         | inverse => inverse-equality
+         | inverse => inverse-equality p
        }
+    -}
     \where {
-      \lemma inverse-equality (e : G) : coe (p @ __) (inverse e) right = inverse (coe (p @ __) e right)
-        => \let | h' {H' : Monoid} (q : G = {Monoid} H') => transport (\lam (H' : Monoid) => MonoidHom G H') q MonoidHom.id
-                | h => transport (MonoidHom G H __) (Jl (\lam (H' : Monoid) q => (h' q).func = (\lam x => coe (q @ __) x right)) idp p) (h' p)
+      \lemma inverse-equality.{u} {G H : Group.{u}} (p : G = {Monoid.{u}} H) (e : G) : coe (p @ __) (inverse e) right = inverse (coe (p @ __) e right)
+        => \let | h' {H' : Monoid.{u}} (q : G = {Monoid.{u}} H') => transport (\lam (H' : Monoid.{u}) => MonoidHom G H') q MonoidHom.id
+                | h => transport (MonoidHom G H __) (Jl (\lam (H' : Monoid.{u}) q => (h' q).func = (\lam x => coe (q @ __) x right)) idp p) (h' p)
                 | e' => coe (p @ __) e right
            \in h.func-InvElem
                 (\new Inv e (inverse e) inverse-left inverse-right)

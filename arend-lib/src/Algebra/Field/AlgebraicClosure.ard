@@ -15,7 +15,6 @@
 \import Algebra.Ring.Poly
 \import Algebra.Semiring
 \import Arith.Nat
-\import Category
 \import Data.Array
 \import Function.Meta
 \import Logic
@@ -29,6 +28,7 @@
 \import Set.SetCategory
 \import Set.SetHom
 \import Set.Countable
+\open RingHom (id, ∘)
 
 -- | A ring {K} is algebraically closed if every monic polynomial over {K} of non-zero degree has a root.
 \type IsAlgebraicallyClosed (K : Ring)
@@ -101,7 +101,7 @@
   }, fi)
 
 -- | Every countable discrete field has an algebraic closure.
-\sfunc countableAlgebraicClosure {k : DiscreteField} (c : Countable k) : \Sigma (K : DiscreteField) (f : RingHom k K) (IsAlgebraicClosure f)
+\sfunc countableAlgebraicClosure.{u} {k : DiscreteField.{u}} (c : Countable k) : \Sigma (K : DiscreteField.{u}) (f : RingHom k K) (IsAlgebraicClosure f)
   => \let | ps n => pointed-countable zro (Poly.poly-countable c) n
           | S => sequence c ps
           | sf n => countableSplittingField (S n).2 {polyMap (S n).3 (ps n)}
@@ -119,14 +119,14 @@
               }
             })
   \where \private {
-    \func sequence {k : DiscreteField} (kc : Countable k) (f : Nat -> Poly k) (n : Nat) : \Sigma (K : DiscreteField) (Countable K) (g : RingHom k K) (isIntegralExt g) \elim n
-      | 0 => (k, kc, id k, integralExt_id)
+    \func sequence.{u} {k : DiscreteField.{u}} (kc : Countable k) (f : Nat -> Poly k) (n : Nat) : \Sigma (K : DiscreteField.{u}) (Countable K) (g : RingHom k K) (isIntegralExt g) \elim n
+      | 0 => (k, kc, id, integralExt_id)
       | suc n => \let | (K,Kc,g,gi) => sequence kc f n
                       | t => countableSplittingField Kc {polyMap g (f n)}
-                 \in (t.1, t.2, t.3 RingCat.∘ g, integralExt-comp _ _ gi $ splitting-integral (countableSplittingField Kc).4)
+                 \in (t.1, t.2, t.3 ∘ g, integralExt-comp _ _ gi $ splitting-integral (countableSplittingField Kc).4)
 
-    \lemma sequence3 {k : DiscreteField} {kc : Countable k} {f : Nat -> Poly k} {n : Nat} {a : k}
-      : NatFunctor.natHom {CRingCat} {_} {\lam {n} => (countableSplittingField (sequence kc f n).2 {polyMap (sequence kc f n).3 (f n)}).3} {0} (n,idp) a = (sequence kc f n).3 a \elim n
+    \lemma sequence3.{u} {k : DiscreteField.{u}} {kc : Countable k} {f : Nat -> Poly k} {n : Nat} {a : k}
+      : NatFunctor.natHom {CRingCat.{u}} {_} {\lam {n} => (countableSplittingField (sequence kc f n).2 {polyMap (sequence kc f n).3 (f n)}).3} {0} (n,idp) a = (sequence kc f n).3 a \elim n
       | 0 => idp
       | suc n => pmap (countableSplittingField (sequence kc f n).2).3 sequence3
   }

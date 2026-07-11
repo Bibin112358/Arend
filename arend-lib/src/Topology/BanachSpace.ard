@@ -59,7 +59,7 @@
     => A.norm_Inv-cancel-left (RatField.nonZero-Inv $ natRat/=0 ratDenom/=0) norm>=0 ExUpperRealSemigroup.*_>=0 $
         inv norm_*n *> pmap norm (inv (*q-assoc *> *q_*n) *> pmap (`*q _) rat*denom-left *> *q_*i) *> norm_*i *> pmap (`* _) (inv (pmap A.norm rat*denom-left) *> A.norm_*) *> *-assoc
 
-  \lemma *q-uniform : LocallyUniformMap (A ⨯ \this) \this \lam s => s.1 QModule.*q s.2
+  \lemma *q-uniform : LocallyUniformMap (ProductUniformSpace A \this) \this \lam s => s.1 QModule.*q s.2
     => bilinear-locally-uniform {A} (*q) toRatModule.*c-rdistr_- toRatModule.*c-ldistr_- \lam {q} {x} => =_<= norm_*q
 
   \protected \lemma *q-right-uniform {q : Rat} : UniformNormedAbGroupMap \this \this (q *q) \cowith

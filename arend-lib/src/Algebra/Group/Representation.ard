@@ -14,14 +14,14 @@
 -- also : https://www.maths.dur.ac.uk/users/jack.g.shotton/repthy/index.html
 
 \class LinRepres \extends LModule, GroupAction {
-  | **-ldistr {g :  G} {e e' : E} : g ** (e + e') = g ** e + g ** e'
+  | **-ldistr {g : G} {e e' : E} : g ** (e + e') = g ** e + g ** e'
   | **-*c {g :  G} {e : E} {c : R} : g ** (c *c e) = c *c (g ** e)
 
   \lemma g**-zro {g : G} : g ** 0 = 0 => rewrite (inv *c_zro-right, **-*c, *c_zro-left, *c_zro-left) idp
 
   \lemma g**-negative {g : G} {e : E} : g ** negative e = negative (g ** e) => rewrite (inv neg_ide_*c, **-*c, neg_ide_*c) idp
 
-  \func toLinearMap(g : G) : LinearMap \this \this \cowith
+  \func toLinearMap (g : G) : LinearMap \this \this \cowith
     | func e => g ** e
     | func-+ => **-ldistr
     | func-*c => **-*c

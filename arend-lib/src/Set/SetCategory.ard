@@ -28,7 +28,7 @@
     \let p => path (iso e.f e.hinv (\lam x => path ((e.hinv_f @ __) x)) (\lam y => path ((e.f_hinv @ __) y)))
     \in (p, simp_coe (\lam d => idp))
   \where {
-    \lemma mono-char {X Y : \Set} {f : X -> Y} : Mono {SetCat} f <-> IsInj f
+    \lemma mono-char.{u} {X Y : \Set u} {f : X -> Y} : Mono {SetCat.{u}} f <-> IsInj f
       => (\lam fm p => path \lam i => fm.isMono (ext \lam _ => p) i (), \lam fi => \new Mono {
         | isMono p => ext \lam x => fi $ path \lam i => p i x
       })

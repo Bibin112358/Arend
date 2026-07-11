@@ -82,7 +82,7 @@
       }, \lam n => cauchy-glue* (Cc.2 n) \lam (inP (U',CU',Uh)) => cauchy-subset ((Dc CU').2 n) \lam (inP (V',DU'V',Vh)) => inP $ later (U' ∧ V', inP (U',V',CU',DU'V',idp), \lam s => (Uh s.1, Vh s.2)))
   }
 
-\lemma directedProdCover-char {I : DirectedSet} {X : CoverSpace} {D : Set (Set (\Sigma I X))} : isCauchy {DirectedCoverSpace.precover ⨯ X} D <-> DirectProdCover D
+\lemma directedProdCover-char {I : DirectedSet} {X : CoverSpace} {D : Set (Set (\Sigma I X))} : isCauchy {DirectedCoverSpace.precover `ProductPrecoverSpace` X} D <-> DirectProdCover D
   => (ClosurePrecoverSpace.closure-cauchy {_} {DirectProdCover.Space} $ later \case \elim __ \with {
         | inP (_, byLeft idp, (inP (U, inP (V,CV,p), N, g), h)) => (top-cauchy $ inP $ later (N, V, CV, \lam s _ => p $ g s), \lam n => \case h n \with {
           | inP (W, inP (W',CW',WW'), Wn) => top-cauchy $ inP $ later (W', CW', \lam _ => WW' Wn)
@@ -90,9 +90,9 @@
         | inP (_, byRight idp, Cc) => (cauchy-subset Cc \lam (inP (V,CV,p)) => \case I.isInhabitted \with {
           | inP N => inP $ later (N, V, CV, \lam _ s => p s)
         }, \lam n => cauchy-subset Cc \lam (inP (V,CV,p)) => inP $ later (V, CV, p __))
-      }, \lam Dc => cauchy-glue-refine {DirectedCoverSpace.precover {I} ⨯ X} (ProductPrecoverSpace.proj2.func-cover Dc.1) \lam {_} (inP (U', inP (N,U,DU,U'U), idp)) =>
-          cauchy-glue* {DirectedCoverSpace.precover {I} ⨯ X} (ProductPrecoverSpace.proj1.func-cover (DirectedCoverSpace.makePrecover N)) \lam {V} => \case \elim V, \elim __ \with {
-            | _, inP (_, byLeft idp, idp) => top-cauchy {DirectedCoverSpace.precover ⨯ X} $ inP $ later (U, DU, \lam s => U'U s.2.1 s.1)
-            | _, inP (_, byRight (n,idp), idp) => cauchy-subset {DirectedCoverSpace.precover {I} ⨯ X} (ProductPrecoverSpace.proj2.func-cover (Dc.2 n))
+      }, \lam Dc => cauchy-glue-refine {DirectedCoverSpace.precover {I} `ProductPrecoverSpace` X} (ProductPrecoverSpace.proj2.func-cover Dc.1) \lam {_} (inP (U', inP (N,U,DU,U'U), idp)) =>
+          cauchy-glue* {DirectedCoverSpace.precover {I} `ProductPrecoverSpace` X} (ProductPrecoverSpace.proj1.func-cover (DirectedCoverSpace.makePrecover N)) \lam {V} => \case \elim V, \elim __ \with {
+            | _, inP (_, byLeft idp, idp) => top-cauchy {DirectedCoverSpace.precover `ProductPrecoverSpace` X} $ inP $ later (U, DU, \lam s => U'U s.2.1 s.1)
+            | _, inP (_, byRight (n,idp), idp) => cauchy-subset {DirectedCoverSpace.precover {I} `ProductPrecoverSpace` X} (ProductPrecoverSpace.proj2.func-cover (Dc.2 n))
               \lam {_} (inP (W', inP (Vn,DVn,h), idp)) => inP $ later (Vn, DVn, \lam {x} (_,s) => rewrite s.1 in h s.2)
           })

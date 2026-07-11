@@ -52,9 +52,9 @@
   | filter-meet xfa xfb => rewrite f.func-meet $ filter-meet xfa xfb
   | filter-Join => rewrite f.func-Join x.filter-SJoin
 
-\func PointsSpaceFunctor : Functor LocaleCat TopCat \cowith
-  | F => PointsSpace
-  | Func {L M : Locale} (f : FrameHom M L) : ContMap (PointsSpace L) (PointsSpace M) \cowith {
+\func PointsSpaceFunctor.{u} : Functor LocaleCat.{u} TopCat.{u} \cowith
+  | F L => PointsSpace L
+  | Func {L M : Locale.{u}} (f : FrameHom M L) : ContMap (PointsSpace L) (PointsSpace M) \cowith {
     | func => points-map f
     | func-cont (inP (b,c)) => inP (f b, \lam {x} => c)
   }

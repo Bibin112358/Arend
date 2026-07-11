@@ -39,7 +39,7 @@
         | inP (V,Vo,Vx,p,q,r) => ~-cgequiv Vo Vx p q \lam Vx => pmap h (r Vx)
       }
 
-    \func tuple {X Y Z : TopSpace} {x : X} (f : ContGerm X Y x) (g : ContGerm X Z x) : ContGerm X (Y ⨯ Z) x \elim f, g
+    \func tuple {X Y Z : TopSpace} {x : X} (f : ContGerm X Y x) (g : ContGerm X Z x) : ContGerm X (ProductTopSpace Y Z) x \elim f, g
       | in~ (U,Uo,Ux,f), in~ (V,Vo,Vx,g) => inCG (open-inter Uo Vo) (Ux,Vx) $ ProductTopSpace.tuple (f ∘ TopSub-inc meet-left) (g ∘ TopSub-inc meet-right)
       | in~ (U,Uo,Ux,f), ~-equiv y z r => \case \elim r \with {
         | inP (V,Vo,Vx,p,q,r) => ~-cgequiv (open-inter Uo Vo) (Ux,Vx) (meet-monotone <=-refl p) (meet-monotone <=-refl q) \lam s => ext (pmap f $ ext idp, pmap y.4 (ext idp) *> r s.2 *> pmap z.4 (ext idp))

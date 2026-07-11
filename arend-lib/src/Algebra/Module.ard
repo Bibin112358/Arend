@@ -172,14 +172,17 @@
 
   \lemma IsIndependentSet-fin {J : FinSet} {g : J -> E} : IsIndependentSet g <-> (\Pi (c : J -> R) -> FinSum (\lam j => c j *c g j) = 0 -> \Pi (j : J) -> c j = 0)
     => \case J.finEq \with {
-      | inP e => transport {FinSet} (\lam X => \Pi (g : X -> E) -> IsIndependentSet g <-> (\Pi (c : X -> R) -> FinSum (\lam j => c j *c g j) = 0 -> \Pi (j : X) -> c j = 0)) {FinFin J.finCard} {J} (ext (QEquiv_= e, idp))
+      | inP e => {?}
+       {- TODO[sorts]
+        transport {FinSet} (\lam X => \Pi (g : X -> E) -> IsIndependentSet g <-> (\Pi (c : X -> R) -> FinSum (\lam j => c j *c g j) = 0 -> \Pi (j : X) -> c j = 0)) {FinFin J.finCard} {J} (ext (QEquiv_= e, idp))
           (\lam g => <->sym (IsIndependent<->IsIndependentSet {_} {g}) `<->trans` later (\lam f c p j => f c (inv FinSum=BigSum *> p) j, \lam f c p j => f c (FinSum=BigSum *> p) j)) g
+       -}
     }
 
   \type IsGeneratingSet {J : \Set} (g : J -> E) : \Prop
     => \Pi (x : E) -> ∃ (c : Array (\Sigma R J)) (x = IsIndependentSet.sum g c)
 
-  \lemma IsGeneratingSet-fin {J : \Set} {g : J -> E} : IsGeneratingSet g <-> (\Pi (x : E) -> ∃ (K : FinSet) (c : K -> \Sigma R J) (x = FinSum (\lam k => (c k).1 *c g (c k).2)))
+  \lemma IsGeneratingSet-fin {J : \Set} {g : J -> E} : IsGeneratingSet g <-> (\Pi (x : E) -> ∃ (K : FinSet.{0}) (c : K -> \Sigma R J) (x = FinSum (\lam k => (c k).1 *c g (c k).2)))
     => (\lam gs x => TruncP.map (gs x) \lam s => (_, s.1, s.2 *> inv FinSum=BigSum), \lam gs x =>
          \have | (inP (K, c, p)) => gs x
                | (inP e) => K.finEq
@@ -248,7 +251,7 @@
          | inP e => inP (\lam j => g (e j), IsBasis<->IsBasisSet.2 $ IsBasisSet-equiv e gb)
        }
 
-  \lemma free-char : ∃ (l : Array E) (IsBasis l) <-> ∃ (J : FinSet) (g : J -> E) (IsBasisSet g)
+  \lemma free-char : ∃ (l : Array E) (IsBasis l) <-> ∃ (J : FinSet.{0}) (g : J -> E) (IsBasisSet g)
     => (TruncP.map __ \lam s => (FinFin (DArray.len {s.1}), s.1, IsBasis<->IsBasisSet.1 s.2), \case __ \with {
          | inP (J,g,gb) => basisSet_basis J gb
        })

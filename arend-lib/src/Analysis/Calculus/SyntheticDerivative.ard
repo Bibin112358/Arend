@@ -11,11 +11,15 @@
 \import Meta
 \import Paths
 \import Paths.Meta
+
+{- TODO[sorts]: Delete DRing, instead use inv-dense as an explicit assumption on B.
 \open DRing
 \open isDiff
 
+
 \class DRing \extends CRing
-  | inv-dense {B : \Set} (U : E -> \Prop) (f g : \Sigma (z : E) (U z) -> B) : (\Pi (p : \Sigma (z : E) (u : U z)) -> Monoid.Inv p.1 -> f p = g p) -> \Pi (p : \Sigma (z : E) (u : U z)) -> f p = g p
+  | inv-dense {B : \Set} (U : E -> \Prop) (f g : \Sigma (z : E) (U z) -> B)
+    : (\Pi (p : \Sigma (z : E) (u : U z)) -> Monoid.Inv p.1 -> f p = g p) -> \Pi (p : \Sigma (z : E) (u : U z)) -> f p = g p
   \where
     \lemma cancel-lem {R : DRing} {B : LModule R} (U : R -> \Prop) (f g : \Sigma (z : R) (U z) -> B) (p : \Sigma (z : R) (u : U z)) (s : \Pi (p : \Sigma (z : R) (u : U z)) -> p.1 *c f p = p.1 *c g p) : f p = g p
       => R.inv-dense U f g (\lam p p-inv => B.cancel p-inv (s p)) p
@@ -73,3 +77,4 @@
 \func bilinear_diff {R : DRing} {A B C : LModule R} (m : BilinearMap A B C) : isDiffT {R} (\lam (p : \Sigma A B) => m p.1 p.2)
   => \lam (x,_) a (t,_) => (m x.1 a.2 + m a.1 x.2 + t *c m a.1 a.2, rewrite (m.linear-left.func-+, m.linear-right.func-+, m.linear-left.func-*c, m.linear-right.func-*c) $
       later (rewrite (negative-left,zro-left,*c-ldistr,*c-ldistr) $ +-assoc *> pmap (_ +) (pmap (_ + _ *c __) (inv m.linear-right.func-*c) *> inv *c-ldistr *> pmap (_ *c) (inv m.linear-right.func-+))) *> pmap (`+ _) +-assoc *> +-assoc *> +-comm)
+-}

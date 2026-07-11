@@ -56,7 +56,7 @@
     })
   }
   \where {
-    \lemma properUniform (Xp : X.IsProperUniform) (Yp : Y.IsProperUniform) : PreuniformSpace.IsProperUniform {X ⨯ Y}
+    \lemma properUniform (Xp : X.IsProperUniform) (Yp : Y.IsProperUniform) : (ProductUniformSpace X Y).IsProperUniform
       => \lam {E} (inP (C,Cu,D,Du,r)) => inP (_, Xp Cu, _, Yp Du, \lam {W'} (inP (U, (CU, inP (x,Ux)), V, (DV, inP (y,Vy)), p)) => \case r {W'} $ inP (U, CU, V, DV, p) \with {
         | inP (W,EW,W'<=W) => inP (W, (EW, inP ((x,y), W'<=W $ rewrite p (Ux,Vy))), W'<=W)
       })

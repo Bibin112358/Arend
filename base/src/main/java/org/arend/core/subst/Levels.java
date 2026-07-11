@@ -56,5 +56,10 @@ public interface Levels extends CoreLevels {
     public int size() {
       return 0;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+      return obj instanceof Levels levels && levels.size() == 0;
+    }
   };
 }

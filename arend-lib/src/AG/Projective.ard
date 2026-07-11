@@ -41,30 +41,30 @@
   | <=-refl => inP LDiv.id-div
   | <=-transitive (inP y|x) (inP z|y) => inP (LDiv.trans z|y y|x)
   \where {
-    \func toSpec : PreorderHom (ProjPreorder R) (Spec.satSite R) \cowith
+    \func toSpec.{u} {R : GradedCRing.{u}} : PreorderHom (ProjPreorder R) (Spec.satSite R) \cowith
       | func a => ((), a.1)
       | func-<= p => ((), p)
   }
 
-\func Proj (R : GradedCRing) : Scheme
+\func Proj.{u} (R : GradedCRing.{u}) : Scheme
   => (site R).toScheme
   \where {
-    \func SpecStructureSheaf {R : GradedCRing} : Functor (ProjPreorder R).op CRingCat
+    \func SpecStructureSheaf.{u} {R : GradedCRing.{u}} : Functor (ProjPreorder R).op CRingCat
       => Comp (Spec.satSite R).R ProjPreorder.toSpec.op
 
     \lemma homogen-factor {R : GradedCRing} (a b : ProjCarrier R) (b<=a : b <= a) : ∃ (c : R) (k : Nat) (isHomogen c k) (b.1 = a.1 * c) \elim b<=a
       | inP a|b => R.homogen-factor a|b (ProjCarrier.homogen b) (ProjCarrier.homogen a)
 
-    \lemma Func-homogen {R : GradedCRing} {a b : ProjCarrier R} (ba : b <= a) {x : LocRing (powers a.1)}
-                        (xs : HomogenLocRing.subRing x) : HomogenLocRing.subRing (SpecStructureSheaf.Func ba x) \elim xs
+    \lemma Func-homogen.{u} {R : GradedCRing.{u}} {a b : ProjCarrier R} (ba : b <= a) {x : LocRing (powers a.1)}
+                            (xs : HomogenLocRing.subRing x) : HomogenLocRing.subRing (SpecStructureSheaf.Func ba x) \elim xs
       | inP ((x, _, inP (k,idp)), idp, n, xh, b^kh) => \case homogen-factor a b ba \with {
           | inP (c,cn,ch,a=bc) => inP ((x * pow c k, _, inP (k,idp)), LR.lift-quot-char x (pow a.1 k)
               (later $ inP (k,idp)) (~-lequiv1 simplify) (~-lequiv1 $ equation.cMonoid {pmap (pow __ k) a=bc *> R.pow_*-comm}),
               n + cn * k, homogen-* xh $ R.homogen-pow ch, rewrite (a=bc,R.pow_*-comm) $ homogen-* b^kh $ R.homogen-pow ch)
         }
 
-    \lemma Func-homogen-conv {R : GradedCRing} {a b : ProjCarrier R} (ba : b <= a) {x : LocRing (powers a.1)}
-                             (xs : HomogenLocRing.subRing (SpecStructureSheaf.Func ba x))
+    \lemma Func-homogen-conv.{u} {R : GradedCRing.{u}} {a b : ProjCarrier R} (ba : b <= a) {x : LocRing (powers a.1)}
+                                 (xs : HomogenLocRing.subRing (SpecStructureSheaf.Func ba x))
       : ∃ (y : HomogenLocRing (powers a.1)) (SpecStructureSheaf.Func ba x = SpecStructureSheaf.Func ba y.1) \elim x, xs
       | in~ (x, _, inP (n,idp)), inP ((y, _, inP (k,idp)), yp, yn, y1h, y2h) => \case ~-unlequiv $ inv (pmap (`* locR (pow a.1 n)) yp) *> LR.lift_inL-quot (later $ inP (n,idp)) (~-lequiv1 *-assoc) \with {
         | inP (_, inP (m,idp), p) => simplify at p $ \case ProjCarrier.homogen a, ProjCarrier.homogen b, R.homogen-factor (LDiv.make x $ inv $ p *> *-assoc *> *-comm) (R.IsHomogen_* (R.IsHomogen_* (inP (yn,y1h)) $ R.IsHomogen_pow $ ProjCarrier.homogen a) $ R.IsHomogen_pow $ ProjCarrier.homogen b) (R.IsHomogen_* (R.IsHomogen_pow $ ProjCarrier.homogen b) (R.IsHomogen_pow $ ProjCarrier.homogen b)) \with {
@@ -79,14 +79,14 @@
         }
       }
 
-    \func StructureSheaf {R : GradedCRing} : Functor (ProjPreorder R).op CRingCat \cowith
+    \func StructureSheaf.{u} {R : GradedCRing.{u}} : Functor (ProjPreorder R).op CRingCat.{u} \cowith
       | F a => HomogenLocRing (powers a.1)
       | Func {b} {a} ba => SubRing.corestrict (SpecStructureSheaf.Func (\box ba) RingHom.∘ SubRing.embed) $ unfold \lam s => Func-homogen ba s.2
       | Func-id => later $ exts \lam x => ext $ path \lam i => SpecStructureSheaf.Func-id i _
       | Func-o => later $ exts \lam x => ext $ path \lam i => SpecStructureSheaf.Func-o i _
 
-    \lemma StructureSheaf-loc {R : GradedCRing} {a b : ProjCarrier R} {ba : b <= a} {x : StructureSheaf a}
-                              (L : Localization (powers x.1) (LocRing (powers b.1)) (SpecStructureSheaf.Func ba))
+    \lemma StructureSheaf-loc.{u} {R : GradedCRing.{u}} {a b : ProjCarrier R} {ba : b <= a} {x : StructureSheaf a}
+                                  (L : Localization (powers x.1) (LocRing (powers b.1)) (SpecStructureSheaf.Func ba))
       : Localization (powers x) (StructureSheaf b) (StructureSheaf.Func ba) \cowith
       | localization-inv {_} (inP (k,idp)) => transportInv Inv (StructureSheaf.Func ba).func-pow $
         Inv.Inv_pow $ HomogenLocRing.homogen-Inv1 (ProjCarrier.homogen b) (L.localization-inv powers-id)
@@ -99,7 +99,7 @@
         }
       }
 
-    \func site (R : GradedCRing) : SatSchemeSite \cowith
+    \func site.{u} (R : GradedCRing.{u}) : SatSchemeSite \cowith
       | P => ProjPreorder R
       | R => StructureSheaf
       | loc-exists {a} (in~ (x, y, inP (n,p)), inP (z,xyz,k,z1h,z2h)) => inP ((a.1 * z.1, \case a.2 \with {

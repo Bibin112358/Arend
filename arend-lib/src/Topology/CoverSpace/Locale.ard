@@ -32,15 +32,15 @@
   \where {
     \func site {X : PrecoverSpace} : PreorderSite (Set X) \cowith
       | Preorder => SetLattice X
-      | isBasicCover U C => OneOf (Given (D : X.isCauchy) (C = SetIm (U ∧) D), C = (`s<=< U), Given (\Pi {x : X} -> Not (U x)) (C = empty))
+      | isBasicCover U C => OneOf (∃ (D : X.isCauchy) (C = SetIm (U ∧) D), C = (`s<=< U), Given (\Pi {x : X} -> Not (U x)) (C = empty))
       | basic-cover-stable {V} {U} V<=U {C} => \case \elim C, \elim __ \with {
-        | _, inP (0,(C,Cc,idp)) => inP (_, inP (0, (C,Cc,idp)), SetIm-elim \lam {W} CW => inP $ later (_, SetIm-con CW, MeetSemilattice.meet-monotone V<=U <=-refl), SetIm-elim \lam _ => meet-left)
+        | _, inP (0, inP (C,Cc,idp)) => inP (_, inP (0, inP (C,Cc,idp)), SetIm-elim \lam {W} CW => inP $ later (_, SetIm-con CW, MeetSemilattice.meet-monotone V<=U <=-refl), SetIm-elim \lam _ => meet-left)
         | _, inP (1,idp) => inP (_, inP (1,idp), \lam {W} W<=<V => inP (W, <=<-left W<=<V V<=U, <=-refl), s<=<_<= __)
         | _, inP (2,(U=0,idp)) => inP (_, inP (2, (\lam Vx => U=0 (V<=U Vx), idp)), Refines-refl, absurd __)
       }
 
     \lemma cover-cauchy {X : PrecoverSpace} {C : Set (Set X)} (Cc : isCauchy C) : Cover {site} top C
-      => cover-sub (cover-basic $ inP (0,(C,Cc,idp))) $ unfolds $ SetIm-elim \lam Ca => transport C (inv TopMeetSemilattice.top-left) Ca
+      => cover-sub (cover-basic $ inP (0, inP (C,Cc,idp))) $ unfolds $ SetIm-elim \lam Ca => transport C (inv TopMeetSemilattice.top-left) Ca
 
     \lemma cover-reg {X : PrecoverSpace} {U : Set X} : Cover {site} U \lam V => V s<=< U
       => cover-basic $ inP (1,idp)
@@ -66,7 +66,7 @@
         | byLeft p => inP (W, byLeft p, <=-refl)
         | byRight p => inP (V, byRight CV, p =<= U<=V)
       }
-      | cover-trans (inP (0,(D,Dc,idp))) T<=C => cauchy-glue-refine (isStronglyRegular Dc) \lam {V'} (inP (V,DV,V'<=<V)) =>
+      | cover-trans (inP (0, inP (D,Dc,idp))) T<=C => cauchy-glue-refine (isStronglyRegular Dc) \lam {V'} (inP (V,DV,V'<=<V)) =>
         cauchy-subset (cover-char (T<=C $ SetIm-con $ later DV) (<=<_meet U'<=<U V'<=<V)) \lam {W} => later \case \elim __ \with {
           | byLeft p => inP (_, byLeft idp, \lam s U'x => =_<= p s.2 (U'x, s.1))
           | byRight CW => inP (W, byRight CW, meet-right)
@@ -93,7 +93,7 @@
           p {CoverSpaceLocale-unit.sitePoint x} $ later $ cauchy-subset (unfolds in s<=<_<=< V<=<U) $ later \lam {W} h (_,(idp,Wx)) => h (x,(Vx,Wx))
 
     \lemma cover-inh {X : PrecoverSpace} (Xd : X.HasDensePoints) {U : Set X} : Cover {site} U (\lam _ => ∃ (x : X) (U x))
-      => cover-trans (inP (1,idp)) \lam {V} V<=<U => cover-trans (inP (0, (_, Xd V<=<U, idp))) $ SetIm-elim \lam {W} => later \case \elim W, \elim __ \with {
+      => cover-trans (inP (1,idp)) \lam {V} V<=<U => cover-trans (inP (0, inP (_, Xd V<=<U, idp))) $ SetIm-elim \lam {W} => later \case \elim W, \elim __ \with {
         | _, (byLeft idp, t) => cover-empty $ later \lam (Vx,nVx) => nVx Vx
         | _, (byRight idp, r) => cover-refl r
       }
@@ -148,8 +148,8 @@
   | PrecoverSpace => LocalePrecoverSpace L
   | isStronglyRegular => __ <=∘ SJoin-univ \lam {U} CU => Lr _ <=∘ Join-univ \lam w<=<_*U => points-unit <=∘ SJoin-cond (inP $ later (U, CU, <=<-left (points_<=< w<=<_*U) points-counit))
 
-\func LocaleCoverSpaceFunctor : Functor LocaleCat PrecoverSpaceCat \cowith
-  | F => LocalePrecoverSpace
+\func LocaleCoverSpaceFunctor.{u} : Functor LocaleCat.{u} PrecoverSpaceCat.{u} \cowith
+  | F L => LocalePrecoverSpace L
   | Func f => \new PrecoverMap {
     | func => points-map f
     | func-cover c => func-top>= <=∘ f.func-<= c <=∘ f.func-SJoin>= <=∘ SJoin-univ \lam {V} DV => func-Join>= <=∘
@@ -158,7 +158,7 @@
   | Func-id => idp
   | Func-o => idp
 
-\lemma LocaleCoverSpaceFunctor-fullyFaithful {L M : Locale} (Ld : HasDensePoints L) (Mr : M.IsRegularLocale) : IsEquiv (LocaleCoverSpaceFunctor.Func {L} {M})
+\lemma LocaleCoverSpaceFunctor-fullyFaithful.{u} {L M : Locale.{u}} (Ld : HasDensePoints L) (Mr : M.IsRegularLocale) : IsEquiv (LocaleCoverSpaceFunctor.Func {L} {M})
   => IsEquiv.fromInjSurj
       (\have r {f g : FrameHom M L} (p : LocaleCoverSpaceFunctor.Func f = LocaleCoverSpaceFunctor.Func g) {a : M} : f a <= g a
           => f.func-<= (Mr a) <=∘ func-Join>= <=∘ SJoin-univ (later \lam {b} b<=<a => meet-univ <=-refl (top-univ <=∘ func-top>= <=∘ g.func-<= b<=<a <=∘ g.func-join>=) <=∘
@@ -224,7 +224,7 @@
       }
 
     \lemma isEmbedding (Xd : X.HasWeaklyDensePoints) : PrecoverMap.IsEmbedding {CoverSpaceLocale-unit Xd}
-      => \lam {C} Cc _ => cover-trans (inP (0, (C, Cc, idp))) $ SetIm-elim \lam {U} CU => cover-refl $ inP $ later
+      => \lam {C} Cc _ => cover-trans (inP (0, inP (C, Cc, idp))) $ SetIm-elim \lam {U} CU => cover-refl $ inP $ later
           (_, SetIm-cone (points^* $ embed U) $ inP (U, CU, \lam {x} (inP (V,V<=U,x<=<V)) => \case CoverSpaceLocale.cover-point-char V<=U x<=<V \with {
             | inP (_,idp,x<=<U) => <=<_<= x<=<U idp
           }), cover-refl $ inP (embed U, <=-refl, cover-inj meet-right idp))
@@ -255,7 +255,7 @@
       | filter-top => inP (top, <=<_top, rewrite points^*_top filter-top)
       | filter-meet (inP (a',a'<=<a,Fa')) (inP (b',b'<=<b,Fb')) => inP (a' ∧ b', <=<_meet a'<=<a b'<=<b, rewrite points^*_meet $ filter-meet Fa' Fb')
       | filter-Join {C} (inP (b,b<=<C,Fb)) => \case F.isCauchyFilter {\lam U => (U = points^* (L.neg b)) || Given (x : C) (a : L) (a L.<=< x) (U = points^* a)} (b<=<C <=∘ join-univ (points-unit <=∘ SJoin-cond (byLeft idp)) (Join-univ \lam {x} Cx => Lr x <=∘ Join-univ \lam {y} y<=<x => points-unit <=∘ SJoin-cond (byRight $ later (x,Cx,y,y<=<x,idp)))) \with {
-        | inP (_, byLeft idp, p) => absurd $ F.isWeaklyProper $ filter-mono (filter-meet p Fb) \lam {x : CompleteFilter} s => absurd $ x.isProper $ x.filter-mono (x.filter-meet s.1 s.2) Locale.<=-eval
+        | inP (_, byLeft idp, p) => absurd $ F.isWeaklyProper $ filter-mono (filter-meet p Fb) \lam {x} s => absurd $ x.isProper $ x.filter-mono (x.filter-meet s.1 s.2) Locale.<=-eval
         | inP (_, byRight (d,Cd,a,a<=<d,idp), p) => inP (d, Cd, inP (a,a<=<d,p))
       }
   }

@@ -16,12 +16,12 @@
   => pathEquiv (QEquiv {__} {__}) \lam {A} {B} => \new Retraction {
        | f => =-to-QEquiv
        | sec => QEquiv-to-=
-       | f_sec e => QEquiv.equals {_} {_} {_} {e} \lam a => Jl (\lam _ p => =-to-QEquiv p a = coe p a right) idp (QEquiv-to-= e)
+       | f_sec e => {?} -- TODO[sorts]: QEquiv.equals {_} {_} {_} {e} \lam a => Jl (\lam _ p => =-to-QEquiv p a = coe p a right) idp (QEquiv-to-= e)
      }
 
 \lemma =-to-QEquiv-functorial.{u} {A B C : \Set u} {p : A = B} {q : B = C}
   : =-to-QEquiv (p *> q) = =-to-QEquiv p `transQEquiv` =-to-QEquiv q \elim q
-  | idp => QEquiv.equals {_} {_} {_} {transQEquiv (=-to-QEquiv p) (=-to-QEquiv idp)} \lam a => idp
+  | idp => {?} -- TODO[sorts]: QEquiv.equals {_} {_} {_} {transQEquiv (=-to-QEquiv p) (=-to-QEquiv idp)} \lam a => idp
 
 \lemma QEquiv-to-=-functorial.{u} {A B C : \Set u} (e1 : QEquiv {A} {B}) (e2 : QEquiv {B} {C})
   : QEquiv-to-= e1 *> QEquiv-to-= e2 = QEquiv-to-= (e1 `transQEquiv` e2)

@@ -36,7 +36,7 @@
 \open CompleteLattice
 \open SchemeSiteHom
 
-\func SpecFunctor : FullyFaithfulFunctor CRingCat.op SatSchemeSitePrecat \cowith
+\func SpecFunctor.{u} : FullyFaithfulFunctor CRingCat.{u}.op SatSchemeSitePrecat.{u} \cowith
   | F => Spec.satSite
   | Func f => inh~ (sitePrehom f)
   | Func-id {R} => ~-hequiv {Spec.satSite R} {Spec.satSite R} _ _ $ later \new ~ {
@@ -65,10 +65,10 @@
     (\lam f => exts \lam x => pmap (lift _ _) (SchemeSitePrehom.f#-cover_f# $ inP $ LDiv.make 1 $ ide-right *> f.func-ide)
       *> pmap (\lam r => lift _ _ (lift _ _ r)) lift_inL *> pmap (lift _ _) lift_inL *> lift_inL)
   \where {
-    \func SpecFunc {R : CRing} {a b : R} (p : TruncP (LDiv a b)) : RingHom (LocRing (powers a)) (LocRing (powers b))
+    \func SpecFunc.{u} {R : CRing.{u}} {a b : R} (p : TruncP (LDiv a b)) : RingHom (LocRing (powers a)) (LocRing (powers b))
       => (Spec.satSite R).R.Func {(), a} {(), b} ((), p)
 
-    \func sitePrehom {R S : CRing} (f : RingHom S R) : SchemeSitePrehom (Spec.satSite R) (Spec.satSite S) \cowith
+    \func sitePrehom.{u} {R S : CRing.{u}} (f : RingHom S R) : SchemeSitePrehom (Spec.satSite R) (Spec.satSite S) \cowith
       | <=f* b a => TruncP (LDiv (f a.2) b.2)
       | <=f*-left (_, inP p) (inP q) => inP (LDiv.trans q p)
       | <=f*-right (inP fa|b) (_, inP a'|a) => inP $ LDiv.trans (f.func-LDiv a'|a) fa|b
@@ -88,7 +88,7 @@
           factor-right-div LocRing.isLocalization LocRing.isLocalization (\lam y => lift_inL) $ LDiv.make (f x) idp)
   }
 
-\func SpecLRLFunctor : ReflectiveSubPrecat CRingCat.op LocallyRingedLocaleCat \cowith
+\func SpecLRLFunctor.{u} : ReflectiveSubPrecat CRingCat.{u}.op LocallyRingedLocaleCat.{u} \cowith
   | FullyFaithfulFunctor => FullyFaithfulFunctor.Comp SchemeSiteFunctor SpecFunctor
   | reflector X => X.GlobalSections
   | reflectorMap X => specUnit
@@ -98,7 +98,7 @@
                                          inv (path \lam i f => spec_adjoint-equals f i)) adjointEquiv
     \in transQEquiv e LRLSchemeSiteHom.LRL-equiv
   \where {
-    \lemma spec_adjoint-equals.{s} {X : LocallyRingedLocale.{s}} {R : CRing.{s}} (f : RingHom R X.GlobalSections)
+    \lemma spec_adjoint-equals.{u} {X : LocallyRingedLocale.{u}} {R : CRing.{u}} (f : RingHom R X.GlobalSections)
       : specUnit.adjoint f = SpecFunctor.sitePrehom f LRLSchemeSiteHom.∘r specUnit.siteHom
       => LRLSchemeSiteHom.equals.byRingHom {X} {Spec.satSite R}
           (\lam a => SJoin-conde ((), f a.2) $ later $ inP LDiv.id-div)
@@ -107,7 +107,7 @@
             path (\lam i => IsEquiv.f_ret (VSheaf.sheaf-locale_SJoin X.R) {LRLSchemeSiteHom.compose-right.matchingFaimly {X} {Spec.satSite X.GlobalSections} {Spec.satSite R} {_} {specUnit.siteHom} a} i (((), f a.2), inP LDiv.id-div) (locR x))
             *> pmap (\lam r => lift _ _ (lift _ _ r)) lift_inL *> pmap (lift _ _) lift_inL *> lift_inL *> inv lift_inL)
 
-    \func adjointEquiv.{s} {X : LocallyRingedLocale.{s}} {R : CRing.{s}} : QEquiv {RingHom R X.GlobalSections} {LRLSchemeSiteHom X (Spec.satSite R)} \cowith
+    \func adjointEquiv.{u} {X : LocallyRingedLocale.{u}} {R : CRing.{u}} : QEquiv {RingHom R X.GlobalSections} {LRLSchemeSiteHom X (Spec.satSite R)} \cowith
       | f => specUnit.adjoint
       | ret g => X.R.F.Func (\box g.isLRLSchemeSiteHom-top <=∘ IJoin-univ \lam x => func-<= $ later $ ((), inP LDiv.ide-div)) RingHom.∘ g.f# ((), 1) RingHom.∘ locR
       | ret_f f => exts \lam x => pmap (X.R.F.Func _) LocRing.isLocalization.lift_inL *> inv (path \lam i => X.R.F.Func-o i _) *> pmap (X.R.F.Func __ _) prop-pi *> path \lam i => X.R.F.Func-id i _
