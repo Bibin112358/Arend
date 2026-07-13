@@ -217,11 +217,6 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     myInstancePool = pool;
   }
 
-  // TODO[sorts]: Delete this
-  public boolean isPBased() {
-    return myLevelContext != null && !myLevelContext.getVariables().isEmpty();
-  }
-
   public void setLevelContext(LevelContext levelContext) {
     myLevelContext = levelContext;
   }

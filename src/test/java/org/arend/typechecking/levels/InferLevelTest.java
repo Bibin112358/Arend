@@ -286,7 +286,26 @@ public class InferLevelTest extends TypeCheckingTestCase {
   }
 
   @Test
-  public void idTest3error() {
+  public void idTest4() {
+    typeCheckModule("""
+      \\class Functor.{u} (F : \\Type u -> \\Type u)
+        | fmap {A B : \\Type u} : (A -> B) -> F A -> F B
+      \\data Maybe.{u} (A : \\Type u) | nothing | just A
+      \\func id'.{u} {A : \\Type u} (a : A) => a
+      \\func idTest.{u} => id'.{\\suc (\\suc u)} (Functor.{0} Maybe)
+      """);
+  }
+
+  @Test
+  public void idTest5() {
+    typeCheckModule("""
+      \\func type.{u} => \\Type u
+      \\func test : \\Type10 => type
+      """);
+  }
+
+  @Test
+  public void idTestError() {
     typeCheckModule("""
       \\class Functor.{u} (F : \\Type u -> \\Type u)
         | fmap {A B : \\Type u} : (A -> B) -> F A -> F B

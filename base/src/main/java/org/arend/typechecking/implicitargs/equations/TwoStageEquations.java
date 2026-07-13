@@ -349,7 +349,7 @@ public class TwoStageEquations implements Equations {
     }
     mySortExpressionEquations.clear();
 
-    LevelEquationsSolver solver = new LevelEquationsSolver(myLevelEquations, myDeferredMaxLevelEquations, myLevelVariables, myVisitor.getErrorReporter(), myVisitor.isPBased());
+    LevelEquationsSolver solver = new LevelEquationsSolver(myLevelEquations, myDeferredMaxLevelEquations, myLevelVariables, myVisitor.getErrorReporter());
     myLevelEquations.clear();
     myDeferredMaxLevelEquations.clear();
     return solver;
