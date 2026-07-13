@@ -367,11 +367,6 @@ public class VoidConcreteVisitor<P> implements ConcreteExpressionVisitor<P,Void>
   }
 
   @Override
-  public Void visitLP(Concrete.PLevelExpression expr, P param) {
-    return null;
-  }
-
-  @Override
   public Void visitNumber(Concrete.NumberLevelExpression expr, P param) {
     return null;
   }

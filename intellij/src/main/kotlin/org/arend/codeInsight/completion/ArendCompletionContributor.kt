@@ -192,22 +192,7 @@ class ArendCompletionContributor : CompletionContributor() {
                     super.computePrefix(parameters, resultSet).replace(Regex("\\\\[0-9]+-?"), "")
         })
 
-        basic(LPH_CONTEXT, LPH_KW_LIST) { parameters ->
-            when (val pp = parameters.position.parent.parent) {
-                is ArendSetUniverseAppExpr, is ArendCatUniverseAppExpr, is ArendTruncatedUniverseAppExpr ->
-                    pp.children.filterIsInstance<ArendAtomLevelExpr>().isEmpty()
-                else -> pp.children.filterIsInstance<ArendAtomLevelExpr>().size <= 1
-            }
-        }
-
-        basic(withParent(ArendLevelExpr::class.java), LPH_KW_LIST) { parameters ->
-            when (parameters.position.parent?.firstChild?.node?.elementType) {
-                MAX_KW, SUC_KW -> true
-                else -> false
-            }
-        }
-
-        basic(LPH_LEVEL_CONTEXT, LPH_LEVEL_KWS)
+        basic(LPH_LEVEL_CONTEXT, LEVEL_KWS)
 
         fun pairingWordCondition(condition: (PsiElement?) -> Boolean, position: PsiElement): Boolean {
             var pos: PsiElement? = position
@@ -377,8 +362,6 @@ class ArendCompletionContributor : CompletionContributor() {
             }
         }
 
-        basic(or(ARGUMENT_EXPRESSION, ATOM_LEVEL_CONTEXT), LPH_KW_LIST, unifiedLevelCondition.invoke(0, 2))
-
         fun trueForPsiOrFragmentContext (condition: (PsiElement) -> Boolean, psi : PsiElement) : Boolean =
             condition(psi) || psi.ancestor<ArendExpressionCodeFragment>()?.context?.let{ condition(it) } == true
 
@@ -388,9 +371,9 @@ class ArendCompletionContributor : CompletionContributor() {
             trueForPsiOrFragmentContext({psi -> ((psi.parent?.parent as? ArendNewExpr)?.let { it.lbrace != null } ?: true) && (isInDynamicPart(psi) != null)}, cP.position)
         }
 
-        basic(or(ARGUMENT_EXPRESSION_IN_BRACKETS, ATOM_LEVEL_CONTEXT), LPH_LEVEL_KWS, unifiedLevelCondition.invoke(1, 2))
+        basic(or(ARGUMENT_EXPRESSION_IN_BRACKETS, ATOM_LEVEL_CONTEXT), LEVEL_KWS, unifiedLevelCondition.invoke(1, 2))
 
-        basic(withAncestors(PsiErrorElement::class.java, ArendArgumentAppExpr::class.java), LPH_LEVEL_KWS, unifiedLevelCondition.invoke(null, 2))
+        basic(withAncestors(PsiErrorElement::class.java, ArendArgumentAppExpr::class.java), LEVEL_KWS, unifiedLevelCondition.invoke(null, 2))
 
         basic(afterLeaf(NEW_KW), listOf(EVAL_KW.toString()))
         basic(afterLeaves(EVAL_KW, PEVAL_KW, SCASE_KW), listOf(SCASE_KW.toString()))

@@ -3,7 +3,7 @@ package org.arend.typechecking.definition;
 import org.arend.core.context.param.DependentLink;
 import org.arend.core.definition.*;
 import org.arend.core.expr.Expression;
-import org.arend.core.subst.SingleLevel;
+import org.arend.core.subst.Levels;
 import org.arend.typechecking.TypeCheckingTestCase;
 import org.junit.Test;
 
@@ -29,7 +29,7 @@ public class DefinitionTest extends TypeCheckingTestCase {
     FunctionDefinition typedDef = (FunctionDefinition) typeCheckDef("\\func f => 0");
     assertNotNull(typedDef);
     assertSame(Definition.TypeCheckingStatus.NO_ERRORS, typedDef.status());
-    assertEquals(Nat(), typedDef.getTypeWithParams(new ArrayList<>(), SingleLevel.ZERO));
+    assertEquals(Nat(), typedDef.getTypeWithParams(new ArrayList<>(), Levels.EMPTY));
   }
 
   @Test
@@ -38,7 +38,7 @@ public class DefinitionTest extends TypeCheckingTestCase {
     assertNotNull(typedDef);
     assertSame(Definition.TypeCheckingStatus.NO_ERRORS, typedDef.status());
     List<DependentLink> params = new ArrayList<>();
-    Expression type = typedDef.getTypeWithParams(params, SingleLevel.ZERO);
+    Expression type = typedDef.getTypeWithParams(params, Levels.EMPTY);
     assertEquals(Pi(Nat(), Pi(Pi(Nat(), Nat()), Pi(Nat(), Nat()))), fromPiParameters(type, params));
   }
 

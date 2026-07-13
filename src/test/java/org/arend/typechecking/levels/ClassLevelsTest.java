@@ -184,7 +184,6 @@ public class ClassLevelsTest extends TypeCheckingTestCase {
         \\record R.{p1,p2}
         \\record S.{p1,p2}
         \\record T \\extends R, S
-          | A : \\Type \\lp
         """);
   }
 
@@ -245,8 +244,8 @@ public class ClassLevelsTest extends TypeCheckingTestCase {
     typeCheckModule(
       """
         \\record R.{p1,p2}
-        \\record S (A : \\Type)
-        \\record T \\extends R, S.{\\lp}
+        \\record S.{u} (A : \\Type u)
+        \\record T.{u} \\extends R, S.{u}
         """);
   }
 

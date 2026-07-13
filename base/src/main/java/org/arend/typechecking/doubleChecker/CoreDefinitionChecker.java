@@ -1,6 +1,5 @@
 package org.arend.typechecking.doubleChecker;
 
-import org.arend.core.context.binding.LevelVariable;
 import org.arend.core.context.param.DependentLink;
 import org.arend.core.context.param.SingleDependentLink;
 import org.arend.core.definition.*;
@@ -228,7 +227,7 @@ public class CoreDefinitionChecker extends BaseDefinitionTypechecker {
     if (!definition.isTruncated() && definition.getSquasher() == null) {
       for (Constructor constructor : definition.getConstructors()) {
         if (constructor.getBody() instanceof IntervalElim && definition.getSortExpression().getSortHLevel() != null) {
-          errorReporter.report(new TypecheckingError("A higher inductive type must have sort " + new Sort(new Level(LevelVariable.PVAR), ConstLevel.INFINITY), null));
+          errorReporter.report(new TypecheckingError("A higher inductive type must have sort " + new Sort(Level.INFINITY, ConstLevel.INFINITY), null));
           return false;
         }
       }

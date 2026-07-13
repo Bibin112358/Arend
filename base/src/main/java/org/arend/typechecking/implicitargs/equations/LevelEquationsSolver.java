@@ -126,13 +126,13 @@ public class LevelEquationsSolver {
     }
     boolean ok = cycle == null;
     if (!ok) {
-      reportCycle(cycle, pUnBased);
+      reportCycle(cycle);
     }
 
     Map<InferenceLevelVariable, BigInteger> solution = new HashMap<>();
     cycle = myPLevelEquations.solve(solution);
     if (ok && cycle != null) {
-      reportCycle(cycle, pUnBased);
+      reportCycle(cycle);
     }
 
     Set<InferenceLevelVariable> unBased = myPBased ? pUnBased : new HashSet<>(myPLevelEquations.getVariables());
@@ -141,33 +141,18 @@ public class LevelEquationsSolver {
       result.add(var, new Level(solution.get(var).negate()));
     }
 
-    boolean useStd = true;
-    loop:
-    for (Set<LevelVariable> vars : myLowerBounds.values()) {
-      for (LevelVariable var : vars) {
-        if (!(var instanceof InferenceLevelVariable) && var != LevelVariable.PVAR) {
-          useStd = false;
-          break loop;
-        }
-      }
-    }
-
     for (Map.Entry<InferenceLevelVariable, BigInteger> entry : basedSolution.entrySet()) {
       if (!unBased.contains(entry.getKey())) {
         BigInteger sol = solution.get(entry.getKey());
-        if (useStd) {
-          result.add(entry.getKey(), new Level(LevelVariable.PVAR, entry.getValue().negate(), sol.negate()));
-        } else {
-          MapDFS<LevelVariable> dfs = new MapDFS<>(myLowerBounds);
-          dfs.visit(entry.getKey());
-          Map<LevelVariable, BigInteger> vars = new HashMap<>();
-          for (LevelVariable variable : dfs.getVisited()) {
-            if (!(variable instanceof InferenceLevelVariable)) {
-              vars.put(variable, entry.getValue().negate());
-            }
+        MapDFS<LevelVariable> dfs = new MapDFS<>(myLowerBounds);
+        dfs.visit(entry.getKey());
+        Map<LevelVariable, BigInteger> vars = new HashMap<>();
+        for (LevelVariable variable : dfs.getVisited()) {
+          if (!(variable instanceof InferenceLevelVariable)) {
+            vars.put(variable, entry.getValue().negate());
           }
-          result.add(entry.getKey(), new Level(vars, sol.negate()));
         }
+        result.add(entry.getKey(), new Level(vars, sol.negate()));
       }
     }
 
@@ -261,13 +246,13 @@ public class LevelEquationsSolver {
     }
   }
 
-  private void reportCycle(List<LevelEquation<InferenceLevelVariable>> cycle, Set<InferenceLevelVariable> unBased) {
+  private void reportCycle(List<LevelEquation<InferenceLevelVariable>> cycle) {
     Set<LevelEquation<? extends LevelVariable>> basedCycle = new LinkedHashSet<>();
     for (LevelEquation<InferenceLevelVariable> equation : cycle) {
       if (equation.getVariable1() != null) {
         basedCycle.add(new LevelEquation<>(equation));
       } else {
-        basedCycle.add(new LevelEquation<>(equation.getVariable2() == null || unBased.contains(equation.getVariable2()) ? null : LevelVariable.PVAR, equation.getVariable2(), equation.getConstant()));
+        basedCycle.add(new LevelEquation<>(null, equation.getVariable2(), equation.getConstant()));
       }
     }
     LevelEquation<InferenceLevelVariable> lastEquation = cycle.getLast();

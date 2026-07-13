@@ -225,8 +225,7 @@ letClause : (ID tele* | atomPattern) typeAnnotation? '=>' expr;
 
 typeAnnotation : ':' expr;
 
-levelAtom : '\\lp'              # pLevel
-          | NUMBER              # numLevel
+levelAtom : NUMBER              # numLevel
           | ID                  # idLevel
           | '(' levelExpr ')'   # parenLevel
           ;

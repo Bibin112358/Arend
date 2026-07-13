@@ -1582,17 +1582,6 @@ public final class Concrete {
     }
   }
 
-  public static class PLevelExpression extends LevelExpression {
-    public PLevelExpression(Object data) {
-      super(data);
-    }
-
-    @Override
-    public <P, R> R accept(ConcreteLevelExpressionVisitor<? super P, ? extends R> visitor, P params) {
-      return visitor.visitLP(this, params);
-    }
-  }
-
   public static class NumberLevelExpression extends LevelExpression {
     private final BigInteger myNumber;
 

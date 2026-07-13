@@ -7,7 +7,6 @@ import org.jetbrains.annotations.Nullable;
 import java.math.BigInteger;
 
 public interface AbstractLevelExpressionVisitor<P, R> {
-  R visitLP(@Nullable Object data, P param);
   R visitNumber(@Nullable Object data, @NotNull BigInteger number, P param);
   R visitId(@Nullable Object data, Referable ref, P param);
   R visitSuc(@Nullable Object data, /* @NotNull */ @Nullable Abstract.LevelExpression expr, P param);

@@ -404,7 +404,7 @@ public class ImplicitArgumentsTest extends TypeCheckingTestCase {
 
   @Test
   public void piTest() {
-    typeCheckDef("\\func f (A : \\Type \\lp) (B : A -> \\Type \\lp) (f g : \\Pi (x : A) -> B x) => f = g");
+    typeCheckDef("\\func f.{u} (A : \\Type u) (B : A -> \\Type u) (f g : \\Pi (x : A) -> B x) => f = g");
   }
 
   @Test

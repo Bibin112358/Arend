@@ -1,5 +1,6 @@
 package org.arend.typechecking.levels;
 
+import org.arend.Matchers;
 import org.arend.core.definition.FunctionDefinition;
 import org.arend.core.expr.UniverseExpression;
 import org.arend.core.sort.Level;
@@ -59,18 +60,11 @@ public class InferLevelTest extends TypeCheckingTestCase {
       \\func A.{u} => \\Type u
       \\func f.{u} : \\Type (\\suc u) => A
       """, 1);
+    assertThatErrorsAre(Matchers.warning());
   }
 
   @Test
   public void belowParam2() {
-    typeCheckModule("""
-      \\func A.{u} => \\Type u
-      \\func f.{u} : \\Type (\\suc u) => A
-      """, 1);
-  }
-
-  @Test
-  public void belowParam3() {
     typeCheckModule("""
     \\func A.{u} => \\Type u
     \\func f.{u} : \\Type u => A
@@ -300,6 +294,7 @@ public class InferLevelTest extends TypeCheckingTestCase {
       \\func id'.{u} {A : \\Type u} (a : A) => a
       \\func idTest.{u} => id'.{\\suc (\\suc u)} (Functor Maybe)
       """, 1);
+    assertThatErrorsAre(Matchers.warning());
   }
 
   @Test

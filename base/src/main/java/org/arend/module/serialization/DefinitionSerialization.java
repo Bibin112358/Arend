@@ -116,7 +116,7 @@ public class DefinitionSerialization implements ArendSerializer {
     builder.setBaseUniverseKind(defSerializer.writeUniverseKind(definition.getBaseUniverseKind()));
 
     for (Map.Entry<ClassDefinition, Levels> entry : definition.getSuperLevels().entrySet()) {
-      builder.putSuperLevels(myCallTargetIndexProvider.getDefIndex(entry.getKey()), defSerializer.writeLevels(entry.getValue(), entry.getKey()));
+      builder.putSuperLevels(myCallTargetIndexProvider.getDefIndex(entry.getKey()), defSerializer.writeLevels(entry.getValue()));
     }
 
     for (ClassField field : definition.getPersonalFields()) {

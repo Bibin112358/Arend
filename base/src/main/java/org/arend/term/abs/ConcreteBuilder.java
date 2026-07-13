@@ -914,11 +914,6 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
   // LevelExpression
 
   @Override
-  public Concrete.PLevelExpression visitLP(@Nullable Object data, Void param) {
-    return new Concrete.PLevelExpression(data);
-  }
-
-  @Override
   public Concrete.NumberLevelExpression visitNumber(@Nullable Object data, @NotNull BigInteger number, Void param) {
     return new Concrete.NumberLevelExpression(data, number);
   }

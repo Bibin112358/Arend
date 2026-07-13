@@ -1000,11 +1000,6 @@ public class ExpressionResolveNameVisitor extends BaseConcreteExpressionVisitor<
   }
 
   @Override
-  public Concrete.LevelExpression visitLP(Concrete.PLevelExpression expr, Void param) {
-    return expr;
-  }
-
-  @Override
   public Concrete.LevelExpression visitNumber(Concrete.NumberLevelExpression expr, Void param) {
     return expr;
   }

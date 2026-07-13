@@ -101,7 +101,6 @@ enum class ArendKeyword(val type: IElementType, val section: ArendKeywordSection
     CASE(ArendElementTypes.CASE_KW, null),
     SCASE(ArendElementTypes.SCASE_KW, SCASE_SECTION),
     RETURN(ArendElementTypes.RETURN_KW, null),
-    LP(ArendElementTypes.LP_KW, LP_SECTION),
     SUC(ArendElementTypes.SUC_KW, LP_SECTION),
     MAX(ArendElementTypes.MAX_KW, LP_SECTION),
     PROP(ArendElementTypes.PROP_KW, null),
@@ -211,7 +210,7 @@ internal fun getArendKeywordHtml(arendKeyword: ArendKeyword?) =
         ALIAS, INFIX, INFIX_LEFT, INFIX_RIGHT, FIX, FIX_LEFT, FIX_RIGHT -> definitionsHtml
         USE, COERCE -> coercionHtml
         LEVEL -> levelHtml
-        PLEVELS, LP, SUC, MAX, PROP, SORT, SET, CAT_UNIVERSE, UNIVERSE, TRUNCATED_UNIVERSE -> universesHtml
+        PLEVELS, SUC, MAX, PROP, SORT, SET, CAT_UNIVERSE, UNIVERSE, TRUNCATED_UNIVERSE -> universesHtml
         NEW -> classExtHtml
         PI, LAM -> piHtml
         SIGMA -> sigmaHtml

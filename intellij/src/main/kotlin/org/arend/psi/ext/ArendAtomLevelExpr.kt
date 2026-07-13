@@ -27,7 +27,6 @@ class ArendAtomLevelExpr(node: ASTNode) : ArendLevelExpr(node), Abstract.LevelEx
     override fun <P, R> accept(visitor: AbstractLevelExpressionVisitor<in P, out R>, params: P?): R {
         val child = firstRelevantChild
         return when (child.elementType) {
-            LP_KW -> visitor.visitLP(this, params)
             NUMBER -> visitor.visitNumber(this, BigInteger(child!!.text, 10), params)
             REF_IDENTIFIER -> visitor.visitId(this, NamedUnresolvedReference(refIdentifier, child!!.text), params)
             else -> {

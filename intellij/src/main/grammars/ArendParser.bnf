@@ -86,7 +86,6 @@
         TRUNCATED_KW        = '\truncated'
         PRIVATE_KW          = '\private'
         PROTECTED_KW        = '\protected'
-        LP_KW               = '\lp'
         SUC_KW              = '\suc'
         LEVEL_KW            = '\level'
         PLEVEL_KW           = '\plevel'
@@ -659,8 +658,7 @@ levelExpr ::= atomLevelExpr
 
 private levelExpr_recover ::= !(RPAREN | COMMA) & statement_recover
 
-atomLevelExpr ::= LP_KW
-    | NUMBER
+atomLevelExpr ::= NUMBER
     | refIdentifier
     | LPAREN levelExpr RPAREN {
     pin(".*") = 1

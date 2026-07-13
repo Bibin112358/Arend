@@ -3,13 +3,11 @@ package org.arend.module.serialization;
 import com.google.protobuf.ByteString;
 import org.arend.core.constructor.*;
 import org.arend.core.context.binding.Binding;
-import org.arend.core.context.binding.LevelVariable;
 import org.arend.core.context.binding.PersistentEvaluatingBinding;
 import org.arend.core.context.param.DependentLink;
 import org.arend.core.context.param.TypedDependentLink;
 import org.arend.core.definition.ClassField;
 import org.arend.core.definition.Constructor;
-import org.arend.core.definition.Definition;
 import org.arend.core.definition.UniverseKind;
 import org.arend.core.elimtree.*;
 import org.arend.core.expr.*;
@@ -21,7 +19,6 @@ import org.arend.core.pattern.*;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
-import org.arend.core.subst.SingleLevel;
 import org.arend.core.subst.Levels;
 import org.arend.prelude.Prelude;
 
@@ -74,16 +71,10 @@ class ExpressionSerialization implements ExpressionVisitor<Void, ExpressionProto
     return builder.build();
   }
 
-  LevelProtos.Levels writeLevels(Levels levels, Definition def) {
+  LevelProtos.Levels writeLevels(Levels levels) {
     LevelProtos.Levels.Builder builder = LevelProtos.Levels.newBuilder();
-    if (levels instanceof SingleLevel) {
-      builder.addPLevel(writeLevel(((SingleLevel) levels).get(LevelVariable.PVAR)));
-      builder.setIsStd(true);
-    } else {
-      for (Level level : levels.toList()) {
-        builder.addPLevel(writeLevel(level));
-      }
-      builder.setIsStd(false);
+    for (Level level : levels.toList()) {
+      builder.addPLevel(writeLevel(level));
     }
     return builder.build();
   }
@@ -182,7 +173,7 @@ class ExpressionSerialization implements ExpressionVisitor<Void, ExpressionProto
         }
         arrayDataBuilder.setKind(isEmpty == null ? ExpressionProtos.Pattern.ExpressionConstructor.ArrayData.Kind.UNKNOWN : isEmpty ? ExpressionProtos.Pattern.ExpressionConstructor.ArrayData.Kind.EMPTY : ExpressionProtos.Pattern.ExpressionConstructor.ArrayData.Kind.NON_EMPTY);
         arrayDataBuilder.setConstructor(myCallTargetIndexProvider.getDefIndex(funCall.getDefinition()));
-        arrayDataBuilder.setLevels(writeLevels(funCall.getLevels(), funCall.getDefinition()));
+        arrayDataBuilder.setLevels(writeLevels(funCall.getLevels()));
         if (funCall.getDefinition() == Prelude.ARRAY_CONS) {
           if (!funCall.getDefCallArguments().isEmpty() && funCall.getDefCallArguments().get(0) != null) {
             arrayDataBuilder.setLength(funCall.getDefCallArguments().getFirst().accept(this, null));
@@ -280,7 +271,7 @@ class ExpressionSerialization implements ExpressionVisitor<Void, ExpressionProto
             } else if (entry.getKey() instanceof ClassConstructor classCon) {
               ExpressionProtos.ElimTree.Branch.SingleConstructorClause.Class.Builder conBuilder = ExpressionProtos.ElimTree.Branch.SingleConstructorClause.Class.newBuilder();
               conBuilder.setClassRef(myCallTargetIndexProvider.getDefIndex(classCon.getClassDefinition()));
-              conBuilder.setLevels(writeLevels(classCon.getLevels(), classCon.getClassDefinition()));
+              conBuilder.setLevels(writeLevels(classCon.getLevels()));
               for (ClassField field : classCon.getImplementedFields()) {
                 conBuilder.addField(myCallTargetIndexProvider.getDefIndex(field));
               }
@@ -324,7 +315,7 @@ class ExpressionSerialization implements ExpressionVisitor<Void, ExpressionProto
   private ExpressionProtos.Expression.FunCall writeFunCall(FunCallExpression expr) {
     ExpressionProtos.Expression.FunCall.Builder builder = ExpressionProtos.Expression.FunCall.newBuilder();
     builder.setFunRef(myCallTargetIndexProvider.getDefIndex(expr.getDefinition()));
-    builder.setLevels(writeLevels(expr.getLevels(), expr.getDefinition()));
+    builder.setLevels(writeLevels(expr.getLevels()));
     for (Expression arg : expr.getDefCallArguments()) {
       builder.addArgument(arg.accept(this, null));
     }
@@ -344,7 +335,7 @@ class ExpressionSerialization implements ExpressionVisitor<Void, ExpressionProto
       ExpressionProtos.Expression.ConCall.Builder builder = ExpressionProtos.Expression.ConCall.newBuilder();
       builder.setConstructorRef(myCallTargetIndexProvider.getDefIndex(expr.getDefinition()));
       builder.setRecursiveParam(expr.getDefinition().getRecursiveParameter());
-      builder.setLevels(writeLevels(expr.getLevels(), expr.getDefinition()));
+      builder.setLevels(writeLevels(expr.getLevels()));
       for (Expression arg : expr.getDataTypeArguments()) {
         builder.addDatatypeArgument(arg.accept(this, null));
       }
@@ -378,7 +369,7 @@ class ExpressionSerialization implements ExpressionVisitor<Void, ExpressionProto
   public ExpressionProtos.Expression visitDataCall(DataCallExpression expr, Void params) {
     ExpressionProtos.Expression.DataCall.Builder builder = ExpressionProtos.Expression.DataCall.newBuilder();
     builder.setDataRef(myCallTargetIndexProvider.getDefIndex(expr.getDefinition()));
-    builder.setLevels(writeLevels(expr.getLevels(), expr.getDefinition()));
+    builder.setLevels(writeLevels(expr.getLevels()));
     for (Expression arg : expr.getDefCallArguments()) {
       builder.addArgument(arg.accept(this, null));
     }
@@ -388,7 +379,7 @@ class ExpressionSerialization implements ExpressionVisitor<Void, ExpressionProto
   private ExpressionProtos.Expression.ClassCall writeClassCall(ClassCallExpression expr) {
     ExpressionProtos.Expression.ClassCall.Builder builder = ExpressionProtos.Expression.ClassCall.newBuilder();
     builder.setClassRef(myCallTargetIndexProvider.getDefIndex(expr.getDefinition()));
-    builder.setLevels(writeLevels(expr.getLevels(), expr.getDefinition()));
+    builder.setLevels(writeLevels(expr.getLevels()));
     registerBinding(expr.getThisBinding());
     for (Map.Entry<ClassField, Expression> entry : expr.getImplementedHere().entrySet()) {
       builder.addFieldImpl(ExpressionProtos.Expression.ClassCall.ImplEntry.newBuilder().setField(myCallTargetIndexProvider.getDefIndex(entry.getKey())).setImpl(writeExpr(entry.getValue())));
@@ -622,7 +613,7 @@ class ExpressionSerialization implements ExpressionVisitor<Void, ExpressionProto
   public ExpressionProtos.Expression visitTypeConstructor(TypeConstructorExpression expr, Void params) {
     ExpressionProtos.Expression.TypeConstructor.Builder builder = ExpressionProtos.Expression.TypeConstructor.newBuilder();
     builder.setFunRef(myCallTargetIndexProvider.getDefIndex(expr.getDefinition()));
-    builder.setLevels(writeLevels(expr.getLevels(), expr.getDefinition()));
+    builder.setLevels(writeLevels(expr.getLevels()));
     builder.setClauseIndex(expr.getClauseIndex());
     for (Expression arg : expr.getClauseArguments()) {
       builder.addClauseArgument(arg.accept(this, null));

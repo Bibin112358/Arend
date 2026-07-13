@@ -161,7 +161,6 @@ OCT_DIGIT           = [0-8]
     "\\strict"              { return STRICT_KW; }
     "\\private"             { return PRIVATE_KW; }
     "\\protected"           { return PROTECTED_KW; }
-    "\\lp"                  { return LP_KW; }
     "\\suc"                 { return SUC_KW; }
     "\\level"               { return LEVEL_KW; }
     "\\plevel"              { return PLEVEL_KW; }

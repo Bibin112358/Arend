@@ -25,27 +25,4 @@ public interface LevelVariable extends Variable {
     }
     return true;
   }
-
-  // TODO[sorts]: Delete this
-  LevelVariable PVAR = new LevelVariable() {
-    @Override
-    public LevelVariable min(LevelVariable other) {
-      return this == other ? this : null;
-    }
-
-    @Override
-    public boolean compare(LevelVariable other, CMP cmp) {
-      return this == other;
-    }
-
-    @Override
-    public String toString() {
-      return "\\lp";
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      return o instanceof LevelVariable && compare((LevelVariable) o, CMP.EQ);
-    }
-  };
 }

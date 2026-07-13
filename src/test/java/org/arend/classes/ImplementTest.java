@@ -6,7 +6,7 @@ import org.arend.core.definition.ClassDefinition;
 import org.arend.core.definition.FunctionDefinition;
 import org.arend.core.expr.Expression;
 import org.arend.core.sort.Sort;
-import org.arend.core.subst.SingleLevel;
+import org.arend.core.subst.Levels;
 import org.arend.typechecking.TypeCheckingTestCase;
 import org.arend.typechecking.error.local.IncorrectImplementationError;
 import org.junit.Ignore;
@@ -251,7 +251,7 @@ public class ImplementTest extends TypeCheckingTestCase {
       \\func f => D { | x => 1 }
       """);
     List<DependentLink> fParams = new ArrayList<>();
-    Expression fType = getDefinition("f").getTypeWithParams(fParams, SingleLevel.STD);
+    Expression fType = getDefinition("f").getTypeWithParams(fParams, Levels.EMPTY);
     assertEquals(new Sort(2, 1), ((ClassDefinition) getDefinition("A")).getSort());
     assertEquals(new Sort(1, 1), ((ClassDefinition) getDefinition("B")).getSort());
     assertEquals(new Sort(2, 1), ((ClassDefinition) getDefinition("C")).getSort());

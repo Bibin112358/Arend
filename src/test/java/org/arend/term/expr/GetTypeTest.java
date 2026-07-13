@@ -8,7 +8,6 @@ import org.arend.core.expr.Expression;
 import org.arend.core.expr.SigmaExpression;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
-import org.arend.core.subst.SingleLevel;
 import org.arend.core.subst.Levels;
 import org.arend.ext.core.level.ConstLevel;
 import org.arend.ext.core.ops.NormalizationMode;
@@ -48,8 +47,8 @@ public class GetTypeTest extends TypeCheckingTestCase {
   @Test
   public void classExtTest() {
     typeCheckModule("\\class Test { | A : \\Type0 | a : A } \\func test => Test { | A => Nat }");
-    assertEquals(Universe(new Level(BigInteger.ONE), ConstLevel.INFINITY), getDefinition("Test").getTypeWithParams(new ArrayList<>(), SingleLevel.STD));
-    assertEquals(Universe(Sort.SET0), getDefinition("test").getTypeWithParams(new ArrayList<>(), SingleLevel.ZERO));
+    assertEquals(Universe(new Level(BigInteger.ONE), ConstLevel.INFINITY), getDefinition("Test").getTypeWithParams(new ArrayList<>(), Levels.EMPTY));
+    assertEquals(Universe(Sort.SET0), getDefinition("test").getTypeWithParams(new ArrayList<>(), Levels.EMPTY));
     testType(Universe(Sort.SET0));
   }
 

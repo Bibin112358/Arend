@@ -219,9 +219,9 @@ public class RecursiveTest extends TypeCheckingTestCase {
   @Test
   public void levelsError() {
     typeCheckModule("""
-      \\func test (n : Nat) : Nat
+      \\func test.{u} (n : Nat) : Nat
         | 0 => 0
-        | suc n => test.{\\suc \\lp} n
+        | suc n => test.{\\suc u} n
       """, 1);
   }
 

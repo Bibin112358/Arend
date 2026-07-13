@@ -2204,11 +2204,6 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   // Level expressions
 
   @Override
-  public Level visitLP(Concrete.PLevelExpression expr, Void param) {
-    return new Level(LevelVariable.PVAR);
-  }
-
-  @Override
   public Level visitNumber(Concrete.NumberLevelExpression expr, Void param) {
     BigInteger level = expr.getNumber();
     if (level.compareTo(BigInteger.ZERO) < 0) {
@@ -2221,14 +2216,14 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   @Override
   public Level visitVar(Concrete.VarLevelExpression expr, Void param) {
     if (expr.getReferent() instanceof ErrorReference) {
-      return new Level(LevelVariable.PVAR);
+      return Level.INFINITY;
     }
     LevelVariable var = myLevelContext != null && expr.getReferent() instanceof LevelReferable ? myLevelContext.getVariable((LevelReferable) expr.getReferent()) : null;
     if (var == null) {
       if (checkUnresolved(expr.getReferent(), expr)) {
         errorReporter.report(new IncorrectReferenceError(expr.getReferent(), expr));
       }
-      return new Level(LevelVariable.PVAR);
+      return Level.INFINITY;
     }
     return new Level(var);
   }

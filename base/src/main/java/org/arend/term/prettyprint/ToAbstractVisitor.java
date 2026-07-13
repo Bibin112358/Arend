@@ -727,10 +727,7 @@ public class ToAbstractVisitor extends BaseExpressionVisitor<Void, Concrete.Expr
   }
 
   private Concrete.LevelExpression visitLevelNull(Level level, boolean showStdVar) {
-    if (level == null) return null;
-    if (showStdVar || level.isClosed()) return visitLevel(level);
-    LevelVariable var = level.getSingleVar();
-    return var != LevelVariable.PVAR && hasFlag(PrettyPrinterFlag.SHOW_LEVELS) ? visitLevel(level) : null;
+    return level != null && (showStdVar || level.isClosed() || hasFlag(PrettyPrinterFlag.SHOW_LEVELS)) ? visitLevel(level) : null;
   }
 
   private List<Concrete.LevelExpression> visitLevelsNull(List<Level> levels, boolean showStdVar) {
@@ -762,15 +759,10 @@ public class ToAbstractVisitor extends BaseExpressionVisitor<Void, Concrete.Expr
 
     Concrete.LevelExpression result = null;
     for (Map.Entry<LevelVariable, BigInteger> entry : level.getVarPairs()) {
-      Concrete.LevelExpression levelExpr;
-      if (entry.getKey() == LevelVariable.PVAR) {
-        levelExpr = new Concrete.PLevelExpression(null);
-      } else {
-        if (!hasFlag(PrettyPrinterFlag.SHOW_LEVELS)) {
-          return null;
-        }
-        levelExpr = new Concrete.VarLevelExpression(null, new LocalReferable(entry.getKey().getName()), entry.getKey() instanceof InferenceLevelVariable);
+      if (!hasFlag(PrettyPrinterFlag.SHOW_LEVELS)) {
+        return null;
       }
+      Concrete.LevelExpression levelExpr = new Concrete.VarLevelExpression(null, new LocalReferable(entry.getKey().getName()), entry.getKey() instanceof InferenceLevelVariable);
 
       for (BigInteger i = BigInteger.ZERO; i.compareTo(entry.getValue()) < 0; i = i.add(BigInteger.ONE)) {
         levelExpr = new Concrete.SucLevelExpression(null, levelExpr);

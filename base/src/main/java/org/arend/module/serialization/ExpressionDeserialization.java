@@ -17,7 +17,6 @@ import org.arend.core.expr.let.*;
 import org.arend.core.pattern.*;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
-import org.arend.core.subst.SingleLevel;
 import org.arend.core.subst.Levels;
 import org.arend.core.subst.ListLevels;
 import org.arend.ext.core.level.ConstLevel;
@@ -68,7 +67,7 @@ class ExpressionDeserialization {
   private Level readLevel(LevelProtos.Level proto, Definition definition) {
     LevelVariable var;
     int index = proto.getVariable();
-    var = index == -2 ? null : index == -1 ? LevelVariable.PVAR : definition.getLevelParameters().get(index);
+    var = index < 0 ? null : definition.getLevelParameters().get(index);
     return new Level(var);
   }
 
@@ -77,15 +76,11 @@ class ExpressionDeserialization {
   }
 
   Levels readLevels(LevelProtos.Levels proto) {
-    if (proto.getIsStd()) {
-      return new SingleLevel(readLevel(proto.getPLevel(0)));
-    } else {
-      List<Level> levels = new ArrayList<>();
-      for (LevelProtos.Level level : proto.getPLevelList()) {
-        levels.add(readLevel(level));
-      }
-      return new ListLevels(levels);
+    List<Level> levels = new ArrayList<>();
+    for (LevelProtos.Level level : proto.getPLevelList()) {
+      levels.add(readLevel(level));
     }
+    return new ListLevels(levels);
   }
 
 

@@ -264,11 +264,6 @@ public class ReplaceDataVisitor implements ConcreteExpressionVisitor<Void,Concre
   }
 
   @Override
-  public Concrete.LevelExpression visitLP(Concrete.PLevelExpression expr, Void param) {
-    return new Concrete.PLevelExpression(getData(expr));
-  }
-
-  @Override
   public Concrete.LevelExpression visitNumber(Concrete.NumberLevelExpression expr, Void param) {
     return new Concrete.NumberLevelExpression(getData(expr), expr.getNumber());
   }

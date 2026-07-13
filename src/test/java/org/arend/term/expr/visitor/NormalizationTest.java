@@ -1,7 +1,6 @@
 package org.arend.term.expr.visitor;
 
 import org.arend.core.context.binding.Binding;
-import org.arend.core.context.binding.LevelVariable;
 import org.arend.core.context.binding.TypedBinding;
 import org.arend.core.context.param.DependentLink;
 import org.arend.core.context.param.SingleDependentLink;
@@ -283,8 +282,8 @@ public class NormalizationTest extends TypeCheckingTestCase {
 
   @Test
   public void testIsoRight() {
-    DependentLink A = param("A", Universe(new Level(LevelVariable.PVAR), ConstLevel.INFINITY));
-    DependentLink B = param("B", Universe(new Level(LevelVariable.PVAR), ConstLevel.INFINITY));
+    DependentLink A = param("A", Universe(Sort.TypeOfLevel(0)));
+    DependentLink B = param("B", Universe(Sort.TypeOfLevel(0)));
     DependentLink f = param("f", Pi(Ref(A), Ref(B)));
     DependentLink g = param("g", Pi(Ref(B), Ref(A)));
     SingleDependentLink a = singleParam("a", Ref(A));

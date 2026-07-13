@@ -1405,11 +1405,6 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
   }
 
   @Override
-  public Concrete.PLevelExpression visitPLevel(PLevelContext ctx) {
-    return new Concrete.PLevelExpression(tokenPosition(ctx.start));
-  }
-
-  @Override
   public Concrete.NumberLevelExpression visitNumLevel(NumLevelContext ctx) {
     return new Concrete.NumberLevelExpression(tokenPosition(ctx.start), new BigInteger(ctx.NUMBER().getText(), 10));
   }

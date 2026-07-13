@@ -610,12 +610,6 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
   }
 
   @Override
-  public Void visitLP(Concrete.PLevelExpression expr, Precedence param) {
-    myBuilder.append("\\lp");
-    return null;
-  }
-
-  @Override
   public Void visitNumber(Concrete.NumberLevelExpression expr, Precedence param) {
     myBuilder.append(expr.getNumber());
     return null;

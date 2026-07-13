@@ -876,12 +876,6 @@ public class ConcreteFactoryImpl implements ConcreteFactory {
 
   @NotNull
   @Override
-  public ConcreteLevel lp() {
-    return new Concrete.PLevelExpression(myData);
-  }
-
-  @NotNull
-  @Override
   public ConcreteLevel numLevel(@NotNull BigInteger level) {
     return new Concrete.NumberLevelExpression(myData, level);
   }

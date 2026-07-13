@@ -645,7 +645,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
 
   private boolean checkLevel(LevelMismatchError.TargetKind kind, BigInteger level, Sort actualSort, Concrete.SourceNode sourceNode) {
     if (kind != null && !Objects.equals(level, ConstLevel.PROP.value())) {
-      Sort sort = level != null ? new Sort(new Level(LevelVariable.PVAR), new ConstLevel(actualSort != null ? level.min(actualSort.getHLevel().value()) : level)) : actualSort;
+      Sort sort = level != null ? new Sort(Level.INFINITY, new ConstLevel(actualSort != null ? level.min(actualSort.getHLevel().value()) : level)) : actualSort;
       errorReporter.report(new LevelMismatchError(kind, sort, sourceNode));
       return false;
     } else {
@@ -1285,7 +1285,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
         if (typedDef != null) {
           List<? extends LevelVariable> levelParams = typedDef.getLevelParameters();
           if (cEnclosingDef.getLevelParameters() != null && LevelVariable.compare(enclosingDef.getLevelParameters(), levelParams, CMP.EQ)) {
-            refExpr.setLevels(cEnclosingDef.getLevelParameters() != null ? levelParametersToExpressions(refExpr.getData(), cEnclosingDef.getLevelParameters()) : Collections.singletonList(new Concrete.PLevelExpression(refExpr.getData())));
+            refExpr.setLevels(cEnclosingDef.getLevelParameters() != null ? levelParametersToExpressions(refExpr.getData(), cEnclosingDef.getLevelParameters()) : Collections.emptyList());
           }
         }
       }

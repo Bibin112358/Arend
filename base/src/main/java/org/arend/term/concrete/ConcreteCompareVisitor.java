@@ -197,9 +197,6 @@ public class ConcreteCompareVisitor implements ConcreteExpressionVisitor<Concret
     if (level1 == null || level2 == null) return false;
     updateData(level1, level2);
     switch (level1) {
-      case Concrete.PLevelExpression ignored -> {
-        return level2 instanceof Concrete.PLevelExpression;
-      }
       case Concrete.NumberLevelExpression numberLevelExpression -> {
         return level2 instanceof Concrete.NumberLevelExpression && numberLevelExpression.getNumber().equals(((Concrete.NumberLevelExpression) level2).getNumber());
       }
