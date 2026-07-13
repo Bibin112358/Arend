@@ -5,7 +5,6 @@ import org.arend.core.context.param.TypedSingleDependentLink;
 import org.arend.core.definition.ClassField;
 import org.arend.core.definition.Definition;
 import org.arend.core.definition.FunctionDefinition;
-import org.arend.core.definition.UniverseKind;
 import org.arend.core.expr.*;
 import org.arend.core.sort.Sort;
 import org.arend.core.subst.Levels;
@@ -361,7 +360,7 @@ public class ArrayTest extends TypeCheckingTestCase {
     Expression length = new ReferenceExpression(def.getParameters());
     impls.put(Prelude.ARRAY_LENGTH, length);
     impls.put(Prelude.ARRAY_ELEMENTS_TYPE, new LamExpression(new TypedSingleDependentLink(true, null, DataCallExpression.make(Prelude.FIN, Levels.EMPTY, new SingletonList<>(length))), Nat()));
-    assertThatErrorsAre(Matchers.goal(1), Matchers.goal(new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, impls, UniverseKind.NO_UNIVERSES)));
+    assertThatErrorsAre(Matchers.goal(1), Matchers.goal(new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, impls)));
   }
 
   @Test
@@ -371,7 +370,7 @@ public class ArrayTest extends TypeCheckingTestCase {
     Expression length = new SmallIntegerExpression(5);
     impls.put(Prelude.ARRAY_LENGTH, length);
     impls.put(Prelude.ARRAY_ELEMENTS_TYPE, new LamExpression(new TypedSingleDependentLink(true, null, DataCallExpression.make(Prelude.FIN, Levels.EMPTY, new SingletonList<>(length))), Nat()));
-    assertThatErrorsAre(Matchers.goal(0), Matchers.goal(0), Matchers.goal(new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, impls, UniverseKind.NO_UNIVERSES)));
+    assertThatErrorsAre(Matchers.goal(0), Matchers.goal(0), Matchers.goal(new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, impls)));
   }
 
   @Test

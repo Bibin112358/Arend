@@ -150,38 +150,19 @@ public abstract class Expression implements Body, CoreExpression {
     return sort != null && sort.isProp();
   }
 
-  public Expression getType(boolean minimal) {
-    return accept(minimal ? GetTypeVisitor.MIN_INSTANCE : GetTypeVisitor.INSTANCE, null);
-  }
-
   public Expression getType() {
-    return getType(false);
-  }
-
-  @Override
-  public @NotNull Expression computeType(boolean minimal) {
-    Expression type = getType(minimal);
-    return type != null ? type : new ErrorExpression(new TypeComputationError(null, null, this, null));
+    return accept(GetTypeVisitor.INSTANCE, null);
   }
 
   @Override
   public @NotNull Expression computeType() {
-    return computeType(false);
-  }
-
-  @Override
-  public @NotNull TypecheckingResult computeTyped(boolean minimal) {
-    return new TypecheckingResult(this, computeType(minimal));
+    Expression type = getType();
+    return type != null ? type : new ErrorExpression(new TypeComputationError(null, null, this, null));
   }
 
   @Override
   public @NotNull TypecheckingResult computeTyped() {
-    return computeTyped(false);
-  }
-
-  @Override
-  public @NotNull Expression minimizeLevels() {
-    return this;
+    return new TypecheckingResult(this, computeType());
   }
 
   public boolean findBinding(Variable binding) {

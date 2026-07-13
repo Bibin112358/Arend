@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public abstract class TopLevelDefinition extends CallableDefinition {
-  private UniverseKind myUniverseKind = UniverseKind.NO_UNIVERSES;
   private List<? extends LevelVariable> myLevelParameters = Collections.emptyList();
   private LocatedReferable myLevelsParent;
   private boolean myLevelsDerived;
@@ -24,15 +23,6 @@ public abstract class TopLevelDefinition extends CallableDefinition {
   @Override
   public TopLevelDefinition getTopLevelDefinition() {
     return this;
-  }
-
-  @Override
-  public UniverseKind getUniverseKind() {
-    return myUniverseKind;
-  }
-
-  public void setUniverseKind(UniverseKind kind) {
-    myUniverseKind = kind;
   }
 
   @Override

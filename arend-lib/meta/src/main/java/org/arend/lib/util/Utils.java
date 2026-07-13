@@ -348,7 +348,7 @@ public class Utils {
   }
 
   public static CoreExpression minimizeToProp(CoreExpression type) {
-    type = type.normalize(NormalizationMode.WHNF).minimizeLevels();
+    type = type.normalize(NormalizationMode.WHNF);
     CoreExpression typeType = type.computeType().normalize(NormalizationMode.WHNF);
     return typeType instanceof CoreUniverseExpression && ((CoreUniverseExpression) typeType).getSortExpression().isProp() ? type : null;
   }

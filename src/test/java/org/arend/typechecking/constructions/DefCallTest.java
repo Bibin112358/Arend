@@ -57,9 +57,7 @@ public class DefCallTest extends TypeCheckingTestCase {
 
   private ClassCallExpression makeClassCall(Definition definition, Expression impl) {
     ClassDefinition classDef = (ClassDefinition) definition;
-    ClassCallExpression classCall = new ClassCallExpression(classDef, Levels.EMPTY, new SingletonMap<>(classDef.getNotImplementedFields().iterator().next(), impl), classDef.getUniverseKind());
-    classCall.updateHasUniverses();
-    return classCall;
+    return new ClassCallExpression(classDef, Levels.EMPTY, new SingletonMap<>(classDef.getNotImplementedFields().iterator().next(), impl));
   }
 
   @Test

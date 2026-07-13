@@ -50,11 +50,6 @@ public class DataCallExpression extends LeveledDefCallExpression implements Core
     return (DataDefinition) super.getDefinition();
   }
 
-  @Override
-  public @NotNull Expression minimizeLevels() {
-    return new DataCallExpression(getDefinition(), getMinimizedLevels(), myArguments);
-  }
-
   public SortExpression getSortExpression() {
     return getDefinition().getSortExpression().subst(getDefCallArguments(), getLevelSubstitution(), GetTypeVisitor.INSTANCE);
   }

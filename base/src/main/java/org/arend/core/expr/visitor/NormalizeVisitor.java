@@ -875,7 +875,7 @@ public class NormalizeVisitor extends ExpressionTransformer<NormalizationMode>  
     if (mode == NormalizationMode.WHNF) return expr;
 
     Map<ClassField, Expression> fieldSet = new LinkedHashMap<>();
-    ClassCallExpression result = new ClassCallExpression(expr.getDefinition(), expr.getLevels(), fieldSet, expr.getUniverseKind());
+    ClassCallExpression result = new ClassCallExpression(expr.getDefinition(), expr.getLevels(), fieldSet);
     for (Map.Entry<ClassField, Expression> entry : expr.getImplementedHere().entrySet()) {
       fieldSet.put(entry.getKey(), entry.getValue().accept(this, mode).subst(expr.getThisBinding(), new ReferenceExpression(result.getThisBinding())));
     }

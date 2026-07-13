@@ -1176,7 +1176,7 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
         if (args.size() > classArgs.size() || classCall1.getImplementedHere().size() > classArgs.size() && !(correctOrder && myCMP == CMP.LE || !correctOrder && myCMP == CMP.GE)) {
           return null;
         }
-        dataParams = new ClassCallExpression(classCall1.getDefinition(), classCall1.getLevels(), new LinkedHashMap<>(), classCall1.getDefinition().getUniverseKind()).getClassFieldParameters();
+        dataParams = new ClassCallExpression(classCall1.getDefinition(), classCall1.getLevels(), new LinkedHashMap<>()).getClassFieldParameters();
         oldDataArgs = classArgs;
       }
 
@@ -1224,7 +1224,7 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
         lam = defCall1.getDefinition().getDefCall(defCall1.getLevels(), newDataArgs);
       } else {
         Map<ClassField, Expression> implementations = new LinkedHashMap<>();
-        ClassCallExpression classCall = new ClassCallExpression(classCall1.getDefinition(), classCall1.getLevels(), implementations, classCall1.getUniverseKind());
+        ClassCallExpression classCall = new ClassCallExpression(classCall1.getDefinition(), classCall1.getLevels(), implementations);
         int i = 0;
         for (ClassField field : classCall1.getDefinition().getNotImplementedFields()) {
           if (i < oldDataArgs.size() - args.size()) {
@@ -1239,7 +1239,6 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
             break;
           }
         }
-        classCall.updateHasUniverses();
         lam = classCall;
       }
 
@@ -1823,7 +1822,7 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
     implementations.put(Prelude.ARRAY_LENGTH, length);
     TypedSingleDependentLink param = new TypedSingleDependentLink(true, "j", Fin(length));
     implementations.put(Prelude.ARRAY_AT, new LamExpression(param, AppExpression.make(FieldCall(Prelude.ARRAY_AT, expr), addSucs(new ReferenceExpression(param), n), true)));
-    return new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, implementations, UniverseKind.NO_UNIVERSES));
+    return new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, implementations));
   }
 
   private boolean compareClassInstances(Expression expr1, ClassCallExpression classCall1, Expression expr2, ClassCallExpression classCall2, Expression type) {
@@ -1943,14 +1942,14 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
               if (classCall1.isImplementedHere(field)) {
                 Map<ClassField, Expression> impls = new LinkedHashMap<>(classCall1.getImplementedHere());
                 impls.put(field, myResult.wholeExpr1);
-                myResult.wholeExpr1 = new NewExpression(null, new ClassCallExpression(classCall1.getDefinition(), classCall1.getLevels(), impls, classCall1.getUniverseKind()));
+                myResult.wholeExpr1 = new NewExpression(null, new ClassCallExpression(classCall1.getDefinition(), classCall1.getLevels(), impls));
               } else {
                 myResult.wholeExpr1 = expr1;
               }
               if (classCall2.isImplementedHere(field)) {
                 Map<ClassField, Expression> impls = new LinkedHashMap<>(classCall2.getImplementedHere());
                 impls.put(field, myResult.wholeExpr2);
-                myResult.wholeExpr2 = new NewExpression(null, new ClassCallExpression(classCall2.getDefinition(), classCall2.getLevels(), impls, classCall2.getUniverseKind()));
+                myResult.wholeExpr2 = new NewExpression(null, new ClassCallExpression(classCall2.getDefinition(), classCall2.getLevels(), impls));
               } else {
                 myResult.wholeExpr2 = expr2;
               }

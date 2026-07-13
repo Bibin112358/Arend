@@ -84,11 +84,6 @@ public class MetaTopDefinition extends Definition {
   }
 
   @Override
-  public UniverseKind getUniverseKind() {
-    return UniverseKind.WITH_UNIVERSES;
-  }
-
-  @Override
   public <P, R> R accept(DefinitionVisitor<? super P, ? extends R> visitor, P params) {
     return visitor.visitMeta(this, params);
   }

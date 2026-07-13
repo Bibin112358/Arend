@@ -2,7 +2,6 @@ package org.arend.core.expr;
 
 import org.arend.core.context.param.TypedSingleDependentLink;
 import org.arend.core.definition.ClassField;
-import org.arend.core.definition.UniverseKind;
 import org.arend.core.expr.visitor.ExpressionVisitor;
 import org.arend.core.expr.visitor.ExpressionVisitor2;
 import org.arend.core.subst.Levels;
@@ -59,7 +58,7 @@ public class ArrayExpression extends Expression implements CoreArrayExpression {
     impls.put(Prelude.ARRAY_LENGTH, length_1);
     impls.put(Prelude.ARRAY_ELEMENTS_TYPE, new LamExpression(param, AppExpression.make(elementsType, Suc(new ReferenceExpression(param)), true)));
     impls.put(Prelude.ARRAY_AT, new LamExpression(param, at != null ? AppExpression.make(at, Suc(new ReferenceExpression(param)), true) : FunCallExpression.make(Prelude.ARRAY_INDEX, Levels.EMPTY, Arrays.asList(expr, Suc(new ReferenceExpression(param))))));
-    return new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, impls, UniverseKind.NO_UNIVERSES));
+    return new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, impls));
   }
 
   public Expression drop(int n) {

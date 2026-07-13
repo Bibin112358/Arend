@@ -179,7 +179,7 @@ public class UseTypechecking {
       for (; classCallLink.hasNext(); classCallLink = classCallLink.getNext()) {
         classCallLink = classCallLink.getNextTyped(null);
         classCall = classCallLink.getType().cast(ClassCallExpression.class);
-        if (classCall != null && classCall.getDefinition() == useParent && (classCall.getUniverseKind() == UniverseKind.NO_UNIVERSES || typedDef.isIdLevels(classCall.getLevels()))) {
+        if (classCall != null && classCall.getDefinition() == useParent && typedDef.isIdLevels(classCall.getLevels())) {
           break;
         }
       }
@@ -187,7 +187,7 @@ public class UseTypechecking {
         PiExpression piType = resultType.normalize(NormalizationMode.WHNF).cast(PiExpression.class);
         if (piType != null) {
           classCall = piType.getParameters().getType().normalize(NormalizationMode.WHNF).cast(ClassCallExpression.class);
-          if (classCall != null && classCall.getDefinition() == useParent && (classCall.getUniverseKind() == UniverseKind.NO_UNIVERSES || typedDef.isIdLevels(classCall.getLevels()))) {
+          if (classCall != null && classCall.getDefinition() == useParent && typedDef.isIdLevels(classCall.getLevels())) {
             classCallLink = piType.getParameters();
           }
         }
@@ -223,7 +223,7 @@ public class UseTypechecking {
 
               ClassCallExpression fieldClassCall = fieldType.cast(ClassCallExpression.class);
               ClassCallExpression paramClassCall = paramType.cast(ClassCallExpression.class);
-              if (strictList != null && paramClassCall != null && fieldClassCall != null && paramClassCall.getDefinition().isSubClassOf(fieldClassCall.getDefinition()) && paramClassCall.getLevels(fieldClassCall.getDefinition()).equals(fieldClassCall.getLevels()) && paramClassCall.getUniverseKind().ordinal() <= fieldClassCall.getUniverseKind().ordinal()) {
+              if (strictList != null && paramClassCall != null && fieldClassCall != null && paramClassCall.getDefinition().isSubClassOf(fieldClassCall.getDefinition()) && paramClassCall.getLevels(fieldClassCall.getDefinition()).equals(fieldClassCall.getLevels())) {
                 strictList.add(new Pair<>(paramClassCall.getDefinition(), paramClassCall.getImplementedHere().keySet()));
               } else {
                 strictList = null;

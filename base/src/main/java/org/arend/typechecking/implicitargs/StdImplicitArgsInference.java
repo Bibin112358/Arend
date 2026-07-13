@@ -376,7 +376,7 @@ public class StdImplicitArgsInference implements ImplicitArgsInference {
           }
           if (constType != null) {
             Map<ClassField, Expression> impls = new HashMap<>();
-            argClassCall = new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, impls, UniverseKind.NO_UNIVERSES);
+            argClassCall = new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, impls);
             impls.put(Prelude.ARRAY_ELEMENTS_TYPE, new LamExpression(new TypedSingleDependentLink(true, null, Fin(FieldCallExpression.make(Prelude.ARRAY_LENGTH, new ReferenceExpression(argClassCall.getThisBinding())))), constType));
           }
         }
@@ -444,7 +444,7 @@ public class StdImplicitArgsInference implements ImplicitArgsInference {
           impls.put(Prelude.ARRAY_LENGTH, args.get(0));
           TypedSingleDependentLink lamParam = new TypedSingleDependentLink(true, "j", DataCallExpression.make(Prelude.FIN, Levels.EMPTY, new SingletonList<>(args.get(0))));
           impls.put(Prelude.ARRAY_ELEMENTS_TYPE, new LamExpression(lamParam, AppExpression.make(args.get(1), Suc(new ReferenceExpression(lamParam)), true)));
-          Expression expected2 = new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, impls, UniverseKind.NO_UNIVERSES);
+          Expression expected2 = new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, impls);
           if (!new CompareVisitor(myVisitor.getEquations(), CMP.LE, fun).normalizedCompare(result2.type, expected2, null, false)) {
             myVisitor.getErrorReporter().report(new TypeMismatchError(expected2, result2.type, arguments.get(index2).expression));
             return null;
@@ -480,7 +480,7 @@ public class StdImplicitArgsInference implements ImplicitArgsInference {
         Map<ClassField, Expression> impls = new LinkedHashMap<>();
         impls.put(Prelude.ARRAY_LENGTH, length);
         impls.put(Prelude.ARRAY_ELEMENTS_TYPE, new LamExpression(new TypedSingleDependentLink(true, null, Fin(length)), result1.type));
-        type = new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, impls, UniverseKind.NO_UNIVERSES);
+        type = new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, impls);
       }
 
       TypedSingleDependentLink lamParam = new TypedSingleDependentLink(true, "l", type);

@@ -260,7 +260,7 @@ public class BranchElimTree extends ElimTree {
             implementations.put(field, newArgs.get(i++));
           }
         }
-        result.add(new NewExpression(null, new ClassCallExpression(classCall.getDefinition(), classCall.getLevels(), implementations, classCall.getUniverseKind())));
+        result.add(new NewExpression(null, new ClassCallExpression(classCall.getDefinition(), classCall.getLevels(), implementations)));
         result.addAll(newArgs.subList(i, newArgs.size()));
         return result;
       }

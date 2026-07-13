@@ -36,7 +36,6 @@ public class DataDefinition extends TopLevelDefinition implements CoreDataDefini
   private final ParametersLevels<ParametersLevel> myParametersLevels = new ParametersLevels<>();
   private Set<TopLevelDefinition> myRecursiveDefinitions = Collections.emptySet();
   private boolean myHasEnclosingClass;
-  private List<Boolean> myOmegaParameters = Collections.emptyList();
 
   public DataDefinition(TCDefReferable referable) {
     super(referable, TypeCheckingStatus.NEEDS_TYPE_CHECKING);
@@ -65,20 +64,6 @@ public class DataDefinition extends TopLevelDefinition implements CoreDataDefini
   @Override
   public @NotNull Set<? extends TopLevelDefinition> getRecursiveDefinitions() {
     return myRecursiveDefinitions;
-  }
-
-  @Override
-  public boolean isOmegaParameter(int index) {
-    return index < myOmegaParameters.size() && myOmegaParameters.get(index);
-  }
-
-  public List<Boolean> getOmegaParameters() {
-    return myOmegaParameters;
-  }
-
-  @Override
-  public void setOmegaParameters(List<Boolean> parameters) {
-    myOmegaParameters = parameters;
   }
 
   public void setRecursiveDefinitions(Set<TopLevelDefinition> recursiveDefinitions) {

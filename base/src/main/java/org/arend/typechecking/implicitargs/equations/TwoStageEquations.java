@@ -11,7 +11,6 @@ import org.arend.core.context.param.SingleDependentLink;
 import org.arend.core.context.param.TypedSingleDependentLink;
 import org.arend.core.definition.ClassDefinition;
 import org.arend.core.definition.ClassField;
-import org.arend.core.definition.UniverseKind;
 import org.arend.core.expr.*;
 import org.arend.core.expr.visitor.CompareVisitor;
 import org.arend.core.expr.visitor.ElimBindingVisitor;
@@ -779,35 +778,12 @@ public class TwoStageEquations implements Equations {
         continue;
       }
 
-      UniverseKind universeKind = classDef.getUniverseKind();
-      if (universeKind != UniverseKind.NO_UNIVERSES) {
-        universeKind = UniverseKind.NO_UNIVERSES;
-        for (ClassField field : classDef.getNotImplementedFields()) {
-          if (field.getUniverseKind() == UniverseKind.NO_UNIVERSES) {
-            continue;
-          }
-          boolean implemented = false;
-          for (ClassCallExpression classCall : pair.proj2) {
-            if (classCall.isImplementedHere(field)) {
-              implemented = true;
-              break;
-            }
-          }
-          if (!implemented) {
-            universeKind = universeKind.max(field.getUniverseKind());
-            if (universeKind == UniverseKind.WITH_UNIVERSES) {
-              break;
-            }
-          }
-        }
-      }
-
       ClassCallExpression solution;
       if (cmp == CMP.LE) {
         Equations wrapper = useWrapper ? new LevelEquationsWrapper(this) : this;
         Levels levels = classDef.generateInferVars(this, pair.proj1.getSourceNode());
         Map<ClassField, Expression> implementations = new LinkedHashMap<>();
-        solution = new ClassCallExpression(classDef, levels, implementations, universeKind);
+        solution = new ClassCallExpression(classDef, levels, implementations);
         ReferenceExpression thisExpr = new ReferenceExpression(solution.getThisBinding());
 
         int minIndex = 0;
@@ -882,7 +858,6 @@ public class TwoStageEquations implements Equations {
         } else {
           solution.removeDependencies(minClassCall.getImplementedHere().keySet());
         }
-        solution.updateHasUniverses();
 
         for (ClassCallExpression lowerBound : pair.proj2) {
           if (!lowerBound.getLevels(classDef).compare(levels, CMP.LE, this, pair.proj1.getSourceNode()) || !new CompareVisitor(this, CMP.LE, pair.proj1.getSourceNode()).compareLevels(lowerBound, solution)) {

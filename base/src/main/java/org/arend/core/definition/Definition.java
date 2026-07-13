@@ -123,7 +123,7 @@ public abstract class Definition extends UserDataHolderImpl implements CoreDefin
   }
 
   public Levels generateInferVars(Equations equations, Concrete.SourceNode sourceNode) {
-    return generateInferVars(equations, getUniverseKind() == UniverseKind.WITH_UNIVERSES, sourceNode);
+    return generateInferVars(equations, false, sourceNode);
   }
 
   @NotNull
@@ -142,15 +142,6 @@ public abstract class Definition extends UserDataHolderImpl implements CoreDefin
 
   public boolean isStrict(int parameter) {
     return false;
-  }
-
-  // TODO[sorts]: Delete this
-  public boolean isOmegaParameter(int index) {
-    return false;
-  }
-
-  public void setOmegaParameters(List<Boolean> omegaParameters) {
-    throw new IllegalStateException();
   }
 
   public boolean hasEnclosingClass() {
@@ -220,9 +211,6 @@ public abstract class Definition extends UserDataHolderImpl implements CoreDefin
   public void setTypeClassParameters(List<TypeClassParameterKind> typeClassParameters) {
 
   }
-
-  // TODO[sorts]: Delete this
-  public abstract UniverseKind getUniverseKind();
 
   public List<? extends ParametersLevel> getParametersLevels() {
     return Collections.emptyList();

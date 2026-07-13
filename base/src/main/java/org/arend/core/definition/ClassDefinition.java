@@ -39,15 +39,13 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
   private final Map<ClassField, Pair<PiExpression,ClassDefinition>> myOverridden = new HashMap<>();
   private final Set<ClassField> myCovariantFields = new HashSet<>();
   private ClassField myCoercingField;
-  private SortExpression mySort = new SortExpression.Const(Sort.PROP); // TODO[sorts]: Delete this?
+  private SortExpression mySort = new SortExpression.Const(Sort.PROP);
   private boolean myRecord = false;
   private final CoerceData myCoerce = new CoerceData(this);
   private Set<ClassField> myGoodThisFields = Collections.emptySet();
   private Set<ClassField> myTypeClassParameters = Collections.emptySet();
   private final ParametersLevels<ParametersLevel> myParametersLevels = new ParametersLevels<>();
   private Map<ClassDefinition, Levels> mySuperLevels = Collections.emptyMap();
-  private final Set<ClassField> myOmegaFields = new HashSet<>();
-  private UniverseKind myBaseUniverseKind = UniverseKind.NO_UNIVERSES; // TODO[sorts]: Delete this
 
   public ClassDefinition(TCDefReferable referable) {
     super(referable, TypeCheckingStatus.NEEDS_TYPE_CHECKING);
@@ -226,7 +224,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
 
   public SortExpression computeSort(Map<ClassField,Expression> implemented, Binding thisBinding, Levels levels, LevelSubstitution levelSubstitution, boolean ignoreErrors, GetTypeVisitor visitor) {
     Levels idLevels = makeIdLevels();
-    ReferenceExpression thisExpr1 = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, levels, implemented, myBaseUniverseKind)));
+    ReferenceExpression thisExpr1 = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, levels, implemented)));
     Expression thisExpr2 = new ReferenceExpression(ExpressionFactory.parameter("this", new ClassCallExpression(this, levels)));
     BigInteger hLevel = getUseLevel(implemented, thisBinding, true);
     if (hLevel != null && hLevel.equals(ConstLevel.PROP.value())) {
@@ -571,26 +569,6 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     myTypeClassParameters = typeClassFields;
   }
 
-  public UniverseKind getBaseUniverseKind() {
-    return myBaseUniverseKind;
-  }
-
-  public void setBaseUniverseKind(UniverseKind universeKind) {
-    myBaseUniverseKind = universeKind;
-  }
-
-  public boolean isOmegaField(ClassField field) {
-    return myOmegaFields.contains(field);
-  }
-
-  public Set<? extends ClassField> getOmegaFields() {
-    return myOmegaFields;
-  }
-
-  public void addOmegaField(ClassField field) {
-    myOmegaFields.add(field);
-  }
-
   @Override
   public Expression getTypeWithParams(List<? super DependentLink> params, Levels levels) {
     for (ClassField field : getOverridableInfiniteFields()) {
@@ -603,7 +581,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
 
   @Override
   public ClassCallExpression getDefCall(Levels levels, List<Expression> args) {
-    return new ClassCallExpression(this, levels, Collections.emptyMap(), getUniverseKind());
+    return new ClassCallExpression(this, levels, Collections.emptyMap());
   }
 
   public void clear() {

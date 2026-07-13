@@ -3,7 +3,6 @@ package org.arend.core.expr;
 import org.arend.core.context.param.DependentLink;
 import org.arend.core.definition.CallableDefinition;
 import org.arend.core.definition.ParametersLevel;
-import org.arend.core.definition.UniverseKind;
 import org.arend.core.subst.ExprSubstitution;
 import org.arend.ext.core.expr.CoreDefCallExpression;
 import org.arend.ext.core.level.LevelSubstitution;
@@ -46,10 +45,6 @@ public abstract class DefCallExpression extends Expression implements CoreDefCal
       }
     }
     return null;
-  }
-
-  public UniverseKind getUniverseKind() {
-    return myDefinition.getUniverseKind();
   }
 
   public void fixBoxes() {

@@ -22,7 +22,6 @@ public class ClassField extends CallableDefinition implements CoreClassField {
   private BigInteger myResultTypeLevel;
   private int myNumberOfParameters;
   private boolean myHideable;
-  private UniverseKind myUniverseKind = UniverseKind.NO_UNIVERSES;
   private boolean myInfinite;
 
   public ClassField(FieldReferableImpl referable, ClassDefinition parentClass) {
@@ -155,15 +154,6 @@ public class ClassField extends CallableDefinition implements CoreClassField {
   @Override
   public TypeClassParameterKind getTypeClassParameterKind(int index) {
     return index == 0 && !myParentClass.isRecord() ? TypeClassParameterKind.YES : TypeClassParameterKind.NO;
-  }
-
-  @Override
-  public UniverseKind getUniverseKind() {
-    return myUniverseKind;
-  }
-
-  public void setUniverseKind(UniverseKind kind) {
-    myUniverseKind = kind;
   }
 
   @Override

@@ -49,7 +49,7 @@ public class DConstructor extends FunctionDefinition {
 
   public DependentLink getArrayParameters(Expression length, Binding thisBinding, Expression elementsType) {
     if (this == Prelude.EMPTY_ARRAY) {
-      return elementsType != null ? EmptyDependentLink.getInstance() : DependentLink.Helper.subst(getParameters(), new ExprSubstitution(thisBinding, new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, new SingletonMap<>(Prelude.ARRAY_LENGTH, Zero()), UniverseKind.NO_UNIVERSES))), LevelSubstitution.EMPTY);
+      return elementsType != null ? EmptyDependentLink.getInstance() : DependentLink.Helper.subst(getParameters(), new ExprSubstitution(thisBinding, new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, new SingletonMap<>(Prelude.ARRAY_LENGTH, Zero())))), LevelSubstitution.EMPTY);
     }
 
     if ((elementsType == null || thisBinding == null) && length == null) {
@@ -69,10 +69,10 @@ public class DConstructor extends FunctionDefinition {
     Map<ClassField, Expression> impls = new LinkedHashMap<>();
     impls.put(Prelude.ARRAY_LENGTH, natRef);
     impls.put(Prelude.ARRAY_ELEMENTS_TYPE, elementsType);
-    Expression newElementsType = elementsType.subst(thisBinding, new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, impls, UniverseKind.ONLY_COVARIANT)));
+    Expression newElementsType = elementsType.subst(thisBinding, new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, impls)));
     TypedSingleDependentLink lamParam = new TypedSingleDependentLink(true, "j", DataCallExpression.make(Prelude.FIN, Levels.EMPTY, new SingletonList<>(natRef)));
     impls.put(Prelude.ARRAY_ELEMENTS_TYPE, new LamExpression(lamParam, AppExpression.make(newElementsType, Suc(new ReferenceExpression(lamParam)), true)));
-    nat.setNext(new TypedDependentLink(true, "a", AppExpression.make(newElementsType, Zero(), true), new TypedDependentLink(true, "l", new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, impls, UniverseKind.NO_UNIVERSES), EmptyDependentLink.getInstance())));
+    nat.setNext(new TypedDependentLink(true, "a", AppExpression.make(newElementsType, Zero(), true), new TypedDependentLink(true, "l", new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, impls), EmptyDependentLink.getInstance())));
     return nat;
   }
 

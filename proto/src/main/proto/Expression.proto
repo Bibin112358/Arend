@@ -56,7 +56,6 @@ message Expression {
         int32 class_ref = 1;
         Levels levels = 7;
         repeated ImplEntry field_impl = 8;
-        UniverseKind universe_kind = 6;
     }
     message ConCalls {
       repeated ConCall con_call = 1;
@@ -194,12 +193,6 @@ message Expression {
     message String {
         string value = 1;
     }
-}
-
-enum UniverseKind {
-    NO_UNIVERSES = 0;
-    ONLY_COVARIANT = 1;
-    WITH_UNIVERSES = 2;
 }
 
 message Type {

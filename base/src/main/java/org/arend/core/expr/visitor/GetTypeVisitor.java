@@ -1,192 +1,41 @@
 package org.arend.core.expr.visitor;
 
-import org.arend.core.context.binding.LevelVariable;
 import org.arend.core.context.param.DependentLink;
-import org.arend.core.definition.ClassDefinition;
 import org.arend.core.definition.ClassField;
 import org.arend.core.definition.FunctionDefinition;
-import org.arend.core.definition.UniverseKind;
 import org.arend.core.expr.*;
 import org.arend.core.expr.let.HaveClause;
 import org.arend.core.expr.let.LetClause;
-import org.arend.core.sort.Level;
-import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.ExprSubstitution;
 import org.arend.core.subst.Levels;
-import org.arend.core.subst.ListLevels;
 import org.arend.ext.core.level.LevelSubstitution;
-import org.arend.ext.core.ops.CMP;
 import org.arend.ext.core.ops.NormalizationMode;
 import org.arend.prelude.Prelude;
 import org.arend.util.SingletonList;
 
-import java.math.BigInteger;
 import java.util.*;
 
 import static org.arend.core.expr.ExpressionFactory.*;
 
 public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
-  public final static GetTypeVisitor INSTANCE = new GetTypeVisitor(true, false);
-  public final static GetTypeVisitor NN_INSTANCE = new GetTypeVisitor(false, false);
-  public final static GetTypeVisitor MIN_INSTANCE = new GetTypeVisitor(true, true);
+  public final static GetTypeVisitor INSTANCE = new GetTypeVisitor(true);
+  public final static GetTypeVisitor NN_INSTANCE = new GetTypeVisitor(false);
 
   private final boolean myNormalizing;
-  private final boolean myMinimal;
 
-  private GetTypeVisitor(boolean normalizing, boolean minimal) {
+  private GetTypeVisitor(boolean normalizing) {
     myNormalizing = normalizing;
-    myMinimal = minimal;
   }
 
   GetTypeVisitor() {
-    this(true, false);
+    this(true);
   }
 
   @Override
   public Expression visitApp(AppExpression expr, Void params) {
     Expression result = expr.getFunction().accept(this, null).applyExpression(expr.getArgument(), myNormalizing);
     return result == null ? new ErrorExpression() : result;
-  }
-
-  private Level getMaxLevel(Level level1, Level level2) {
-    return level2 == null ? level1 : level2.max(level1);
-  }
-
-  private boolean matchLevels(Levels paramLevels, Levels argLevels, Map<LevelVariable, Level> levelMap) {
-    List<? extends Level> paramList = paramLevels.toList();
-    List<? extends Level> argList = argLevels.toList();
-    if (paramList.size() != argList.size()) {
-      return false;
-    }
-    for (int i = 0; i < paramList.size(); i++) {
-      for (LevelVariable var : paramList.get(i).getVars()) {
-        levelMap.put(var, getMaxLevel(argList.get(i), levelMap.get(var)));
-      }
-    }
-    return true;
-  }
-
-  private boolean matchArguments(Expression paramType, Expression argType, Map<LevelVariable, Level> levelMap) {
-    int skip = 0;
-    while (paramType instanceof PiExpression) {
-      skip += DependentLink.Helper.size(((PiExpression) paramType).getParameters());
-      paramType = ((PiExpression) paramType).getCodomain();
-    }
-
-    if (paramType instanceof UniverseExpression) {
-      argType = argType.dropPiParameter(skip);
-      argType = argType == null ? null : argType.normalize(NormalizationMode.WHNF);
-      if (!(argType instanceof UniverseExpression)) {
-        return false;
-      }
-      SortExpression paramSortExpr = ((UniverseExpression) paramType).getSortExpression();
-      SortExpression argSortExpr = ((UniverseExpression) argType).getSortExpression();
-      return paramSortExpr instanceof SortExpression.Const(Sort paramSort) && argSortExpr instanceof SortExpression.Const(Sort argSort) && matchLevels(new ListLevels(paramSort.getPLevel()), new ListLevels(argSort.getPLevel()), levelMap);
-    } else if (paramType instanceof SigmaExpression) {
-      argType = argType.dropPiParameter(skip);
-      argType = argType == null ? null : argType.normalize(NormalizationMode.WHNF);
-      if (!(argType instanceof SigmaExpression)) {
-        return false;
-      }
-      DependentLink paramParam = ((SigmaExpression) paramType).getParameters();
-      DependentLink argParam = ((SigmaExpression) argType).getParameters();
-      while (paramParam.hasNext() && argParam.hasNext()) {
-        if (!matchArguments(paramParam.getType(), argParam.getType(), levelMap)) {
-          return false;
-        }
-        paramParam = paramParam.getNext();
-        argParam = argParam.getNext();
-      }
-      return !(paramParam.hasNext() || argParam.hasNext());
-    } else if (paramType instanceof ClassCallExpression paramClassCall) {
-      argType = argType.dropPiParameter(skip);
-      argType = argType == null ? null : argType.normalize(NormalizationMode.WHNF);
-      if (!(argType instanceof ClassCallExpression argClassCall)) {
-        return false;
-      }
-      if (paramClassCall.getUniverseKind() != UniverseKind.NO_UNIVERSES && !matchLevels(paramClassCall.getLevels(), minimizeLevelsToSuperClass(argClassCall, paramClassCall.getDefinition()), levelMap)) {
-        return false;
-      }
-      for (Map.Entry<ClassField, Expression> entry : paramClassCall.getImplementedHere().entrySet()) {
-        Expression argImpl = argClassCall.getAbsImplementationHere(entry.getKey());
-        if (argImpl == null || !matchArguments(entry.getValue(), argImpl, levelMap)) {
-          return false;
-        }
-      }
-      return true;
-    } else {
-      return true;
-    }
-  }
-
-  private boolean isMinimalLevels(LeveledDefCallExpression defCall) {
-    Levels levels = defCall.getLevels();
-    if (levels.size() == 0) return true;
-
-    List<? extends LevelVariable> params = defCall.getDefinition().getLevelParameters();
-    List<? extends Level> list = levels.toList();
-    if (list.size() > params.size()) {
-      return false;
-    }
-    for (Level level : list) {
-      if (!level.isZero()) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  // TODO[sorts]: Delete this
-  public Levels minimizeLevels(LeveledDefCallExpression defCall) {
-    if (!(defCall.getUniverseKind() == UniverseKind.NO_UNIVERSES && defCall.getDefinition() != Prelude.DIV_MOD && defCall.getDefinition() != Prelude.MOD && !(defCall instanceof ConCallExpression)) || isMinimalLevels(defCall)) {
-      return defCall.getLevels();
-    }
-    boolean ok = true;
-    Map<LevelVariable, Level> levelMap = new HashMap<>();
-    if (defCall instanceof ClassCallExpression classCall) {
-      for (Map.Entry<ClassField, Expression> entry : classCall.getImplementedHere().entrySet()) {
-        ClassField field = entry.getKey();
-        if (classCall.getDefinition().isOmegaField(field)) {
-          ok = matchArguments(field.getResultType().subst(classCall.getDefinition().levelSubstitutionFor(field.getParentClass())), entry.getValue().getType(), levelMap);
-          if (!ok) break;
-        }
-      }
-    } else {
-      DependentLink param = defCall.getDefinition().getParameters();
-      List<? extends Expression> defCallArguments = defCall.getDefCallArguments();
-      for (int i = 0; i < defCallArguments.size(); i++) {
-        ok = !defCall.getDefinition().isOmegaParameter(i) || matchArguments(param.getType(), defCallArguments.get(i).accept(this, null), levelMap);
-        if (!ok) break;
-        param = param.getNext();
-      }
-    }
-
-    Levels levels = defCall.getLevels();
-    if (ok) {
-      List<Level> list = new ArrayList<>();
-      List<? extends LevelVariable> vars = defCall.getDefinition().getLevelParameters();
-      for (LevelVariable var : vars) {
-        Level level = levelMap.get(var);
-        list.add(level == null ? new Level(BigInteger.ZERO) : level);
-      }
-      for (int i = 0; i < list.size() - 1; i++) {
-        Level maxLevel = list.get(i).max(list.get(i + 1)) /* TODO[sorts] */;
-        if (maxLevel == null) {
-          ok = false;
-          break;
-        }
-        if (vars.get(i).compare(vars.get(i + 1), CMP.LE)) {
-          list.set(i + 1, maxLevel);
-        } else {
-          list.set(i, maxLevel);
-        }
-      }
-      if (ok) {
-        levels = new ListLevels(list);
-      }
-    }
-    return levels;
   }
 
   @Override
@@ -205,7 +54,7 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
     }
 
     List<DependentLink> defParams = new ArrayList<>();
-    Expression type = definition.getTypeWithParams(defParams, myMinimal ? minimizeLevels(expr) : expr.getLevels());
+    Expression type = definition.getTypeWithParams(defParams, expr.getLevels());
     assert arguments.size() == defParams.size();
 
     if (type instanceof UniverseExpression universe) {
@@ -217,37 +66,12 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
 
   @Override
   public UniverseExpression visitDataCall(DataCallExpression expr, Void params) {
-    return new UniverseExpression(expr.getDefinition().getSortExpression().subst(expr.getDefCallArguments(), (myMinimal ? minimizeLevels(expr) : expr.getLevels()).makeSubstitution(expr.getDefinition()), this));
-  }
-
-  private Levels minimizeLevelsToSuperClass(ClassCallExpression classCall, ClassDefinition superClass) {
-    if (isMinimalLevels(classCall)) {
-      return classCall.getLevels(superClass);
-    }
-
-    Levels argLevels = classCall.getLevels(superClass);
-    if (argLevels != classCall.getLevels() && classCall.getUniverseKind() == UniverseKind.NO_UNIVERSES) {
-      Map<ClassField, Expression> impls = new LinkedHashMap<>();
-      ClassCallExpression newClassCall = new ClassCallExpression(superClass, argLevels, impls, UniverseKind.NO_UNIVERSES);
-      for (Map.Entry<ClassField, AbsExpression> entry : classCall.getDefinition().getImplemented()) {
-        if (entry.getKey().getUniverseKind() != UniverseKind.NO_UNIVERSES && superClass.isSubClassOf(entry.getKey().getParentClass())) {
-          impls.put(entry.getKey(), entry.getValue().apply(new ReferenceExpression(classCall.getThisBinding()), LevelSubstitution.EMPTY).accept(new FieldCallSubstVisitor(classCall, new ReferenceExpression(newClassCall.getThisBinding())), null));
-        }
-      }
-      for (Map.Entry<ClassField, Expression> entry : classCall.getImplementedHere().entrySet()) {
-        if (entry.getKey().getUniverseKind() != UniverseKind.NO_UNIVERSES && superClass.isSubClassOf(entry.getKey().getParentClass())) {
-          impls.put(entry.getKey(), entry.getValue().subst(classCall.getThisBinding(), new ReferenceExpression(newClassCall.getThisBinding())));
-        }
-      }
-      return minimizeLevels(newClassCall);
-    } else {
-      return classCall.getDefinition().castLevels(superClass, minimizeLevels(classCall));
-    }
+    return new UniverseExpression(expr.getDefinition().getSortExpression().subst(expr.getDefCallArguments(), expr.getLevels().makeSubstitution(expr.getDefinition()), this));
   }
 
   public Expression getFieldCallType(ClassField field, ClassCallExpression type, Expression argument) {
     if (type.getDefinition().getOverriddenType(field) != null) {
-      return type.getDefinition().getOverriddenType(field, myMinimal ? minimizeLevels(type) : type.getLevels()).applyExpression(argument);
+      return type.getDefinition().getOverriddenType(field, type.getLevels()).applyExpression(argument);
     }
     return type.getFieldType(field, argument);
   }
@@ -464,7 +288,7 @@ public class GetTypeVisitor implements ExpressionVisitor<Void, Expression> {
       implementations.put(Prelude.ARRAY_LENGTH, length);
     }
     implementations.put(Prelude.ARRAY_ELEMENTS_TYPE, expr.getElementsType());
-    return new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, implementations, UniverseKind.NO_UNIVERSES);
+    return new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, implementations);
   }
 
   @Override

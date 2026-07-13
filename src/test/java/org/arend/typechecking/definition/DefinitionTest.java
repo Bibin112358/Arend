@@ -203,7 +203,6 @@ public class DefinitionTest extends TypeCheckingTestCase {
       \\instance NatC : C Nat 0 (\\lam _ => 0) (\\lam _ _ => 0)
       \\func test : Nat => x0
       """);
-    assertEquals(UniverseKind.NO_UNIVERSES, getDefinition("test").getUniverseKind());
   }
 
   @Test

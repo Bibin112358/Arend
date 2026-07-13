@@ -8,7 +8,6 @@ import org.arend.core.context.param.DependentLink;
 import org.arend.core.context.param.TypedDependentLink;
 import org.arend.core.definition.ClassField;
 import org.arend.core.definition.Constructor;
-import org.arend.core.definition.UniverseKind;
 import org.arend.core.elimtree.*;
 import org.arend.core.expr.*;
 import org.arend.core.expr.let.HaveClause;
@@ -384,16 +383,7 @@ class ExpressionSerialization implements ExpressionVisitor<Void, ExpressionProto
     for (Map.Entry<ClassField, Expression> entry : expr.getImplementedHere().entrySet()) {
       builder.addFieldImpl(ExpressionProtos.Expression.ClassCall.ImplEntry.newBuilder().setField(myCallTargetIndexProvider.getDefIndex(entry.getKey())).setImpl(writeExpr(entry.getValue())));
     }
-    builder.setUniverseKind(writeUniverseKind(expr.getUniverseKind()));
     return builder.build();
-  }
-
-  ExpressionProtos.UniverseKind writeUniverseKind(UniverseKind kind) {
-    return switch (kind) {
-      case NO_UNIVERSES -> ExpressionProtos.UniverseKind.NO_UNIVERSES;
-      case ONLY_COVARIANT -> ExpressionProtos.UniverseKind.ONLY_COVARIANT;
-      case WITH_UNIVERSES -> ExpressionProtos.UniverseKind.WITH_UNIVERSES;
-    };
   }
 
   @Override

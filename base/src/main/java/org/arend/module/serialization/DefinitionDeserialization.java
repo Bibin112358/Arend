@@ -56,7 +56,6 @@ public class DefinitionDeserialization implements ArendDeserializer {
     }
 
     if (def instanceof TopLevelDefinition topDef) {
-      topDef.setUniverseKind(defDeserializer.readUniverseKind(defProto.getUniverseKind()));
       int pLevelsParent = defProto.getLevelsParent();
       if (pLevelsParent != 0) {
         topDef.setLevelsParent(myCallTargetProvider.getRef(pLevelsParent - 1));
@@ -102,8 +101,6 @@ public class DefinitionDeserialization implements ArendDeserializer {
   }
 
   private void fillInClassDefinition(ExpressionDeserialization defDeserializer, DefinitionProtos.Definition.ClassData classProto, ClassDefinition classDef) throws DeserializationException {
-    classDef.setBaseUniverseKind(defDeserializer.readUniverseKind(classProto.getBaseUniverseKind()));
-
     Map<Integer, LevelProtos.Levels> superLevelsProto = classProto.getSuperLevelsMap();
     if (!superLevelsProto.isEmpty()) {
       Map<ClassDefinition, Levels> superLevels = new HashMap<>();
@@ -128,7 +125,6 @@ public class DefinitionDeserialization implements ArendDeserializer {
       // setTypeClassReference(field.getReferable(), EmptyDependentLink.getInstance(), fieldType.getCodomain());
       field.setHideable(fieldProto.getIsHideable());
       field.setStatus(Definition.TypeCheckingStatus.NO_ERRORS);
-      field.setUniverseKind(defDeserializer.readUniverseKind(fieldProto.getUniverseKind()));
       loadKeys(fieldProto.getUserDataMap(), field);
     }
 
@@ -155,9 +151,6 @@ public class DefinitionDeserialization implements ArendDeserializer {
     }
     for (Integer fieldRef : classProto.getCovariantFieldList()) {
       classDef.addCovariantField(myCallTargetProvider.getCallTarget(fieldRef, ClassField.class));
-    }
-    for (Integer fieldRef : classProto.getOmegaFieldList()) {
-      classDef.addOmegaField(myCallTargetProvider.getCallTarget(fieldRef, ClassField.class));
     }
     // classDef.setSort(defDeserializer.readSort(classProto.getSort()));
 
@@ -255,7 +248,6 @@ public class DefinitionDeserialization implements ArendDeserializer {
   }
 
   private void fillInDataDefinition(ExpressionDeserialization defDeserializer, DefinitionProtos.Definition.DataData dataProto, DataDefinition dataDef) throws DeserializationException {
-    dataDef.setOmegaParameters(dataProto.getOmegaParameterList());
     if (dataProto.getHasEnclosingClass()) {
       dataDef.setHasEnclosingClass(true);
     }
@@ -393,7 +385,6 @@ public class DefinitionDeserialization implements ArendDeserializer {
   }
 
   private void fillInFunctionDefinition(ExpressionDeserialization defDeserializer, DefinitionProtos.Definition.FunctionData functionProto, FunctionDefinition functionDef) throws DeserializationException {
-    functionDef.setOmegaParameters(functionProto.getOmegaParameterList());
     if (functionProto.getHasEnclosingClass()) {
       functionDef.setHasEnclosingClass(true);
     }

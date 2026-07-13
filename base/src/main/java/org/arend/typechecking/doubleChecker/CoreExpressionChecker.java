@@ -193,7 +193,7 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
     }
 
     Expression actualType = null;
-    Levels levels = GetTypeVisitor.MIN_INSTANCE.minimizeLevels(argClassCall);
+    Levels levels = argClassCall.getLevels();
     PiExpression overriddenType = argClassCall.getDefinition().getOverriddenType(expr.getDefinition(), levels);
     if (overriddenType != null) {
       actualType = overriddenType.applyExpression(expr.getArgument());
@@ -233,14 +233,6 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
       }
     }
     if (myContext != null) myContext.remove(expr.getThisBinding());
-
-    if (expr.getUniverseKind().ordinal() < expr.getDefinition().getUniverseKind().ordinal()) {
-      for (ClassField field : expr.getDefinition().getNotImplementedFields()) {
-        if (expr.getUniverseKind().ordinal() < field.getUniverseKind().ordinal() && !expr.isImplementedHere(field)) {
-          throw new CoreException(CoreErrorWrapper.make(new TypecheckingError("Field '" + field.getName() + "' has universes, but the class call does not have them", mySourceNode), expr));
-        }
-      }
-    }
 
     return check(expectedType, GetTypeVisitor.INSTANCE.visitClassCall(expr, null), expr);
   }
@@ -907,7 +899,7 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
     }
     if (expr.getTail() != null) {
       TypedSingleDependentLink lamParam = new TypedSingleDependentLink(true, "j", DataCallExpression.make(Prelude.FIN, Levels.EMPTY, Collections.singletonList(tailLength)));
-      expr.getTail().accept(this, new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, new SingletonMap<>(Prelude.ARRAY_ELEMENTS_TYPE, new LamExpression(lamParam, AppExpression.make(expr.getElementsType(), Suc(new ReferenceExpression(lamParam)), true))), UniverseKind.NO_UNIVERSES));
+      expr.getTail().accept(this, new ClassCallExpression(Prelude.DEP_ARRAY, Levels.EMPTY, new SingletonMap<>(Prelude.ARRAY_ELEMENTS_TYPE, new LamExpression(lamParam, AppExpression.make(expr.getElementsType(), Suc(new ReferenceExpression(lamParam)), true)))));
     }
     return check(expectedType, expr.getType(), expr);
   }

@@ -66,7 +66,7 @@ public class TypecheckingOrderingListener extends BooleanComputationRunner imple
   private List<TCDefReferable> myCurrentDefinitions = new ArrayList<>();
   private boolean myHeadersAreOK = true;
 
-  private record Suspension(CheckTypeVisitor typechecker, UniverseKind universeKind) {}
+  private record Suspension(CheckTypeVisitor typechecker) {}
 
   public TypecheckingOrderingListener(ArendCheckerFactory factory, InstanceScopeProvider instanceScopeProvider, Map<TCDefReferable, List<TCDefReferable>> instanceDependencies, ConcreteProvider concreteProvider, ErrorReporter errorReporter, DependencyListener dependencyListener, PartialComparator<TCDefReferable> comparator, ArendExtensionProvider extensionProvider, ArendServerResolveListener resolveListener, boolean clearLemmas) {
     myCheckerFactory = factory;
@@ -459,12 +459,8 @@ public class TypecheckingOrderingListener extends BooleanComputationRunner imple
     Definition typechecked = typechecker.typecheckHeader(new GlobalInstancePool(getInstances(definition.getData()), visitor), definition);
     if (typechecked == null) return;
 
-    UniverseKind universeKind = typechecked.getUniverseKind();
-    if (typechecked instanceof TopLevelDefinition) {
-      ((TopLevelDefinition) typechecked).setUniverseKind(UniverseKind.WITH_UNIVERSES);
-    }
     if (typechecked.status() == Definition.TypeCheckingStatus.TYPE_CHECKING) {
-      mySuspensions.put(definition.getData(), new Suspension(visitor, universeKind));
+      mySuspensions.put(definition.getData(), new Suspension(visitor));
     }
 
     if (!typechecked.status().headerIsOK()) {
@@ -502,15 +498,6 @@ public class TypecheckingOrderingListener extends BooleanComputationRunner imple
 
     Set<Definition> newDefs = new HashSet<>();
     List<Pair<Definition, DefinitionListener>> listeners = new ArrayList<>();
-    for (Concrete.ResolvableDefinition definition : orderedDefinitions) {
-      Definition def = definition.getData().getTypechecked();
-      if (def instanceof TopLevelDefinition) {
-        Suspension suspension = mySuspensions.get(definition.getData());
-        if (suspension != null) {
-          ((TopLevelDefinition) def).setUniverseKind(suspension.universeKind);
-        }
-      }
-    }
 
     for (Concrete.ResolvableDefinition definition : orderedDefinitions) {
       Definition def = definition.getData().getTypechecked();

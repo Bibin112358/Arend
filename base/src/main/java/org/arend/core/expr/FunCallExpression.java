@@ -96,11 +96,6 @@ public class FunCallExpression extends LeveledDefCallExpression implements CoreF
   }
 
   @Override
-  public @NotNull Expression minimizeLevels() {
-    return new FunCallExpression(getDefinition(), getMinimizedLevels(), myArguments);
-  }
-
-  @Override
   public <P, R> R accept(ExpressionVisitor<? super P, ? extends R> visitor, P params) {
     return visitor.visitFunCall(this, params);
   }
