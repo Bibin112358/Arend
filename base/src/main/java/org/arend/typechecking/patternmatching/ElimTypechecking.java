@@ -920,7 +920,7 @@ public class ElimTypechecking {
             if (type instanceof UniverseExpression universe && universe.getSortExpression() instanceof SortExpression.Const(Sort typeSort)) {
               ok = typeSort.getHLevel().isLessOrEquals(dataSort.getHLevel());
             } else {
-              InferenceLevelVariable pl = new InferenceLevelVariable(false, getClause(conClause.index, someConPattern));
+              InferenceLevelVariable pl = new InferenceLevelVariable(getClause(conClause.index, someConPattern));
               myEquations.addVariable(pl);
               ok = type.isLessOrEquals(new UniverseExpression(new Sort(new Level(pl), dataSort.getHLevel())), myEquations, getClause(conClause.index, someConPattern));
             }

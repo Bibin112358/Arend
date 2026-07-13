@@ -217,7 +217,7 @@ public class TwoStageEquations implements Equations {
 
       // ?x <> Type
       if (cmp == CMP.LE && cType instanceof UniverseExpression universe && universe.getSortExpression() instanceof SortExpression.Const(Sort sort) && sort.getHLevel().isInfinity()) {
-        InferenceLevelVariable pl = new InferenceLevelVariable(false, sourceNode);
+        InferenceLevelVariable pl = new InferenceLevelVariable(sourceNode);
         addVariable(pl);
         Sort genSort = new Sort(new Level(pl), sort.getHLevel());
         solve(cInf, new UniverseExpression(genSort), false);

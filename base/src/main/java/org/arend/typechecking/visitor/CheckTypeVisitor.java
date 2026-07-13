@@ -1905,7 +1905,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
   }
 
-  private void generateLevel(LevelVariable param, LevelSubstitution defaultLevels, boolean isUniverseLike, Concrete.SourceNode sourceNode, List<Level> result) {
+  private void generateLevel(LevelVariable param, LevelSubstitution defaultLevels, Concrete.SourceNode sourceNode, List<Level> result) {
     if (defaultLevels != null) {
       Level level = (Level) defaultLevels.get(param);
       if (level != null) {
@@ -1914,15 +1914,15 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       }
     }
 
-    InferenceLevelVariable var = new InferenceLevelVariable(isUniverseLike, sourceNode);
+    InferenceLevelVariable var = new InferenceLevelVariable(sourceNode);
     myEquations.addVariable(var);
     result.add(new Level(var));
   }
 
-  private void typecheckLevels(List<Concrete.LevelExpression> levels, List<? extends LevelVariable> params, int additionalArgs, LevelSubstitution defaultLevels, boolean isUniverseLike, Concrete.SourceNode sourceNode, List<Level> result) {
+  private void typecheckLevels(List<Concrete.LevelExpression> levels, List<? extends LevelVariable> params, int additionalArgs, LevelSubstitution defaultLevels, Concrete.SourceNode sourceNode, List<Level> result) {
     if (levels == null) {
       for (LevelVariable param : params) {
-        generateLevel(param, defaultLevels, isUniverseLike, sourceNode, result);
+        generateLevel(param, defaultLevels, sourceNode, result);
       }
     } else {
       int s = params.size() + additionalArgs;
@@ -1933,7 +1933,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       for (int i = 0; i < params.size(); i++) {
         Concrete.LevelExpression level = i < levels.size() ? levels.get(i) : null;
         if (level == null) {
-          generateLevel(params.get(i), defaultLevels, isUniverseLike, sourceNode, result);
+          generateLevel(params.get(i), defaultLevels, sourceNode, result);
         } else {
           result.add(level.accept(this, null));
         }
@@ -1947,9 +1947,8 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
   public Levels typecheckLevels(Definition def, Concrete.ReferenceExpression expr, Levels defaultLevels, Set<ClassField> implementedFields) {
     List<Concrete.LevelExpression> pLevels = expr.getLevels();
-    boolean isUniverseLike = def == myDefinition;
     if (pLevels == null) {
-      return defaultLevels != null ? defaultLevels : def.generateInferVars(myEquations, isUniverseLike, expr);
+      return defaultLevels != null ? defaultLevels : def.generateInferVars(myEquations, expr);
     }
 
     List<? extends LevelVariable> params = def.getLevelParameters();
@@ -1962,7 +1961,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
     List<Level> result = new ArrayList<>();
     LevelSubstitution defaultSubst = defaultLevels == null ? null : defaultLevels.makeSubstitution(def);
-    typecheckLevels(pLevels, params, additionalArgs, defaultSubst, isUniverseLike, expr, result);
+    typecheckLevels(pLevels, params, additionalArgs, defaultSubst, expr, result);
 
     // The list is indexed by `overridableFields` (ignoring `implementedFields`), so implemented
     // fields get an (unused) placeholder to keep the remaining fields' positions aligned.
@@ -1995,7 +1994,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
         errorReporter.report(new TypecheckingError("Recursive call must have the same levels as the definition", expr));
       }
     } else if (expr.getLevels() == null) {
-      levels = definition.generateInferVars(myEquations, definition == myDefinition, expr);
+      levels = definition.generateInferVars(myEquations, expr);
     } else {
       levels = typecheckLevels(definition, expr, null, implementedFields);
     }
@@ -3403,7 +3402,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
 
     if (pLevel == null) {
-      InferenceLevelVariable pl = new InferenceLevelVariable(true, expr);
+      InferenceLevelVariable pl = new InferenceLevelVariable(expr);
       myEquations.addVariable(pl);
       pLevel = new Level(pl);
     }

@@ -235,12 +235,12 @@ public class LevelEquationsSolver {
 
     MapDFS<LevelVariable> dfs = new MapDFS<>(myUpperBounds);
     for (LevelVariable var : myUpperBounds.keySet()) {
-      if (!(var instanceof InferenceLevelVariable) || ((InferenceLevelVariable) var).isUniverseLike() && !unBasedSet.contains(var)) {
+      if (!(var instanceof InferenceLevelVariable)) {
         dfs.visit(var);
       }
     }
     for (InferenceLevelVariable variable : basedEquations.getVariables()) {
-      if (unBasedSet.contains(variable) || !variable.isUniverseLike() && !dfs.getVisited().contains(variable)) {
+      if (unBasedSet.contains(variable) || !dfs.getVisited().contains(variable)) {
         unBased.add(variable);
       }
     }

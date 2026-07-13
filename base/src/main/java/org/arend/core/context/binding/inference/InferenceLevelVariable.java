@@ -5,11 +5,9 @@ import org.arend.ext.core.ops.CMP;
 import org.arend.term.concrete.Concrete;
 
 public class InferenceLevelVariable implements LevelVariable {
-  private final boolean myUniverseLike; // TODO[sorts]: Delete this?
   private final Concrete.SourceNode mySourceNode;
 
-  public InferenceLevelVariable(boolean isUniverseLike, Concrete.SourceNode sourceNode) {
-    myUniverseLike = isUniverseLike;
+  public InferenceLevelVariable(Concrete.SourceNode sourceNode) {
     mySourceNode = sourceNode;
   }
 
@@ -21,10 +19,6 @@ public class InferenceLevelVariable implements LevelVariable {
   @Override
   public boolean compare(LevelVariable other, CMP cmp) {
     return this == other;
-  }
-
-  public boolean isUniverseLike() {
-    return myUniverseLike;
   }
 
   public Concrete.SourceNode getSourceNode() {
