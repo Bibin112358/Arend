@@ -395,7 +395,7 @@ public class CoreExpressionChecker implements ExpressionVisitor<Expression, Expr
 
   private Expression checkPi(PiExpression expr, Expression expectedType, boolean allowInf) {
     List<SortExpression> sort1 = checkDependentLinkWithResult(expr.getParameters(), null, expr);
-    SortExpression sort2 = toSort(checkInf(expr.getCodomain(), null, allowInf));
+    SortExpression sort2 = toSort(checkInf(expr.getCodomain(), expectedType == UniverseExpression.INF_OMEGA ? expectedType : null, allowInf));
     freeDependentLink(expr.getParameters());
     return check(expectedType, new UniverseExpression(SortExpression.makePi(SortExpression.makeMax(sort1), sort2)), expr);
   }

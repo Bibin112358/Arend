@@ -20,7 +20,7 @@
 \class WeaklyNoetherianCRing \extends CRing
   | isWeaklyNoetherian (I : Nat -> Ideal \this) : (\Pi (n : Nat) -> (I n).IsFinitelyGenerated) -> Ideal.ChainCondition I
 
-\truncated \data Pauses {A : \Sort} (R : A -> Array A -> \Sort) (l : Array A) : \Prop \elim l
+\truncated \data Pauses {A : \Type} (R : A -> Array A -> \Type) (l : Array A) : \Prop \elim l
   | a :: l => {
     | pauses-here (R a l)
     | pauses-there (Pauses R l)

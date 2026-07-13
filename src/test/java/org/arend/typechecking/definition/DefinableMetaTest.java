@@ -141,14 +141,14 @@ public class DefinableMetaTest extends TypeCheckingTestCase {
   @Test
   public void levelsTest4() {
     typeCheckModule(
-      "\\meta f (A : \\Type) => A\n" +
-      "\\func test => f.{3} \\Type2");
+      "\\meta f A => A\n" +
+      "\\func test => f.{3} \\Type2", 1);
   }
 
   @Test
   public void levelsTest5() {
     typeCheckModule(
-      "\\meta f => \\Type\n" +
+      "\\meta f.{u} => \\Type u\n" +
       "\\func test : f.{3} = \\Type3 => idp");
   }
 
@@ -170,7 +170,7 @@ public class DefinableMetaTest extends TypeCheckingTestCase {
   @Test
   public void levelsError3() {
     typeCheckModule(
-      "\\meta f (A : \\Type) => A\n" +
+      "\\meta f.{u} (A : \\Type u) => A\n" +
       "\\func test => f.{3} \\Type3", 1);
     assertThatErrorsAre(Matchers.typeMismatchError());
   }

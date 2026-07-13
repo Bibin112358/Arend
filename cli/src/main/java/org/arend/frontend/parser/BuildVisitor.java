@@ -1400,12 +1400,6 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
     return new Concrete.UniverseExpression(pos, new Concrete.NumberLevelExpression(pos, BigInteger.ZERO), BigInteger.valueOf(-1), ConcreteUniverseExpression.Kind.TYPE);
   }
 
-  @Override
-  public Concrete.UniverseExpression visitSort(SortContext ctx) {
-    Position pos = tokenPosition(ctx.start);
-    return new Concrete.UniverseExpression(pos, null, null, ConcreteUniverseExpression.Kind.SORT);
-  }
-
   private Concrete.LevelExpression visitLevel(LevelAtomContext ctx) {
     return (Concrete.LevelExpression) visit(ctx);
   }

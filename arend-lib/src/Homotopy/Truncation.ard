@@ -38,7 +38,7 @@
 \instance truncatedTypesLevel.{u} (n : Nat) : Truncated_-1+ (suc n) (Truncated_-1+.{u} n)
   | isTruncated t t' => rewrite (QEquiv_= (Truncated_-1+.equiv t t') *> QEquiv_= typeUnivalence) (truncatedEquiv t t').isTruncated
 
-\data Trunc_-1+ (n : Nat) (A : \Sort)
+\data Trunc_-1+ (n : Nat) (A : \Type)
   | inT A
   | hubT (Sphere n -> Trunc_-1+ n A)
   | spokeT (r : Sphere n -> Trunc_-1+ n A) (x : Sphere n) : r x = hubT r
@@ -53,7 +53,7 @@
                                                  (\lam s => inv p.2 *> path (spokeT p.1 north) *> inv (path (spokeT p.1 s)))
                                                  (pmap ((inv p.2 *> __) *> p.2) (*>_inv (path (spokeT p.1 north))) *> inv_*> p.2))
 
-    \func elim.{u} {n : Nat} {A : \Sort}
+    \func elim.{u} {n : Nat} {A : \Type}
                    (P : Trunc_-1+ n A -> Truncated_-1+.{u} n)
                    (g : \Pi (a : A) -> P (inT a))
                    (x : Trunc_-1+ n A) : P x \elim x
@@ -68,7 +68,7 @@
              | p : f x = p0 => path (\lam j => (isContr=>isProp c (f,idp) (\lam _ => p0, idp) @ j).1 x)
         \in pathOver p
 
-    \func elim2.{u} {n : Nat} {A : \Sort}
+    \func elim2.{u} {n : Nat} {A : \Type}
                     (P : Trunc_-1+ n A -> Trunc_-1+ n A -> Truncated_-1+.{u} n)
                     (g : \Pi (a a' : A) -> P (inT a) (inT a'))
                     (x y : Trunc_-1+ n A) : P x y

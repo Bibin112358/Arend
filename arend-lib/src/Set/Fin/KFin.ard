@@ -29,7 +29,7 @@
       }
     }
 
-  \lemma ||-search {A : \Sort} {B : E -> \Prop} (f : \Pi (x : E) -> A || B x) : A || (\Pi (x : E) -> B x)
+  \lemma ||-search {A : \Type} {B : E -> \Prop} (f : \Pi (x : E) -> A || B x) : A || (\Pi (x : E) -> B x)
     => \case finSurj \with {
       | inP (g,gs) => \case FinSet.||-finiteAC (\lam i => f (g i)) \with {
         | byLeft a => byLeft a

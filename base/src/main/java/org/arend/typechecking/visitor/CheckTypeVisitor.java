@@ -3464,15 +3464,15 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
   @Override
   public TypecheckingResult visitUniverse(Concrete.UniverseExpression expr, Expression expectedType) {
-    if ((expr.isInfSort() || expr.getPLevel() == null && expr.getHLevel() != null) && expectedType == UniverseExpression.INF_OMEGA) {
+    if (expr.isInfSort()) {
+      if (expectedType != UniverseExpression.INF_OMEGA) {
+        errorReporter.report(new TypecheckingError("Infinite level is not allowed here", expr));
+        return null;
+      }
+
       return checkResult(expectedType, expr.getHLevel() == null
           ? new TypecheckingResult(UniverseExpression.OMEGA, UniverseExpression.OMEGA)
           : new TypecheckingResult(new UniverseExpression(new Sort(Level.INFINITY, new ConstLevel(expr.getHLevel()))), new UniverseExpression(new Sort(Level.INFINITY, new ConstLevel(expr.getHLevel().add(BigInteger.ONE))))), expr);
-    }
-
-    if (expr.isInfSort()) {
-      errorReporter.report(new TypecheckingError("Infinite level is not allowed here", expr));
-      return null;
     }
 
     Level pLevel = expr.getPLevel() != null ? expr.getPLevel().accept(this, null) : null;

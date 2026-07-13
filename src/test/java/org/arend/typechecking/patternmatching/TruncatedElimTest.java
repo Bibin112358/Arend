@@ -96,7 +96,7 @@ public class TruncatedElimTest extends TypeCheckingTestCase {
         | con1
         | con2 I { | left => con1 | right => con1 }
         | con3 I I { | left, _ => con1 | right, _ => con1 | _, left => con1 | _, right => con1 }
-      \\func f (x y : D) : \\Set
+      \\func f (x y : D) : \\Set0
         | con1, con1 => Nat
         | con2 _, con1 => Nat
         | con1, con2 _ => Nat
@@ -113,7 +113,7 @@ public class TruncatedElimTest extends TypeCheckingTestCase {
         | con1
         | con2 I { | left => con1 | right => con1 }
         | con3 I I { | left, _ => con1 | right, _ => con1 | _, left => con1 | _, right => con1 }
-      \\func f (x y : D) : \\Set
+      \\func f (x y : D) : \\Set0
         | con1, con1 => Nat
         | con2 _, con1 => Nat
         | con1, con2 _ => Nat
@@ -137,7 +137,7 @@ public class TruncatedElimTest extends TypeCheckingTestCase {
   public void caseTest2() {
     typeCheckModule("""
       \\data D | con1 | con2 I { | left => con1 | right => con1 }
-      \\data Maybe (A : \\Sort) | just A | nothing
+      \\data Maybe (A : \\Type) | just A | nothing
       \\func f (x : D) => \\case x \\return just 0 = just 0 \\with {
         | con1 => idp
       }

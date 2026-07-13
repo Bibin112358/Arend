@@ -398,8 +398,8 @@ public class ImplicitArgumentsTest extends TypeCheckingTestCase {
   @Test
   public void differentLevels() {
     typeCheckModule(
-        "\\func F (X : \\Type \\lp) (B : X -> \\Type \\lp) => zero\n" +
-        "\\func g (X : \\Type \\lp) => F X (\\lam _ => X = X)");
+        "\\func F.{u} (X : \\Type u) (B : X -> \\Type u) => zero\n" +
+        "\\func g.{u} (X : \\Type u) => F X (\\lam _ => X = X)");
   }
 
   @Test

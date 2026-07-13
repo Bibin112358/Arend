@@ -412,7 +412,7 @@ public class ElimTest extends TypeCheckingTestCase {
   public void dependentElim() {
     typeCheckModule("""
       \\data Bool | true | false
-      \\func if (b : Bool) : \\Set | true => Nat | false => Nat -> Nat
+      \\func if (b : Bool) : \\Set0 | true => Nat | false => Nat -> Nat
       \\func test (b : Bool) (x : if b) : Nat | true, zero => 0 | true, suc n => n | false, _ => 0
       """);
   }

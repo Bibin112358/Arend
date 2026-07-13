@@ -113,7 +113,7 @@ public class HITsTest extends TypeCheckingTestCase {
   @Test
   public void s2Test() {
     typeCheckModule("""
-      \\func idpe {A : \\Sort} (a : A) : a = a => idp
+      \\func idpe {A : \\Type} (a : A) : a = a => idp
       \\data S2 | base | loop : idpe base = idpe base
       \\func f : idpe base = idpe base => loop
       \\func fLeft : loop @ left = idpe base => idp

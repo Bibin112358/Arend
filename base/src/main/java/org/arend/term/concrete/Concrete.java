@@ -314,11 +314,6 @@ public final class Concrete {
       return accept(new SubstConcreteVisitor(map, null), null);
     }
 
-    public boolean isInfSort() {
-      return false;
-    }
-
-
     @Override
     public String toString() {
       StringBuilder builder = new StringBuilder();
@@ -1194,11 +1189,6 @@ public final class Concrete {
     }
 
     @Override
-    public boolean isInfSort() {
-      return codomain.isInfSort();
-    }
-
-    @Override
     public <P, R> R accept(ConcreteExpressionVisitor<? super P, ? extends R> visitor, P params) {
       return visitor.visitPi(this, params);
     }
@@ -1277,9 +1267,8 @@ public final class Concrete {
       return myKind;
     }
 
-    @Override
     public boolean isInfSort() {
-      return myKind == Kind.SORT;
+      return myPLevel == null;
     }
 
     @Override
@@ -2523,7 +2512,7 @@ public final class Concrete {
     private final List<ReferenceExpression> myEliminatedReferences;
     private final List<ConstructorClause> myConstructorClauses;
     private final boolean myIsTruncated;
-    private final UniverseExpression myUniverse;
+    private UniverseExpression myUniverse;
 
     public DataDefinition(TCDefReferable referable, LevelParameters pParams, List<TypeParameter> parameters, List<ReferenceExpression> eliminatedReferences, boolean isTruncated, UniverseExpression universe, List<ConstructorClause> constructorClauses) {
       super(referable, pParams);
@@ -2564,6 +2553,10 @@ public final class Concrete {
     @Nullable
     public UniverseExpression getUniverse() {
       return myUniverse;
+    }
+
+    public void setUniverse(UniverseExpression universe) {
+      myUniverse = universe;
     }
 
     @Override

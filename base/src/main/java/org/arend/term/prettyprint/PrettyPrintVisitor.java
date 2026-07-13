@@ -666,9 +666,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
     boolean parens = prec.priority > Concrete.AppExpression.PREC && !(expr.getPLevel() instanceof Concrete.NumberLevelExpression) && expr.getPLevel() != null;
     if (parens) myBuilder.append('(');
 
-    if (expr.getKind() == ConcreteUniverseExpression.Kind.SORT) {
-      myBuilder.append("\\Sort");
-    } else if (expr.getKind() == ConcreteUniverseExpression.Kind.CAT) {
+    if (expr.getKind() == ConcreteUniverseExpression.Kind.CAT) {
       myBuilder.append("\\Cat");
     } else if (hLevel != null) {
       if (hLevel.equals(BigInteger.ZERO)) {

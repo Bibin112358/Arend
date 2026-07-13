@@ -31,7 +31,7 @@
   | o-assoc => idp
   | univalence => {?} -- TODO[sorts]: sip \lam f _ => exts (f.func-ide, \lam _ _ => f.func-*, \lam _ => f.func-inverse)
   \where {
-    \func ForgetSet : FaithfulFunctor GroupCat SetCat \cowith
+    \func ForgetSet.{u} : FaithfulFunctor GroupCat.{u} SetCat.{u} \cowith
       | F G => G
       | Func f => f
       | Func-id => idp

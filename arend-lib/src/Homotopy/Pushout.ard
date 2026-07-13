@@ -29,25 +29,25 @@
       => IsEquiv.ret_f p.pushout-univ
   }
 
-\data PushoutData {A B C : \Sort} (f : A -> B) (g : A -> C)
+\data PushoutData {A B C : \Type} (f : A -> B) (g : A -> C)
   | pinl B
   | pinr C
   | pglue (a : A) : pinl (f a) = pinr (g a)
   \where {
-    \func ppglue {A B C : \Sort} {f : A -> B} {g : A -> C} (a : A) : pinl (f a) = {PushoutData f g} pinr (g a) => path (pglue a)
+    \func ppglue {A B C : \Type} {f : A -> B} {g : A -> C} (a : A) : pinl (f a) = {PushoutData f g} pinr (g a) => path (pglue a)
 
-    \func rec {A B C : \Sort} {f : A -> B} {g : A -> C} {Z : \Sort} (lm : B -> Z) (rm : C -> Z) (gm : \Pi (a : A) -> lm (f a) = rm (g a)) (x : PushoutData f g) : Z \elim x
+    \func rec {A B C : \Type} {f : A -> B} {g : A -> C} {Z : \Type} (lm : B -> Z) (rm : C -> Z) (gm : \Pi (a : A) -> lm (f a) = rm (g a)) (x : PushoutData f g) : Z \elim x
       | pinl b => lm b
       | pinr c => rm c
       | pglue a => gm a
       \where {
-        \func map {A B C : \Sort} {f : A -> B} {g : A -> C} {Y Z : \Sort} (h : Y -> Z) (lm : B -> Y) (rm : C -> Y) (gm : \Pi (a : A) -> lm (f a) = rm (g a)) (x : PushoutData f g)
+        \func map {A B C : \Type} {f : A -> B} {g : A -> C} {Y Z : \Type} (h : Y -> Z) (lm : B -> Y) (rm : C -> Y) (gm : \Pi (a : A) -> lm (f a) = rm (g a)) (x : PushoutData f g)
           : h (rec lm rm gm x) = rec (h `o` lm) (h `o` rm) (\lam a => pmap h (gm a)) x \elim x
           | pinl b => idp
           | pinr c => idp
           | pglue a i => idp
 
-        \func equiv {A B C : \Sort} {f : A -> B} {g : A -> C} (Z : \Sort)
+        \func equiv {A B C : \Type} {f : A -> B} {g : A -> C} (Z : \Type)
           : QEquiv {PushoutData f g -> Z} {\Sigma (lm : B -> Z) (rm : C -> Z) (gm : \Pi (a : A) -> lm (f a) = rm (g a))} \cowith
             | f h => (\lam b => h (pinl b), \lam c => h (pinr c), \lam a => path (\lam i => h (pglue a i)))
             | ret p => rec p.1 p.2 p.3

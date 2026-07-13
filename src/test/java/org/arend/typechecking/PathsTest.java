@@ -62,7 +62,7 @@ public class PathsTest extends TypeCheckingTestCase {
       \\func Jl {A : \\Type} {a : A} (B : \\Pi (a' : A) -> a = a' -> \\Type) (b : B a idp) {a' : A} (p : a = a') : B a' p
         => coe (\\lam i => B (p @ i) (psqueeze p i)) b right
       \\func inv-inv {A : \\Type} {a a' : A} (p : a = a') : inv (inv p) = p => Jl (\\lam _ p => inv (inv p) = p) idp p
-      \\func path-sym {A : \\Type} (a a' : A) : (a = a') = (a' = a) => path (iso inv inv inv-inv inv-inv)
+      \\func path-sym {A : \\Type0} (a a' : A) : (a = a') = (a' = a) => path (iso inv inv inv-inv inv-inv)
       """);
   }
 
@@ -77,7 +77,7 @@ public class PathsTest extends TypeCheckingTestCase {
       \\func Jl {A : \\Type} {a : A} (B : \\Pi (a' : A) -> a = a' -> \\Type) (b : B a idp) {a' : A} (p : a = a') : B a' p
         => coe (\\lam i => B (p @ i) (psqueeze p i)) b right
       \\func inv-inv {A : \\Type} {a a' : A} (p : a = a') : inv (inv p) = p => Jl (\\lam _ p => inv (inv p) = p) idp p
-      \\func path-sym {A : \\Type} (a a' : A) : (a = a') = (a' = a) => path (iso inv inv inv-inv inv-inv)
+      \\func path-sym {A : \\Type0} (a a' : A) : (a = a') = (a' = a) => path (iso inv inv inv-inv inv-inv)
       """);
   }
 

@@ -171,15 +171,15 @@ public class TypeCheckingTest extends TypeCheckingTestCase {
   @Test
   public void functionImplicitPi() {
     typeCheckModule(
-      "\\func ff {A : \\Type} : \\Pi {B : \\Type} -> A -> B -> A => \\lam a _ => a\n" +
-      "\\func g {A : \\Type} (a : A) => ff a a");
+      "\\func ff {A : \\Type0} : \\Pi {B : \\Type0} -> A -> B -> A => \\lam a _ => a\n" +
+      "\\func g {A : \\Type0} (a : A) => ff a a");
   }
 
   @Test
   public void fieldImplicitPi() {
     typeCheckModule(
-      "\\class C | ff : \\Pi {A : \\Type} -> A -> A\n" +
-      "\\func g {c : C} {A : \\Type} (a : A) => ff a");
+      "\\class C | ff : \\Pi {A : \\Type0} -> A -> A\n" +
+      "\\func g {c : C} {A : \\Type0} (a : A) => ff a");
   }
 
   @Test

@@ -15,9 +15,9 @@
 
 \module Extension \where {
   -- | The type of extensions of {g} along {f}
-  \func ext {A B C : \Sort} (f : A -> B) (g : A -> C) => Fib (-o f) g
+  \func ext {A B C : \Type} (f : A -> B) (g : A -> C) => Fib (-o f) g
 
-  \func ext-equiv {A B C : \Sort} (f : A -> B) (g : A -> C) : QEquiv {ext f g} {\Pi (b : B) -> \Sigma (c : C) (\Pi (a : A) -> f a = b -> g a = c)} \cowith
+  \func ext-equiv {A B C : \Type} (f : A -> B) (g : A -> C) : QEquiv {ext f g} {\Pi (b : B) -> \Sigma (c : C) (\Pi (a : A) -> f a = b -> g a = c)} \cowith
     | f p b => (p.1 b, \lam a fa=b => inv (path ((p.2 @ __) a)) *> pmap p.1 fa=b)
     | ret K => ((K __).1, path (\lam i a => inv ((K (f a)).2 a idp) @ i))
     | ret_f b => path (\lam j => (b.1, path (\lam i a => inv_inv (path ((b.2 @ __) a)) @ j @ i)))

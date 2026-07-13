@@ -13,7 +13,7 @@
 \import Paths
 \import Paths.Meta
 
-\func MJoin {A B : \Sort} (R : A -> B -> \Sort) => PushoutData {\Sigma (x : A) (y : B) (R x y)} __.1 __.2
+\func MJoin {A B : \Type} (R : A -> B -> \Type) => PushoutData {\Sigma (x : A) (y : B) (R x y)} __.1 __.2
   \where
     \class MData.{u} \noclassifying {A : \Type u} {B : \Type (\suc u)} (f : A -> B) (R : B -> B -> \Type u) (ret : \Pi (b b' : B) -> R b b' -> b = b') {
       \func MImageAppr (n : Nat) : \Sigma (X : \Type u) (X -> B) \elim n
@@ -72,7 +72,7 @@
     \lemma dom-map-surj : IsSurj dom-map
       => MData.dom-map-surj \lam {F} b => mkEquiv (inP idEquiv)
 
-    \func cod-map (y : YImage S) (b : B) : \Type
+    \func cod-map (y : YImage S) (b : B)
       => MData.cod-map y b
 
     \lemma cod-map-emb : Embedding cod-map

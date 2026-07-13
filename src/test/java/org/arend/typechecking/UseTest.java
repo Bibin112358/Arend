@@ -1,13 +1,10 @@
 package org.arend.typechecking;
 
 import org.arend.Matchers;
-import org.arend.core.context.binding.LevelVariable;
 import org.arend.core.definition.ClassDefinition;
 import org.arend.core.definition.DataDefinition;
 import org.arend.core.definition.FunctionDefinition;
-import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
-import org.arend.ext.core.level.ConstLevel;
 import org.junit.Test;
 
 import java.math.BigInteger;
@@ -41,8 +38,8 @@ public class UseTest extends TypeCheckingTestCase {
   public void testDataNotExact() {
     typeCheckModule("""
       \\data Empty
-      \\func absurd {A : \\Sort} (e : Empty) : A
-      \\data Dec (A : \\Sort) (p : \\Pi (a a' : A) -> a = a') | yes A | no (A -> Empty)
+      \\func absurd {A : \\Type} (e : Empty) : A
+      \\data Dec (A : \\Type) (p : \\Pi (a a' : A) -> a = a') | yes A | no (A -> Empty)
         \\where
           \\use \\level isProp {A : \\Set} (p : \\Pi (a a' : A) -> a = a') (d1 d2 : Dec A p) : d1 = d2 \\elim d1, d2
             | yes a1, yes a2 => path (\\lam i => yes (p a1 a2 @ i))
@@ -78,7 +75,7 @@ public class UseTest extends TypeCheckingTestCase {
   public void testClass() {
     typeCheckModule("""
       \\data Empty
-      \\func absurd {A : \\Sort} (e : Empty) : A
+      \\func absurd {A : \\Type} (e : Empty) : A
       \\class C (d : Empty -> Nat)
         \\where
           \\use \\level isProp (c1 c2 : C) : c1 = c2 => path \\lam i => \\new C \\lam e => (absurd {c1.d e = c2.d e} e) i
@@ -100,14 +97,14 @@ public class UseTest extends TypeCheckingTestCase {
         \\where
           \\use \\level isProp {A : \\Type} (d1 : Trunc A) : \\Pi (d2 : Trunc A) (p : d1 = d2) -> \\Pi (q : d1 = d2) -> p = q => \\lam d2 p q => path (\\lam i => path (trunc d1 d2 p q i))
       """);
-    assertEquals(Sort.SetOfLevel(new Level(LevelVariable.PVAR)), ((DataDefinition) getDefinition("Trunc")).getSort());
+    assertEquals(BigInteger.ZERO, ((DataDefinition) getDefinition("Trunc")).getSortExpression().getSortHLevel());
   }
 
   @Test
   public void testClassFields() {
     typeCheckModule("""
       \\data Empty
-      \\func absurd {A : \\Sort} (e : Empty) : A
+      \\func absurd {A : \\Type} (e : Empty) : A
       \\class C (x : Nat) (d : Empty -> Nat)
         \\where
           \\use \\level isProp (x : Nat) (c1 c2 : C x) : c1 = c2 => path \\lam i => \\new C x \\lam e => (absurd {c1.d e = c2.d e} e) i
@@ -126,7 +123,7 @@ public class UseTest extends TypeCheckingTestCase {
           \\use \\level isProp {A B : \\Type} (f : A -> B) (c1 c2 : C f) : c1 = c2 => absurd c1.d
       \\func f : \\Prop => C (\\lam (x : Nat) => x)
       """);
-    assertEquals(new Sort(new Level(LevelVariable.PVAR, 1), ConstLevel.INFINITY), ((ClassDefinition) getDefinition("C")).getSort());
+    assertNull(((ClassDefinition) getDefinition("C")).getSortExpression().getSortHLevel());
   }
 
   @Test
@@ -204,7 +201,7 @@ public class UseTest extends TypeCheckingTestCase {
       \\record A
       \\record B \\extends A
       \\data Empty
-      \\func absurd {A : \\Sort} (e : Empty) : A
+      \\func absurd {A : \\Type} (e : Empty) : A
       \\data D (a : A) : \\Set | ddd (Empty -> Nat)
         \\where \\use \\level isProp {b : B} (x y : D b) : x = y \\elim x, y
           | ddd x, ddd y => path \\lam i => ddd \\lam e => (absurd {x e = y e} e) i
@@ -219,7 +216,7 @@ public class UseTest extends TypeCheckingTestCase {
       \\record A
       \\record B \\extends A
       \\data Empty
-      \\func absurd {A : \\Sort} (e : Empty) : A
+      \\func absurd {A : \\Type} (e : Empty) : A
       \\data D (a : A) : \\Set | ddd (Empty -> Nat)
         \\where \\use \\level isProp {b : B} (x y : D b) : x = y \\elim x, y
           | ddd x, ddd y => path \\lam i => ddd \\lam e => (absurd {x e = y e} e) i
@@ -234,7 +231,7 @@ public class UseTest extends TypeCheckingTestCase {
       \\record A (x : Nat)
       \\record B \\extends A
       \\data Empty
-      \\func absurd {A : \\Sort} (e : Empty) : A
+      \\func absurd {A : \\Type} (e : Empty) : A
       \\record C (a : A) (d : Empty -> Nat)
         \\where \\use \\level isProp {b : B} (x y : C b) : x = y => path \\lam i => \\new C b \\lam e => (absurd {x.d e = y.d e} e) i
       \\data TrP (A : \\Type) | inP A | truncP (x y : TrP A) (i : I) \\elim i { | left => x | right => y }
@@ -248,7 +245,7 @@ public class UseTest extends TypeCheckingTestCase {
       \\record A (x : Nat)
       \\record B \\extends A
       \\data Empty
-      \\func absurd {A : \\Sort} (e : Empty) : A
+      \\func absurd {A : \\Type} (e : Empty) : A
       \\record C (a : A) (d : Empty -> Nat)
         \\where \\use \\level isProp {b : B} (x y : C b) : x = y => path \\lam i => \\new C b \\lam e => (absurd {x.d e = y.d e} e) i
       \\data TrP (A : \\Type) | inP A | truncP (x y : TrP A) (i : I) \\elim i { | left => x | right => y }
@@ -262,7 +259,7 @@ public class UseTest extends TypeCheckingTestCase {
       \\record A
       \\record B \\extends A
       \\data Empty
-      \\func absurd {A : \\Sort} (e : Empty) : A
+      \\func absurd {A : \\Type} (e : Empty) : A
       \\data D (a : A) | ddd (Empty -> Nat)
         \\where \\use \\level isProp {b : B} (x y : D b) : x = y
           | ddd x, ddd y => path \\lam i => ddd \\lam e => (absurd {x e = y e} e) i
@@ -276,7 +273,7 @@ public class UseTest extends TypeCheckingTestCase {
       \\record A
       \\record B \\extends A
       \\data Empty
-      \\func absurd {A : \\Sort} (e : Empty) : A
+      \\func absurd {A : \\Type} (e : Empty) : A
       \\data D (a : A) | ddd (Empty -> Nat)
         \\where \\use \\level isProp {b : B} (x y : D b) : x = y
           | ddd x, ddd y => path \\lam i => ddd \\lam e => (absurd {x e = y e} e) i
@@ -290,7 +287,7 @@ public class UseTest extends TypeCheckingTestCase {
       \\record A (x : Nat)
       \\record B \\extends A
       \\data Empty
-      \\func absurd {A : \\Sort} (e : Empty) : A
+      \\func absurd {A : \\Type} (e : Empty) : A
       \\record C (a : A) (d : Empty -> Nat)
         \\where \\use \\level isProp {b : B} (x y : C b) : x = y => path \\lam i => \\new C b \\lam e => (absurd {x.d e = y.d e} e) i
       \\lemma f : C (\\new B 0) => \\new C { | d => absurd }
@@ -304,7 +301,7 @@ public class UseTest extends TypeCheckingTestCase {
       \\record B \\extends A
       \\data D : \\Set
       \\data Empty
-      \\func absurd {A : \\Sort} (e : Empty) : A
+      \\func absurd {A : \\Type} (e : Empty) : A
       \\record C (a : A) (d : Empty -> Nat)
         \\where \\use \\level isProp {b : B} (x y : C b) : x = y => path \\lam i => \\new C b \\lam e => (absurd {x.d e = y.d e} e) i
       \\lemma f : C (\\new A 0) => \\new C { | d => absurd }
@@ -317,7 +314,7 @@ public class UseTest extends TypeCheckingTestCase {
       \\record A
       \\record B \\extends A
       \\data Empty
-      \\func absurd {A : \\Sort} (e : Empty) : A
+      \\func absurd {A : \\Type} (e : Empty) : A
       \\data D (a : A) | ddd (Empty -> Nat)
         \\where \\use \\level isProp {b : B} (x y : D b) : x = y
           | ddd x, ddd y => path \\lam i => ddd \\lam e => (absurd {x e = y e} e) i
@@ -332,7 +329,7 @@ public class UseTest extends TypeCheckingTestCase {
       \\record A
       \\record B \\extends A
       \\data Empty
-      \\func absurd {A : \\Sort} (e : Empty) : A
+      \\func absurd {A : \\Type} (e : Empty) : A
       \\data D (a : A) : \\Set | ddd (Empty -> Nat)
         \\where \\use \\level isProp {b : B} (x y : D b) : x = y
           | ddd x, ddd y => path \\lam i => ddd \\lam e => (absurd {x e = y e} e) i
@@ -346,7 +343,7 @@ public class UseTest extends TypeCheckingTestCase {
       \\record A (X : Nat)
       \\record B \\extends A
       \\data Empty
-      \\func absurd {A : \\Sort} (e : Empty) : A
+      \\func absurd {A : \\Type} (e : Empty) : A
       \\record C (a : A) (d : Empty -> Nat)
         \\where \\use \\level isProp {b : B} (x y : C b) : x = y => path \\lam i => \\new C b \\lam e => (absurd {x.d e = y.d e} e) i
       \\record R { \\property prop : C (\\new B 0) }
@@ -359,7 +356,7 @@ public class UseTest extends TypeCheckingTestCase {
       \\record A (x : Nat)
       \\record B \\extends A
       \\data Empty
-      \\func absurd {A : \\Sort} (e : Empty) : A
+      \\func absurd {A : \\Type} (e : Empty) : A
       \\record C (a : A) (d : Empty -> Nat)
         \\where \\use \\level isProp {b : B} (x y : C b) : x = y => path \\lam i => \\new C b \\lam e => (absurd {x.d e = y.d e} e) i
       \\record R { \\property prop : C (\\new A 0) }
@@ -384,7 +381,7 @@ public class UseTest extends TypeCheckingTestCase {
   @Test
   public void severalUseLevelsTest1() {
     typeCheckModule("""
-      \\data D : \\Type
+      \\data D
       \\func f => D
         \\where {
           \\use \\level levelProp (x y : f) : x = y
@@ -477,7 +474,7 @@ public class UseTest extends TypeCheckingTestCase {
         \\where \\use \\level levelProp (A : \\Prop) (p : \\Pi (a a' : A) -> a = a') (r1 r2 : R A p) : r1 = r2
           => path (\\lam i => \\new R A p { | a => p r1.a r2.a @ i })
       """);
-    assertEquals(new Sort(new Level(LevelVariable.PVAR), ConstLevel.INFINITY).succ(), ((ClassDefinition) getDefinition("R")).getSort());
+    assertNull(((ClassDefinition) getDefinition("R")).getSortExpression().getSortHLevel());
   }
 
   @Test
@@ -498,7 +495,7 @@ public class UseTest extends TypeCheckingTestCase {
   public void useFunctionTest() {
     typeCheckModule("""
       \\data Empty
-      \\func empty (e : Empty) : \\Set
+      \\func empty (e : Empty) : \\Set0
         \\where \\use \\level isProp (e : Empty) (x y : empty e) : x = y
       \\lemma lem (e : Empty) : empty e
       """);
@@ -509,7 +506,7 @@ public class UseTest extends TypeCheckingTestCase {
   public void useFunctionDefTest() {
     typeCheckModule("""
       \\data Empty
-      \\func empty (e : Empty) : \\Set
+      \\func empty (e : Empty) : \\Set0
         \\where \\use \\level isProp (e : Empty) (x y : empty e) : x = y
       \\func empty2 (e : Empty) => empty e
       \\lemma lem (e : Empty) : empty2 e

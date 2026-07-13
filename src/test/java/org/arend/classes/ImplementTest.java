@@ -1,15 +1,12 @@
 package org.arend.classes;
 
 import org.arend.Matchers;
-import org.arend.core.context.binding.LevelVariable;
 import org.arend.core.context.param.DependentLink;
 import org.arend.core.definition.ClassDefinition;
 import org.arend.core.definition.FunctionDefinition;
 import org.arend.core.expr.Expression;
-import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.subst.SingleLevel;
-import org.arend.ext.core.level.ConstLevel;
 import org.arend.typechecking.TypeCheckingTestCase;
 import org.arend.typechecking.error.local.IncorrectImplementationError;
 import org.junit.Ignore;
@@ -229,7 +226,7 @@ public class ImplementTest extends TypeCheckingTestCase {
       }
       \\func f => C { | A => Nat }
       """);
-    assertEquals(new Sort(new Level(LevelVariable.PVAR, 1), ConstLevel.INFINITY), ((ClassDefinition) getDefinition("C")).getSort());
+    assertEquals(Sort.INFINITY, ((ClassDefinition) getDefinition("C")).getSort());
     assertEquals(new Sort(0, 0), ((FunctionDefinition) getDefinition("f")).getResultType().toSort());
   }
 

@@ -57,7 +57,6 @@
         INFIX_RIGHT_KW      = '\infixr'
         PROP_KW             = '\Prop'
         SET_KW              = '\SET'
-        SORT_KW             = '\Sort'
         THIS_KW             = '\this'
         WHERE_KW            = '\where'
         WITH_KW             = '\with'
@@ -437,7 +436,7 @@ private defIdentifier_constructor ::= defIdentifier {
     recoverWhile = defIdentifier_constructor_recover
 }
 
-private defIdentifier_constructor_recover ::= !(LPAREN | LBRACE | ID | ALIAS_KW | PROP_KW | SET_KW | SORT_KW | UNDERSCORE | APPLY_HOLE | TGOAL | LGOAL | SET | UNIVERSE | TRUNCATED_UNIVERSE | CAT_UNIVERSE | COLON | WITH_KW | ELIM_KW | PIPE | RBRACE) & statement_recover
+private defIdentifier_constructor_recover ::= !(LPAREN | LBRACE | ID | ALIAS_KW | PROP_KW | SET_KW | UNDERSCORE | APPLY_HOLE | TGOAL | LGOAL | SET | UNIVERSE | TRUNCATED_UNIVERSE | CAT_UNIVERSE | COLON | WITH_KW | ELIM_KW | PIPE | RBRACE) & statement_recover
 
 private assoc ::= NON_ASSOC_KW | LEFT_ASSOC_KW | RIGHT_ASSOC_KW | INFIX_NON_KW | INFIX_LEFT_KW | INFIX_RIGHT_KW
 
@@ -505,7 +504,6 @@ universeExpr ::= universeAppExpr
     | catUniverseAppExpr
     | PROP_KW
     | SET_KW
-    | SORT_KW
 
 appExpr ::= universeAppExpr
     | setUniverseAppExpr
@@ -756,7 +754,6 @@ private longNameIP ::= longName [DOT IPName] { pin = 1 }
 literal ::= refIdentifier
     | PROP_KW
     | SET_KW
-    | SORT_KW
     | APPLY_HOLE
     | UNDERSCORE
     | STRING
@@ -828,7 +825,7 @@ private typedTeleExplicit ::= LPAREN paramAttr? typedExpr RPAREN { pin = 1 }
 
 private typedTeleImplicit ::= LBRACE paramAttr? typedExpr RBRACE { pin = 1 }
 
-private typeTele_recover ::= !(LPAREN | LBRACE | ID | ALIAS_KW | COLON | WITH_KW | ELIM_KW | FAT_ARROW | RPAREN | RBRACE | PIPE | ARROW | COMMA | IN_KW | SET | UNIVERSE | TRUNCATED_UNIVERSE | CAT_UNIVERSE | PROP_KW | SET_KW | SORT_KW | UNDERSCORE | APPLY_HOLE | TGOAL | LGOAL | LEVEL_KW | RETURN_KW) & statement_recover
+private typeTele_recover ::= !(LPAREN | LBRACE | ID | ALIAS_KW | COLON | WITH_KW | ELIM_KW | FAT_ARROW | RPAREN | RBRACE | PIPE | ARROW | COMMA | IN_KW | SET | UNIVERSE | TRUNCATED_UNIVERSE | CAT_UNIVERSE | PROP_KW | SET_KW | UNDERSCORE | APPLY_HOLE | TGOAL | LGOAL | LEVEL_KW | RETURN_KW) & statement_recover
 
 typedExpr ::= typedExprNamed | expr
 

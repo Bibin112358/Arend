@@ -23,19 +23,19 @@
 \import Topology.Locale.PreorderSite
 \open CompleteLattice
 
-\record MatchingFamily {C D : Precat} (F : Functor C.op D) {J : \Sort} (x : C) (P : J -> ObOver x) (d : D)
+\record MatchingFamily {C D : Precat} (F : Functor C.op D) {J : \Type} (x : C) (P : J -> ObOver x) (d : D)
   | \coerce family (j : J) : Hom d (F (P j).1)
   | isMatching {j j' : J} {z : C} {g : Hom z (P j).1} {g' : Hom z (P j').1} : (P j).2 ∘ g = (P j').2 ∘ g' -> F.Func g ∘ family j = F.Func g' ∘ family j'
   \where {
-    \func matchingFamily {C : Precat} {D : Precat} (F : Functor C.op D) {J : \Sort} (x : C) (P : J -> ObOver x) (d : D) (h : Hom d (F x)) : MatchingFamily F x P d \cowith
+    \func matchingFamily {C : Precat} {D : Precat} (F : Functor C.op D) {J : \Type} (x : C) (P : J -> ObOver x) (d : D) (h : Hom d (F x)) : MatchingFamily F x P d \cowith
       | family j => Func (P j).2 ∘ h
       | isMatching gg' => inv o-assoc *> pmap (`∘ h) (inv Func-o *> pmap Func (later gg') *> Func-o) *> o-assoc
 
-    \lemma inj-char {C D : Precat} {F : Functor C.op D} {J : \Sort} {x : C} {P : J -> ObOver x} {d : D}
+    \lemma inj-char {C D : Precat} {F : Functor C.op D} {J : \Type} {x : C} {P : J -> ObOver x} {d : D}
       : IsInj (matchingFamily F x P d) <-> ∀ {h h' : Hom d (F x)} (\Pi (j : J) -> F.Func (P j).2 ∘ h = F.Func (P j).2 ∘ h') (h = h')
       => (\lam Fs hh' => Fs (exts hh'), \lam Fs hh' => Fs \lam j => pmap {MatchingFamily F x P d} (__ j) hh')
 
-    \func map {C D : Precat} (F : Functor C.op D) {I J : \Sort} (f : I -> J) {x : C} (P : J -> ObOver x) (d : D) (mf : MatchingFamily F x P d) : MatchingFamily F x (\lam i => P (f i)) d \cowith
+    \func map {C D : Precat} (F : Functor C.op D) {I J : \Type} (f : I -> J) {x : C} (P : J -> ObOver x) (d : D) (mf : MatchingFamily F x P d) : MatchingFamily F x (\lam i => P (f i)) d \cowith
       | family i => mf (f i)
       | isMatching => isMatching
       \where {
@@ -84,8 +84,8 @@
   \lemma separated-covering {x : C} {U : Presieve x} (x<=U : Covering x U) {d : D} {g g' : Hom d (F x)} (p : ∀ {u : U} (F.Func u.2 ∘ g = F.Func u.2 ∘ g')) : g = g'
     => separated-covering-inj x<=U $ exts \lam j => p j.2
 
-  \lemma covering-comp {x : C} {d : D} {I : \Sort} {P : I -> ObOver x} (Pe : IsEquiv (MatchingFamily.matchingFamily F x P d))
-                       {J : I -> \Sort} {Q : \Pi {i : I} -> J i -> ObOver (P i).1} (Qc : \Pi {i : I} -> Covering (P i).1 (TSetIm Q))
+  \lemma covering-comp {x : C} {d : D} {I : \Type} {P : I -> ObOver x} (Pe : IsEquiv (MatchingFamily.matchingFamily F x P d))
+                       {J : I -> \Type} {Q : \Pi {i : I} -> J i -> ObOver (P i).1} (Qc : \Pi {i : I} -> Covering (P i).1 (TSetIm Q))
                        (Qe : \Pi {i : I} -> IsEquiv (MatchingFamily.matchingFamily F (P i).1 Q d))
     : IsEquiv (MatchingFamily.matchingFamily F {\Sigma (i : I) (J i)} x (\lam s => ((Q s.2).1, (P s.1).2 ∘ (Q s.2).2)) d)
     => inP \new QEquiv {
@@ -107,8 +107,8 @@
       | f_sec mf => exts \lam s => pmap (`∘ _) Func-o *> o-assoc *> pmap {MatchingFamily F x P d} (_ ∘ family {__} s.1) (IsEquiv.f_ret Pe) *> pmap {MatchingFamily F _ Q d} (family {__} s.2) (IsEquiv.f_ret Qe)
     }
 
-  \lemma covering-refined {x : C} {I : \Sort} {P : I -> ObOver x} (Pc : Covering x (TSetIm P))
-    {J : \Sort} {Q : J -> ObOver x} (P<=Q : ∀ (i : I) ∃ (j : J) (f : Hom (P i).1 (Q j).1) ((Q j).2 ∘ f = (P i).2))
+  \lemma covering-refined {x : C} {I : \Type} {P : I -> ObOver x} (Pc : Covering x (TSetIm P))
+    {J : \Type} {Q : J -> ObOver x} (P<=Q : ∀ (i : I) ∃ (j : J) (f : Hom (P i).1 (Q j).1) ((Q j).2 ∘ f = (P i).2))
     {d : D} (e : IsEquiv (MatchingFamily.matchingFamily F x P d)) : IsEquiv (MatchingFamily.matchingFamily F x Q d)
     => split {_} {x} {\Sigma (i : I) (j : J) (f : Hom (P i).1 (Q j).1) ((Q j).2 ∘ f = (P i).2)}
       (Covering.covering-sub Pc \lam t => TSetIm-elim (\lam i => \case P<=Q i \with {
@@ -119,8 +119,8 @@
         | inP (j,f,p) => inP $ later ((i,j,f,p),idp)
       })
     \where
-      \private \lemma split {x : C} {I : \Sort} {P : I -> ObOver x} (Pc : Covering x (TSetIm P))
-        {J : \Sort} {Q : J -> ObOver x} (P<=Q : ∀ (i : I) Given (j : J) (f : Hom (P i).1 (Q j).1) ((Q j).2 ∘ f = (P i).2))
+      \private \lemma split {x : C} {I : \Type} {P : I -> ObOver x} (Pc : Covering x (TSetIm P))
+        {J : \Type} {Q : J -> ObOver x} (P<=Q : ∀ (i : I) Given (j : J) (f : Hom (P i).1 (Q j).1) ((Q j).2 ∘ f = (P i).2))
         {d : D} (e : IsEquiv (MatchingFamily.matchingFamily F x P d)) : IsEquiv (MatchingFamily.matchingFamily F x Q d)
         => \let map (mf : MatchingFamily F x Q d) : MatchingFamily F x P d => \new MatchingFamily {
                   | family i => Func (P<=Q i).2 ∘ mf (P<=Q i).1
@@ -140,7 +140,7 @@
     => separated-locale_<= S <=-refl \lam Uy zy zU => pmap (`∘ f) (pmap S.F.Func prop-pi *> S.F.Func-o) *> o-assoc *>
         pmap (S.F.Func zy ∘) (p Uy) *> inv o-assoc *> pmap (`∘ _) (inv S.F.Func-o *> pmap S.F.Func prop-pi)
 
-  \lemma separated-locale_SJoin {L : Locale} (S : SeparatedVPresheaf { | C => L }) {J : \Sort} {h : J -> L} {P : J -> \Sort}
+  \lemma separated-locale_SJoin {L : Locale} (S : SeparatedVPresheaf { | C => L }) {J : \Type} {h : J -> L} {P : J -> \Type}
     (d : S.D) {f g : Hom d (S (SJoin h P))} (p : ∀ {j : J} (Pj : P j) (S.F.Func (SJoin-cond Pj) ∘ f = S.F.Func (SJoin-cond Pj) ∘ g)) : f = g
     => separated-locale_<= S <=-refl \lam {z} => SetIm-elim \lam Pa z<=ha z<=P => later $ pmap (`∘ f) (pmap S.F.Func prop-pi *> S.F.Func-o) *> o-assoc *>
         pmap (S.F.Func z<=ha ∘) (p Pa) *> inv o-assoc *> pmap (`∘ g) (inv S.F.Func-o *> pmap S.F.Func prop-pi)
@@ -223,10 +223,10 @@
         (\lam {t} => Covering.covering-sub (T<=U t.2) \lam {z} r => TSetIm-con $ later (z,r))
         (\lam {t} => sheaf-covering (T<=U t.2))
 
-  \lemma sheaf-matchingFamily {J : \Sort} {x : C} {P : J -> ObOver x} (x<=U : Covering x (TSetIm P)) {d : D} : IsEquiv (MatchingFamily.matchingFamily F x P d)
+  \lemma sheaf-matchingFamily {J : \Type} {x : C} {P : J -> ObOver x} (x<=U : Covering x (TSetIm P)) {d : D} : IsEquiv (MatchingFamily.matchingFamily F x P d)
     => IsEquiv.trans (sheaf-covering x<=U) $ MatchingFamily.map.isEquiv {C} {D} {F} {J} {\Sigma (px : ObOver x) (TSetIm P px)} {\lam j => (P j, inP (j,idp))} \lam (_, inP (j,idp)) => inP (j,idp)
 
-  \sfunc sheaf-matchingFamily-surj {J : \Sort} {x : C} {P : J -> ObOver x} (x<=U : Covering x (TSetIm P)) {d : D}
+  \sfunc sheaf-matchingFamily-surj {J : \Type} {x : C} {P : J -> ObOver x} (x<=U : Covering x (TSetIm P)) {d : D}
     (mf : MatchingFamily F x P d) : Given (h : Hom d (F x)) ∀ j (F.Func (P j).2 ∘ h = mf j)
     => \have r => IsEquiv.splitSurj (sheaf-matchingFamily x<=U) mf
        \in (r.1, \lam j => path \lam i => r.2 i j)
@@ -270,7 +270,7 @@
     : IsEquiv (PresieveMatchingFamily.matchingFamily S.F (Join U) (\lam x => U x.1) d)
     => S.isSheaf (Join-univ \lam Uw => Join-cond (Join-cond Uw, Uw)) {d}
 
-  \lemma sheaf-locale_SJoin {L : Locale} (S : VSheaf { | C => L }) {J : \Sort} {f : J -> L} {U : Set J} {d : S.D}
+  \lemma sheaf-locale_SJoin {L : Locale} (S : VSheaf { | C => L }) {J : \Type} {f : J -> L} {U : Set J} {d : S.D}
     : IsEquiv (MatchingFamily.matchingFamily S.F {Set.Total U} (SJoin f U) (\lam j => (f j.1, SJoin-cond j.2)) d)
     => IsEquiv.trans (sheaf-locale S) {MatchingFamily.map S (\lam j => later ((f j.1, SJoin-conde j.1 j.2), SetIm-cone j.1 j.2)) _ d} $
         MatchingFamily.map.isEquiv $ later \lam (x, inP ((j,Uj),fj=x)) => inP ((j,Uj), ext $ ext fj=x)

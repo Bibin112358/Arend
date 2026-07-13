@@ -49,7 +49,7 @@
                                                               (\lam p x => transport (\lam y => Equiv (S y x) (S a x)) p $ mkEquiv $ inP idEquiv)
                                                               emb
                                                               (\lam p => Jl (\lam x p' => transport (\lam y => Equiv (S y x) (S a x)) p' (mkEquiv (inP idEquiv)) (lEta idp) = inL p') idp p)) >==
-          (LType (a = a') : \Type)        `qed
+          (LType (a = a') : \Type u)      `qed
 
     \lemma separatedLocalization.{u} {U : Universe.{u}} {A B : \Type u} {f : A -> B} (fs : IsSurj f) (p : \Pi (a a' : A) -> \Sigma (P : Local (f a = f a')) (Localization (a = a') P))
       : \Sigma (L : Local {Separated U} B) (Localization {Separated U} A L f)

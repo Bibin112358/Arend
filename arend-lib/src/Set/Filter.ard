@@ -23,12 +23,12 @@
   \override A : CompleteLattice
   | filter-Join {C : A -> \Prop} : F (Join C) -> ∃ (w : C) (F w)
 
-  \lemma filter-SJoin {I : \Sort} {f : I -> A} {C : I -> \Prop} (FJ : F (CompleteLattice.SJoin f C)) : ∃ (i : C) (F (f i))
+  \lemma filter-SJoin {I : \Type} {f : I -> A} {C : I -> \Prop} (FJ : F (CompleteLattice.SJoin f C)) : ∃ (i : C) (F (f i))
     => \case filter-Join FJ \with {
       | inP (_, inP ((i,Ci),idp), Ffi) => inP (i, Ci, Ffi)
     }
 
-  \lemma filter-IJoin {I : \Sort} {f : I -> A} (FJ : F (CompleteLattice.IJoin f)) : ∃ (i : I) (F (f i))
+  \lemma filter-IJoin {I : \Type} {f : I -> A} (FJ : F (CompleteLattice.IJoin f)) : ∃ (i : I) (F (f i))
     => \case filter-Join FJ \with {
       | inP (_, inP (i,idp), Ffi) => inP (i,Ffi)
     }

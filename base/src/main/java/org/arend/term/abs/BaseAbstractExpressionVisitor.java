@@ -37,17 +37,12 @@ public class BaseAbstractExpressionVisitor<P, R> implements AbstractExpressionVi
   }
 
   @Override
-  public R visitUniverse(@Nullable Object data, @Nullable BigInteger pLevelNum, @Nullable BigInteger hLevelNum, @Nullable Abstract.LevelExpression pLevel, boolean isInfinite, P params) {
+  public R visitUniverse(@Nullable Object data, @Nullable BigInteger pLevelNum, @Nullable BigInteger hLevelNum, @Nullable Abstract.LevelExpression pLevel, P params) {
     return defaultValue;
   }
 
   @Override
   public R visitCatUniverse(@Nullable Object data, @Nullable BigInteger pLevelNum, Abstract.@Nullable LevelExpression pLevel, P params) {
-    return defaultValue;
-  }
-
-  @Override
-  public R visitSortUniverse(@Nullable Object data, P params) {
     return defaultValue;
   }
 

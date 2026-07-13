@@ -46,12 +46,6 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   }
 
   @Test
-  public void noPLevelTest() {
-    FunctionDefinition def = (FunctionDefinition) typeCheckDef("\\func test => \\Type");
-    assertEquals(new UniverseExpression(Sort.TypeOfLevel(0)), def.getBody());
-  }
-
-  @Test
   public void noPLevelsTest2() {
     typeCheckDef("\\func test (A : \\Type) : \\Type => A");
   }

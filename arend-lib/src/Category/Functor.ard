@@ -137,7 +137,7 @@
      simp_coe $ simp_coe \lam X => Cat.transport_iso (FunctorPrecat.mapIso e X))
   -}
 
-\instance FamPrecat {J : \Sort} (D : Precat) : Precat (J -> D)
+\instance FamPrecat {J : \Type} (D : Precat) : Precat (J -> D)
   | Hom F G => \Pi {j : J} -> Hom (F j) (G j)
   | id F {j} => id (F j)
   | o g f {j} => g ∘ f
@@ -145,11 +145,11 @@
   | id-right => ext (\lam {j} => id-right)
   | o-assoc => ext (\lam {j} => o-assoc)
 
-\instance FamCat {J : \Sort} (D : Cat) : Cat (J -> D)
+\instance FamCat {J : \Type} (D : Cat) : Cat (J -> D)
   | Precat => FamPrecat D
   | univalence => Cat.makeUnivalence $ later \lam e => (ext \lam j => D.isotoid (mapIso e j), simp_coe \lam {j} => Cat.transport_iso (mapIso e j))
   \where {
-    \func mapIso {J : \Sort} {D : Precat} (e : Iso {FamPrecat {J} D}) (j : J) : Iso {D} \cowith
+    \func mapIso {J : \Type} {D : Precat} (e : Iso {FamPrecat {J} D}) (j : J) : Iso {D} \cowith
       | dom => e.dom j
       | cod => e.cod j
       | f => e.f

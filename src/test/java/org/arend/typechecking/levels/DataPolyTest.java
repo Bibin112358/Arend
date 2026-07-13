@@ -1,13 +1,12 @@
 package org.arend.typechecking.levels;
 
-import org.arend.core.context.binding.LevelVariable;
 import org.arend.core.definition.Constructor;
 import org.arend.core.definition.DataDefinition;
 import org.arend.core.expr.DataCallExpression;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.subst.Levels;
-import org.arend.core.subst.SingleLevel;
+import org.arend.core.subst.ListLevels;
 import org.arend.ext.core.level.ConstLevel;
 import org.arend.typechecking.TypeCheckingTestCase;
 import org.junit.Test;
@@ -63,32 +62,32 @@ public class DataPolyTest extends TypeCheckingTestCase {
 
   @Test
   public void dataOmega() {
-    DataDefinition dataDefinition = (DataDefinition) typeCheckDef("\\data D (A : \\Type) | con A");
-    assertEquals(new Sort(new Level(LevelVariable.PVAR), ConstLevel.INFINITY), dataDefinition.getSort());
+    DataDefinition dataDefinition = (DataDefinition) typeCheckDef("\\data D.{u} (A : \\Type u) | con A");
+    assertEquals(new Sort(new Level(dataDefinition.getLevelParameters().getFirst()), ConstLevel.INFINITY), dataDefinition.getSort());
   }
 
   @Test
   public void dataOmegaExplicit() {
-    DataDefinition dataDefinition = (DataDefinition) typeCheckDef("\\data D (A : \\Type) : \\Type | con A");
-    assertEquals(new Sort(new Level(LevelVariable.PVAR), ConstLevel.INFINITY), dataDefinition.getSort());
+    DataDefinition dataDefinition = (DataDefinition) typeCheckDef("\\data D.{u} (A : \\Type u) : \\Type u | con A");
+    assertEquals(new Sort(new Level(dataDefinition.getLevelParameters().getFirst()), ConstLevel.INFINITY), dataDefinition.getSort());
   }
 
   @Test
   public void dataOmegaProp() {
-    DataDefinition dataDefinition = (DataDefinition) typeCheckDef("\\data D (A : \\Type) (n : Nat) | con1 A | con2 (n = n)");
-    assertEquals(new Sort(new Level(LevelVariable.PVAR), ConstLevel.INFINITY), dataDefinition.getSort());
+    DataDefinition dataDefinition = (DataDefinition) typeCheckDef("\\data D.{u} (A : \\Type u) (n : Nat) | con1 A | con2 (n = n)");
+    assertEquals(new Sort(new Level(dataDefinition.getLevelParameters().getFirst()), ConstLevel.INFINITY), dataDefinition.getSort());
   }
 
   @Test
   public void dataOmegaPropExplicit() {
-    DataDefinition dataDefinition = (DataDefinition) typeCheckDef("\\data D (A : \\Type) (n : Nat) : \\Type \\lp | con1 (n = n) | con2 A");
-    assertEquals(new Sort(new Level(LevelVariable.PVAR), ConstLevel.INFINITY), dataDefinition.getSort());
+    DataDefinition dataDefinition = (DataDefinition) typeCheckDef("\\data D.{u} (A : \\Type u) (n : Nat) : \\Type u | con1 (n = n) | con2 A");
+    assertEquals(new Sort(new Level(dataDefinition.getLevelParameters().getFirst()), ConstLevel.INFINITY), dataDefinition.getSort());
   }
 
   @Test
   public void dataOmegaSet() {
-    DataDefinition dataDefinition = (DataDefinition) typeCheckDef("\\data D (A : \\Type) (n : Nat) | con1 (n = n) | con2 A | con3 Nat");
-    assertEquals(new Sort(new Level(LevelVariable.PVAR), ConstLevel.INFINITY), dataDefinition.getSort());
+    DataDefinition dataDefinition = (DataDefinition) typeCheckDef("\\data D.{u} (A : \\Type u) (n : Nat) | con1 (n = n) | con2 A | con3 Nat");
+    assertEquals(new Sort(new Level(dataDefinition.getLevelParameters().getFirst()), ConstLevel.INFINITY), dataDefinition.getSort());
   }
 
   @Test
@@ -98,13 +97,13 @@ public class DataPolyTest extends TypeCheckingTestCase {
 
   @Test
   public void dataOmegaSetExplicit() {
-    typeCheckDef("\\data D (A : \\Type) (n : Nat) : \\Type | con1 (n = n) | con2 A | con3");
+    typeCheckDef("\\data D (A : \\Type) (n : Nat) | con1 (n = n) | con2 A | con3");
   }
 
   @Test
   public void dataOmegaSetExplicitMax() {
-    DataDefinition dataDefinition = (DataDefinition) typeCheckDef("\\data D (A : \\Type) (n : Nat) : \\Type \\lp | con1 (n = n) | con2 A | con3 Nat");
-    assertEquals(new Sort(new Level(LevelVariable.PVAR), ConstLevel.INFINITY), dataDefinition.getSort());
+    DataDefinition dataDefinition = (DataDefinition) typeCheckDef("\\data D.{u} (A : \\Type u) (n : Nat) : \\Type u | con1 (n = n) | con2 A | con3 Nat");
+    assertEquals(new Sort(new Level(dataDefinition.getLevelParameters().getFirst()), ConstLevel.INFINITY), dataDefinition.getSort());
   }
 
   @Test
@@ -115,8 +114,8 @@ public class DataPolyTest extends TypeCheckingTestCase {
 
   @Test
   public void recursiveData2() {
-    Constructor constructor = ((DataDefinition) typeCheckDef("\\data D (A : \\Type) | con (D A)")).getConstructors().getFirst();
-    assertEquals(new SingleLevel(new Level(LevelVariable.PVAR)), ((DataCallExpression) constructor.getParameters().getType()).getLevels());
+    Constructor constructor = ((DataDefinition) typeCheckDef("\\data D.{u} (A : \\Type u) | con (D A)")).getConstructors().getFirst();
+    assertEquals(new ListLevels(new Level(constructor.getLevelParameters().getFirst())), ((DataCallExpression) constructor.getParameters().getType()).getLevels());
   }
 
   @Test
@@ -127,14 +126,14 @@ public class DataPolyTest extends TypeCheckingTestCase {
   @Test
   public void recursiveDataWithClass() {
     typeCheckModule(
-      "\\record R (A : \\Sort)\n" +
+      "\\record R (A : \\Type)\n" +
       "\\data D | con (R D) | con2");
   }
 
   @Test
   public void recursiveDataWithLam() {
     typeCheckModule(
-      "\\record R (A : Nat -> \\Sort)\n" +
+      "\\record R (A : Nat -> \\Type)\n" +
       "\\data D | con (R (\\lam _ => D)) | con2");
   }
 
@@ -164,7 +163,7 @@ public class DataPolyTest extends TypeCheckingTestCase {
   @Test
   public void recursiveDataWithNew() {
     typeCheckModule("""
-      \\record C (X Y : \\Sort)
+      \\record C (X Y : \\Type)
       \\record R (A : C)
       \\data D | con1 (R (\\new C (\\Sigma) D)) | con2 (R (\\new C D (\\Sigma)))
       """);

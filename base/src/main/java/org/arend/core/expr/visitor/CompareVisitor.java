@@ -573,23 +573,11 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
   }
 
   public boolean compareLevels(LeveledDefCallExpression expr1, LeveledDefCallExpression expr2) {
-    UniverseKind universeKind = expr1.getUniverseKind();
-    if (universeKind == UniverseKind.NO_UNIVERSES) {
-      return true;
+    if (expr1 instanceof ClassCallExpression classCall1 && expr2 instanceof ClassCallExpression classCall2) {
+      return compareClassCallLevels(classCall1, classCall2);
     }
 
-    CMP cmp = universeKind == UniverseKind.ONLY_COVARIANT ? myCMP : CMP.EQ;
-    if (expr1 instanceof ClassCallExpression classCall1 && expr2 instanceof ClassCallExpression classCall2 && classCall1.getDefinition() != classCall2.getDefinition()) {
-      ClassCallExpression superClassCall = myCMP == CMP.LE ? classCall2 : classCall1;
-      ClassCallExpression subClassCall = myCMP == CMP.LE ? classCall1 : classCall2;
-      if (!subClassCall.getLevels(superClassCall.getDefinition()).compare(superClassCall.getLevels(), cmp == CMP.EQ ? CMP.EQ : CMP.LE, myNormalCompare ? myEquations : DummyEquations.getInstance(), mySourceNode)) {
-        initResult(expr1, expr2, expr1.getLevels(), expr2.getLevels());
-        return false;
-      }
-      return true;
-    }
-
-    if (!expr1.getLevels().compare(expr2.getLevels(), cmp, myNormalCompare ? myEquations : DummyEquations.getInstance(), mySourceNode)) {
+    if (!expr1.getLevels().compare(expr2.getLevels(), CMP.EQ, myNormalCompare ? myEquations : DummyEquations.getInstance(), mySourceNode)) {
       initResult(expr1, expr2, expr1.getLevels(), expr2.getLevels());
       return false;
     }

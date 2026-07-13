@@ -34,7 +34,7 @@
       })
   }
 
-\sfunc SIP_Set.{u} (Str : \Set u -> \Type (\suc u)) (isHom : \Pi {x y : \Set u} -> Str x -> Str y -> (x -> y) -> \Type (\suc u))
+\sfunc SIP_Set.{u} (Str : \Set u -> \Type) (isHom : \Pi {x y : \Set u} -> Str x -> Str y -> (x -> y) -> \Type)
                    (st : \Pi {X : \Set u} {S1 S2 : Str X} -> isHom S1 S2 (\lam x => x) -> isHom S2 S1 (\lam x => x) -> S1 = S2)
                    {X Y : \Set u} (e : Iso {SetCat} {X} {Y}) (S1 : Str X) (S2 : Str Y) (p : isHom S1 S2 e.f) (q : isHom S2 S1 e.hinv)
   : \Sigma (p : X = Y) (Path (\lam i => Str (p @ i)) S1 S2) (\Pi (x : X) -> transport (\lam Z => Z) p x = e.f x)

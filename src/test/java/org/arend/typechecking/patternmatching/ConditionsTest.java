@@ -451,7 +451,7 @@ public class ConditionsTest extends TypeCheckingTestCase {
   @Test
   public void constructorsOnlyOnTopLevel() {
     typeCheckModule("""
-      \\func \\infixr 5 *> {A : \\Sort} {a a' a'' : A} (p : a = a') (q : a' = a'')
+      \\func \\infixr 5 *> {A : \\Type} {a a' a'' : A} (p : a = a') (q : a' = a'')
         => coe (\\lam i => a = q @ i) p right
       \\data D
         | base

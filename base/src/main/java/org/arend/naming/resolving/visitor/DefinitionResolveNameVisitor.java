@@ -399,6 +399,9 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
     copyClassLevelParameters(def);
     ExpressionResolveNameVisitor exprVisitor = new ExpressionResolveNameVisitor(scope, new ArrayList<>(), myTypingInfo, myLocalErrorReporter, myLiteralTypechecker, myResolverListener, visitLevelParameters(def.getLevelParameters()));
     exprVisitor.visitParameters(def.getParameters(), null);
+    if (def.getUniverse() != null) {
+      def.setUniverse(exprVisitor.visitUniverse(def.getUniverse(), null));
+    }
     return exprVisitor;
   }
 

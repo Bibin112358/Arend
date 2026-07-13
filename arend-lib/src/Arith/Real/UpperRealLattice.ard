@@ -38,16 +38,16 @@
     | inP (a,e<a,a<b) => inP (a, a<b, \lam j => c j e<a)
   }
   \where {
-    \lemma *n_SJoin {n : Nat} (n/=0 : n /= 0) {A : \Sort} {f : A -> ExUpperReal} {P : A -> \Prop} : n AddMonoid.*n ExUpperRealLattice.SJoin f P = ExUpperRealLattice.SJoin (\lam a => n AddMonoid.*n f a) P
+    \lemma *n_SJoin {n : Nat} (n/=0 : n /= 0) {A : \Type} {f : A -> ExUpperReal} {P : A -> \Prop} : n AddMonoid.*n ExUpperRealLattice.SJoin f P = ExUpperRealLattice.SJoin (\lam a => n AddMonoid.*n f a) P
       => <=-antisymmetric
         (\lam (inP (a,a<b,h)) => (ExUpperRealAbMonoid.*n_finv n/=0).2 $ inP $ later (RatField.finv n * a, RatField.<_*_positive-right (RatField.finv>0 $ fromInt_< $ pos<pos $ nonZero>0 n/=0) a<b, SetIm-elim \lam Pa => (ExUpperRealAbMonoid.*n_finv n/=0).1 $ h $ SetIm-con Pa))
         (ExUpperRealLattice.SJoin-univ \lam Pa => ExUpperRealAbMonoid.*n_<= $ ExUpperRealLattice.SJoin-cond Pa)
 
-    \lemma *n_SJoin' {n : Nat} {A : \Sort} {f : A -> ExUpperReal} {P : A -> \Prop} (j : ∃ P) : n AddMonoid.*n ExUpperRealLattice.SJoin f P = ExUpperRealLattice.SJoin (\lam a => n AddMonoid.*n f a) P \elim n, j
+    \lemma *n_SJoin' {n : Nat} {A : \Type} {f : A -> ExUpperReal} {P : A -> \Prop} (j : ∃ P) : n AddMonoid.*n ExUpperRealLattice.SJoin f P = ExUpperRealLattice.SJoin (\lam a => n AddMonoid.*n f a) P \elim n, j
       | 0, inP j => <=-antisymmetric (ExUpperRealLattice.SJoin-cond j.2) (ExUpperRealLattice.SJoin-univ \lam _ => <=-refl)
       | suc n, _ => *n_SJoin suc/=0
 
-    \lemma +_SJoin {A : \Sort} {f : A -> ExUpperReal} {P : A -> \Prop} : ExUpperRealLattice.SJoin f P + ExUpperRealLattice.SJoin f P = ExUpperRealLattice.SJoin (\lam a => f a + f a) P
+    \lemma +_SJoin {A : \Type} {f : A -> ExUpperReal} {P : A -> \Prop} : ExUpperRealLattice.SJoin f P + ExUpperRealLattice.SJoin f P = ExUpperRealLattice.SJoin (\lam a => f a + f a) P
       => inv (+-assoc *> zro-left) *> *n_SJoin {2} suc/=0 *> pmap (ExUpperRealLattice.SJoin __ P) (ext \lam a => +-assoc *> zro-left)
 
     \lemma *n_join {n : Nat} {x y : ExUpperReal} : n AddMonoid.*n (x ∨ y) = n AddMonoid.*n x ∨ n AddMonoid.*n y
@@ -63,7 +63,7 @@
     \lemma +_join {x y : ExUpperReal} : (x ∨ y) + (x ∨ y) = (x + x) ∨ (y + y)
       => inv (+-assoc *> zro-left) *> *n_join {2} *> pmap2 (∨) (+-assoc *> zro-left) (+-assoc *> zro-left)
 
-    \lemma SJoin-square {A : \Sort} {f : A -> ExUpperReal} {P : A -> \Prop} (j : ∃ P) : ExUpperRealLattice.SJoin f P * ExUpperRealLattice.SJoin f P = ExUpperRealLattice.SJoin (\lam a => f a * f a) P \elim j
+    \lemma SJoin-square {A : \Type} {f : A -> ExUpperReal} {P : A -> \Prop} (j : ∃ P) : ExUpperRealLattice.SJoin f P * ExUpperRealLattice.SJoin f P = ExUpperRealLattice.SJoin (\lam a => f a * f a) P \elim j
       | inP j0 => <=-antisymmetric (\lam (inP (a,a<b,h)) => \case sqrt-rat (<=-less $ ExUpperRealSemigroup.*_>=0 $ h $ SetIm-con j0.2) a<b \with {
         | inP (q,r,q>0,q<r,a<qq,rr<b) =>
           \have fP<r : (ExUpperRealLattice.SJoin f P).U r => inP (q, q<r, SetIm-elim \lam Pa => later \case ExUpperReal.*_U.1 (h $ SetIm-con Pa) \with {

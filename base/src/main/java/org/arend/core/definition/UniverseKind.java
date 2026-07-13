@@ -1,5 +1,6 @@
 package org.arend.core.definition;
 
+// TODO[sorts]: Delete this
 public enum UniverseKind {
   NO_UNIVERSES, ONLY_COVARIANT, WITH_UNIVERSES;
 

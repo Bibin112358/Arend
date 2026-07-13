@@ -162,9 +162,9 @@
       | CHom-univ => PHom-univ
   }
 
-\instance SetTopos : ToposPrecat.FromSubobjClassifier \Set
-  | FinCompletePrecat => SetBicat
-  | CartesianClosedPrecat => SetCartesianClosed
+\instance SetTopos.{u} : ToposPrecat.FromSubobjClassifier (\Set u)
+  | FinCompletePrecat => SetBicat.{u}
+  | CartesianClosedPrecat => SetCartesianClosed.{u}
   | Omega => \Prop
   | Omega-true => inso~ \new Mono {
     | dom => \Sigma

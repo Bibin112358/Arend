@@ -10,7 +10,7 @@ public class TypeClassesTypesTest extends TypeCheckingTestCase {
     typeCheckModule("""
       \\class C (X : \\Type)
         | idf : X -> X
-      \\instance inst : C \\Set
+      \\instance inst : C \\Set0
         | idf A => A
       \\func foo : idf Nat => 0
       """);
@@ -21,9 +21,9 @@ public class TypeClassesTypesTest extends TypeCheckingTestCase {
     typeCheckModule("""
       \\class C (X : \\Type)
         | idf : X -> X
-      \\instance inst : C \\Type
+      \\instance inst.{u} : C (\\Type u)
         | idf A => A
-      \\func foo (P : \\Type) => idf P
+      \\func foo.{u} (P : \\Type u) => idf P
       """);
   }
 
@@ -32,10 +32,11 @@ public class TypeClassesTypesTest extends TypeCheckingTestCase {
     typeCheckModule("""
       \\class C (X : \\Type)
         | idf : X -> X
-      \\instance inst : C \\Type
+      \\instance inst.{u} : C (\\Type u)
         | idf A => A
       \\func foo (P : \\Prop) => idf P
       """, 1);
+    assertThatErrorsAre(Matchers.argInferenceError());
   }
 
   @Test
@@ -43,10 +44,11 @@ public class TypeClassesTypesTest extends TypeCheckingTestCase {
     typeCheckModule("""
       \\class C (X : \\Type)
         | idf : X -> X
-      \\instance inst : C \\Type
+      \\instance inst.{u} : C (\\Type u)
         | idf A => A
       \\func foo (P : \\Set) => idf P
       """, 1);
+    assertThatErrorsAre(Matchers.argInferenceError());
   }
 
   @Test
@@ -66,9 +68,9 @@ public class TypeClassesTypesTest extends TypeCheckingTestCase {
     typeCheckModule("""
       \\class C (X : \\Type)
         | idf : X -> X
-      \\instance inst : C \\Set
+      \\instance inst.{u} : C (\\Set u)
         | idf A => A
-      \\func foo (P : \\1-Type) => idf P
+      \\func foo.{u} (P : \\1-Type u) => idf P
       """, 1);
     assertThatErrorsAre(Matchers.argInferenceError());
   }
@@ -78,9 +80,9 @@ public class TypeClassesTypesTest extends TypeCheckingTestCase {
     typeCheckModule("""
       \\class C (X : \\Type)
         | idf : X -> X
-      \\instance inst : C \\1-Type
+      \\instance inst.{u} : C (\\1-Type u)
         | idf A => A
-      \\func foo (P : \\Set) => idf P
+      \\func foo.{u} (P : \\Set u) => idf P
       """, 1);
     assertThatErrorsAre(Matchers.argInferenceError());
   }

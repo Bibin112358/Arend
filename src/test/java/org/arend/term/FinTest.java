@@ -263,8 +263,8 @@ public class FinTest extends TypeCheckingTestCase {
   @Test
   public void listTest() {
     typeCheckModule("""
-      \\data List (A : \\Sort) | nil | \\infixr 5 :: A (List A)
-      \\func length {A : \\Sort} (list : List A) : Nat \\elim list
+      \\data List (A : \\Type) | nil | \\infixr 5 :: A (List A)
+      \\func length {A : \\Type} (list : List A) : Nat \\elim list
         | nil => 0
         | :: a list => suc (length list)
       \\func \\infix 7 !! {A : \\Set} (v : List A) (index : Fin (length v)) : A \\elim v, index

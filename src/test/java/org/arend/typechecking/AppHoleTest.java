@@ -180,17 +180,17 @@ public class AppHoleTest extends TypeCheckingTestCase {
 
   @Test
   public void appPiTest1() {
-    typeCheckDef("\\func test (f : (\\Set -> \\Set) -> \\Set) => f (__ -> Nat) -> Nat");
+    typeCheckDef("\\func test (f : (\\Set0 -> \\Set0) -> \\Set0) => f (__ -> Nat) -> Nat");
   }
 
   @Test
   public void appPiTest2() {
-    typeCheckDef("\\func test (f : (\\Set -> \\Set) -> Nat) => f (__ -> Nat) = 0");
+    typeCheckDef("\\func test (f : (\\Set0 -> \\Set0) -> Nat) => f (__ -> Nat) = 0");
   }
 
   @Test
   public void appPiTest3() {
-    typeCheckDef("\\func test (f : (Nat -> \\Set) -> Nat) => f (__ = 0 -> Nat)");
+    typeCheckDef("\\func test (f : (Nat -> \\Set0) -> Nat) => f (__ = 0 -> Nat)");
   }
 
   @Test
@@ -200,7 +200,7 @@ public class AppHoleTest extends TypeCheckingTestCase {
 
   @Test
   public void appPiTest5() {
-    typeCheckDef("\\func test (f : (Nat -> Nat -> \\Set -> \\Set) -> Nat) (g : Nat -> Nat) => f (g __ = g __ -> __)");
+    typeCheckDef("\\func test (f : (Nat -> Nat -> \\Set0 -> \\Set0) -> Nat) (g : Nat -> Nat) => f (g __ = g __ -> __)");
   }
 
   @Test

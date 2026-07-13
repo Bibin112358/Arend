@@ -34,38 +34,38 @@ public class SortTest extends TypeCheckingTestCase {
 
   @Test
   public void sortTest() {
-    typeCheckDef("\\func test => \\Sort", 1);
+    typeCheckDef("\\func test => \\Type", 1);
   }
 
   @Test
   public void idTest() {
-    checkDef("\\func test {A : \\Sort} (a : A) => a");
+    checkDef("\\func test {A : \\Type} (a : A) => a");
   }
 
   @Test
   public void sigmaTest() {
-    checkDef("\\func test {A : \\Sort} (B : A -> \\Sort) (p : \\Sigma (x : A) (B x)) => p");
+    checkDef("\\func test {A : \\Type} (B : A -> \\Type) (p : \\Sigma (x : A) (B x)) => p");
   }
 
   @Test
   public void piTest() {
-    checkDef("\\func test {A : \\Sort} (B : A -> \\Sort) (f : \\Pi (x : A) -> B x) => f");
+    checkDef("\\func test {A : \\Type} (B : A -> \\Type) (f : \\Pi (x : A) -> B x) => f");
   }
 
   @Test
   public void pairTest() {
-    typeCheckDef("\\func test (A : \\Sort) => (A,A)", 1);
+    typeCheckDef("\\func test (A : \\Type) => (A,A)", 1);
   }
 
   @Test
   public void dataTest() {
     typeCheckModule("""
-      \\data D (A : \\Sort) (a : A) | con (A -> A)
+      \\data D (A : \\Type) (a : A) | con (A -> A)
       \\func test1 => D Nat 7
       \\func test2 => D _ 7
       \\func test3 => D Nat
       \\func test4 (d : D _ 7) => d
-      \\func test5 {B : \\Sort} {b : B} (d : D _ b) => d
+      \\func test5 {B : \\Type} {b : B} (d : D _ b) => d
       """);
     checkLevelParameters("D", "test1", "test2", "test3", "test4", "test5");
     assertEquals(new UniverseExpression(Sort.SET0), ((FunctionDefinition) getDefinition("test1")).getResultType());
@@ -76,7 +76,7 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void partiallyAppliedTest() {
     typeCheckModule("""
-      \\data D (A : \\Sort) (a : A)
+      \\data D (A : \\Type) (a : A)
       \\func test => D
       """, 1);
   }
@@ -84,8 +84,8 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void functionTest() {
     typeCheckModule("""
-      \\data D (A : \\Sort) (a a' : A) | con A
-      \\func fun (A : \\Sort) (a : A) => D A a a
+      \\data D (A : \\Type) (a a' : A) | con A
+      \\func fun (A : \\Type) (a : A) => D A a a
       \\func test => fun Nat 7
       """);
     checkLevelParameters("D", "fun", "test");
@@ -94,13 +94,13 @@ public class SortTest extends TypeCheckingTestCase {
 
   @Test
   public void functionTest2() {
-    typeCheckModule("\\func test (A : \\Sort) (n : Nat) : \\Sort => A");
+    typeCheckModule("\\func test (A : \\Type) (n : Nat) : \\Type => A");
   }
 
   @Test
   public void functionTest3() {
     typeCheckModule("""
-      \\func test (A : \\Sort) (n : Nat) : \\Sort \\elim n
+      \\func test (A : \\Type) (n : Nat) : \\Type \\elim n
         | 0 => A
         | suc _ => A
       """, 1);
@@ -109,8 +109,8 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void functionTest4() {
     typeCheckModule("""
-      \\record R (A : \\Sort) (a a' : A)
-      \\func test (A : \\Sort) (a : A) => R A a
+      \\record R (A : \\Type) (a a' : A)
+      \\func test (A : \\Type) (a : A) => R A a
       """);
     checkLevelParameters("R", "test");
     FunctionDefinition function = (FunctionDefinition) getDefinition("test");
@@ -120,9 +120,9 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void recordTest() {
     typeCheckModule("""
-      \\record R (A : \\Sort) (a : A)
+      \\record R (A : \\Type) (a : A)
       \\record S \\extends R
-        | B : A -> \\Sort
+        | B : A -> \\Type
         | b : B a
       """);
     checkLevelParameters("R", "S");
@@ -131,12 +131,12 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void recordTest2() {
     typeCheckModule("""
-      \\record R (A : \\Sort) (a a' : A)
+      \\record R (A : \\Type) (a a' : A)
       \\func test1 => R Nat 7
       \\func test2 => R _ 7
       \\func test3 => R Nat
       \\func test4 (d : R _ 7) => d
-      \\func test5 {B : \\Sort} {b : B} (r : R _ b) => r
+      \\func test5 {B : \\Type} {b : B} (r : R _ b) => r
       """);
     checkLevelParameters("R", "test1", "test2", "test3", "test4", "test5");
     assertEquals(new UniverseExpression(Sort.SET0), ((FunctionDefinition) getDefinition("test1")).getResultType());
@@ -147,7 +147,7 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void recordTest3() {
     typeCheckModule("""
-      \\record R (A : \\Sort) (a a' : A)
+      \\record R (A : \\Type) (a a' : A)
       \\func test => R
       """, 1);
   }
@@ -155,7 +155,7 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void recordTest4() {
     typeCheckModule("""
-      \\record R (A B : \\Sort) (a : A) (b : B)
+      \\record R (A B : \\Type) (a : A) (b : B)
       \\func test => R Nat
       """, 1);
   }
@@ -163,7 +163,7 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void recordTest5() {
     typeCheckModule("""
-      \\record R (A : \\Sort) (a a' : A)
+      \\record R (A : \\Type) (a a' : A)
       \\func test (x : R) => x.a
       """);
   }
@@ -171,7 +171,7 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void recordTest6() {
     typeCheckModule("""
-      \\record R (A B : \\Sort) (a : A) (b : B)
+      \\record R (A B : \\Type) (a : A) (b : B)
       \\func test (x : R Nat) => x.b
       """);
   }
@@ -187,7 +187,7 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void truncatedTest() {
     typeCheckModule("""
-      \\truncated \\data Trunc (A : \\Sort) : \\Set
+      \\truncated \\data Trunc (A : \\Type) : \\Set
         | in A
       \\func test (A : \\3-Type7) : \\Set7 => Trunc A
       """);
@@ -197,9 +197,9 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void truncatedTest2() {
     typeCheckModule("""
-      \\truncated \\data Trunc (A : \\Sort) : \\Set
+      \\truncated \\data Trunc (A : \\Type) : \\Set
         | in A
-      \\func map {A B : \\Sort} (t : Trunc A) (f : A -> B) : Trunc B \\elim t
+      \\func map {A B : \\Type} (t : Trunc A) (f : A -> B) : Trunc B \\elim t
         | in a => in (f a)
       """);
   }
@@ -207,9 +207,9 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void truncatedTest3() {
     typeCheckModule("""
-      \\truncated \\data Trunc (A : \\Sort) : \\Prop
+      \\truncated \\data Trunc (A : \\Type) : \\Prop
         | in A
-      \\lemma test {A : \\Sort} (a : A) (n : Nat) : Trunc A \\elim n
+      \\lemma test {A : \\Type} (a : A) (n : Nat) : Trunc A \\elim n
         | 0 => in a
         | suc _ => in a
       """);
@@ -218,7 +218,7 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void dataTwoVars() {
     typeCheckModule("""
-      \\data Or (A B : \\Sort)
+      \\data Or (A B : \\Type)
         | inl A
         | inr B
       \\func test : \\Set0 => Or Nat \\Set1
@@ -229,7 +229,7 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void dataTwoVars2() {
     typeCheckModule("""
-      \\data Or (A B : \\Sort)
+      \\data Or (A B : \\Type)
         | inl A
         | inr B
       \\func test : \\Set0 => Or \\Set1 Nat
@@ -240,7 +240,7 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void lamTest() {
     typeCheckDef("""
-      \\func test {A : \\Sort} (B : A -> \\Sort) : Nat
+      \\func test {A : \\Type} (B : A -> \\Type) : Nat
         => \\let T => \\lam x => B x \\in 0
       """);
   }
@@ -248,8 +248,8 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void splitFieldsExtend() {
     typeCheckModule("""
-      \\record R (A B : \\Sort)
-      \\record S (C D : \\Sort) (c : C) (d : D)
+      \\record R (A B : \\Type)
+      \\record S (C D : \\Type) (c : C) (d : D)
       \\record T \\extends R, S
       \\func test : \\Type3 => T { | A => \\Set0 | B => \\Set1 | C => \\Set2 | D => \\Set3 }
       """, 1);
@@ -259,8 +259,8 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void splitFieldsExtend2() {
     typeCheckModule("""
-      \\record R (A B : \\Sort)
-      \\record S (C D : \\Sort)
+      \\record R (A B : \\Type)
+      \\record S (C D : \\Type)
       \\record T \\extends R, S
       \\func test (t : T \\Set0 \\Set1 \\Set2 \\Set3) : \\Set3 => t.C
       """, 1);
@@ -270,8 +270,8 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void splitFieldsExtend3() {
     typeCheckModule("""
-      \\record R (A B : \\Sort)
-      \\record S (C D : \\Sort)
+      \\record R (A B : \\Type)
+      \\record S (C D : \\Type)
       \\record T \\extends R, S
       \\func test (t : T \\Set0 \\Set1 \\Set2 \\Set3) : \\Set1 => t.C
       """, 1);
@@ -293,7 +293,7 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void fieldTest() {
     typeCheckModule("""
-      \\record R (A : \\Sort) (a : A)
+      \\record R (A : \\Type) (a : A)
       \\func fun (r : R) (x : r.A) => x
       \\func test => fun (\\new R Nat 7)
       """);
@@ -304,16 +304,16 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void fieldTest2() {
     typeCheckModule("""
-      \\record R (A : \\Sort) (a : A)
-      \\func test (r : R) (n : Nat) : \\Sort => r.A
+      \\record R (A : \\Type) (a : A)
+      \\func test (r : R) (n : Nat) : \\Type => r.A
       """);
   }
 
   @Test
   public void fieldTest3() {
     typeCheckModule("""
-      \\record R (A : \\Sort) (a : A)
-      \\func test (r : R) (n : Nat) : \\Sort \\elim n
+      \\record R (A : \\Type) (a : A)
+      \\func test (r : R) (n : Nat) : \\Type \\elim n
         | 0 => r.A
         | suc _ => r.A
       """, 1);
@@ -322,7 +322,7 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void fieldDataTest() {
     typeCheckModule("""
-      \\record R (A B : \\Sort) (a : A) (b : B)
+      \\record R (A B : \\Type) (a : A) (b : B)
       \\data D (r : R) | con1 r.A | con2 r.A
       \\func test => D (\\new R \\Set0 \\3-Type7 Nat Nat)
       """);
@@ -332,7 +332,7 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void fieldDataTest2() {
     typeCheckModule("""
-      \\record R (A B : \\Sort) (a : A) (b : B)
+      \\record R (A B : \\Type) (a : A) (b : B)
       \\data D (r : R) | con1 r.B | con2 r.B
       \\func test => D (\\new R \\3-Type7 Nat \\Set0 0)
       """);
@@ -342,7 +342,7 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void fieldDataTest3() {
     typeCheckModule("""
-      \\record R (A B : \\Sort) (a : A) (b : B)
+      \\record R (A B : \\Type) (a : A) (b : B)
       \\data D (r : R) | con1 r.A | con2 r.B
       \\func test => D (\\new R \\3-Type7 \\7-Type3 Nat Nat)
       """);
@@ -352,8 +352,8 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void fieldDataTest4() {
     typeCheckModule("""
-      \\record R (A B : \\Sort) (a : A) (b : B)
-      \\record S (C : \\Sort) (r : R)
+      \\record R (A B : \\Type) (a : A) (b : B)
+      \\record S (C : \\Type) (r : R)
       \\data D (s : S) | con1 s.r.B | con2 s.C
       \\func test => D (\\new S \\3-Type7 (\\new R \\100-Type100 \\7-Type3 Nat Nat))
       """);
@@ -363,7 +363,7 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void overrideTest() {
     typeCheckModule("""
-      \\record R (A : \\Sort)
+      \\record R (A : \\Type)
       \\record S \\extends R
       \\record T (r : R)
       \\record U \\extends T {
@@ -375,7 +375,7 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void customClassLevelsTest() {
     typeCheckModule("""
-      \\record T (A : \\Sort)
+      \\record T (A : \\Type)
       \\record R.{s} (F : T.{s} -> T.{s})
       \\func test (r : R.{3}) : R.{4} => r
       """, 1);
@@ -385,7 +385,7 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void overriddenClassLevelsTest() {
     typeCheckModule("""
-      \\record T (A : \\Sort)
+      \\record T (A : \\Type)
       \\record R.{s} (B : T.{s} -> T.{s})
       \\func test (r : R) : R.{4} => r
       """, 1);
@@ -395,7 +395,7 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void overriddenClassLevelsTest2() {
     typeCheckModule("""
-      \\record R (A : \\Sort)
+      \\record R (A : \\Type)
       \\func test (r : R) : R.{4} => r
       """, 1);
     assertThatErrorsAre(Matchers.typeMismatchError());
@@ -404,7 +404,7 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void implementedFieldTest() {
     typeCheckModule("""
-      \\record R (A : \\Sort) (a : A)
+      \\record R (A : \\Type) (a : A)
       \\func test (X : \\Set3) (r : R X) : R.{3} => r
       """);
   }
@@ -412,7 +412,7 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void implementedFieldError() {
     typeCheckModule("""
-      \\record R (A : \\Sort) (a : A)
+      \\record R (A : \\Type) (a : A)
       \\func test (X : \\Set4) (r : R X) : R.{3} => r
       """, 1);
     assertThatErrorsAre(Matchers.typeMismatchError());
@@ -477,8 +477,8 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void skipImplementedTest() {
     typeCheckModule("""
-      \\record T (A : \\Sort)
-      \\record R (t : T) (B : \\Sort)
+      \\record T (A : \\Type)
+      \\record R (t : T) (B : \\Type)
       \\func test => R.{0} (\\new T Nat)
       """);
   }
@@ -497,7 +497,7 @@ public class SortTest extends TypeCheckingTestCase {
   @Test
   public void skipImplementedInfiniteFieldTest() {
     typeCheckModule("""
-      \\record R (A B : \\Sort)
+      \\record R (A B : \\Type)
       \\func test (A : \\Type1) => R.{0} A
       """);
   }

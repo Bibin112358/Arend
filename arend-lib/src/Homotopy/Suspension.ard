@@ -1,20 +1,20 @@
 \import Homotopy.Pointed
 \import Homotopy.Pushout
 
-\func Susp (A : \Sort) => PushoutData {A} (\lam _ => ()) (\lam _ => ())
+\func Susp (A : \Type) => PushoutData {A} (\lam _ => ()) (\lam _ => ())
   \where {
-    \func rec {A B : \Sort} (b1 b2 : B) (f : A -> b1 = b2) (x : Susp A) : B \elim x
+    \func rec {A B : \Type} (b1 b2 : B) (f : A -> b1 = b2) (x : Susp A) : B \elim x
       | north => b1
       | south => b2
       | pglue a => f a
 
-    \func pointed (A : \Sort) => \new Pointed (Susp A) north
+    \func pointed (A : \Type) => \new Pointed (Susp A) north
 
     \func pushout.{u} (A : \Type u) => pushoutData {A} (\lam _ => ()) (\lam _ => ())
   }
 
-\cons north {A : \Sort} : Susp A => pinl ()
+\cons north {A : \Type} : Susp A => pinl ()
 
-\cons south {A : \Sort} : Susp A => pinr ()
+\cons south {A : \Type} : Susp A => pinr ()
 
-\func pmerid {A : \Sort} (a : A) : north = south => path (pglue a)
+\func pmerid {A : \Type} (a : A) : north = south => path (pglue a)

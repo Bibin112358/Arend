@@ -994,12 +994,9 @@ public class ExpressionResolveNameVisitor extends BaseConcreteExpressionVisitor<
   }
 
   @Override
-  public Concrete.Expression visitUniverse(Concrete.UniverseExpression expr, Void params) {
+  public Concrete.UniverseExpression visitUniverse(Concrete.UniverseExpression expr, Void params) {
     Concrete.LevelExpression pLevel = expr.getPLevel();
-    if (pLevel != null) {
-      pLevel = pLevel.accept(this, null);
-    }
-    return new Concrete.UniverseExpression(expr.getData(), pLevel, expr.getHLevel(), expr.getKind());
+    return pLevel == null ? expr : new Concrete.UniverseExpression(expr.getData(), pLevel.accept(this, null), expr.getHLevel(), expr.getKind());
   }
 
   @Override

@@ -20,7 +20,7 @@
 \func Loop-Func {X Y : Pointed} (f : X ->* Y) : Loop X ->* Loop Y
   => (\lam z => inv f.2 *> pmap f.1 z *> f.2, pmap (_ *>) (idp_*> _) *> inv_*> _)
 
-\lemma loop-level {X : \Sort}
+\lemma loop-level {X : \Type}
                   (n : Nat)
                   (p : \Pi (x0 : X) -> (x0 = x0) ofHLevel_-1+ n)
   : X ofHLevel_-1+ suc n

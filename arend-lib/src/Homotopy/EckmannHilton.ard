@@ -8,7 +8,7 @@
 {- | This is an algebraic formulation of Eckmann Hilton argument.
  - It is used, for example, to prove that a monoid object in category of monoids is commutative
  - -}
-\class Algebraic-Eckmann-Hilton (X : \Sort) {
+\class Algebraic-Eckmann-Hilton (X : \Type) {
   | \infix 7 o : X -> X -> X
   | \infix 7 # : X -> X -> X
   | id_o : X
@@ -48,10 +48,10 @@
     => rewrite (inv $ id_o-left {_} {c}, rel-o, id_o-left, id_o-right) idp
 }
 
-\func RightHorizontalWhiskering {X : \Sort} {a b c : X} {p q : a = b} (alp : p = q) (r : b = c) : p *> r = q *> r
+\func RightHorizontalWhiskering {X : \Type} {a b c : X} {p q : a = b} (alp : p = q) (r : b = c) : p *> r = q *> r
   => path (\lam i => alp i *> r)
 
-\func LeftHorizontalWhiskering {X : \Sort} {a b c : X} (q : a = b) {r s : b = c} (bet : r = s) : q *> r = q *> s
+\func LeftHorizontalWhiskering {X : \Type} {a b c : X} (q : a = b) {r s : b = c} (bet : r = s) : q *> r = q *> s
   => path (\lam i => q *> bet i)
 
 {- | This is the proof that Omega^2 X given the composition structure

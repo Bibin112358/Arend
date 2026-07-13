@@ -44,7 +44,7 @@
 \module Internal \where {
 
   \func unify-reduction
-    {A : \Sort} {Rel : A -> A -> \Sort} (x y z : A)
+    {A : \Type} {Rel : A -> A -> \Type} (x y z : A)
     (x->y : Closure Rel x y) (x->z : Closure Rel x z)
     (unifier : \Pi (a b c : A) (a->b : Rel a b) (a->c : Rel a c) -> \Sigma (d : A) (b->d : Rel b d) (c->d : Rel c d))
     : \Sigma (w : A) (y->w : Closure Rel y w) (z->w : Closure Rel z w) \elim x->y
@@ -55,7 +55,7 @@
                                \in (w', y->w', Closure.compose z->w w->w')
     \where {
       \func unify-line
-        {A : \Sort} {Rel : A -> A -> \Sort} (x y z : A)
+        {A : \Type} {Rel : A -> A -> \Type} (x y z : A)
         (x->y : Rel x y) (x->z : Closure Rel x z)
         (unifier : \Pi (a b c : A) (a->b : Rel a b) (a->c : Rel a c) -> \Sigma (d : A) (b->d : Rel b d) (c->d : Rel c d))
         : \Sigma (w : A) (y->w : Closure Rel y w) (z->w : Closure Rel z w) \elim x->z

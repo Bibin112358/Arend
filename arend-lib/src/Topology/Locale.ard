@@ -74,42 +74,42 @@
   \lemma Join-distr {C D : E -> \Prop} : Join C ∧ Join D = SJoin (\lam s => s.1 ∧ s.2) (\lam s => \Sigma (C s.1) (D s.2))
     => <=-antisymmetric Join-distr>= $ SJoin-univ $ later \lam s => meet-monotone (Join-cond s.1) (Join-cond s.2)
 
-  \lemma SJoin-ldistr>= {A : \Sort} {f : A -> E} {P : A -> \Prop} {e : E} : e ∧ SJoin f P <= SJoin (\lam x => e ∧ f x) P
+  \lemma SJoin-ldistr>= {A : \Type} {f : A -> E} {P : A -> \Prop} {e : E} : e ∧ SJoin f P <= SJoin (\lam x => e ∧ f x) P
     => Join-ldistr>= <=∘ SJoin-univ (SetIm-elim SJoin-cond)
 
-  \lemma SJoin-ldistr {A : \Sort} {f : A -> E} {P : A -> \Prop} {e : E} : e ∧ SJoin f P = SJoin (\lam x => e ∧ f x) P
+  \lemma SJoin-ldistr {A : \Type} {f : A -> E} {P : A -> \Prop} {e : E} : e ∧ SJoin f P = SJoin (\lam x => e ∧ f x) P
     => <=-antisymmetric SJoin-ldistr>= $ SJoin-univ \lam Pa => meet-monotone <=-refl (SJoin-cond Pa)
 
-  \lemma SJoin-rdistr>= {A : \Sort} {f : A -> E} {P : A -> \Prop} {e : E} : SJoin f P ∧ e <= SJoin (\lam x => f x ∧ e) P
+  \lemma SJoin-rdistr>= {A : \Type} {f : A -> E} {P : A -> \Prop} {e : E} : SJoin f P ∧ e <= SJoin (\lam x => f x ∧ e) P
     => Join-rdistr>= <=∘ SJoin-univ (SetIm-elim SJoin-cond)
 
-  \lemma SJoin-rdistr {A : \Sort} {f : A -> E} {P : A -> \Prop} {e : E} : SJoin f P ∧ e = SJoin (\lam x => f x ∧ e) P
+  \lemma SJoin-rdistr {A : \Type} {f : A -> E} {P : A -> \Prop} {e : E} : SJoin f P ∧ e = SJoin (\lam x => f x ∧ e) P
     => <=-antisymmetric SJoin-rdistr>= $ SJoin-univ \lam Pa => meet-monotone (SJoin-cond Pa) <=-refl
 
-  \lemma SJoin-distr>= {A B : \Sort} {f : A -> E} {g : B -> E} {P : A -> \Prop} {Q : B -> \Prop}
+  \lemma SJoin-distr>= {A B : \Type} {f : A -> E} {g : B -> E} {P : A -> \Prop} {Q : B -> \Prop}
     : SJoin f P ∧ SJoin g Q <= SJoin {_} {\Sigma A B} (\lam s => f s.1 ∧ g s.2) (\lam s => \Sigma (P s.1) (Q s.2))
     => SJoin-rdistr>= <=∘ SJoin-univ \lam {a} Pa => SJoin-ldistr>= <=∘ SJoin-univ \lam {b} Qb => SJoin-conde (a,b) (Pa,Qb)
 
-  \lemma SJoin-distr {A B : \Sort} {f : A -> E} {g : B -> E} {P : A -> \Prop} {Q : B -> \Prop}
+  \lemma SJoin-distr {A B : \Type} {f : A -> E} {g : B -> E} {P : A -> \Prop} {Q : B -> \Prop}
     : SJoin f P ∧ SJoin g Q = SJoin {_} {\Sigma A B} (\lam s => f s.1 ∧ g s.2) (\lam s => \Sigma (P s.1) (Q s.2))
     => <=-antisymmetric SJoin-distr>= $ SJoin-univ $ later \lam {s} PQs => meet-monotone (SJoin-cond PQs.1) (SJoin-cond PQs.2)
 
-  \lemma IJoin-ldistr>= {J : \Sort} {f : J -> E} {e : E} : e ∧ IJoin f <= IJoin (\lam x => e ∧ f x)
+  \lemma IJoin-ldistr>= {J : \Type} {f : J -> E} {e : E} : e ∧ IJoin f <= IJoin (\lam x => e ∧ f x)
     => Join-ldistr>= <=∘ SJoin-univ (TSetIm-elim IJoin-cond)
 
-  \lemma IJoin-ldistr {J : \Sort} {f : J -> E} {e : E} : e ∧ IJoin f = IJoin (\lam x => e ∧ f x)
+  \lemma IJoin-ldistr {J : \Type} {f : J -> E} {e : E} : e ∧ IJoin f = IJoin (\lam x => e ∧ f x)
     => <=-antisymmetric IJoin-ldistr>= $ IJoin-univ \lam j => meet-monotone <=-refl (IJoin-cond j)
 
-  \lemma IJoin-rdistr>= {J : \Sort} {f : J -> E} {e : E} : IJoin f ∧ e <= IJoin (\lam x => f x ∧ e)
+  \lemma IJoin-rdistr>= {J : \Type} {f : J -> E} {e : E} : IJoin f ∧ e <= IJoin (\lam x => f x ∧ e)
     => Join-rdistr>= <=∘ SJoin-univ (TSetIm-elim IJoin-cond)
 
-  \lemma IJoin-rdistr {J : \Sort} {f : J -> E} {e : E} : IJoin f ∧ e = IJoin (\lam x => f x ∧ e)
+  \lemma IJoin-rdistr {J : \Type} {f : J -> E} {e : E} : IJoin f ∧ e = IJoin (\lam x => f x ∧ e)
     => <=-antisymmetric IJoin-rdistr>= $ IJoin-univ \lam j => meet-monotone (IJoin-cond j) <=-refl
 
-  \lemma IJoin-distr>= {J : \Sort} {f : J -> E} {g : J -> E} : IJoin f ∧ IJoin g <= IJoin (\lam (s : \Sigma J J) => f s.1 ∧ g s.2)
+  \lemma IJoin-distr>= {J : \Type} {f : J -> E} {g : J -> E} : IJoin f ∧ IJoin g <= IJoin (\lam (s : \Sigma J J) => f s.1 ∧ g s.2)
     => IJoin-rdistr>= <=∘ IJoin-univ \lam i => IJoin-ldistr>= <=∘ IJoin-univ \lam j => IJoin-cond (i,j)
 
-  \lemma IJoin-distr {J : \Sort} {f : J -> E} {g : J -> E} : IJoin f ∧ IJoin g = IJoin (\lam (s : \Sigma J J) => f s.1 ∧ g s.2)
+  \lemma IJoin-distr {J : \Type} {f : J -> E} {g : J -> E} : IJoin f ∧ IJoin g = IJoin (\lam (s : \Sigma J J) => f s.1 ∧ g s.2)
     => <=-antisymmetric IJoin-distr>= $ IJoin-univ \lam s => meet-monotone (IJoin-cond s.1) (IJoin-cond s.2)
 
   \type \infix 4 << (x y : E) => \Pi {U : E -> \Prop} -> y <= Join U -> ∃ (l : Array E) (∀ (a : l) (U a)) (x <= IJoin l)
@@ -131,7 +131,7 @@
         join-univ (a<=Va <=∘ Join-univ \lam Vw => Join-cond (byLeft Vw)) (b<=Vb <=∘ Join-univ \lam Vw => Join-cond (byRight Vw)))
     }
 
-  \lemma <<_IJoin {x y : E} (x<<y : x << y) {J : \Sort} {g : J -> E} (y<=g : y <= IJoin g) : ∃ (l : Array J) (x <= IJoin \lam j => g (l j))
+  \lemma <<_IJoin {x y : E} (x<<y : x << y) {J : \Type} {g : J -> E} (y<=g : y <= IJoin g) : ∃ (l : Array J) (x <= IJoin \lam j => g (l j))
     => \case x<<y y<=g \with {
       | inP (l,gl,x<=l) => \case FinSet.finiteAC (\lam j => gl j) \with {
         | inP h => inP (\lam j => (h j).1, x<=l <=∘ IJoin-univ \lam j => inv (h j).2 =<= IJoin-cond j)
@@ -231,12 +231,12 @@
       \lemma conv {P : E -> \Prop} (p : ∃ (a : P) (IsPositive a)) : IsPositive (Join P) \elim p
         | inP (a,Pa,a>0) => \lam JP => a>0 $ Join-cond Pa <=∘ JP
 
-  \lemma positive_SJoin (o : IsOvert) {A : \Sort} {f : A -> E} {C : A -> \Prop} (J>0 : IsPositive (SJoin f C)) : ∃ (a : C) (IsPositive (f a))
+  \lemma positive_SJoin (o : IsOvert) {A : \Type} {f : A -> E} {C : A -> \Prop} (J>0 : IsPositive (SJoin f C)) : ∃ (a : C) (IsPositive (f a))
     => \case positive_Join o J>0 \with {
       | inP (_, inP ((a,Ca),idp), fa>0) => inP (a,Ca,fa>0)
     }
     \where
-      \lemma conv {A : \Sort} {f : A -> E} {C : A -> \Prop} (p : ∃ (a : C) (IsPositive (f a))) : IsPositive (SJoin f C) \elim p
+      \lemma conv {A : \Type} {f : A -> E} {C : A -> \Prop} (p : ∃ (a : C) (IsPositive (f a))) : IsPositive (SJoin f C) \elim p
         | inP (a,Ca,fa>0) => positive_Join.conv $ inP (f a, SetIm-con Ca, fa>0)
 
   \lemma positive_cover {a : E} (p : IsPositive a) {C : E -> \Prop} (c : a <= Join C) : ∃ C
@@ -308,16 +308,16 @@
   \default func-meet>= => =_<= (inv func-meet)
   \default func-meet => <=-antisymmetric (meet-univ (func-<= meet-left) (func-<= meet-right)) func-meet>=
 
-  \lemma func-SJoin>= {A : \Sort} {f : A -> Dom} {P : A -> \Prop} : func (SJoin f P) <= SJoin (\lam a => func (f a)) P
+  \lemma func-SJoin>= {A : \Type} {f : A -> Dom} {P : A -> \Prop} : func (SJoin f P) <= SJoin (\lam a => func (f a)) P
     => func-Join>= <=∘ SJoin-univ (SetIm-elim SJoin-cond)
 
-  \lemma func-SJoin {A : \Sort} {f : A -> Dom} {P : A -> \Prop} : func (SJoin f P) = SJoin (\lam a => func (f a)) P
+  \lemma func-SJoin {A : \Type} {f : A -> Dom} {P : A -> \Prop} : func (SJoin f P) = SJoin (\lam a => func (f a)) P
     => <=-antisymmetric func-SJoin>= $ SJoin-univ \lam Pa => func-<= (SJoin-cond Pa)
 
-  \lemma func-IJoin>= {J : \Sort} {f : J -> Dom} : func (IJoin f) <= IJoin (\lam a => func (f a))
+  \lemma func-IJoin>= {J : \Type} {f : J -> Dom} : func (IJoin f) <= IJoin (\lam a => func (f a))
     => func-Join>= <=∘ SJoin-univ (TSetIm-elim IJoin-cond)
 
-  \lemma func-IJoin {J : \Sort} {f : J -> Dom} : func (IJoin f) = IJoin (\lam a => func (f a))
+  \lemma func-IJoin {J : \Type} {f : J -> Dom} : func (IJoin f) = IJoin (\lam a => func (f a))
     => <=-antisymmetric func-IJoin>= $ IJoin-univ \lam a => func-<= (IJoin-cond a)
 
   \lemma func-join>= {x y : Dom} : func (x ∨ y) <= func x ∨ func y
@@ -544,7 +544,7 @@
   \lemma locale_pHat {P : \Prop} : (locale.pHat P).1 = nucleus (pHat P)
     => pmap nucleus $ <=-antisymmetric (SJoin-univ \lam p => Join-cond p) $ Join-univ \lam p => top-univ <=∘ SJoin-conde (later (top,top-univ)) p
 
-  \lemma locale_IJoin {J : \Sort} {g : J -> Subtype} : (locale.IJoin g).1 = nucleus (IJoin \lam j => (g j).1)
+  \lemma locale_IJoin {J : \Type} {g : J -> Subtype} : (locale.IJoin g).1 = nucleus (IJoin \lam j => (g j).1)
     => pmap nucleus $ <=-antisymmetric (SJoin-univ $ TSetIm-elim IJoin-cond) (IJoin-univ \lam j => SJoin-cond $ TSetIm-con j)
 
   \protected \func isClosed => \Pi {x : L} -> nucleus x <= nucleus bottom ∨ x

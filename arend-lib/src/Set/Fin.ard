@@ -62,7 +62,7 @@
         | inP Xcard=A, inP Ycard=A => FinCardBij (Xcard=A `transQEquiv` symQEquiv Ycard=A)
       })
 
-  \lemma ||-finiteAC {n : Nat} {A : \Sort} {B : Fin n -> \Sort} (f : \Pi (i : Fin n) -> A || B i) : A || (\Pi (i : Fin n) -> B i) \elim n
+  \lemma ||-finiteAC {n : Nat} {A : \Type} {B : Fin n -> \Type} (f : \Pi (i : Fin n) -> A || B i) : A || (\Pi (i : Fin n) -> B i) \elim n
     | 0 => byRight \case __
     | suc n => \case f 0, ||-finiteAC (\lam i => f (suc i)) \with {
       | byLeft a, _ => byLeft a
@@ -73,7 +73,7 @@
       }
     }
 
-  \lemma finiteAC {n : Nat} {A : Fin n -> \Sort} (f : \Pi (i : Fin n) -> TruncP (A i)) : TruncP (\Pi (i : Fin n) -> A i)
+  \lemma finiteAC {n : Nat} {A : Fin n -> \Type} (f : \Pi (i : Fin n) -> TruncP (A i)) : TruncP (\Pi (i : Fin n) -> A i)
     => \case ||-finiteAC {_} {Empty} (\lam i => \case f i \with {
       | inP a => byRight a
     }) \with {
@@ -96,7 +96,7 @@
         }
       }
 
-  \func searchFin-equiv {B : \Sort} {n : Nat} (e : QEquiv {Fin n} {B}) (A : B -> \Prop) (d : \Pi (b : B) -> Dec (A b))
+  \func searchFin-equiv {B : \Type} {n : Nat} (e : QEquiv {Fin n} {B}) (A : B -> \Prop) (d : \Pi (b : B) -> Dec (A b))
     : Or (\Sigma (b : B) (A b)) (\Pi (b : B) -> Not (A b))
     => \case searchFin (\lam j => A (e j)) (\lam j => d (e j)) \with {
          | inl p => inl (e p.1, p.2)

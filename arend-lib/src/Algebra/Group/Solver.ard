@@ -28,7 +28,7 @@
 \open OrderedAddMonoid
 \open LinearlyOrderedAbMonoid
 
-\data GroupTerm (V : \Sort)
+\data GroupTerm (V : \Type)
   | var V
   | :ide
   | :inv (GroupTerm V)

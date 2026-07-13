@@ -30,8 +30,8 @@
     => IsEquiv.f_ret CHom-univ
 }
 
-\instance SetCartesianClosed : CartesianClosedPrecat SetBicat
-  | CartesianPrecat => SetBicat
+\instance SetCartesianClosed.{u} : CartesianClosedPrecat (\Set u)
+  | CartesianPrecat => SetBicat.{u}
   | CHom X Y => X -> Y
   | CHom-eval s => s.1 s.2
   | CHom-univ => inP \new QEquiv {

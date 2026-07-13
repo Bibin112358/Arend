@@ -181,7 +181,7 @@ public class DataTest extends TypeCheckingTestCase {
   @Test
   public void inductionRecursion() {
     typeCheckModule(
-      "\\func f (d : D) : \\Set | d1 => Nat | d2 x y => \\Pi (a : f x) -> f (y a)\n" +
+      "\\func f (d : D) : \\Set0 | d1 => Nat | d2 x y => \\Pi (a : f x) -> f (y a)\n" +
       "\\data D : \\Set | d1 | d2 (x : D) (f x -> D)");
   }
 
@@ -367,7 +367,7 @@ public class DataTest extends TypeCheckingTestCase {
   @Test
   public void recordPositiveTest() {
     typeCheckModule("""
-      \\record R (A : \\Sort) (field : Nat -> A)
+      \\record R (A : \\Type) (field : Nat -> A)
       \\data D | con1 (R D) | con2
       \\func test (d : D) : Nat
         | con1 r => test (r.field 0)

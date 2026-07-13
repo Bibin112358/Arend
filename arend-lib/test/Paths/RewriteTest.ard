@@ -30,10 +30,10 @@
 \lemma test7 {A : AbMonoid} (x y : A) (f : A -> A) : f (x + y) = f (y + x)
   => rewrite +-comm idp
 
-\lemma testNorm {A : \Sort} (a : A) (l : List A) (P : List A -> \Prop) (p : P (a :: l)) : P ((a :: l) ++ nil)
+\lemma testNorm {A : \Type} (a : A) (l : List A) (P : List A -> \Prop) (p : P (a :: l)) : P ((a :: l) ++ nil)
   => rewrite ++_nil p
 
-\lemma testRestore {A : \Sort} (xs ys zs : List A) (P : List A -> List A -> \Prop) (p : P (xs ++ ys) zs) : P (xs ++ ys) (zs ++ nil)
+\lemma testRestore {A : \Type} (xs ys zs : List A) (P : List A -> List A -> \Prop) (p : P (xs ++ ys) zs) : P (xs ++ ys) (zs ++ nil)
   => rewrite ++_nil p
 
 \lemma conTest {x : Bool} (p : true = x) : x = true => rewrite p idp

@@ -672,14 +672,14 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
   }
 
   @Override
-  public Concrete.UniverseExpression visitUniverse(@Nullable Object data, @Nullable BigInteger pLevelNum, @Nullable BigInteger hLevelNum, @Nullable Abstract.LevelExpression pLevel, boolean isInfinite, Void params) {
+  public Concrete.UniverseExpression visitUniverse(@Nullable Object data, @Nullable BigInteger pLevelNum, @Nullable BigInteger hLevelNum, @Nullable Abstract.LevelExpression pLevel, Void params) {
     if (pLevelNum != null) {
       pLevel = null;
     }
 
     return new Concrete.UniverseExpression(data,
             pLevelNum != null ? new Concrete.NumberLevelExpression(data, pLevelNum) : pLevel != null ? pLevel.accept(this, null) : null,
-            hLevelNum, isInfinite ? ConcreteUniverseExpression.Kind.SORT : ConcreteUniverseExpression.Kind.TYPE);
+            hLevelNum, ConcreteUniverseExpression.Kind.TYPE);
   }
 
   @Override
@@ -688,11 +688,6 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
       myErrorReporter.report(new AbstractExpressionError(GeneralError.Level.ERROR, "p-level is already specified", pLevel.getData()));
     }
     return new Concrete.UniverseExpression(data, pLevelNum != null ? new Concrete.NumberLevelExpression(data, pLevelNum) : pLevel != null ? pLevel.accept(this, null) : null, null, ConcreteUniverseExpression.Kind.CAT);
-  }
-
-  @Override
-  public Concrete.Expression visitSortUniverse(@Nullable Object data, Void params) {
-    return new Concrete.UniverseExpression(data, null, null, ConcreteUniverseExpression.Kind.SORT);
   }
 
   @Override

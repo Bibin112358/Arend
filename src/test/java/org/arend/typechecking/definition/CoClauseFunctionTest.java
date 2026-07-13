@@ -231,8 +231,8 @@ public class CoClauseFunctionTest extends TypeCheckingTestCase {
   public void levelTest() {
     typeCheckModule("""
       \\data Wrap (A : \\Type) | in A
-      \\record R | field {A : \\Type} (p : \\Pi (a a' : A) -> a = a') (t s : Wrap A) : A \\level p
-      \\func test : R \\cowith | field {A : \\Type} (p : \\Pi (a a' : A) -> a = a') (t s : Wrap A) : A \\elim t { | in a => a }
+      \\record R | field {A : \\Type0} (p : \\Pi (a a' : A) -> a = a') (t s : Wrap A) : A \\level p
+      \\func test : R \\cowith | field {A : \\Type0} (p : \\Pi (a a' : A) -> a = a') (t s : Wrap A) : A \\elim t { | in a => a }
       """);
   }
 
@@ -240,7 +240,7 @@ public class CoClauseFunctionTest extends TypeCheckingTestCase {
   public void levelTest2() {
     typeCheckModule("""
       \\data Wrap (A : \\Type) | in A
-      \\record R | field {A : \\Type} (p : \\Pi (a a' : A) -> a = a') (t s : Wrap A) : A \\level p
+      \\record R | field {A : \\Type0} (p : \\Pi (a a' : A) -> a = a') (t s : Wrap A) : A \\level p
       \\func test : R \\cowith | field {A} p t s \\elim t { | in a => a }
       """);
   }
@@ -248,7 +248,7 @@ public class CoClauseFunctionTest extends TypeCheckingTestCase {
   @Test
   public void implicitParameterError() {
     typeCheckModule(
-      "\\record R | field {A : \\Type} : A -> A\n" +
+      "\\record R | field {A : \\Type0} : A -> A\n" +
       "\\func test : R \\cowith | field \\as \\fix 5 field t => {?}", 1);
     assertThatErrorsAre(typecheckingError(ArgumentExplicitnessError.class));
   }

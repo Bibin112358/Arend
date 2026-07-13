@@ -27,13 +27,13 @@
   | isCover (x : Ob) : Presieve x -> \Prop
   | cover-stable {x y : Ob} (h : Hom x y) : ∀ {S : isCover y} ∃ (T : isCover x) ∀ {px : T} ∃ (py : S) (f : Hom px.1 py.1) (py.2 ∘ f = h ∘ px.2)
 
-  \func IsCoverFam {J : \Sort} {x : Ob} (f : J -> ObOver x) : \Prop
+  \func IsCoverFam {J : \Type} {x : Ob} (f : J -> ObOver x) : \Prop
     => isCover x \lam px => ∃ (j : J) (px = f j)
 
   \func isCover_IsCoverFam {x : Ob} {P : Presieve x} : isCover x P <-> IsCoverFam {_} {Given P} __.1
     => <->_=.2 $ pmap (isCover x) $ ext \lam px => ext (\lam Ppx => inP ((px,Ppx),idp), \lam (inP (j,p)) => transportInv P p j.2)
 } \where {
-  \func pushforwardFam.{o1,h1,o2,h2} {C : Site.{o1,h1}} {D : Site.{o2,h2}} (F : Functor C D) {J : \Sort} {x : C} (P : J -> ObOver x) : J -> ObOver (F x)
+  \func pushforwardFam.{o1,h1,o2,h2} {C : Site.{o1,h1}} {D : Site.{o2,h2}} (F : Functor C D) {J : \Type} {x : C} (P : J -> ObOver x) : J -> ObOver (F x)
     => \lam j => (F (P j).1, Func (P j).2)
 }
 

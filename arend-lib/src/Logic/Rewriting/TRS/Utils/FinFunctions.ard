@@ -7,29 +7,29 @@
 \import Paths.Meta
 \import Set.Fin
 
-\func Index {A : \Sort} (list : List A) : \Set0
+\func Index {A : \Type} (list : List A) : \Set0
   => Fin (length list)
 
-\func expand-fin-left {A : \Sort} {a b : List A} (i : Index a) : Index (a ++ b) \elim a, i
+\func expand-fin-left {A : \Type} {a b : List A} (i : Index a) : Index (a ++ b) \elim a, i
   | :: a _, 0 => 0
   | :: _ _, suc i => suc (expand-fin-left i)
   \where {
-    \func correct {A : \Sort} {a b : List A} (i : Index a) : (a ++ b) !! expand-fin-left i = a !! i \elim a, i
+    \func correct {A : \Type} {a b : List A} (i : Index a) : (a ++ b) !! expand-fin-left i = a !! i \elim a, i
       | :: a a1, 0 => idp
       | :: a a1, suc i => correct i
   }
 
-\func expand-fin-right {A : \Sort} {a b : List A} (i : Index b) : Index (a ++ b) \elim a
+\func expand-fin-right {A : \Type} {a b : List A} (i : Index b) : Index (a ++ b) \elim a
   | nil => i
   | :: a a1 => suc (expand-fin-right i)
   \where {
-    \func correct {A : \Sort} {a b : List A} (i : Index b) : (a ++ b) !! expand-fin-right i = b !! i \elim a
+    \func correct {A : \Type} {a b : List A} (i : Index b) : (a ++ b) !! expand-fin-right i = b !! i \elim a
       | nil => idp
       | :: a a1 => correct i
   }
 
 \func partial-fin-induction
-  {A : \Sort} {a b : List A} (C : Index (a ++ b) -> \Sort)
+  {A : \Type} {a b : List A} (C : Index (a ++ b) -> \Type)
   (proof-for-prefix : \Pi (i : Index a) -> C (expand-fin-left i))
   (proof-for-suffix : \Pi (i : Index b) -> C (expand-fin-right i))
   (index : Index (a ++ b)) : C index =>
@@ -38,7 +38,7 @@
     | inr (j, p) => rewrite p (proof-for-suffix j)
   }
   \where {
-    \func fin-list-decide {A : \Sort} {a b : List A} (index : Index (a ++ b)) :
+    \func fin-list-decide {A : \Type} {a b : List A} (index : Index (a ++ b)) :
       (\Sigma (i : Index a) (index = expand-fin-left i)) `Or` (\Sigma (j : Index b) (index = expand-fin-right j))
     \elim a, index
       | nil, index => inr (index, idp)
@@ -51,7 +51,7 @@
 
 \func modular-function
   {n : Nat}
-  {C : Fin n -> \Sort}
+  {C : Fin n -> \Type}
   (f g : \Pi (i : Fin n) -> C i)
   (delim : Fin (suc n))
   (i : Fin n)
@@ -63,13 +63,13 @@
   \where {
     \func pure-left-modular
       {n : Nat}
-      {C : Fin n -> \Sort}
+      {C : Fin n -> \Type}
       (f g : \Pi (i : Fin n) -> C i)
       : modular-function f g 0 = f => ext (unext f g)
       \where {
         \func unext
           {n : Nat}
-          {C : Fin n -> \Sort}
+          {C : Fin n -> \Type}
           (f g : \Pi (i : Fin n) -> C i)
           (i : Fin n) : modular-function f g 0 i = f i \elim n, i
           | suc n, i => idp
@@ -77,7 +77,7 @@
 
     \func modular-bridge
       {n : Nat}
-      {C : Fin n -> \Sort}
+      {C : Fin n -> \Type}
       (f g : \Pi (i : Fin n) -> C i)
       (delim : Fin n)
       (eq : f delim = g delim) : modular-function f g delim = modular-function f g (suc delim) =>
@@ -85,7 +85,7 @@
       \where {
         \func unext
           {n : Nat}
-          {C : Fin n -> \Sort}
+          {C : Fin n -> \Type}
           (f g : \Pi (i : Fin n) -> C i)
           (delim : Fin n)
           (eq : f delim = g delim)
@@ -100,12 +100,12 @@
 
     \func pure-right-modular
       {n : Nat}
-      {C : Fin n -> \Sort}
+      {C : Fin n -> \Type}
       (f g : \Pi (i : Fin n) -> C i) : modular-function f g (finLast n) = g => ext (unext C f g)
       \where {
         \func unext
           {n : Nat}
-          (C : Fin n -> \Sort)
+          (C : Fin n -> \Type)
           (f g : \Pi (i : Fin n) -> C i)
           (i : Fin n)
           : modular-function f g (finLast n) i = g i \elim n, i
@@ -115,8 +115,8 @@
   }
 
 \func modular-induction
-  {n : Nat} {C : Fin n -> \Sort}
-  (Q : (\Pi (i : Fin n) -> C i) -> \Sort)
+  {n : Nat} {C : Fin n -> \Type}
+  (Q : (\Pi (i : Fin n) -> C i) -> \Type)
   (f g : \Pi (i : Fin n) -> C i)
   (start : Q f)
   (step : \Pi (delim : Fin n) (Q (modular-function f g delim)) -> Q (modular-function f g (suc delim)))
@@ -124,8 +124,8 @@
   transport Q (modular-function.pure-right-modular f g) (progressive-induction-lemma {n} Q f g step (finLast n) start)
   \where {
     \func progressive-induction-lemma
-      {n : Nat} {C : Fin n -> \Sort}
-      (Q : (\Pi (i : Fin n) -> C i) -> \Sort)
+      {n : Nat} {C : Fin n -> \Type}
+      (Q : (\Pi (i : Fin n) -> C i) -> \Type)
       (f g : \Pi (i : Fin n) -> C i)
       (step : \Pi (delim : Fin n) (Q (modular-function f g delim)) -> Q (modular-function f g (suc delim)))
       (delim : Fin (suc n))
@@ -136,7 +136,7 @@
       | suc n, suc delim => step delim (progressive-induction-lemma {suc n} Q f g step delim start)
   }
 
-\func pointed-function {n : Nat} {C : Fin n -> \Sort}
+\func pointed-function {n : Nat} {C : Fin n -> \Type}
                        (f : \Pi (i : Fin n) -> C i)
                        (index : Fin n)
                        (point : C index)
@@ -148,7 +148,7 @@
   | suc n, suc index, suc j => pointed-function (\lam i => f (suc i)) index point j
   \where {
     \func at-index
-      {n : Nat} {C : Fin n -> \Sort}
+      {n : Nat} {C : Fin n -> \Type}
       (f : \Pi (i : Fin n) -> C i)
       (index : Fin n)
       (point : C index)
@@ -157,7 +157,7 @@
       | suc n, suc index => at-index (\lam i => f (suc i)) index point
 
     \func not-at-index
-      {n : Nat} {C : Fin n -> \Sort}
+      {n : Nat} {C : Fin n -> \Type}
       (f : \Pi (i : Fin n) -> C i)
       (index : Fin n)
       (point : C index)
@@ -172,8 +172,8 @@
   }
 
 \func pointed-induction
-  {n : Nat} {C : Fin n -> \Sort}
-  (Q : \Pi (i : Fin n) -> C i -> \Sort)
+  {n : Nat} {C : Fin n -> \Type}
+  (Q : \Pi (i : Fin n) -> C i -> \Type)
   (f : \Pi (i : Fin n) -> C i)
   (index : Fin n)
   (point : C index)
@@ -193,14 +193,14 @@
         (\lam p => ne (FinSet.suc-isInj _ _ p))) i
 
 \func modular-to-pointed
-  {n : Nat} {C : Fin n -> \Sort}
+  {n : Nat} {C : Fin n -> \Type}
   (f g : \Pi (i : Fin n) -> C i)
   (delim : Fin n)
   : modular-function f g delim = pointed-function (modular-function f g delim) delim (f delim) =>
   ext (unext f g delim)
   \where {
     \func unext
-      {n : Nat} {C : Fin n -> \Sort}
+      {n : Nat} {C : Fin n -> \Type}
       (f g : \Pi (i : Fin n) -> C i)
       (delim : Fin n)
       (i : Fin n)
@@ -213,14 +213,14 @@
   }
 
 \func modular-to-pointed-forward
-  {n : Nat} {C : Fin n -> \Sort}
+  {n : Nat} {C : Fin n -> \Type}
   (f g : \Pi (i : Fin n) -> C i)
   (delim : Fin n)
   : modular-function f g (suc delim) = pointed-function (modular-function f g delim) delim (g delim) =>
   ext (unext f g delim)
   \where {
     \func unext
-      {n : Nat} {C : Fin n -> \Sort}
+      {n : Nat} {C : Fin n -> \Type}
       (f g : \Pi (i : Fin n) -> C i)
       (delim : Fin n)
       (i : Fin n)

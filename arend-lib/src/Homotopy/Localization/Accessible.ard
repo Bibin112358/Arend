@@ -89,7 +89,7 @@
     \func famHat.{u} {fam : Family.{u}}
       => \new Family (J `Or` J) DHat CHat FHat
 
-    \lemma pushout_pullback-equiv {X Y Z : \Sort} (f : X -> Y)
+    \lemma pushout_pullback-equiv {X Y Z : \Type} (f : X -> Y)
       : IsEquiv {\Sigma (g1 g2 : Y -> Z) (g1 `o` f = g2 `o` f)}
                 {PushoutData f f -> Z}
                 (\lam t => rec t.1 t.2 (\lam x => path ((t.3 @ __) x)))

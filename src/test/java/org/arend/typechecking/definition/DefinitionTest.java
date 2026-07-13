@@ -199,7 +199,7 @@ public class DefinitionTest extends TypeCheckingTestCase {
   @Test
   public void fieldsEvaluation() {
     typeCheckModule("""
-      \\class C (X : \\Type) | x0 : X | x1 : \\Type -> X | x2 (A : \\Type) : x1 A = x0 -> Nat
+      \\class C (X : \\Type) | x0 : X | x1 : \\Type0 -> X | x2 (A : \\Type0) : x1 A = x0 -> Nat
       \\instance NatC : C Nat 0 (\\lam _ => 0) (\\lam _ _ => 0)
       \\func test : Nat => x0
       """);

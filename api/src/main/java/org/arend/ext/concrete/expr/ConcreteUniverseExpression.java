@@ -7,7 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import java.math.BigInteger;
 
 public interface ConcreteUniverseExpression extends ConcreteExpression {
-  enum Kind { SORT, CAT, TYPE }
+  enum Kind { CAT, TYPE }
 
   @Nullable ConcreteLevel getPLevel();
   @Nullable BigInteger getHLevel();

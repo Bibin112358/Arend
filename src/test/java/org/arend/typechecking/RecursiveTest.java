@@ -116,8 +116,8 @@ public class RecursiveTest extends TypeCheckingTestCase {
   @Test
   public void parametersTypeTest() {
     typeCheckModule(
-      "\\func f (x : \\let t => g 0 \\in Nat) : \\Type | 0 => Nat | suc x => g x\n" +
-      "\\func g (x : Nat) : \\Type | 0 => Nat | suc x => f x", 1);
+      "\\func f (x : \\let t => g 0 \\in Nat) : \\Type0 | 0 => Nat | suc x => g x\n" +
+      "\\func g (x : Nat) : \\Type0 | 0 => Nat | suc x => f x", 1);
   }
 
   @Test
@@ -138,8 +138,8 @@ public class RecursiveTest extends TypeCheckingTestCase {
   @Test
   public void bodyBodyElimTest() {
     typeCheckModule(
-      "\\func f (x : Nat) : \\Type | 0 => g 0 | suc _ => Nat\n" +
-      "\\func g (x : Nat) : \\Type | 0 => f 0 | suc _ => Nat", 4);
+      "\\func f (x : Nat) : \\Type0 | 0 => g 0 | suc _ => Nat\n" +
+      "\\func g (x : Nat) : \\Type0 | 0 => f 0 | suc _ => Nat", 4);
     assertThatErrorsAre(instanceOf(TerminationCheckError.class), instanceOf(TerminationCheckError.class), instanceOf(TerminationCheckError.class), instanceOf(TerminationCheckError.class));
   }
 
@@ -172,14 +172,14 @@ public class RecursiveTest extends TypeCheckingTestCase {
   public void dataFunctionError2() {
     typeCheckModule(
       "\\data D (n : Nat) : \\Set | con1 (f 1) | con2\n" +
-      "\\func f (n : Nat) : \\Set | 0 => Nat | suc n => D n", 1);
+      "\\func f (n : Nat) : \\Set0 | 0 => Nat | suc n => D n", 1);
   }
 
   @Test
   public void dataFunctionError3() {
     typeCheckModule(
-      "\\data D : \\Type | con1 | con2 (f (\\lam x => x))\n" +
-      "\\func f (g : D -> D) : \\Type => g con1 = g con1", 2);
+      "\\data D | con1 | con2 (f (\\lam x => x))\n" +
+      "\\func f (g : D -> D) : \\Type0 => g con1 = g con1", 2);
   }
 
   @Test
@@ -210,9 +210,9 @@ public class RecursiveTest extends TypeCheckingTestCase {
   @Test
   public void levelsTest() {
     typeCheckModule("""
-      \\func test (n : Nat) : Nat
+      \\func test.{u} (n : Nat) : Nat
         | 0 => 0
-        | suc n => test.{\\lp} n
+        | suc n => test.{u} n
       """);
   }
 
@@ -240,8 +240,8 @@ public class RecursiveTest extends TypeCheckingTestCase {
   @Test
   public void recursiveLevels3() {
     typeCheckModule(
-      "\\data D.{lvl} : \\Set | con (d : D) (E.{lvl} d)\n" +
-      "\\func E.{lvl} (d : D.{\\suc lvl}) : \\Set | con _ _ => Nat", 2);
+      "\\data D.{u} : \\Set | con (d : D) (E.{u} d)\n" +
+      "\\func E.{u} (d : D.{\\suc u}) : \\Set u | con _ _ => Nat", 2);
   }
 
   @Test

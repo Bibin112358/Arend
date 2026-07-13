@@ -85,7 +85,7 @@
       | bar-ask h => bar-ask \lam a => induction (h a)
   }
 
-\func IsBarMonotone {A : \Sort} (P : Array A -> \Prop) : \Prop
+\func IsBarMonotone {A : \Type} (P : Array A -> \Prop) : \Prop
   => \Pi {a : A} {l : Array A} -> P l -> P (a :: l)
 
 \lemma barMonotone_++ {A : \Set} {P : Array A -> \Prop} (Pm : IsBarMonotone P) {r : Array A} : IsBarMonotone (\lam l => P (l ++ r))

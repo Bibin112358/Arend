@@ -198,7 +198,7 @@ public class CaseTest extends TypeCheckingTestCase {
   public void propertyLevelTest() {
     typeCheckModule("""
       \\truncated \\data Trunc (A : \\Type) : \\Prop | in A
-      \\record R | field {A : \\Set} (p : \\Pi (a a' : A) -> a = a') (t : Trunc A) : \\level A p
+      \\record R | field {A : \\Set0} (p : \\Pi (a a' : A) -> a = a') (t : Trunc A) : \\level A p
       \\func test : R \\cowith | field _ t => \\case t \\with { | in a => a }
       """);
   }
@@ -207,7 +207,7 @@ public class CaseTest extends TypeCheckingTestCase {
   public void propertyLevelError() {
     typeCheckModule("""
       \\truncated \\data Trunc (A : \\Type) : \\Prop | in A
-      \\record R | field {A : \\Set} (p : \\Pi (a a' : A) -> a = a') (t : Trunc A) : A
+      \\record R | field {A : \\Set0} (p : \\Pi (a a' : A) -> a = a') (t : Trunc A) : A
       \\func test : R \\cowith | field _ t => \\scase t \\with { | in a => a }
       """, 1);
     assertThatErrorsAre(Matchers.typecheckingError(TruncatedDataError.class));
@@ -217,7 +217,7 @@ public class CaseTest extends TypeCheckingTestCase {
   public void propertyExtendsLevelTest() {
     typeCheckModule("""
       \\truncated \\data Trunc (A : \\Type) : \\Prop | in A
-      \\record R | field {A : \\Set} (p : \\Pi (a a' : A) -> a = a') (t : Trunc A) : \\level A p
+      \\record R | field {A : \\Set0} (p : \\Pi (a a' : A) -> a = a') (t : Trunc A) : \\level A p
       \\record S \\extends R | field _ t => \\case t \\with { | in a => a }
       """);
   }

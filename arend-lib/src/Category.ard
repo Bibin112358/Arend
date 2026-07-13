@@ -7,7 +7,7 @@
 \import Paths.Meta
 \import Set
 
-\class Precat (Ob : \Sort) {
+\class Precat (Ob : \Type) {
   | Hom : Ob -> Ob -> \Set
   | id (X : Ob) : Hom X X
   | \fixl 8 o \alias \infixl 8 ∘ {X Y Z : Ob} : Hom Y Z -> Hom X Y -> Hom X Z
@@ -186,7 +186,7 @@
     => makeUnivalence \lam e => ((c e).1, pathOver.conv (c e).2)
 }
 
-\func DiscretePrecat (X : \Sort) : Precat X \cowith
+\func DiscretePrecat (X : \Type) : Precat X \cowith
   | Hom x y => Trunc0 (x = y)
   | id x => in0 idp
   | o {x y z : X} (t : Trunc0 (y = z)) (s : Trunc0 (x = y)) : Trunc0 (x = z) \elim t, s {
@@ -196,11 +196,11 @@
   | id-right {_} {_} {p} => cases p (pmap in0 (idp_*> _))
   | o-assoc {_} {_} {_} {_} {p} {q} {r} => cases (p,q,r) (pmap in0 (inv (*>-assoc _ _ _)))
   \where {
-    \func map {X : \Sort} {D : Precat} (f : X -> D) {x y : X} (h : Hom {DiscretePrecat X} x y) : Hom (f x) (f y) \elim h
+    \func map {X : \Type} {D : Precat} (f : X -> D) {x y : X} (h : Hom {DiscretePrecat X} x y) : Hom (f x) (f y) \elim h
       | in0 idp => id _
   }
 
-\sfunc SIP (C : Cat) (Str : C -> \Sort) (isHom : \Pi {x y : C} -> Str x -> Str y -> Hom x y -> \Sort)
+\sfunc SIP (C : Cat) (Str : C -> \Type) (isHom : \Pi {x y : C} -> Str x -> Str y -> Hom x y -> \Type)
            (st : \Pi {x : C} {S1 S2 : Str x} -> isHom S1 S2 (id x) -> isHom S2 S1 (id x) -> S1 = S2)
            {x y : C} (e : Iso {C} {x} {y}) (S1 : Str x) (S2 : Str y) (p : isHom S1 S2 e) (q : isHom S2 S1 e.hinv)
   : \Sigma (p : x = y) (Path (\lam i => Str (p i)) S1 S2) (transport (Hom x) p (id x) = e)
@@ -209,8 +209,8 @@
   }
 
 \sfunc SIP-gen (C : Cat)
-  (Str : C -> \Sort) (dHom : \Pi {x y : C} -> Str x -> Str y -> Hom x y -> \Sort) (dHom_id : \Pi {x : C} {S : Str x} -> dHom S S (id x))
-  (isIso : \Pi {x y : C} {S1 : Str x} {S2 : Str y} {f : Hom x y} -> dHom S1 S2 f -> \Sort)
+  (Str : C -> \Type) (dHom : \Pi {x y : C} -> Str x -> Str y -> Hom x y -> \Type) (dHom_id : \Pi {x : C} {S : Str x} -> dHom S S (id x))
+  (isIso : \Pi {x y : C} {S1 : Str x} {S2 : Str y} {f : Hom x y} -> dHom S1 S2 f -> \Type)
   (st : \Pi {x : C} {S1 S2 : Str x} {f : dHom S1 S2 (id x)} -> isIso f -> \Sigma (p : S1 = S2) (Path (\lam i => dHom S1 (p i) (id x)) dHom_id f))
   {x y : C} (e : Iso {C} {x} {y}) (S1 : Str x) (S2 : Str y) (p : dHom S1 S2 e) (pi : isIso p)
   : \Sigma (r1 : x = y) (r2 : Path (\lam i => Str (r1 i)) S1 S2) (r3 : Path (\lam i => Hom x (r1 i)) (id x) e) (Path (\lam i => dHom S1 (r2 i) (r3 i)) dHom_id p)
@@ -219,8 +219,8 @@
   }
 
 \sfunc SIP-comb (C : Cat) (D : C -> Cat)
-  (Str : C -> \Sort) (dHom : \Pi {x y : C} -> Str x -> Str y -> Hom x y -> \Sort)
-  (isIso : \Pi {x y : C} {S1 : Str x} {S2 : Str y} {f : Hom x y} -> dHom S1 S2 f -> \Sort)
+  (Str : C -> \Type) (dHom : \Pi {x y : C} -> Str x -> Str y -> Hom x y -> \Type)
+  (isIso : \Pi {x y : C} {S1 : Str x} {S2 : Str y} {f : Hom x y} -> dHom S1 S2 f -> \Type)
   (dHom_id : \Pi {x : C} {S : Str x} -> dHom S S (id x)) (dHom_idIso : \Pi {x : C} {S : Str x} -> isIso (dHom_id {x} {S}))
   (do : \Pi {x : C} -> Embedding {Str x} {D x}) (dh : \Pi {x : C} {S1 S2 : Str x} (f : dHom S1 S2 (id x)) (fi : isIso f) -> Iso {D x} {do S1} {do S2})
   (dh_id : \Pi {x : C} {S : Str x} -> (dh (dHom_id {x} {S}) dHom_idIso).f = id _)

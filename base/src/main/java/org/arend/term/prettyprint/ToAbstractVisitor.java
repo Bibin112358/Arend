@@ -718,7 +718,7 @@ public class ToAbstractVisitor extends BaseExpressionVisitor<Void, Concrete.Expr
   }
 
   private Concrete.UniverseExpression visitSortExpression(SortExpression sortExpr) {
-    return sortExpr instanceof SortExpression.Const(Sort sort) ? visitSort(sort) : new Concrete.UniverseExpression(null, null, null, ConcreteUniverseExpression.Kind.SORT);
+    return visitSort(sortExpr.withInfLevel());
   }
 
   @Override

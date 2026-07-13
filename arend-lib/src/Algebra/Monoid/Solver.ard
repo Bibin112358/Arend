@@ -10,14 +10,14 @@
 \import Paths.Meta
 \import Set \hiding (#)
 
-\data MonoidTerm (V : \Sort)
+\data MonoidTerm (V : \Type)
   | \protected var V
   | \protected :ide
   | \protected \infixl 7 :* (t s : MonoidTerm V)
 
-\protected \func normalize {V : \Sort} (t : MonoidTerm V) => aux t nil
+\protected \func normalize {V : \Type} (t : MonoidTerm V) => aux t nil
   \where
-    \func aux {V : \Sort} (t : MonoidTerm V) (acc : List V) : List V \elim t
+    \func aux {V : \Type} (t : MonoidTerm V) (acc : List V) : List V \elim t
       | var v => v :: acc
       | :ide => acc
       | :* t s => aux t (aux s acc)
@@ -103,13 +103,13 @@
   \open Sort
   \open Sort.RedBlack
 
-  \func indices {A : \Sort} (is : List Nat) (l : List A) : List A \elim is, l
+  \func indices {A : \Type} (is : List Nat) (l : List A) : List A \elim is, l
     | nil, _ => nil
     | :: _ _, nil => nil
     | :: 0 is, :: a l => a :: indices is l
     | :: (suc n) is, :: _ l => indices (n :: is) l
 
-  \func removeIndices {A : \Sort} (is : List Nat) (l : List A) : List A \elim is, l
+  \func removeIndices {A : \Type} (is : List Nat) (l : List A) : List A \elim is, l
     | nil, l => l
     | :: _ _, nil => nil
     | :: 0 is, :: a l => removeIndices is l

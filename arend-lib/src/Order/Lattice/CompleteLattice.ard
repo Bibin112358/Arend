@@ -64,25 +64,25 @@
     | pbEta _ _ => prop-pi
   }
 
-  \func IJoin {J : \Sort} (f : J -> E) : E
+  \func IJoin {J : \Type} (f : J -> E) : E
     => Join (TSetIm f)
 
-  \lemma IJoin-cond {J : \Sort} {f : J -> E} (j : J) : f j <= IJoin f
+  \lemma IJoin-cond {J : \Type} {f : J -> E} (j : J) : f j <= IJoin f
     => Join-cond (TSetIm-con j)
 
-  \lemma IJoin-univ {A : \Sort} {f : A -> E} {e : E} (p : \Pi (a : A) -> f a <= e) : IJoin f <= e
+  \lemma IJoin-univ {A : \Type} {f : A -> E} {e : E} (p : \Pi (a : A) -> f a <= e) : IJoin f <= e
     => Join-univ (TSetIm-elim p)
 
-  \func SJoin {A : \Sort} (f : A -> E) (P : A -> \Sort) : E
+  \func SJoin {A : \Type} (f : A -> E) (P : A -> \Type) : E
     => Join (SetIm f P)
 
-  \lemma SJoin-cond {A : \Sort} {f : A -> E} {P : A -> \Sort} {a : A} (Pa : P a) : f a <= SJoin f P
+  \lemma SJoin-cond {A : \Type} {f : A -> E} {P : A -> \Type} {a : A} (Pa : P a) : f a <= SJoin f P
     => Join-cond (SetIm-con Pa)
 
-  \lemma SJoin-conde {A : \Sort} {f : A -> E} {P : A -> \Sort} (a : A) (Pa : P a) : f a <= SJoin f P
+  \lemma SJoin-conde {A : \Type} {f : A -> E} {P : A -> \Type} (a : A) (Pa : P a) : f a <= SJoin f P
     => SJoin-cond Pa
 
-  \lemma SJoin-univ {A : \Sort} {f : A -> E} {P : A -> \Sort} {e : E} (p : ∀ {a : P} (f a <= e)) : SJoin f P <= e
+  \lemma SJoin-univ {A : \Type} {f : A -> E} {P : A -> \Type} {e : E} (p : ∀ {a : P} (f a <= e)) : SJoin f P <= e
     => Join-univ (SetIm-elim p)
 
   \lemma Join_SJoin {C : E -> \Prop} : Join C = SJoin (\lam x => x) C
@@ -91,16 +91,16 @@
   \lemma Join_IJoin {C : E -> \Prop} : Join C = IJoin (\lam (s : Given C) => s.1)
     => <=-antisymmetric (Join-univ \lam {w} Cw => IJoin-cond $ later (w,Cw)) (IJoin-univ \lam s => Join-cond s.2)
 
-  \func SMeet {A : \Sort} (f : A -> E) (P : A -> \Sort) : E
+  \func SMeet {A : \Type} (f : A -> E) (P : A -> \Type) : E
     => Meet (SetIm f P)
 
-  \lemma SMeet-cond {A : \Sort} {f : A -> E} {P : A -> \Prop} {a : A} (Pa : P a) : SMeet f P <= f a
+  \lemma SMeet-cond {A : \Type} {f : A -> E} {P : A -> \Prop} {a : A} (Pa : P a) : SMeet f P <= f a
     => Meet-cond (SetIm-con Pa)
 
-  \lemma SMeet-conde {A : \Sort} {f : A -> E} {P : A -> \Prop} (a : A) (Pa : P a) : SMeet f P <= f a
+  \lemma SMeet-conde {A : \Type} {f : A -> E} {P : A -> \Prop} (a : A) (Pa : P a) : SMeet f P <= f a
     => Meet-cond (SetIm-con Pa)
 
-  \lemma SMeet-univ {A : \Sort} {f : A -> E} {P : A -> \Prop} {e : E} (p : ∀ {a : P} (e <= f a)) : e <= SMeet f P
+  \lemma SMeet-univ {A : \Type} {f : A -> E} {P : A -> \Prop} {e : E} (p : ∀ {a : P} (e <= f a)) : e <= SMeet f P
     => Meet-univ (SetIm-elim p)
 
   \lemma join_Join {x y : E} : x ∨ y = Join \lam z => (z = x) || (z = y)

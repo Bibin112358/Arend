@@ -279,7 +279,7 @@ public class TypeTest extends TypeCheckingTestCase {
   @Test
   public void levelsTest() {
     typeCheckModule(
-      "\\type Type => \\Set\n" +
+      "\\type Type.{u} => \\Set u\n" +
       "\\func test (A : Type.{2}) : Type.{1} => A", 1);
     assertThatErrorsAre(Matchers.typeMismatchError());
   }

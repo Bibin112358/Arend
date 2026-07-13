@@ -14,9 +14,8 @@ public interface AbstractExpressionVisitor<P, R> {
   R visitThis(@Nullable Object data, P params);
   R visitLam(@Nullable Object data, @NotNull Collection<? extends Abstract.LamParameter> parameters, /* @NotNull */ @Nullable Abstract.Expression body, P params);
   R visitPi(@Nullable Object data, @NotNull Collection<? extends Abstract.Parameter> parameters, /* @NotNull */ @Nullable Abstract.Expression codomain, P params);
-  R visitUniverse(@Nullable Object data, @Nullable BigInteger pLevelNum, @Nullable BigInteger hLevelNum, @Nullable Abstract.LevelExpression pLevel, boolean isInfinite, P params);
+  R visitUniverse(@Nullable Object data, @Nullable BigInteger pLevelNum, @Nullable BigInteger hLevelNum, @Nullable Abstract.LevelExpression pLevel, P params);
   R visitCatUniverse(@Nullable Object data, @Nullable BigInteger pLevelNum, @Nullable Abstract.LevelExpression pLevel, P params);
-  R visitSortUniverse(@Nullable Object data, P params);
   R visitApplyHole(@Nullable Object data, P params);
   R visitInferHole(@Nullable Object data, P params);
   R visitGoal(@Nullable Object data, @Nullable String name, @Nullable Abstract.Expression expression, P params);

@@ -26,7 +26,7 @@
 \import Paths.Meta
 \import Set \hiding (#)
 
-\data RingTerm (C V : \Sort)
+\data RingTerm (C V : \Type)
   | coef C
   | var V
   | :zro
@@ -195,11 +195,11 @@
   \open Sort
   \open Sort.RedBlack
 
-  \func multiply' {V : \Sort} {C : Monoid} (l1 l2 : List (\Sigma (List V) C)) : List (\Sigma (List V) C) \elim l2
+  \func multiply' {V : \Type} {C : Monoid} (l1 l2 : List (\Sigma (List V) C)) : List (\Sigma (List V) C) \elim l2
     | nil => nil
     | l2 => multiply l1 l2 nil
 
-  \func multiply {V : \Sort} {C : Monoid} (l1 l2 acc : List (\Sigma (List V) C)) : List (\Sigma (List V) C) \elim l1
+  \func multiply {V : \Type} {C : Monoid} (l1 l2 acc : List (\Sigma (List V) C)) : List (\Sigma (List V) C) \elim l1
     | nil => acc
     | :: a l1 => multiply l1 l2 (map (\lam b => (a.1 ++ b.1, a.2 * b.2)) l2 ++ acc)
 }
@@ -398,7 +398,7 @@
     | :: a l => repeat {2} (rewrite BaseData.cons) (AddGroup.negative_+ *> +-comm *> pmap2 (+) (inv (pmap (`* _) (AddGroupHom.func-negative {alg}) *> Ring.negative_*-left)) (interpretNF_negate l))
   }
 } \where {
-  \func negate {C : Ring} {V : \Sort} (l : List (\Sigma (List V) C)) : List (\Sigma (List V) C) \elim l
+  \func negate {C : Ring} {V : \Type} (l : List (\Sigma (List V) C)) : List (\Sigma (List V) C) \elim l
     | nil => nil
     | :: (m,c) l => (m, negative c) :: negate l
 }

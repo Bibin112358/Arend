@@ -1,7 +1,6 @@
 package org.arend.typechecking;
 
 import org.arend.Matchers;
-import org.arend.core.context.binding.LevelVariable;
 import org.arend.core.context.param.DependentLink;
 import org.arend.core.definition.Definition;
 import org.arend.core.expr.UniverseExpression;
@@ -306,11 +305,12 @@ public class VarsTest extends TypeCheckingTestCase {
   @Test
   public void levelsTest1() {
     typeCheckModule("""
-      \\func foo (A : \\Type) => 3
+      \\func foo.{u} (A : \\Type u) => 3
         \\where
-          \\func bar.{p1,p2} (a : A) => a
+          \\func bar (a : A) => a
       """);
-    assertEquals(new UniverseExpression(new Sort(new Level(LevelVariable.PVAR), ConstLevel.INFINITY)), getDefinition("foo.bar").getParameters().getType());
+    Definition bar = getDefinition("foo.bar");
+    assertEquals(new UniverseExpression(new Sort(new Level(bar.getLevelParameters().getFirst()), ConstLevel.INFINITY)), bar.getParameters().getType());
   }
 
   @Test

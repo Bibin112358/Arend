@@ -244,8 +244,8 @@ public class TypeClassesGlobalTest extends TypeCheckingTestCase {
   public void instanceSet() {
     typeCheckModule("""
       \\class A (C : \\Type) { | c : C }
-      \\instance a : A \\Set | c => Nat
-      \\func f1 : \\Set => c
+      \\instance a : A \\Set0 | c => Nat
+      \\func f1 : \\Set0 => c
       """);
   }
 
@@ -263,7 +263,7 @@ public class TypeClassesGlobalTest extends TypeCheckingTestCase {
   public void instanceTypeError() {
     typeCheckModule("""
       \\class A (C : \\Type) { | c : C }
-      \\instance a : A \\Set | c => Nat
+      \\instance a : A \\Set0 | c => Nat
       \\func f : \\Prop => c
       """, 1);
     assertThatErrorsAre(argInferenceError());
@@ -294,8 +294,8 @@ public class TypeClassesGlobalTest extends TypeCheckingTestCase {
   public void instanceTypeCheckTest() {
     typeCheckModule("""
       \\class A (C : \\Type) { | c : C | n : Nat }
-      \\instance a : A \\Set | c => Nat | n => 0
-      \\func f {c : A { | C => \\Set | n => 1 }} => 2
+      \\instance a : A \\Set0 | c => Nat | n => 0
+      \\func f {c : A { | C => \\Set0 | n => 1 }} => 2
       \\func g => f
       """, 1);
     assertThatErrorsAre(instanceInference(get("A")));
@@ -304,9 +304,9 @@ public class TypeClassesGlobalTest extends TypeCheckingTestCase {
   @Test
   public void classifyingFieldLambda() {
     typeCheckModule("""
-      \\class B (F : \\Set -> \\Set) | foo : F Nat | bar : F Nat -> Nat
-      \\data Maybe (A : \\Sort) | nothing | just A
-      \\func fromMaybe {A : \\Sort} (a : A) (m : Maybe A) : A \\elim m
+      \\class B.{u} (F : \\Set u -> \\Set u) | foo : F Nat | bar : F Nat -> Nat
+      \\data Maybe (A : \\Type) | nothing | just A
+      \\func fromMaybe {A : \\Type} (a : A) (m : Maybe A) : A \\elim m
         | nothing => a
         | just a' => a'
       \\instance B-inst : B (\\lam A => Maybe A) | foo => just 3 | bar => fromMaybe 7
@@ -319,9 +319,9 @@ public class TypeClassesGlobalTest extends TypeCheckingTestCase {
   @Test
   public void classifyingFieldLambdaError() {
     typeCheckModule("""
-      \\class B (F : \\Set -> \\Set) | foo : F Nat | bar : F Nat -> Nat
-      \\data Maybe (A : \\Sort) | nothing | just A
-      \\func fromMaybe {A : \\Sort} (a : A) (m : Maybe A) : A \\elim m
+      \\class B.{u} (F : \\Set u -> \\Set u) | foo : F Nat | bar : F Nat -> Nat
+      \\data Maybe (A : \\Type) | nothing | just A
+      \\func fromMaybe {A : \\Type} (a : A) (m : Maybe A) : A \\elim m
         | nothing => a
         | just a' => a'
       \\instance B-inst : B (\\lam A => Maybe A) | foo => just 3 | bar => fromMaybe 7
@@ -333,7 +333,7 @@ public class TypeClassesGlobalTest extends TypeCheckingTestCase {
   @Test
   public void classifyingFieldLambdaClass() {
     typeCheckModule("""
-      \\class B (F : \\Set -> \\Set) | foo : F Nat | bar : F Nat -> Nat
+      \\class B.{u} (F : \\Set u -> \\Set u) | foo : F Nat | bar : F Nat -> Nat
       \\record R {A : \\Type} | rrr : A
       \\func proj {A : \\Type} (r : R {A}) => r.rrr
       \\instance B-inst : B (\\lam A => R {A}) | foo => \\new R 3 | bar => proj

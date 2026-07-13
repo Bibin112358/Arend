@@ -8,7 +8,6 @@
 
 -- TODO: when limits in presheaves are added, write that category of actions is bicomplete whenever the underlying category is bicomplete
 
-{- TODO[sorts]: Uncomment after making Monoid infinite
 \class MonoidCatAction {C : Precat} (M : Monoid) (\classifying c : C) {
   | act : MonoidHom M (End c)
 
@@ -37,8 +36,7 @@
   }
 
 \func Action<->Functor {C : Precat} {M : Monoid} : QEquiv {MonoidCatAction M} {Functor (DeloopM M) C} \cowith
-  | f (c : MonoidCatAction) => c.functor
+  | f c => c.functor
   | ret => functor->action
   | ret_f c => ext (idp, idp)
   | f_sec f => idp
--}

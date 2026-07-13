@@ -40,13 +40,13 @@
       (Acc=>AccTrans term)
 
 \func well-founded-induction
-  {A : \Set} {R : Rel A} (C : A -> \Sort)
+  {A : \Set} {R : Rel A} (C : A -> \Type)
   (induction : \Pi (a : A) (\Pi (b : A) (R b a) -> C b) -> C a)
   (a : A) (a-is-accessible : Acc R a) : C a
 \elim a-is-accessible
   | acc successors => induction a (\lam b a~>b => well-founded-induction C induction b (successors a~>b))
 
-\func well-founded-induction-transitive {A : \Set} {R : Rel A} (C : A -> \Sort)
+\func well-founded-induction-transitive {A : \Set} {R : Rel A} (C : A -> \Type)
                                         (induction : \Pi (a : A) (\Pi (b : A) (TransClosure R b a) -> C b) -> C a)
                                         (a : A) (a-is-accessible : Acc-Trans R a) : C a \elim a-is-accessible
   | acc successors => induction a (\lam b a~>b => well-founded-induction C induction b (successors a~>b))

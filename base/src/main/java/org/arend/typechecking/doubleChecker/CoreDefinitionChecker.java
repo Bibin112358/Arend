@@ -256,14 +256,14 @@ public class CoreDefinitionChecker extends BaseDefinitionTypechecker {
       // TODO[double_check]: Check clauses/body
     }
 
-    return checkSquasher(definition.getSquasher(), definition, definition.getSort());
+    return checkSquasher(definition.getSquasher(), definition, definition.getSortExpression().getSortHLevel());
   }
 
   private boolean check(MetaTopDefinition definition) {
     return true;
   }
 
-  private boolean checkSquasher(FunctionDefinition squasher, Definition definition, Sort sort) {
+  private boolean checkSquasher(FunctionDefinition squasher, Definition definition, BigInteger defLevel) {
     if (squasher == null) {
       return true;
     }
@@ -277,14 +277,13 @@ public class CoreDefinitionChecker extends BaseDefinitionTypechecker {
       return false;
     }
 
-    if (sort == null) {
+    if (defLevel == null) {
       errorReporter.report(new TypecheckingError("Squashed definition does not have a fixed sort", null));
       return false;
     }
 
-    ConstLevel hLevel = new ConstLevel(parametersLevel.level);
-    if (!hLevel.isLessOrEquals(sort.getHLevel())) {
-      errorReporter.report(new TypecheckingError("The h-level " + sort.getHLevel() + " of '" + definition.getName() + "' does not fit into the h-level " + hLevel + " of \\use \\level " + squasher.getName(), null));
+    if (parametersLevel.level == null || parametersLevel.level.compareTo(defLevel) > 0) {
+      errorReporter.report(new TypecheckingError("The h-level " + defLevel + " of '" + definition.getName() + "' does not fit into the h-level " + new ConstLevel(parametersLevel.level) + " of \\use \\level " + squasher.getName(), null));
       return false;
     }
 
