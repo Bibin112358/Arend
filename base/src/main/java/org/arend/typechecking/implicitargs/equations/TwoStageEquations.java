@@ -309,6 +309,10 @@ public class TwoStageEquations implements Equations {
       if (!addLevelEquation(null, entry2 == null ? null : entry2.getKey(), (entry2 == null ? level2.getConstant() : entry2.getValue()).subtract(level1.getConstant()), BigInteger.valueOf(-1), sourceNode)) return false;
     }
 
+    if (level1.isClosed() && level2.getSingleVar() instanceof InferenceLevelVariable infVar) {
+      myLevelEquations.add(new LevelEquation<>(null, infVar, BigInteger.ZERO, BigInteger.ZERO));
+    }
+
     return true;
   }
 

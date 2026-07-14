@@ -108,17 +108,11 @@ public class Sort implements CoreSort {
     if (sort2.isOmega() && cmp == CMP.LE || sort1.isOmega() && cmp == CMP.GE) {
       return true;
     }
-    if (sort1.isProp()) {
-      if (cmp == CMP.LE || sort2.isProp()) {
-        return true;
-      }
-      return sort2.isProp();
+    if (sort1.isProp() && !sort2.getPLevel().hasInferenceVariables()) {
+      return cmp == CMP.LE || sort2.isProp();
     }
-    if (sort2.isProp()) {
-      if (cmp == CMP.GE) {
-        return true;
-      }
-      return sort1.isProp();
+    if (sort2.isProp() && !sort1.getPLevel().hasInferenceVariables()) {
+      return cmp == CMP.GE || sort1.isProp();
     }
     if (sort1.myCat != sort2.myCat && (cmp == CMP.EQ || cmp == CMP.LE && sort1.myCat || cmp == CMP.GE && sort2.myCat)) {
       return false;

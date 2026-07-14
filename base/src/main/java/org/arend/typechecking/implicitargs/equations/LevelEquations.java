@@ -6,6 +6,8 @@ import java.util.*;
 public class LevelEquations<Var> {
   private final Set<Var> myVariables = new HashSet<>();
   private final List<LevelEquation<Var>> myEquations = new ArrayList<>();
+  private final Set<Var> myLowerBounded = new HashSet<>();
+  private final Set<Var> myUpperBounded = new HashSet<>();
 
   public List<LevelEquation<Var>> getEquations() {
     return myEquations;
@@ -39,6 +41,14 @@ public class LevelEquations<Var> {
     return myVariables.isEmpty() && myEquations.isEmpty();
   }
 
+  public Set<Var> getLowerBounded() {
+    return myLowerBounded;
+  }
+
+  public Set<Var> getUpperBounded() {
+    return myUpperBounded;
+  }
+
   public List<LevelEquation<Var>> solve(Map<Var, BigInteger> solution) {
     Map<Var, List<LevelEquation<Var>>> paths = new HashMap<>();
 
@@ -66,6 +76,13 @@ public class LevelEquations<Var> {
 
           solution.put(equation.getVariable2(), a.add(equation.getConstant()));
           updated = true;
+        }
+
+        if (equation.getVariable2() != null && (equation.getVariable1() == null || myLowerBounded.contains(equation.getVariable1()))) {
+          myLowerBounded.add(equation.getVariable2());
+        }
+        if (equation.getVariable1() != null && (equation.getVariable2() == null || myLowerBounded.contains(equation.getVariable2()))) {
+          myUpperBounded.add(equation.getVariable1());
         }
       }
       if (!updated) {

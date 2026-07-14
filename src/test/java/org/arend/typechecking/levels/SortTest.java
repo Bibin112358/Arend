@@ -501,4 +501,16 @@ public class SortTest extends TypeCheckingTestCase {
       \\func test (A : \\Type1) => R.{0} A
       """);
   }
+
+  @Test
+  public void implementInfiniteFieldTest() {
+    typeCheckModule("""
+      \\record R (A : \\Type)
+      \\record S (B : \\Type) \\extends R
+        | A => B
+      \\func foo.{u} (r : R.{u}) => 0
+      \\func bar.{u} (s : S.{u}) => foo.{0} s
+      """, 1);
+    assertThatErrorsAre(Matchers.typeMismatchError());
+  }
 }

@@ -127,7 +127,7 @@
   | o-assoc => idp
   | univalence => {?} -- TODO[sorts]: subCat.faithful-univalence LocallyRingedLocalePrecat.forget embedding
   \where {
-    \protected \lemma embedding : Embedding {LocallyRingedLocale} {RingedLocale} (\lam L => L) \cowith
+    \protected \lemma embedding.{u} : Embedding {LocallyRingedLocale.{u}} {RingedLocale} (\lam L => L) \cowith
       | isEmb L L' => later \new Retraction {
         | sec p => path \lam i => \new LocallyRingedLocale {
           | L => (p i).L

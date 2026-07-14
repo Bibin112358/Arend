@@ -126,14 +126,14 @@
     => exts (\lam b a => ext (p b a), \lam {a} {b} r => exts $ q a b r _)
 }
 
-\type SchemeSiteHom (X Y : SchemeSite) => Quotient (~ {X} {Y})
+\type SchemeSiteHom.{u} (X Y : SchemeSite.{u}) => Quotient (~ {X} {Y})
   \where {
     \record \infix 4 ~.{u} {X Y : SchemeSite.{u}} (f g : SchemeSitePrehom X Y)
       | ~-dir {b : X} {a : Y} : b f.<=f* a -> Cover {X.toSite} b (g.`<=f* a)
       | ~-conv {b : X} {a : Y} : b g.<=f* a -> Cover {X.toSite} b (f.`<=f* a)
       | ~-f# {b : X} {a : Y} {bfa : b f.<=f* a} {bga : b g.<=f* a} {y : Y.R a} : f.f# bfa y = g.f# bga y
 
-    \instance ~-equivalence {X Y : SchemeSite} : Equivalence (SchemeSitePrehom X Y) (__ ~ __)
+    \instance ~-equivalence.{u} {X Y : SchemeSite.{u}} : Equivalence (SchemeSitePrehom X Y) (__ ~ __)
       | ~-reflexive {f} => \new ~ {
         | ~-dir => cover-refl
         | ~-conv => cover-refl
@@ -160,12 +160,12 @@
     \lemma ~-unhequiv.{u} {X Y : SchemeSite.{u}} {f g : SchemeSitePrehom X Y} (p : inh~ f = inh~ g) : f ~ g
       => Quotient.equalityEquiv ~-equivalence (path \lam i => p i)
 
-    \protected \func id {S : SchemeSite} : SchemeSiteHom S S
+    \protected \func id.{u} {S : SchemeSite.{u}} : SchemeSiteHom S S
       => inh~ SchemeSitePrehom.id
 
     \open SchemeSitePrehom (compose \as pcomp)
 
-    \protected \func compose \alias \infixl 8 ∘ {S T U : SchemeSite} (g : SchemeSiteHom T U) (f : SchemeSiteHom S T) : SchemeSiteHom S U \elim g, f
+    \protected \func compose \alias \infixl 8 ∘.{u} {S T U : SchemeSite.{u}} (g : SchemeSiteHom T U) (f : SchemeSiteHom S T) : SchemeSiteHom S U \elim g, f
       | in~ g, in~ f => in~ (g SchemeSitePrehom.∘ f)
       | in~ g, ~-equiv f f' r => ~-hequiv (pcomp g f) (pcomp g f') \new ~ {
         | ~-dir {c} (inP (b,cb,ba)) => cover-sub (r.~-dir cb) \lam {b'} b'b => inP $ later (b, b'b, ba)
@@ -183,10 +183,10 @@
       }
   }
 
-\func satCounit {S : SchemeSite} : SchemeSiteHom (SatSite S) S
+\func satCounit.{u} {S : SchemeSite.{u}} : SchemeSiteHom (SatSite S) S
   => in~ prehom
   \where {
-    \protected \func prehom {S : SchemeSite} : SchemeSitePrehom (SatSite S) S \cowith
+    \protected \func prehom.{u} {S : SchemeSite.{u}} : SchemeSitePrehom (SatSite S) S \cowith
       | <=f* b a => b.1 <= a
       | <=f*-left b'b ba => b'b.1 <=∘ ba
       | <=f*-right ba aa' => ba <=∘ aa'
@@ -205,9 +205,9 @@
 
     \open SchemeSiteHom
 
-    \lemma isMono {X Y : SchemeSite} {f g : SchemeSiteHom X (SatSite Y)} (p : satCounit SchemeSiteHom.∘ f = satCounit SchemeSiteHom.∘ g) : f = g \elim f, g
+    \lemma isMono.{u} {X Y : SchemeSite.{u}} {f g : SchemeSiteHom X (SatSite Y)} (p : satCounit SchemeSiteHom.∘ f = satCounit SchemeSiteHom.∘ g) : f = g \elim f, g
       | in~ f, in~ g => ~-unhequiv {X} {Y} at p $ ~-hequiv f g
-        \have lem {f g : SchemeSitePrehom X (SatSite Y)} (p : satCounit.prehom SchemeSitePrehom.∘ f ~ satCounit.prehom SchemeSitePrehom.∘ g)
+        \have lem {f g : SchemeSitePrehom X (SatSite Y)} (p : prehom SchemeSitePrehom.∘ f ~ prehom SchemeSitePrehom.∘ g)
                   {b : X} {a : SatSite Y} (ba : b f.<=f* a) : Cover {X.toSite} b (g.`<=f* a)
               => cover-trans* (cover-down $ p.~-dir $ inP (a, ba, <=-refl)) \lam {b'} (inP (b'', inP (a',b''a',a'a), b'b'', b'b)) =>
                   \case g.<=f*-loc-forall {a.1, 1} (<=-refl, \box inP $ transportInv (LDiv __ _) func-ide LDiv.ide-div)
@@ -236,7 +236,7 @@
         }
   }
 
-\func satLift {X : SatSchemeSite} {Y : SchemeSite} (f : SchemeSiteHom X Y) : SchemeSiteHom X (SatSite Y) \elim f
+\func satLift.{u} {X : SatSchemeSite.{u}} {Y : SchemeSite.{u}} (f : SchemeSiteHom X Y) : SchemeSiteHom X (SatSite Y) \elim f
   | in~ f => in~ (prehom f)
   | ~-equiv f g r => SchemeSiteHom.~-hequiv (prehom f) (prehom g) \new SchemeSiteHom.~ {
     | ~-dir ba => cover-down-sub (r.~-dir ba.1) \lam {b'} {b''} b''a b'b'' b'b =>
@@ -246,7 +246,8 @@
     | ~-f# {b} {a} {bfa} {bga} => isEpi (prehom.f# {X} bfa) (prehom.f# {X} bga) \lam x => lift_inL *> r.~-f# *> inv lift_inL
   }
   \where {
-    \protected \func prehom {X : SatSchemeSite} {Y : SchemeSite} (f : SchemeSitePrehom X Y) : SchemeSitePrehom X (SatSite Y) \cowith
+    -- TODO[sorts]: Deleting .{u}, X, and Y results in an error.
+    \protected \func prehom.{u} {X : SatSchemeSite.{u}} {Y : SchemeSite.{u}} (f : SchemeSitePrehom X Y) : SchemeSitePrehom X (SatSite Y) \cowith
       | <=f* b a => \Sigma (ba : b f.<=f* a.1) (Inv (f.f# ba a.2))
       | <=f*-left b'b ba => (<=f*-left b'b ba.1, transport Inv f.f#_f*-left $ (X.R.Func b'b).func-Inv ba.2)
       | <=f*-right ba (aa', inP d) => (<=f*-right ba.1 aa', Inv.Inv_LDiv ba.2 $ transport (LDiv __ _) f.f#_f*-right $ (f.f# ba.1).func-LDiv d)

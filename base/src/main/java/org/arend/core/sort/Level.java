@@ -234,6 +234,14 @@ public class Level implements CoreLevel {
       }
     }
 
+    if (equations != null && level1.isClosed()) {
+      for (LevelVariable var : level2.getVars()) {
+        if (var instanceof InferenceLevelVariable infVar) {
+          equations.addEquation(new Level(BigInteger.ZERO), new Level(infVar), CMP.LE, sourceNode);
+        }
+      }
+    }
+
     return true;
   }
 }

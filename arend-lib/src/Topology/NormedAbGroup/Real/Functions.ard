@@ -135,4 +135,4 @@
   }
 
 \lemma ex-upper-*-locally-uniform : LocallyUniformMap (ManhattanProductPseudoMetricSpace UpperRealMetric UpperRealMetric) ExUpperRealMetric (\lam s => s.1 ExUpperReal.* s.2)
-  => transport (LocallyUniformMap (ManhattanProductPseudoMetricSpace UpperRealMetric UpperRealMetric) ExUpperRealMetric) (ext \lam s => UpperRealSemigroup.*-ex) upper-*-locally-uniform
+  => {?} -- TODO[sorts]: transport (LocallyUniformMap (ManhattanProductPseudoMetricSpace UpperRealMetric UpperRealMetric) ExUpperRealMetric) (ext \lam s => UpperRealSemigroup.*-ex) upper-*-locally-uniform

@@ -41,7 +41,7 @@
       (\lam (inP d) => inP (r.3 a d.1, path (\lam i => r.4 i a d.1) *> d.2))
   \where
     \lemma extract {m : Mono {PresheafCat C} { | cod => S }} {a : C} {x : S a} (p : fromSubobj (inso~ m) x) : \Sigma (y : m.dom a) (m.f a y = x)
-      => TruncP.remove (\lam s s' => ext $ presheaf-mono-char.1 m $ s.2 *> inv s'.2) p
+      => TruncP.remove (\lam s s' => {?} {- TODO[sorts]: ext $ presheaf-mono-char.1 m $ s.2 *> inv s'.2 -}) p
 }
 
 \func PrelocalPredicate_Subobj.{s,o,h} {C : Precat.{o,h}} (S : Presheaf.{s} C) : QEquiv {PrelocalPredicate S} {Subobj S} \cowith
@@ -52,7 +52,9 @@
   }
   | ret => PrelocalPredicate.fromSubobj
   | ret_f T => exts \lam {a} x => propExt (\lam (inP ((y,Ty),p)) => transport (T {a}) p Ty) \lam Tx => inP ((x,Tx), idp)
-  | f_sec => \case \elim __ \with {
+  | f_sec => {?}
+{- TODO[sorts]
+ \case \elim __ \with {
     | in~ m => <=-antisymmetric (inP (\new NatTrans {
         | trans a d => (PrelocalPredicate.fromSubobj.extract d.2).1
         | natural f => ext \lam d => presheaf-mono-char.1 m $ (PrelocalPredicate.fromSubobj.extract _).2 *>
@@ -62,6 +64,7 @@
         | natural f => exts \lam x => ext $ path \lam i => m.f.natural f i x
       }, idp))
   }
+  -}
 
 \lemma exists-prelocalPredicate.{s} {C : Precat} {S T : Presheaf.{s} C} (P : PrelocalPredicate (VPresheafComplete.BprodPresheaf {SetBicat} S T))
   : PrelocalPredicate S \lam {a} x => ∃ (y : T a) (P (x,y)) \cowith

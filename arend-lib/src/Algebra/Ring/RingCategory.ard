@@ -180,7 +180,7 @@
       | func-* => exts \lam j => func-*
       | func-+ => exts \lam j => func-+
 
-    \lemma inv-char.{u} {J : Precat.{u,u}} {F : Functor J CRingCat.{u}} {x : LimitMonoid.{u} F} : Monoid.Inv {LimitCRing.{u} F} x <-> ∀ j (Monoid.Inv (x.1 j))
+    \lemma inv-char.{u} {J : Precat.{u,u}} {F : Functor J CRingCat.{u}} {x : LimitCRing F} : Monoid.Inv {LimitCRing F} x <-> ∀ j (Monoid.Inv (x.1 j))
       => LimitMonoid.inv-char {J} {Comp CRingCat.forgetToMonoid F}
   }
 

@@ -117,7 +117,7 @@
           })
   }
 
-\func CompletionOFS : OFS {CoverSpaceCat} \cowith
+\func CompletionOFS.{u} : OFS {CoverSpaceCat.{u}} \cowith
   | L i => CoverMap.IsDenseEmbedding {i}
   | R p => \Sigma (IsRelativelyHausdorff p) (IsRelativelyComplete p)
   | factors h => (RelativeCompletionCoverSpace h, relativeCompletion h, relativeCompletion-proj h, idp, relativeCompletion.isDenseEmbedding, (relativeCompletion-proj.isHausdorff, relativeCompletion-proj.isCompletion))

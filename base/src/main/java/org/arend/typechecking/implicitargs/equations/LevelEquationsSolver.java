@@ -7,6 +7,8 @@ import org.arend.ext.core.level.LevelSubstitution;
 import org.arend.core.subst.SimpleLevelSubstitution;
 import org.arend.ext.core.ops.CMP;
 import org.arend.ext.error.ErrorReporter;
+import org.arend.ext.error.GeneralError;
+import org.arend.ext.error.TypecheckingError;
 import org.arend.typechecking.error.local.ConstantSolveLevelEquationError;
 import org.arend.typechecking.error.local.SolveLevelEquationsError;
 import org.arend.typechecking.dfs.MapDFS;
@@ -41,8 +43,8 @@ public class LevelEquationsSolver {
     // 0 <= max(_ +-c, +-d) // 10
     if (var1 == null) {
       // 0 <= max(?y - c, -d) // 1
-      if (maxConstant.compareTo(BigInteger.ZERO) < 0 && constant.compareTo(BigInteger.ZERO) < 0) {
-        addEquation(new LevelEquation<>(null, (InferenceLevelVariable) var2, constant));
+      if (var2 instanceof InferenceLevelVariable infVar && (maxConstant.compareTo(BigInteger.ZERO) < 0 && constant.compareTo(BigInteger.ZERO) < 0 || maxConstant.equals(BigInteger.ZERO) && constant.equals(BigInteger.ZERO))) {
+        addEquation(new LevelEquation<>(null, infVar, constant));
       }
       return;
     }
@@ -111,6 +113,7 @@ public class LevelEquationsSolver {
     }
 
     SimpleLevelSubstitution result = new SimpleLevelSubstitution();
+    reportUnjustifiedConstants(unBased, solution);
     for (InferenceLevelVariable var : unBased) {
       result.add(var, new Level(solution.get(var).negate()));
     }
@@ -133,19 +136,7 @@ public class LevelEquationsSolver {
     for (Map.Entry<InferenceLevelVariable, Level> entry : myConstantUpperBounds.entrySet()) {
       Level level = result.get(entry.getKey());
       if (!Level.compare(level, entry.getValue(), CMP.LE, DummyEquations.getInstance(), null)) {
-        BigInteger maxConstant = entry.getValue().getConstant();
-        List<LevelEquation<LevelVariable>> equations = new ArrayList<>(2);
-        Map.Entry<LevelVariable,BigInteger> levelEntry = level.getVarPairs().isEmpty() ? null : level.getVarPairs().iterator().next();
-        LevelVariable levelVar = levelEntry == null ? null : levelEntry.getKey();
-        if (!Level.compare(level.withMaxConstant() ? new Level(levelVar, levelVar == null ? level.getConstant() : levelEntry.getValue(), BigInteger.ZERO) : level, entry.getValue(), CMP.LE, DummyEquations.getInstance(), null)) {
-          equations.add(new LevelEquation<>(levelVar, entry.getKey(), levelEntry == null ? level.getConstant().negate() : levelEntry.getValue().negate()));
-        }
-        if (level.withMaxConstant() && !Level.compare(new Level(level.getConstant()), entry.getValue(), CMP.LE, DummyEquations.getInstance(), null)) {
-          equations.add(new LevelEquation<>(null, entry.getKey(), level.getConstant().negate()));
-        }
-        Map.Entry<LevelVariable,BigInteger> entryEntry = entry.getValue().getVarPairs().isEmpty() ? null : entry.getValue().getVarPairs().iterator().next();
-        equations.add(new LevelEquation<>(entry.getKey(), entryEntry == null ? null : entryEntry.getKey(), entryEntry == null ? entry.getValue().getConstant() : entryEntry.getValue(), maxConstant));
-        myErrorReporter.report(new SolveLevelEquationsError(equations, entry.getKey().getSourceNode()));
+        myErrorReporter.report(new SolveLevelEquationsError(Collections.singletonList(new Pair<>(level, entry.getValue())), entry.getKey().getSourceNode()));
       }
     }
 
@@ -156,6 +147,16 @@ public class LevelEquationsSolver {
     }
 
     return result;
+  }
+
+  private void reportUnjustifiedConstants(Set<InferenceLevelVariable> unBased, Map<InferenceLevelVariable, BigInteger> solution) {
+    Set<InferenceLevelVariable> lowerBounded = myEquations.getLowerBounded();
+    Set<InferenceLevelVariable> upperBounded = myEquations.getUpperBounded();
+    for (InferenceLevelVariable var : unBased) {
+      if (!(lowerBounded.contains(var) || upperBounded.contains(var))) {
+        myErrorReporter.report(new TypecheckingError(GeneralError.Level.WARNING, "Variable " + var + " is solved to " + solution.get(var) + " while not bounded from either side", var.getSourceNode()));
+      }
+    }
   }
 
   private void calculateUnBased(LevelEquations<InferenceLevelVariable> basedEquations, Set<InferenceLevelVariable> unBased, Map<InferenceLevelVariable, BigInteger> basedSolution) {

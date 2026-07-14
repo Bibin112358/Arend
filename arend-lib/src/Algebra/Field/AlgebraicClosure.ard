@@ -102,12 +102,14 @@
 
 -- | Every countable discrete field has an algebraic closure.
 \sfunc countableAlgebraicClosure.{u} {k : DiscreteField.{u}} (c : Countable k) : \Sigma (K : DiscreteField.{u}) (f : RingHom k K) (IsAlgebraicClosure f)
-  => \let | ps n => pointed-countable zro (Poly.poly-countable c) n
+  => {?}
+ {- TODO[sorts]
+     \let | ps n => pointed-countable zro (Poly.poly-countable c) n
           | S => sequence c ps
           | sf n => countableSplittingField (S n).2 {polyMap (S n).3 (ps n)}
           | F => NatFunctor (\lam n => (S n).1) \lam {n} => (sf n).3
           | E => DiscreteFieldLatticeColimit {NatBSemilattice} F \lam n => (S n).1
-          | h n => RingLatticeColimit.inMap {_} {F} n
+          | h n => CRingLatticeColimit.inMap {_} {F} n
      \in (E, h 0, algebraicClosure-split {_} {E} _ (later \lam (in~ (n,a)) =>
         \let t => integral_image-comp (RingLatticeColimit.inMap {_} {F} n) ((S n).4 a)
         \in transportInv {RingHom k E} (isIntegral __ _) (later $ exts \lam a => SetColimit.~-cequiv zero<=_ $ pmap (NatFunctor.natHom {CRingCat} __ _) (NatFunctor.sigma-isProp _ _) *> sequence3) t)
@@ -118,6 +120,7 @@
                       *> inv (polyMap-comp (_ RingHom.∘ _) (h _)) *> pmap (polyMap _) (inv (later $ polyMap-comp _ _))) *> pmap (polyMapRingHom _) lq *> (polyMapRingHom (h (suc n))).func-BigProd  *> pmap Monoid.BigProd (exts \lam j => pmap2 (\lam x y => padd (padd pzero x) y) func-ide AddGroupHom.func-negative))
               }
             })
+  -}
   \where \private {
     \func sequence.{u} {k : DiscreteField.{u}} (kc : Countable k) (f : Nat -> Poly k) (n : Nat) : \Sigma (K : DiscreteField.{u}) (Countable K) (g : RingHom k K) (isIntegralExt g) \elim n
       | 0 => (k, kc, id, integralExt_id)

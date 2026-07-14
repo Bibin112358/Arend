@@ -23,11 +23,11 @@
 \func HomPresheaf.{o,h} {C : Precat.{o,h}} (c : C) : Presheaf C \cowith
   | F => HomLeft c
 
-\func Yoneda-trans.{s,o,h} {C : Precat.{o,h}} {a : C} {F : Functor C.op SetCat.{s}} (x : F a) : NatTrans (HomLeft a) F \cowith
+\func Yoneda-trans.{o,h} {C : Precat.{o,h}} {a : C} {F : Functor C.op SetCat.{h}} (x : F a) : NatTrans (HomLeft a) F \cowith
   | trans _ f => F.Func f x
   | natural f => exts \lam g => path \lam i => F.Func-o i x
 
-\func Yoneda-lemma.{s,o,h} {C : Precat.{o,h}} {a : C} {F : Functor C.op SetCat.{s}} : QEquiv {NatTrans (HomLeft a) F} {F a} \cowith
+\func Yoneda-lemma.{o,h} {C : Precat.{o,h}} {a : C} {F : Functor C.op SetCat.{h}} : QEquiv {NatTrans (HomLeft a) F} {F a} \cowith
   | f nat => nat a (id a)
   | ret => Yoneda-trans
   | ret_f nf => exts \lam _ => exts \lam f => inv (path \lam i => nf.natural f i (id a)) *> unfold (rewrite id-left idp)
@@ -73,7 +73,7 @@
       | Func-o => exts $ idp
   }
 
-\func PresheafColimit.{s,o,h} {C : Precat.{o,h}} (P : Presheaf.{s} C) : Colimit (Comp Yoneda (PrecategoryOfElements.projection P)) P \cowith
+\func PresheafColimit.{o,h} {C : Precat.{o,h}} (P : Presheaf.{h} C) : Colimit (Comp Yoneda (PrecategoryOfElements.projection P)) P \cowith
   | coneMap (c, p) => \new NatTrans {
     | trans _ h => P.F.Func h p
     | natural _ => exts (\lam _ => unfold $ rewrite P.F.Func-o idp)

@@ -62,8 +62,8 @@
       })
   }
 
-\instance MonoidBicat : BicompleteCat
-  | Cat => MonoidCat
+\instance MonoidBicat.{u} : BicompleteCat.{u}
+  | Cat => MonoidCat.{u}
   | limit F => \new Limit {
     | apex => LimitMonoid F
     | coneMap => LimitMonoid.limProj
@@ -89,7 +89,7 @@
           (\lam _ => Fin 3,  finSet, nil, equality (apply 1 (apply 1 (var 0 :: var 1 :: nil) :: var 2 :: nil)) (apply 1 (var 0 :: apply 1 (var 1 :: var 2 :: nil) :: nil))) ::
           nil)
 
-    \func catEquiv : CatEquiv MonoidCat (ModelCat theory) \cowith
+    \func catEquiv.{u} : CatEquiv MonoidCat.{u} (ModelCat theory) \cowith
       | LAdj => monoidToMod.functor
       | RAdj => modToMonoid.functor
       | eta {

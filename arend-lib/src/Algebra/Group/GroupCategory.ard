@@ -155,13 +155,13 @@
       | f_sec => idpe
     }
   } \where {
-    \func forgetToAddGroup : Functor AbGroupCat AddGroupCat \cowith
+    \func forgetToAddGroup.{u} : Functor AbGroupCat.{u} AddGroupCat.{u} \cowith
       | F A => A
       | Func f => f
       | Func-id => idp
       | Func-o => idp
 
-    \func forget : Functor AbGroupCat SetCat \cowith
+    \func forget.{u} : Functor AbGroupCat.{u} SetCat.{u} \cowith
       | F R => R
       | Func f => f
       | Func-id => idp
