@@ -513,4 +513,14 @@ public class SortTest extends TypeCheckingTestCase {
       """, 1);
     assertThatErrorsAre(Matchers.typeMismatchError());
   }
+
+  @Test
+  public void implementInfiniteFieldTest2() {
+    typeCheckModule("""
+      \\record R (A : \\Type)
+      \\record S (B : \\Type) \\extends R
+        | A => B
+      \\func test.{u} (s : S.{u}) : R.{u} => s
+      """);
+  }
 }

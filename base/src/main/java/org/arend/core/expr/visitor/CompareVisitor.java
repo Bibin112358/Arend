@@ -1339,7 +1339,7 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
   }
 
   private boolean compareFieldLevelOverrides(ClassCallExpression subClassCall, ClassCallExpression superClassCall) {
-    for (ClassField field : subClassCall.getDefinition().getOverridableInfiniteFields()) {
+    for (ClassField field : superClassCall.getDefinition().getOverridableInfiniteFields()) {
       if (superClassCall.isImplemented(field)) {
         continue;
       }
@@ -1351,7 +1351,7 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
       Level subLevel = null;
       AbsExpression subImpl = subClassCall.getAbsImplementation(field);
       if (subImpl != null) {
-        Expression type = subImpl.getExpression().getType();
+        Expression type = subImpl.apply(new ReferenceExpression(subClassCall.getThisBinding()), subClassCall.getLevelSubstitution()).getType();
         while (type instanceof PiExpression piExpr) {
           type = piExpr.getCodomain();
         }
