@@ -104,7 +104,6 @@ enum class ArendKeyword(val type: IElementType, val section: ArendKeywordSection
     SUC(ArendElementTypes.SUC_KW, LP_SECTION),
     MAX(ArendElementTypes.MAX_KW, LP_SECTION),
     PROP(ArendElementTypes.PROP_KW, null),
-    SORT(ArendElementTypes.SORT_KW, null),
     SET(ArendElementTypes.SET, null),
     CAT_UNIVERSE(ArendElementTypes.CAT_UNIVERSE, null),
     UNIVERSE(ArendElementTypes.UNIVERSE, null),
@@ -210,7 +209,7 @@ internal fun getArendKeywordHtml(arendKeyword: ArendKeyword?) =
         ALIAS, INFIX, INFIX_LEFT, INFIX_RIGHT, FIX, FIX_LEFT, FIX_RIGHT -> definitionsHtml
         USE, COERCE -> coercionHtml
         LEVEL -> levelHtml
-        PLEVELS, SUC, MAX, PROP, SORT, SET, CAT_UNIVERSE, UNIVERSE, TRUNCATED_UNIVERSE -> universesHtml
+        PLEVELS, SUC, MAX, PROP, SET, CAT_UNIVERSE, UNIVERSE, TRUNCATED_UNIVERSE -> universesHtml
         NEW -> classExtHtml
         PI, LAM -> piHtml
         SIGMA -> sigmaHtml
@@ -229,7 +228,7 @@ internal fun StringBuilder.getDescriptionForKeyword(psiElement: PsiElement) {
         emptyList()
     } else {
         when (arendKeyword) {
-            DATA, TYPE, CLASS, RECORD, META, FIELD, USE, COERCE, PI, SIGMA, LAM, LET, IN, CASE, RETURN, PROP, SORT, SET, CAT_UNIVERSE, UNIVERSE, TRUNCATED_UNIVERSE ->
+            DATA, TYPE, CLASS, RECORD, META, FIELD, USE, COERCE, PI, SIGMA, LAM, LET, IN, CASE, RETURN, PROP, SET, CAT_UNIVERSE, UNIVERSE, TRUNCATED_UNIVERSE ->
                 paragraphs?.subList(AREND_SECTION_START, sections?.firstOrNull()?.index ?: paragraphs.size)
             FUNC -> paragraphs?.subList(AREND_SECTION_START, sections?.firstOrNull()?.index?.minus(1) ?: paragraphs.size)
             LEVEL, NEW -> paragraphs?.subList(AREND_SECTION_START, paragraphs.size)
