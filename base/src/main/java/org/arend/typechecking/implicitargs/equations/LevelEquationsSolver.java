@@ -36,6 +36,12 @@ public class LevelEquationsSolver {
       addLevelEquation(levelEquation.getVariable1(), levelEquation.getVariable2(), levelEquation.getConstant(), levelEquation.getMaxConstant());
     }
 
+    for (Map.Entry<InferenceLevelVariable, Level> entry : myConstantUpperBounds.entrySet()) {
+      if (entry.getValue().isClosed()) {
+        myEquations.getUpperBounded().add(entry.getKey());
+      }
+    }
+
     myErrorReporter = errorReporter;
   }
 
@@ -153,8 +159,8 @@ public class LevelEquationsSolver {
     Set<InferenceLevelVariable> lowerBounded = myEquations.getLowerBounded();
     Set<InferenceLevelVariable> upperBounded = myEquations.getUpperBounded();
     for (InferenceLevelVariable var : unBased) {
-      if (!(lowerBounded.contains(var) || upperBounded.contains(var))) {
-        myErrorReporter.report(new TypecheckingError(GeneralError.Level.WARNING, "Variable " + var + " is solved to " + solution.get(var) + " while not bounded from either side", var.getSourceNode()));
+      if (!(var.isGenerated() || lowerBounded.contains(var) || upperBounded.contains(var))) {
+        myErrorReporter.report(new TypecheckingError(GeneralError.Level.WARNING, "Variable " + var + " is solved to " + solution.get(var).negate() + " while not bounded from either side", var.getSourceNode()));
       }
     }
   }

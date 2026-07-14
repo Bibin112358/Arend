@@ -217,7 +217,7 @@ public class TwoStageEquations implements Equations {
 
       // ?x <> Type
       if (cmp == CMP.LE && cType instanceof UniverseExpression universe && universe.getSortExpression() instanceof SortExpression.Const(Sort sort) && sort.getHLevel().isInfinity()) {
-        InferenceLevelVariable pl = new InferenceLevelVariable(sourceNode);
+        InferenceLevelVariable pl = new InferenceLevelVariable(sourceNode, true);
         addVariable(pl);
         Sort genSort = new Sort(new Level(pl), sort.getHLevel());
         solve(cInf, new UniverseExpression(genSort), false);
@@ -785,7 +785,7 @@ public class TwoStageEquations implements Equations {
       ClassCallExpression solution;
       if (cmp == CMP.LE) {
         Equations wrapper = useWrapper ? new LevelEquationsWrapper(this) : this;
-        Levels levels = classDef.generateInferVars(this, pair.proj1.getSourceNode());
+        Levels levels = classDef.generateInferVars(this, pair.proj1.getSourceNode(), true);
         Map<ClassField, Expression> implementations = new LinkedHashMap<>();
         solution = new ClassCallExpression(classDef, levels, implementations);
         ReferenceExpression thisExpr = new ReferenceExpression(solution.getThisBinding());

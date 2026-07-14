@@ -111,11 +111,11 @@ public abstract class Definition extends UserDataHolderImpl implements CoreDefin
     return new ListLevels(result);
   }
 
-  public Levels generateInferVars(Equations equations, Concrete.SourceNode sourceNode) {
+  public Levels generateInferVars(Equations equations, Concrete.SourceNode sourceNode, boolean isGenerated) {
     List<? extends LevelVariable> vars = getLevelParameters();
     List<Level> result = new ArrayList<>(vars.size());
     for (LevelVariable ignored : vars) {
-      InferenceLevelVariable infVar = new InferenceLevelVariable(sourceNode);
+      InferenceLevelVariable infVar = new InferenceLevelVariable(sourceNode, isGenerated);
       equations.addVariable(infVar);
       result.add(new Level(infVar));
     }

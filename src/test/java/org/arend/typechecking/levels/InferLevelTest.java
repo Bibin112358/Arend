@@ -23,7 +23,8 @@ public class InferLevelTest extends TypeCheckingTestCase {
     typeCheckModule("""
       \\func A.{u} => \\Type u
       \\func f => A
-      """);
+      """, 1);
+    assertThatErrorsAre(Matchers.warning());
   }
 
   @Test
@@ -34,7 +35,8 @@ public class InferLevelTest extends TypeCheckingTestCase {
       \\func A.{u} => \\Type u
       \\func f.{u} (A : \\Type u) => A
       \\func g => f A
-      """);
+      """, 2);
+    assertThatErrorsAre(Matchers.warning(), Matchers.warning());
   }
 
   @Test
@@ -68,7 +70,7 @@ public class InferLevelTest extends TypeCheckingTestCase {
     typeCheckModule("""
     \\func A.{u} => \\Type u
     \\func f.{u} : \\Type u => A
-    """, 1);
+    """, -1);
   }
 
   @Test
@@ -260,7 +262,7 @@ public class InferLevelTest extends TypeCheckingTestCase {
       \\data Maybe.{u} (A : \\Type u) | nothing | just A
       \\func id'.{u} {A : \\Type u} (a : A) => a
       \\func idTest.{u} : \\Type1 => id'.{\\suc u} (Functor Maybe)
-      """, 1);
+      """, -1);
   }
 
   @Test
@@ -271,7 +273,8 @@ public class InferLevelTest extends TypeCheckingTestCase {
       \\data Maybe.{u} (A : \\Type u) | nothing | just A
       \\func id'.{u} {A : \\Type u} (a : A) => a
       \\func idTest.{u} : \\Type1 => id'.{\\suc (\\suc u)} (Functor Maybe)
-      """);
+      """, 2);
+    assertThatErrorsAre(Matchers.warning(), Matchers.warning());
   }
 
   @Test
@@ -312,8 +315,8 @@ public class InferLevelTest extends TypeCheckingTestCase {
       \\data Maybe.{u} (A : \\Type u) | nothing | just A
       \\func id'.{u} {A : \\Type u} (a : A) => a
       \\func idTest.{u} => id'.{\\suc (\\suc u)} (Functor Maybe)
-      """, 1);
-    assertThatErrorsAre(Matchers.warning());
+      """, 2);
+    assertThatErrorsAre(Matchers.warning(), Matchers.warning());
   }
 
   @Test
@@ -356,8 +359,8 @@ public class InferLevelTest extends TypeCheckingTestCase {
     typeCheckModule("""
       \\record R.{u}
         | f : \\Type u -> \\Type u
-      \\record S
-        | inst : R
+      \\record S.{u}
+        | inst : R.{u}
         | func (X : \\Type0) : f {inst} X
       """);
   }
@@ -367,8 +370,8 @@ public class InferLevelTest extends TypeCheckingTestCase {
     typeCheckModule("""
       \\record R.{u}
         | f : \\Type u -> \\Type u
-      \\record S
-        | inst : R
+      \\record S.{u}
+        | inst : R.{u}
         | func (X : \\Type1) : f {inst} X
       """, 1);
   }

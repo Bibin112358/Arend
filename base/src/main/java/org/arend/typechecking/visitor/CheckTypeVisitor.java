@@ -1732,7 +1732,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
                 break;
               }
             }
-            Levels levels = typecheckLevels(actualDef, baseRefExpr, actualDef.generateInferVars(myEquations, expr));
+            Levels levels = typecheckLevels(actualDef, baseRefExpr);
             actualClassCall = new ClassCallExpression(actualClass, levels, new LinkedHashMap<>());
             if (!new CompareVisitor(myEquations, CMP.LE, expr).compareClassCallLevels(actualClassCall, expectedClassCall)) {
               errorReporter.report(new TypeMismatchWithSubexprError(new CompareVisitor.Result(actualClassCall, expectedClassCall, actualClassCall, expectedClassCall, actualClassCall.getLevels(), expectedClassCall.getLevels()), expr));
@@ -1900,24 +1900,16 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
   }
 
-  private void generateLevel(LevelVariable param, LevelSubstitution defaultLevels, Concrete.SourceNode sourceNode, List<Level> result) {
-    if (defaultLevels != null) {
-      Level level = (Level) defaultLevels.get(param);
-      if (level != null) {
-        result.add(level);
-        return;
-      }
-    }
-
-    InferenceLevelVariable var = new InferenceLevelVariable(sourceNode);
+  private void generateLevel(Concrete.SourceNode sourceNode, List<Level> result) {
+    InferenceLevelVariable var = new InferenceLevelVariable(sourceNode, false);
     myEquations.addVariable(var);
     result.add(new Level(var));
   }
 
-  private void typecheckLevels(List<Concrete.LevelExpression> levels, List<? extends LevelVariable> params, int additionalArgs, LevelSubstitution defaultLevels, Concrete.SourceNode sourceNode, List<Level> result) {
+  private void typecheckLevels(List<Concrete.LevelExpression> levels, List<? extends LevelVariable> params, int additionalArgs, Concrete.SourceNode sourceNode, List<Level> result) {
     if (levels == null) {
-      for (LevelVariable param : params) {
-        generateLevel(param, defaultLevels, sourceNode, result);
+      for (LevelVariable ignored : params) {
+        generateLevel(sourceNode, result);
       }
     } else {
       int s = params.size() + additionalArgs;
@@ -1928,7 +1920,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       for (int i = 0; i < params.size(); i++) {
         Concrete.LevelExpression level = i < levels.size() ? levels.get(i) : null;
         if (level == null) {
-          generateLevel(params.get(i), defaultLevels, sourceNode, result);
+          generateLevel(sourceNode, result);
         } else {
           result.add(level.accept(this, null));
         }
@@ -1936,14 +1928,14 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
   }
 
-  public Levels typecheckLevels(Definition def, Concrete.ReferenceExpression expr, Levels defaultLevels) {
-    return typecheckLevels(def, expr, defaultLevels, Collections.emptySet());
+  public Levels typecheckLevels(Definition def, Concrete.ReferenceExpression expr) {
+    return typecheckLevels(def, expr, Collections.emptySet());
   }
 
-  public Levels typecheckLevels(Definition def, Concrete.ReferenceExpression expr, Levels defaultLevels, Set<ClassField> implementedFields) {
+  public Levels typecheckLevels(Definition def, Concrete.ReferenceExpression expr, Set<ClassField> implementedFields) {
     List<Concrete.LevelExpression> pLevels = expr.getLevels();
     if (pLevels == null) {
-      return defaultLevels != null ? defaultLevels : def.generateInferVars(myEquations, expr);
+      return def.generateInferVars(myEquations, expr, false);
     }
 
     List<? extends LevelVariable> params = def.getLevelParameters();
@@ -1955,8 +1947,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     int additionalArgs = def instanceof ClassDefinition classDef ? classDef.getOverridableInfiniteFields(implementedFields).size() : 0;
 
     List<Level> result = new ArrayList<>();
-    LevelSubstitution defaultSubst = defaultLevels == null ? null : defaultLevels.makeSubstitution(def);
-    typecheckLevels(pLevels, params, additionalArgs, defaultSubst, expr, result);
+    typecheckLevels(pLevels, params, additionalArgs, expr, result);
 
     // The list is indexed by `overridableFields` (ignoring `implementedFields`), so implemented
     // fields get an (unused) placeholder to keep the remaining fields' positions aligned.
@@ -1984,14 +1975,14 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     Levels levels;
     if (definition == myDefinition || myRecursiveDefinitions.contains(definition.getRef()) && expr.getLevels() == null) {
       levels = definition.makeIdLevels();
-      Levels levels1 = typecheckLevels(definition, expr, null, implementedFields);
+      Levels levels1 = typecheckLevels(definition, expr, implementedFields);
       if (!levels.compare(levels1, CMP.EQ, myEquations, expr)) {
         errorReporter.report(new TypecheckingError("Recursive call must have the same levels as the definition", expr));
       }
     } else if (expr.getLevels() == null) {
-      levels = definition.generateInferVars(myEquations, expr);
+      levels = definition.generateInferVars(myEquations, expr, false);
     } else {
-      levels = typecheckLevels(definition, expr, null, implementedFields);
+      levels = typecheckLevels(definition, expr, implementedFields);
     }
 
     return DefCallResult.makeTResult(expr, definition, levels);
@@ -3098,7 +3089,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       return null;
     }
     MetaTopDefinition def = metaRef.getTypechecked() instanceof MetaTopDefinition metaTop ? metaTop : null;
-    Levels levels = def == null ? null : typecheckLevels(def, refExpr, null);
+    Levels levels = def == null ? null : typecheckLevels(def, refExpr);
     LevelSubstitution levelSubst = levels == null ? null : levels.makeSubstitution(def);
     if (def != null && def.getParameters().hasNext()) {
       ExprSubstitution substitution = new ExprSubstitution();
@@ -3397,7 +3388,7 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
 
     if (pLevel == null) {
-      InferenceLevelVariable pl = new InferenceLevelVariable(expr);
+      InferenceLevelVariable pl = new InferenceLevelVariable(expr, false);
       myEquations.addVariable(pl);
       pLevel = new Level(pl);
     }

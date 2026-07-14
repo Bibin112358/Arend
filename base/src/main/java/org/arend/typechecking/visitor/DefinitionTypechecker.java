@@ -2346,7 +2346,7 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
       Map<ClassDefinition, Levels> superLevels = new HashMap<>();
       int i = 0;
       for (ClassDefinition superClass : typedDef.getSuperClasses()) {
-        superLevels.put(superClass, typechecker.typecheckLevels(superClass, def.getSuperClasses().get(i++), null));
+        superLevels.put(superClass, typechecker.typecheckLevels(superClass, def.getSuperClasses().get(i++)));
       }
       if (!superLevels.isEmpty()) {
         LevelEquationsSolver levelSolver = typechecker.getEquations().makeLevelEquationsSolver();

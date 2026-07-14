@@ -231,7 +231,7 @@ public class CoerceData implements CoreCoerceData {
           }
         }
 
-        Levels levels = def.generateInferVars(visitor.getEquations(), sourceNode);
+        Levels levels = def.generateInferVars(visitor.getEquations(), sourceNode, true);
         if (!visitor.checkCoerceResult(link.getType().subst(substitution, levels.makeSubstitution(def)), result, sourceNode, argStrict)) {
           if (argStrict) {
             return null;

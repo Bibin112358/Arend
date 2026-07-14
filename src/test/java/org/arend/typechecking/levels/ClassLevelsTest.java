@@ -138,7 +138,7 @@ public class ClassLevelsTest extends TypeCheckingTestCase {
         \\record Base.{u} (A : \\Type u)
         \\record R.{u} \\extends Base.{\\suc u}
         \\record S \\extends Base
-        \\record T \\extends R, S
+        \\record T.{u} \\extends R.{u}, S.{u}
         """, 1);
     assertThatErrorsAre(Matchers.typecheckingError(SuperLevelsMismatchError.class));
   }
@@ -150,7 +150,7 @@ public class ClassLevelsTest extends TypeCheckingTestCase {
         \\record Base.{u} (A : \\Type u)
         \\record R.{u} \\extends Base.{\\suc (\\suc u)}
         \\record S.{u} \\extends Base.{\\suc u}
-        \\record T \\extends R, S
+        \\record T.{u} \\extends R.{u}, S.{u}
         """, 1);
     assertThatErrorsAre(Matchers.typecheckingError(SuperLevelsMismatchError.class));
   }
@@ -171,24 +171,7 @@ public class ClassLevelsTest extends TypeCheckingTestCase {
   }
 
   @Test
-  public void extendsMin() {
-    typeCheckModule(
-      "\\record R.{p1,p2}\n" +
-      "\\record S.{p3,p4} \\extends R");
-  }
-
-  @Test
   public void extendsTest2() {
-    typeCheckModule(
-      """
-        \\record R.{p1,p2}
-        \\record S.{p1,p2}
-        \\record T \\extends R, S
-        """);
-  }
-
-  @Test
-  public void extendsTest4() {
     typeCheckModule(
       """
         \\record R.{p2,p1}
@@ -245,7 +228,7 @@ public class ClassLevelsTest extends TypeCheckingTestCase {
       """
         \\record R.{p1,p2}
         \\record S.{u} (A : \\Type u)
-        \\record T.{u} \\extends R, S.{u}
+        \\record T.{u} \\extends R.{u,u}, S.{u}
         """);
   }
 

@@ -292,7 +292,7 @@ public class PatternTypechecking {
     for (Expression arg : args) {
       newArgs.add(arg.subst(substitution));
     }
-    Levels levels = definition.generateInferVars(myVisitor.getEquations(), sourceNode);
+    Levels levels = definition.generateInferVars(myVisitor.getEquations(), sourceNode, true);
     LevelSubstitution levelSubst = levels.makeSubstitution(definition);
     ExprSubstitution paramSubst = new ExprSubstitution();
     DependentLink param = definition.getParameters();
@@ -745,7 +745,7 @@ public class PatternTypechecking {
             }
             listSubst(result, exprs, varSubst);
           } else {
-            levels = def.generateInferVars(myVisitor.getEquations(), conPattern);
+            levels = def.generateInferVars(myVisitor.getEquations(), conPattern, true);
             LevelSubstitution levelSubst = levels.makeSubstitution(def);
 
             FreeVariablesCollector collector = new FreeVariablesCollector();

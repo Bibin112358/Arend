@@ -74,7 +74,8 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   public void useTest() {
     typeCheckModule(
       "\\data D.{p2,p1} (A : \\Type p2) | con Nat\n" +
-      "  \\where \\use \\coerce test.{p4,p3} (A : \\Type p4) (n : Nat) : D A => con n");
+      "  \\where \\use \\coerce test.{p4,p3} (A : \\Type p4) (n : Nat) : D A => con n", 2);
+    assertThatErrorsAre(Matchers.warning(), Matchers.warning());
     assertEquals(2, getDefinition("D.test").getLevelParameters().size());
   }
 
@@ -82,7 +83,8 @@ public class LevelParametersTest extends TypeCheckingTestCase {
   public void useTest2() {
     typeCheckModule(
       "\\data D.{p2,p1} (A : \\Type p2) | con Nat\n" +
-      "  \\where \\use \\coerce test.{p2,p1} (A : \\Type p2) (n : Nat) : D A => con n");
+      "  \\where \\use \\coerce test.{p2,p1} (A : \\Type p2) (n : Nat) : D A => con n", 2);
+    assertThatErrorsAre(Matchers.warning(), Matchers.warning());
     assertEquals(2, getDefinition("D.test").getLevelParameters().size());
   }
 
@@ -91,6 +93,7 @@ public class LevelParametersTest extends TypeCheckingTestCase {
     resolveNamesModule(
       "\\data D.{p1,p2} (A : \\Type p2) | con Nat\n" +
       "  \\where \\use \\coerce test {A : \\Type p1} (n : Nat) : D A => con n", 1);
+    assertThatErrorsAre(Matchers.error());
   }
 
   @Test
@@ -98,9 +101,10 @@ public class LevelParametersTest extends TypeCheckingTestCase {
     typeCheckModule(
       """
         \\record R.{p1,p2}
-        \\data D (r : R) | con Nat
+        \\data D.{p1,p2} (r : R.{p1,p2}) | con Nat
           \\where \\use \\coerce test (n : Nat) => con n
-        """);
+        """, 2);
+    assertThatErrorsAre(Matchers.warning(), Matchers.warning());
     assertEquals(2, getDefinition("D.test").getLevelParameters().size());
   }
 
@@ -109,9 +113,10 @@ public class LevelParametersTest extends TypeCheckingTestCase {
     typeCheckModule(
       """
         \\record R.{p1,p2}
-        \\data D (r : R) | con Nat
+        \\data D.{p1,p2} (r : R.{p1,p2}) | con Nat
           \\where \\use \\coerce test (r : R) (n : Nat) => con n
-        """);
+        """, 2);
+    assertThatErrorsAre(Matchers.warning(), Matchers.warning());
     Definition def = getDefinition("D.test");
     List<? extends LevelVariable> params = def.getLevelParameters();
     assertEquals(2, params.size());
@@ -220,7 +225,8 @@ public class LevelParametersTest extends TypeCheckingTestCase {
     typeCheckModule("""
       \\meta T.{p} => \\Type p
       \\func test => T
-      """);
+      """, 1);
+    assertThatErrorsAre(Matchers.warning());
   }
 
   @Test

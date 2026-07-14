@@ -6,9 +6,15 @@ import org.arend.term.concrete.Concrete;
 
 public class InferenceLevelVariable implements LevelVariable {
   private final Concrete.SourceNode mySourceNode;
+  private final boolean myGenerated;
 
-  public InferenceLevelVariable(Concrete.SourceNode sourceNode) {
+  public InferenceLevelVariable(Concrete.SourceNode sourceNode, boolean isGenerated) {
     mySourceNode = sourceNode;
+    myGenerated = isGenerated;
+  }
+
+  public boolean isGenerated() {
+    return myGenerated;
   }
 
   @Override

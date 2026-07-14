@@ -75,7 +75,7 @@ public class GlobalInstancePool implements InstancePool {
       Pair<Concrete.Expression, ClassDefinition> pair = getInstancePair(classifyingExpression, parameters, sourceNode, recursiveHoleExpression, currentDef);
       if (pair != null) {
         if (expectedType == null) {
-          ClassCallExpression classCall = classifyingExpression == null ? null : new ClassCallExpression(pair.proj2, pair.proj2.generateInferVars(myCheckTypeVisitor.getEquations(), sourceNode));
+          ClassCallExpression classCall = classifyingExpression == null ? null : new ClassCallExpression(pair.proj2, pair.proj2.generateInferVars(myCheckTypeVisitor.getEquations(), sourceNode, true));
           if (classCall != null) {
             expectedType = classCall;
           }

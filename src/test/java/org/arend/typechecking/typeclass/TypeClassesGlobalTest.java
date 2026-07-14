@@ -309,7 +309,7 @@ public class TypeClassesGlobalTest extends TypeCheckingTestCase {
       \\func fromMaybe {A : \\Type} (a : A) (m : Maybe A) : A \\elim m
         | nothing => a
         | just a' => a'
-      \\instance B-inst : B (\\lam A => Maybe A) | foo => just 3 | bar => fromMaybe 7
+      \\instance B-inst : B.{0} (\\lam A => Maybe A) | foo => just 3 | bar => fromMaybe 7
       \\func test1 => fromMaybe 4 foo
       \\func test2 => bar (just 5)
       \\func test3 => \\let x : Maybe Nat => foo \\in bar x
@@ -324,7 +324,7 @@ public class TypeClassesGlobalTest extends TypeCheckingTestCase {
       \\func fromMaybe {A : \\Type} (a : A) (m : Maybe A) : A \\elim m
         | nothing => a
         | just a' => a'
-      \\instance B-inst : B (\\lam A => Maybe A) | foo => just 3 | bar => fromMaybe 7
+      \\instance B-inst : B.{0} (\\lam A => Maybe A) | foo => just 3 | bar => fromMaybe 7
       \\func test => bar (just (\\lam (x : Nat) => x))
       """, 1);
     assertThatErrorsAre(typeMismatchError());
@@ -336,7 +336,7 @@ public class TypeClassesGlobalTest extends TypeCheckingTestCase {
       \\class B.{u} (F : \\Set u -> \\Set u) | foo : F Nat | bar : F Nat -> Nat
       \\record R {A : \\Type} | rrr : A
       \\func proj {A : \\Type} (r : R {A}) => r.rrr
-      \\instance B-inst : B (\\lam A => R {A}) | foo => \\new R 3 | bar => proj
+      \\instance B-inst : B.{0} (\\lam A => R {A}) | foo => \\new R 3 | bar => proj
       \\func test1 => proj foo
       \\func test2 => bar (\\new R 5)
       \\func test3 => \\let x : R {Nat} => foo \\in bar x

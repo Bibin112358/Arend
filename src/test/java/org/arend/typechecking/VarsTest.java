@@ -435,7 +435,8 @@ public class VarsTest extends TypeCheckingTestCase {
           \\func bar (a : A) => a
             \\where
               \\func baz => bar
-      """);
+      """, 1);
+    assertThatErrorsAre(Matchers.warning());
     Definition baz = getDefinition("foo.bar.baz");
     assertEquals(2, baz.getLevelParameters().size());
     assertEquals(new UniverseExpression(new Sort(new Level(baz.getLevelParameters().get(1)), ConstLevel.INFINITY)), getDefinition("foo.bar.baz").getParameters().getType());
