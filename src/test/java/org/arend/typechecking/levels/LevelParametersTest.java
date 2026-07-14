@@ -105,22 +105,6 @@ public class LevelParametersTest extends TypeCheckingTestCase {
           \\where \\use \\coerce test (n : Nat) => con n
         """, 2);
     assertThatErrorsAre(Matchers.warning(), Matchers.warning());
-    assertEquals(2, getDefinition("D.test").getLevelParameters().size());
-  }
-
-  @Test
-  public void useDerived2() {
-    typeCheckModule(
-      """
-        \\record R.{p1,p2}
-        \\data D.{p1,p2} (r : R.{p1,p2}) | con Nat
-          \\where \\use \\coerce test (r : R) (n : Nat) => con n
-        """, 2);
-    assertThatErrorsAre(Matchers.warning(), Matchers.warning());
-    Definition def = getDefinition("D.test");
-    List<? extends LevelVariable> params = def.getLevelParameters();
-    assertEquals(2, params.size());
-    assertEquals(new ListLevels(Arrays.asList(new Level(params.get(0)), new Level(params.get(1)))), ((ClassCallExpression) def.getParameters().getType()).getLevels());
   }
 
   @Ignore

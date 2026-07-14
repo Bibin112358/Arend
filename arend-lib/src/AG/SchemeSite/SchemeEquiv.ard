@@ -35,7 +35,7 @@
     *> inv (LRLSchemeSiteHom.toLRLHom-natural {_} {_} {_} {(saturatePrehom f).toLRLSchemeSiteHom.toLRLHom} {(saturatePrehom g).toLRLSchemeSiteHom})
   | isFullyFaithful => IsEquiv.trans (inP saturateHom.isEquiv) $ IsEquiv.trans (inP LRL-equiv) (inP LRLSchemeSiteHom.LRL-equiv)
 
-\func LRL->SchemeSiteHom {S : Scheme} : LRLSchemeSiteHom S (maxSchemeSite S) \cowith
+\func LRL->SchemeSiteHom.{u} {S : Scheme.{u}} : LRLSchemeSiteHom S (maxSchemeSite S) \cowith
   | f* => LRL->SchemeSite.embedding {S} {S.IsAffineOpen} {\lam p => p}
   | f# => NatTrans.id
   | isLRLSchemeSiteHom-top => isLocallyAffine <=∘ Join-univ \lam {a} aff => S.L.IJoin-cond (later (a,aff))

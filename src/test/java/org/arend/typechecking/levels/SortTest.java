@@ -388,8 +388,8 @@ public class SortTest extends TypeCheckingTestCase {
       \\record T (A : \\Type)
       \\record R.{s} (B : T.{s} -> T.{s})
       \\func test (r : R) : R.{4} => r
-      """, 1);
-    assertThatErrorsAre(Matchers.typeMismatchError());
+      """, 2);
+    assertThatErrorsAre(Matchers.warning(), Matchers.typeMismatchError());
   }
 
   @Test

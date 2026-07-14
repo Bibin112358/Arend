@@ -2,7 +2,6 @@ package org.arend.core.definition;
 
 import org.arend.core.context.binding.LevelVariable;
 import org.arend.ext.util.Pair;
-import org.arend.naming.reference.LocatedReferable;
 import org.arend.naming.reference.TCDefReferable;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,8 +9,6 @@ import java.util.*;
 
 public abstract class TopLevelDefinition extends CallableDefinition {
   private List<? extends LevelVariable> myLevelParameters = Collections.emptyList();
-  private LocatedReferable myLevelsParent;
-  private boolean myLevelsDerived;
   private List<Pair<TCDefReferable,Integer>> myParametersOriginalDefinitions = Collections.emptyList();
   private Set<? extends FunctionDefinition> myAxioms = Collections.emptySet();
   private Set<? extends Definition> myGoals = Collections.emptySet();
@@ -32,24 +29,6 @@ public abstract class TopLevelDefinition extends CallableDefinition {
 
   public void setLevelParameters(@NotNull List<LevelVariable> parameters) {
     myLevelParameters = parameters;
-  }
-
-  @Override
-  public LocatedReferable getLevelsParent() {
-    return myLevelsParent;
-  }
-
-  public void setLevelsParent(LocatedReferable parent) {
-    myLevelsParent = parent;
-  }
-
-  @Override
-  public boolean areLevelsDerived() {
-    return myLevelsDerived;
-  }
-
-  public void setLevelsDerived(boolean derived) {
-    myLevelsDerived = derived;
   }
 
   @Override

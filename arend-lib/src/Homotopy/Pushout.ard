@@ -25,7 +25,7 @@
       })
 
     -- | {map} preserves identity maps
-    \func map_id (p : Pushout) (y : p.square.Y) : map p p.square id id id (\lam _ => idp) (\lam _ => idp) = id
+    \func map_id.{u} (p : Pushout.{u}) (y : p.square.Y) : map p p.square id id id (\lam _ => idp) (\lam _ => idp) = id
       => IsEquiv.ret_f p.pushout-univ
   }
 

@@ -156,21 +156,6 @@ public class ClassLevelsTest extends TypeCheckingTestCase {
   }
 
   @Test
-  public void extendsTest() {
-    typeCheckModule(
-      """
-        \\record R.{p1,p2}
-        \\record S \\extends R
-        \\record T \\extends R
-        \\record X \\extends S, T
-        """);
-    assertEquals(2, getDefinition("R").getLevelParameters().size());
-    assertEquals(2, getDefinition("S").getLevelParameters().size());
-    assertEquals(2, getDefinition("T").getLevelParameters().size());
-    assertEquals(2, getDefinition("X").getLevelParameters().size());
-  }
-
-  @Test
   public void extendsTest2() {
     typeCheckModule(
       """

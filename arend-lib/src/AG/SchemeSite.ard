@@ -391,7 +391,7 @@
           inP (pow a.2 n, later $ inP (n,idp), Ua)
   }
 
-\func LRL->SchemeSite {L : RingedLocale} (C : L -> \Prop) (Ca : ∀ {a : C} (L.IsAffineOpen a))
+\func LRL->SchemeSite.{u} {L : RingedLocale.{u}} (C : L -> \Prop) (Ca : ∀ {a : C} (L.IsAffineOpen a))
     (Cc : ∀ {a : C} {b} (ba : b <= a) {x : L.R a} (L.IsPrincipalOpenAt ba x) (C b)) : SatSchemeSite \cowith
   | P => preorder
   | R => Comp L.R embedding.op
@@ -414,5 +414,5 @@
       | func-<= s => s.1
   }
 
-\func maxSchemeSite (L : RingedLocale) : SatSchemeSite
+\func maxSchemeSite.{u} (L : RingedLocale.{u}) : SatSchemeSite
   => LRL->SchemeSite L.IsAffineOpen (\lam p => p) \lam aff ba => L.principal-affine aff

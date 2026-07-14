@@ -18,8 +18,6 @@ message Definition {
     }
     map<string, bytes> user_data = 7;
     repeated int32 meta_ref = 8;
-    int32 levels_parent = 9;
-    bool levels_derived = 11;
     repeated LevelParameter level_param = 13;
     repeated ParameterOriginalDef parameter_original_def = 15;
     repeated int32 axiom = 16;

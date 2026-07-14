@@ -443,17 +443,6 @@ public class VarsTest extends TypeCheckingTestCase {
   }
 
   @Test
-  public void levelsTest13() {
-    typeCheckModule("""
-      \\plevels p1,p2
-      \\record R (A : \\Type p1)
-      \\func foo (r : R) => 4
-        \\where
-          \\func bar => r
-      """);
-  }
-
-  @Test
   public void notUsedTest() {
     typeCheckModule("""
       \\func foo (x : Nat) => bar Nat.+ x

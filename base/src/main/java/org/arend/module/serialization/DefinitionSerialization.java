@@ -43,10 +43,6 @@ public class DefinitionSerialization implements ArendSerializer {
 
     final DefinitionProtos.Definition.Builder out = DefinitionProtos.Definition.newBuilder();
     out.putAllUserData(writeUserData(definition));
-    if (definition.getLevelsParent() != null) {
-      out.setLevelsParent(myCallTargetIndexProvider.getDefIndex(definition.getLevelsParent()) + 1);
-    }
-    out.setLevelsDerived(definition.areLevelsDerived());
     out.setNoErrors(definition.status().noErrors());
     out.addAllLevelParam(writeLevelParameters(definition.getLevelParameters()));
     for (Pair<TCDefReferable, Integer> pair : definition.getParametersOriginalDefinitions()) {

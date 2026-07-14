@@ -12,7 +12,6 @@ import org.arend.core.subst.ListLevels;
 import org.arend.ext.core.definition.CoreDefinition;
 import org.arend.ext.util.Pair;
 import org.arend.extImpl.userData.UserDataHolderImpl;
-import org.arend.naming.reference.LocatedReferable;
 import org.arend.naming.reference.TCDefReferable;
 import org.arend.term.concrete.Concrete;
 import org.arend.typechecking.implicitargs.equations.Equations;
@@ -50,14 +49,6 @@ public abstract class Definition extends UserDataHolderImpl implements CoreDefin
   @Override
   public @NotNull Set<? extends TopLevelDefinition> getRecursiveDefinitions() {
     return Collections.emptySet();
-  }
-
-  public LocatedReferable getLevelsParent() {
-    return null;
-  }
-
-  public boolean areLevelsDerived() {
-    return false;
   }
 
   public abstract TopLevelDefinition getTopLevelDefinition();
