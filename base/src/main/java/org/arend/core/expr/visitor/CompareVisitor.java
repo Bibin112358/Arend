@@ -1372,7 +1372,10 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
   }
 
   public boolean compareClassCallLevels(ClassCallExpression classCall1, ClassCallExpression classCall2) {
-    if (myCMP != CMP.EQ && !compareFieldLevelOverrides(myCMP == CMP.LE ? classCall1 : classCall2, myCMP == CMP.LE ? classCall2 : classCall1)) {
+    if (!compareFieldLevelOverrides(myCMP != CMP.GE ? classCall1 : classCall2, myCMP != CMP.GE ? classCall2 : classCall1)) {
+      return false;
+    }
+    if (myCMP == CMP.EQ && !compareFieldLevelOverrides(classCall2, classCall1)) {
       return false;
     }
 
