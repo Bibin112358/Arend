@@ -398,7 +398,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
   }
 
   private void printReference(Concrete.ReferenceExpression expr, Precedence prec) {
-    boolean parens = expr.getReferent() instanceof GlobalReferable && ((GlobalReferable) expr.getReferent()).getRepresentablePrecedence().isInfix || expr.getLevels() != null && prec.priority > Concrete.AppExpression.PREC;
+    boolean parens = expr.getReferent() instanceof GlobalReferable && ((GlobalReferable) expr.getReferent()).getRepresentablePrecedence().isInfix;
     if (parens) {
       myBuilder.append('(');
     }

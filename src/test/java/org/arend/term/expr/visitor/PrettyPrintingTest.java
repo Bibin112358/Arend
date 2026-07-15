@@ -369,4 +369,36 @@ public class PrettyPrintingTest extends TypeCheckingTestCase {
   public void lamPatternsTest4() {
     testLamPatterns("\\lam n m => n");
   }
+
+  @Test
+  public void typeLevelsTest() {
+    FunctionDefinition function = (FunctionDefinition) typeCheckDef("\\func test.{u} => \\Type u");
+    assertEquals("\\Type u", Objects.requireNonNull(function.getBody()).toString());
+  }
+
+  @Test
+  public void setLevelTest() {
+    FunctionDefinition function = (FunctionDefinition) typeCheckDef("\\func test.{u} => \\Set u");
+    assertEquals("\\Set u", Objects.requireNonNull(function.getBody()).toString());
+  }
+
+  @Test
+  public void definitionLevelTest() {
+    typeCheckModule("""
+      \\func foo.{u} => \\Type u
+      \\func test.{u} => foo.{u}
+      """);
+    FunctionDefinition function = (FunctionDefinition) getDefinition("test");
+    assertEquals("foo.{u}", Objects.requireNonNull(function.getBody()).toString());
+  }
+
+  @Test
+  public void definitionConstantLevelTest() {
+    typeCheckModule("""
+      \\func foo.{u} => \\Type u
+      \\func test => foo.{3}
+      """);
+    FunctionDefinition function = (FunctionDefinition) getDefinition("test");
+    assertEquals("foo.{3}", Objects.requireNonNull(function.getBody()).toString());
+  }
 }
