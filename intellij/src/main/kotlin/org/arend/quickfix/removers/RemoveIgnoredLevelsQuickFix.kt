@@ -6,8 +6,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
-import org.arend.psi.childOfType
-import org.arend.psi.deleteWithWhitespaces
 import org.arend.util.ArendBundle
 
 class RemoveIgnoredLevelsQuickFix(private val cause: SmartPsiElementPointer<PsiElement>) : IntentionAction {

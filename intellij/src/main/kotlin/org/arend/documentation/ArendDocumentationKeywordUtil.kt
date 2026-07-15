@@ -29,7 +29,6 @@ enum class ArendKeywordSection(val sectionName: String) {
     EXTENDS_SECTION("extensions"),
     MODULE_SECTION("modules"),
     INSTANCES_SECTION("instances"),
-    PLEVELS_SECTION("level-parameters"),
     WITH_SECTION("pattern-matching"),
     ELIM_SECTION("elim"),
     COWITH_SECTION("copattern-matching"),
@@ -74,7 +73,6 @@ enum class ArendKeyword(val type: IElementType, val section: ArendKeywordSection
     USE(ArendElementTypes.USE_KW, null),
     COERCE(ArendElementTypes.COERCE_KW, null),
     LEVEL(ArendElementTypes.LEVEL_KW, null),
-    PLEVELS(ArendElementTypes.PLEVELS_KW, PLEVELS_SECTION),
     BOX(ArendElementTypes.BOX_KW, null),
     EVAL(ArendElementTypes.EVAL_KW, SFUNC_SECTION),
     PEVAL(ArendElementTypes.PEVAL_KW, SFUNC_SECTION),
@@ -209,7 +207,7 @@ internal fun getArendKeywordHtml(arendKeyword: ArendKeyword?) =
         ALIAS, INFIX, INFIX_LEFT, INFIX_RIGHT, FIX, FIX_LEFT, FIX_RIGHT -> definitionsHtml
         USE, COERCE -> coercionHtml
         LEVEL -> levelHtml
-        PLEVELS, SUC, MAX, PROP, SET, CAT_UNIVERSE, UNIVERSE, TRUNCATED_UNIVERSE -> universesHtml
+        SUC, MAX, PROP, SET, CAT_UNIVERSE, UNIVERSE, TRUNCATED_UNIVERSE -> universesHtml
         NEW -> classExtHtml
         PI, LAM -> piHtml
         SIGMA -> sigmaHtml

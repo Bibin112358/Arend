@@ -14,7 +14,6 @@ import org.arend.frontend.reference.*;
 import org.arend.ext.module.ModuleLocation;
 import org.arend.naming.reference.InternalReferableImpl;
 import org.arend.naming.reference.*;
-import org.arend.naming.scope.Scope;
 import org.arend.term.*;
 import org.arend.term.concrete.Concrete;
 import org.arend.term.group.*;
@@ -142,7 +141,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
   private List<ConcreteStatement> visitStatement(AccessModifier accessModifier, StatementContext ctx, ConcreteGroup parent, TCDefReferable enclosingClass) {
     switch (ctx) {
       case StatCmdContext statCmdContext -> {
-        return Collections.singletonList(new ConcreteStatement(null, visitStatCmd(statCmdContext), null));
+        return Collections.singletonList(new ConcreteStatement(null, visitStatCmd(statCmdContext)));
       }
       case StatDefContext statDef -> {
         ConcreteGroup group = visitDefinition(visitAccessModifier(statDef.accessMod(), accessModifier), statDef.definition(), parent, enclosingClass);
@@ -154,15 +153,12 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
             myErrorReporter.report(new ParserError(tokenPosition(statDef.USE().getSymbol()), "\\use must belong to a \\where-block of a definition"));
           }
         }
-        return Collections.singletonList(new ConcreteStatement(group, null, null));
+        return Collections.singletonList(new ConcreteStatement(group, null));
       }
       case StatAccessModContext stat -> {
         List<ConcreteStatement> statements = new ArrayList<>();
         visitStatementList(visitAccessModifier(stat.accessMod(), accessModifier), stat.statement(), statements, parent, enclosingClass);
         return statements;
-      }
-      case StatLevelsContext statLevelsContext -> {
-        return Collections.singletonList(new ConcreteStatement(null, null, visitStatLevels(statLevelsContext, parent.referable())));
       }
       case null, default -> {
         if (ctx != null) {
@@ -211,20 +207,6 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
   }
 
   @Override
-  public Scope.ScopeContext visitDynamicContext(DynamicContextContext ctx) {
-    return Scope.ScopeContext.DYNAMIC;
-  }
-
-  @Override
-  public Scope.ScopeContext visitPlevelContext(PlevelContextContext ctx) {
-    return Scope.ScopeContext.LEVEL;
-  }
-
-  private Scope.ScopeContext visitScopeContext(ScopeContextContext ctx) {
-    return ctx == null ? Scope.ScopeContext.STATIC : (Scope.ScopeContext) visit(ctx);
-  }
-
-  @Override
   public ConcreteNamespaceCommand visitStatCmd(StatCmdContext ctx) {
     var longName = ctx.longName();
     List<String> path = visitLongNamePath(longName);
@@ -236,11 +218,12 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
     } else {
       openedReferences = new ArrayList<>();
       for (NsIdContext nsIdCtx : nsUsing.nsId()) {
-        Position position = tokenPosition(nsIdCtx.scId().ID().getSymbol());
+        ScIdContext scId = nsIdCtx.scId();
+        Position position = tokenPosition(scId.ID().getSymbol());
         TerminalNode id = nsIdCtx.ID();
         openedReferences.add(new ConcreteNamespaceCommand.NameRenaming(position,
-          visitScopeContext(nsIdCtx.scId().scopeContext()),
-          new NamedUnresolvedReference(position, nsIdCtx.scId().ID().getText()),
+          scId.DOT() == null,
+          new NamedUnresolvedReference(position, scId.ID().getText()),
           nsIdCtx.precedence() == null ? null : visitPrecedence(nsIdCtx.precedence()),
           id == null ? null : id.getText()));
       }
@@ -250,7 +233,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
     for (ScIdContext scIdCtx : ctx.scId()) {
       TerminalNode id = scIdCtx.ID();
       Position position = tokenPosition(id.getSymbol());
-      hiddenReferences.add(new ConcreteNamespaceCommand.NameHiding(position, visitScopeContext(scIdCtx.scopeContext()), new NamedUnresolvedReference(position, id.getText())));
+      hiddenReferences.add(new ConcreteNamespaceCommand.NameHiding(position, scIdCtx.DOT() == null, new NamedUnresolvedReference(position, id.getText())));
     }
 
     Position position = tokenPosition(longName.start);
@@ -512,7 +495,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
       List<ConcreteGroup> dynamicGroups = new ArrayList<>();
       visitCoClauses(coClauses, dynamicGroups, resultGroup, reference, enclosingClass, body.getCoClauseElements());
       for (ConcreteGroup dynamicGroup : dynamicGroups) {
-        statements.add(new ConcreteStatement(dynamicGroup, null, null));
+        statements.add(new ConcreteStatement(dynamicGroup, null));
       }
     }
 
@@ -618,15 +601,6 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
     return resultGroup;
   }
 
-  private Concrete.LevelsDefinition visitStatLevels(StatLevelsContext ctx, LocatedReferable parent) {
-    List<TCLevelReferable> refs = new ArrayList<>();
-    LevelDefinition defParent = new LevelDefinition(refs, parent);
-    for (TerminalNode id : ctx.ID()) {
-      refs.add(new TCLevelReferable(tokenPosition(id.getSymbol()), id.getText(), defParent));
-    }
-    return new Concrete.LevelsDefinition(tokenPosition(ctx.start), refs);
-  }
-
   private ConcreteGroup visitDefFunction(AccessModifier accessModifier, DefFunctionContext ctx, ConcreteGroup parent, TCDefReferable enclosingClass) {
     Concrete.FunctionBody body;
     FunctionBodyContext functionBodyCtx = ctx.functionBody();
@@ -667,7 +641,7 @@ public class BuildVisitor extends ArendBaseVisitor<Object> {
         List<ConcreteGroup> dynamicGroups = new ArrayList<>();
         visitCoClauses(coClauses, dynamicGroups, resultGroup, referable, enclosingClass, body.getCoClauseElements());
         for (ConcreteGroup dynamicGroup : dynamicGroups) {
-          statements.add(new ConcreteStatement(dynamicGroup, null, null));
+          statements.add(new ConcreteStatement(dynamicGroup, null));
         }
       }
 

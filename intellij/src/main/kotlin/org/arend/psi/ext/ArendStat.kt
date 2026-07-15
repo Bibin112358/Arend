@@ -14,8 +14,6 @@ class ArendStat(node: ASTNode) : ArendSourceNodeImpl(node), ArendStatement {
 
     override fun getNamespaceCommand(): ArendStatCmd? = childOfType()
 
-    override fun getLevelsDefinition(): ArendLevelsDef? = childOfType()
-
     companion object {
         fun flatStatements(l: List<ArendStat>?): List<ArendStat> = l?.flatMap {
             val accessMod = it.statAccessMod

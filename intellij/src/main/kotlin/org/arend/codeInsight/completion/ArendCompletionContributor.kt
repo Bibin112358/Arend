@@ -414,9 +414,6 @@ class ArendCompletionContributor : CompletionContributor() {
             cP.position.ancestor<ReferableBase<*>>()?.alias == null
         }
 
-        basic(and(afterLeaf(ID), after(and(withParent(ArendDefIdentifier::class.java), withGrandParents(ArendDefData::class.java, ArendDefInstance::class.java,
-                ArendDefFunction::class.java, ArendDefClass::class.java)))), PH_LEVELS_KW_LIST)
-
         basic(and(afterLeaf(LPAREN), or(withAncestors(ArendNameTele::class.java, ArendDefFunction::class.java),
                 withAncestors(ArendTypeTele::class.java, ArendConstructor::class.java),
                 withAncestors(*(DEF_IDENTIFIER_PREFIX + arrayOf(ArendDefFunction::class.java))),

@@ -25,10 +25,6 @@ data class ArendChangeInfo (
     val locatedReferable: PsiLocatedReferable,
     val multiResolver: MultiFileReferenceResolver
 ) : ChangeInfo {
-
-    private val pLevelsKw = locatedReferable.childrenWithLeaves.firstOrNull {it.elementType == PLEVELS_KW}
-    private val pLevelParam = (locatedReferable as? ArendDefinition<*>)?.levelParameters
-    private val pLevelsText = if (pLevelsKw != null && pLevelParam is PsiElement) " ${pLevelsKw.text} ${pLevelParam.text}" else ""
     private val precText = (locatedReferable as? ReferableBase<*>)?.prec?.let { "${it.text} " } ?: ""
     private val aliasText = (locatedReferable as? ReferableBase<*>)?.alias?.let{ " ${it.text}" } ?: ""
     private val extendsText = (locatedReferable as? ClassDefinition)?.let { class1 ->
@@ -51,13 +47,13 @@ data class ArendChangeInfo (
         is ArendConstructor ->
             "${precText}${name}${aliasText}${parametersInfo.parameterText()}${returnPart()}"
         is ArendDefClass ->
-            "${if (d.isRecord) RECORD_KW else CLASS_KW} ${precText}${name}${pLevelsText}${aliasText}${parametersInfo.parameterText()}${extendsText}"
+            "${if (d.isRecord) RECORD_KW else CLASS_KW} ${precText}${name}${aliasText}${parametersInfo.parameterText()}${extendsText}"
         is ArendDefData ->
-            "${d.truncatedKw?.text?.let { "$it " } ?: ""}${DATA_KW} ${precText}${name}${pLevelsText}${aliasText}${parametersInfo.parameterText()}${returnPart()}"
+            "${d.truncatedKw?.text?.let { "$it " } ?: ""}${DATA_KW} ${precText}${name}${aliasText}${parametersInfo.parameterText()}${returnPart()}"
         is ArendDefFunction ->
-            "${d.functionKw.text} ${precText}${name}${pLevelsText}${aliasText}${parametersInfo.parameterText()}${returnPart()}"
+            "${d.functionKw.text} ${precText}${name}${aliasText}${parametersInfo.parameterText()}${returnPart()}"
         is ArendDefInstance ->
-            "$INSTANCE_KW ${precText}${name}${pLevelsText}${aliasText}${parametersInfo.parameterText()}${returnPart()}"
+            "$INSTANCE_KW ${precText}${name}${aliasText}${parametersInfo.parameterText()}${returnPart()}"
         else -> throw NotImplementedError()
     }
 

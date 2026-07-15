@@ -5,7 +5,6 @@ statements : statement* EOF;
 statement : accessMod? USE? definition                                      # statDef
           | accessMod '{' statement* '}'                                    # statAccessMod
           | nsCmd longName nsUsing? ('\\hiding' '(' scId (',' scId)* ')')?  # statCmd
-          | '\\plevels' ID (',' ID)*                                        # statLevels // TODO[sorts]: Delete this
           ;
 
 nsCmd : '\\open'                        # openCmd
@@ -18,11 +17,7 @@ accessMod : '\\private'   # privateMod
 
 nsUsing : USING? '(' nsId? (',' nsId)* ')';
 
-scopeContext : DOT          # dynamicContext
-             | '\\plevel'   # plevelContext // TODO[sorts]: Delete this
-             ;
-
-scId : scopeContext? ID;
+scId : DOT? ID;
 
 nsId : scId (AS precedence ID)?;
 

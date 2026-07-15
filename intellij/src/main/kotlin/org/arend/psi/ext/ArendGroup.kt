@@ -5,7 +5,6 @@ import org.arend.term.abs.Abstract
 interface ArendStatement : ArendCompositeElement, Abstract.Statement {
     override fun getGroup(): ArendGroup?
     override fun getNamespaceCommand(): ArendStatCmd?
-    override fun getLevelsDefinition(): ArendLevelsDef?
 }
 
 interface ArendGroup: PsiLocatedReferable, ArendSourceNode, Abstract.Group {

@@ -7,7 +7,6 @@ import org.arend.ext.concrete.definition.ClassFieldKind;
 import org.arend.ext.concrete.definition.FunctionKind;
 import org.arend.naming.reference.NamedUnresolvedReference;
 import org.arend.naming.reference.UnresolvedReference;
-import org.arend.naming.scope.Scope;
 import org.arend.term.Fixity;
 import org.arend.term.group.AccessModifier;
 import org.jetbrains.annotations.NotNull;
@@ -114,14 +113,14 @@ public final class Abstract {
   }
 
   public interface NameRenaming extends SourceNode {
-    @NotNull Scope.ScopeContext getScopeContext();
+    boolean isStatic();
     @NotNull NamedUnresolvedReference getOldReference();
     @Nullable Precedence getPrecedence();
     @Nullable String getNewName();
   }
 
   public interface NameHiding extends SourceNode {
-    @NotNull Scope.ScopeContext getScopeContext();
+    boolean isStatic();
     @NotNull NamedUnresolvedReference getHiddenReference();
   }
 
@@ -139,7 +138,6 @@ public final class Abstract {
   public interface Statement {
     @Nullable Group getGroup();
     @Nullable NamespaceCommand getNamespaceCommand();
-    @Nullable LevelParameters getLevelsDefinition();
   }
 
   public interface AbstractReferable {

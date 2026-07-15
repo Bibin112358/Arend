@@ -702,12 +702,12 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
         for (Referable element : curScope.getElements()) {
           if (element instanceof TCDefReferable defRef && defRef.getKind() == GlobalReferable.Kind.INSTANCE) {
             for (ConcreteNamespaceCommand.NameHiding hiding : namespaceCommand.hidings()) {
-              if (hiding.scopeContext() == Scope.ScopeContext.STATIC && hiding.reference().getRefName().equals(defRef.getRefName())) continue loop;
+              if (hiding.isStatic() && hiding.reference().getRefName().equals(defRef.getRefName())) continue loop;
             }
             boolean ok = namespaceCommand.isUsing();
             if (!ok) {
               for (ConcreteNamespaceCommand.NameRenaming renaming : namespaceCommand.renamings()) {
-                if (renaming.scopeContext() == Scope.ScopeContext.STATIC && renaming.reference().getRefName().equals(defRef.getRefName())) {
+                if (renaming.isStatic() && renaming.reference().getRefName().equals(defRef.getRefName())) {
                   ok = true;
                   break;
                 }
@@ -836,7 +836,17 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
       }
     }
 
-    record NamespaceStruct(Scope.ScopeContext context, ConcreteNamespaceCommand command, Map<String, Referable> refMap) {}
+    record NamespaceStruct(boolean isStatic, ConcreteNamespaceCommand command, Map<String, Referable> refMap) {
+      static void addNamespaceStruct(Scope.ScopeContext context, ConcreteNamespaceCommand cmd, Scope namespaceScope, List<NamespaceStruct> result) {
+        Collection<? extends Referable> elements = NamespaceCommandNamespace.resolveNamespace(cmd.isImport() ? namespaceScope.getImportedSubscope() : namespaceScope, cmd).getElements(context);
+        if (elements.isEmpty()) return;
+        Map<String, Referable> map = new LinkedHashMap<>();
+        for (Referable element : elements) {
+          map.put(element.getRefName(), element);
+        }
+        result.add(new NamespaceStruct(context != Scope.ScopeContext.DYNAMIC, cmd, map));
+      }
+    }
 
     List<NamespaceStruct> namespaces = new ArrayList<>();
     for (ConcreteStatement statement : statements) {
@@ -849,27 +859,20 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
       } else {
         checkNamespaceCommand(cmd, referables.keySet());
       }
-      for (Scope.ScopeContext context : Scope.ScopeContext.values()) {
-        Collection<? extends Referable> elements = NamespaceCommandNamespace.resolveNamespace(cmd.isImport() ? namespaceScope.getImportedSubscope() : namespaceScope, cmd).getElements(context);
-        if (!elements.isEmpty()) {
-          Map<String, Referable> map = new LinkedHashMap<>();
-          for (Referable element : elements) {
-            map.put(element.getRefName(), element);
-          }
-          namespaces.add(new NamespaceStruct(context, cmd, map));
-        }
-      }
+
+      NamespaceStruct.addNamespaceStruct(Scope.ScopeContext.STATIC, cmd, namespaceScope, namespaces);
+      NamespaceStruct.addNamespaceStruct(Scope.ScopeContext.DYNAMIC, cmd, namespaceScope, namespaces);
     }
 
     for (int i = 0; i < namespaces.size(); i++) {
       NamespaceStruct struct = namespaces.get(i);
       for (Map.Entry<String, Referable> entry : struct.refMap.entrySet()) {
-        if (!(struct.context == Scope.ScopeContext.STATIC || struct.context == Scope.ScopeContext.DYNAMIC) || referables.containsKey(entry.getKey())) {
+        if (referables.containsKey(entry.getKey())) {
           continue;
         }
 
         for (int j = i + 1; j < namespaces.size(); j++) {
-          if (!struct.context.equals(namespaces.get(j).context)) continue;
+          if (!struct.isStatic == namespaces.get(j).isStatic) continue;
           Referable ref = namespaces.get(j).refMap.get(entry.getKey());
           if (ref != null && !ref.equals(entry.getValue())) {
             ConcreteNamespaceCommand nsCmd = namespaces.get(j).command;
@@ -881,7 +884,7 @@ public class DefinitionResolveNameVisitor implements ConcreteResolvableDefinitio
                 break;
               }
             }
-            localErrorReporter.report(new DuplicateOpenedNameError(struct.context, ref, nsCmd, struct.command, cause));
+            localErrorReporter.report(new DuplicateOpenedNameError(struct.isStatic, ref, nsCmd, struct.command, cause));
             if (ref instanceof LocatedReferable) {
               referables.putIfAbsent(ref.getRefName(), (LocatedReferable) ref);
             }

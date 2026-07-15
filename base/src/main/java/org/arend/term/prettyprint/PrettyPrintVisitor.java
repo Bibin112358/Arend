@@ -186,20 +186,6 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
         printIndent();
         statement.command().prettyPrint(myBuilder, PrettyPrinterConfig.DEFAULT);
       }
-      if (statement.pLevelsDefinition() != null) {
-        printIndent();
-        myBuilder.append("\\plevels ");
-        printLevelsDefinition(statement.pLevelsDefinition());
-      }
-    }
-  }
-
-  private void printLevelsDefinition(Concrete.LevelsDefinition levelsDef) {
-    boolean first = true;
-    for (Referable referable : levelsDef.getReferables()) {
-      if (first) first = false;
-      else myBuilder.append(", ");
-      myBuilder.append(referable.getRefName());
     }
   }
 
@@ -1231,7 +1217,7 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
     switch (def.getKind()) {
       case FUNC -> myBuilder.append("\\func ");
       case SFUNC -> myBuilder.append("\\sfunc ");
-      case FUNC_COCLAUSE -> myBuilder.append("| ");
+      case FUNC_COCLAUSE, CONS -> myBuilder.append("| ");
       case CLASS_COCLAUSE -> myBuilder.append("\\default ");
       case TYPE -> myBuilder.append("\\type ");
       case LEMMA -> myBuilder.append("\\lemma ");
@@ -1239,7 +1225,6 @@ public class PrettyPrintVisitor implements ConcreteExpressionVisitor<Precedence,
       case LEVEL -> myBuilder.append("\\use \\level ");
       case COERCE -> myBuilder.append("\\use \\coerce ");
       case INSTANCE -> myBuilder.append("\\instance ");
-      case CONS -> myBuilder.append("| ");
     }
 
     prettyPrintNameWithPrecedence(def.getData());

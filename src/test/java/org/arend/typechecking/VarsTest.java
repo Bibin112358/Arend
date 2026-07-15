@@ -347,19 +347,6 @@ public class VarsTest extends TypeCheckingTestCase {
   }
 
   @Test
-  public void levelsTest5() {
-    typeCheckModule("""
-      \\plevels p1,p2
-      \\func foo (A : \\Type p1) => 3
-        \\where
-          \\func bar (a : A) => a
-      """);
-    Definition bar = getDefinition("foo.bar");
-    assertEquals(2, bar.getLevelParameters().size());
-    assertEquals(new UniverseExpression(new Sort(new Level(bar.getLevelParameters().getFirst()), ConstLevel.INFINITY)), bar.getParameters().getType());
-  }
-
-  @Test
   public void levelsTest6() {
     typeCheckModule("""
       \\func foo.{p1,p2} (A : \\Type p2) => 3
@@ -390,41 +377,6 @@ public class VarsTest extends TypeCheckingTestCase {
             \\where
               \\func baz (b : B) => x
       """);
-  }
-
-  @Test
-  public void levelsTest9() {
-    typeCheckModule("""
-      \\plevels p1,p2
-      \\func foo (A : \\Type p1) => 3
-        \\where
-          \\func bar.{p3,p4} (a : A) => a
-      """, 1);
-  }
-
-  @Test
-  public void levelsTest10() {
-    typeCheckModule("""
-      \\plevels p1,p2
-      \\func foo (A : \\Type p1) => 3
-        \\where
-          \\func bar (B : \\Type p2) => 4
-            \\where
-              \\func baz (a : A) (b : B) => 5
-      """);
-  }
-
-  @Test
-  public void levelsTest11() {
-    typeCheckModule("""
-      \\plevels p1,p2
-      \\plevels p3,p4
-      \\func foo (A : \\Type p1) => 3
-        \\where
-          \\func bar (B : \\Type p3) => 4
-            \\where
-              \\func baz (a : A) (b : B) => 5
-      """, 1);
   }
 
   @Test

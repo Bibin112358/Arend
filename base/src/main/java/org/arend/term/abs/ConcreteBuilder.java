@@ -127,7 +127,7 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
     List<ConcreteStatement> statements = new ArrayList<>();
     for (Abstract.Statement statement : group.getStatements()) {
       Abstract.Group subgroup = statement.getGroup();
-      statements.add(new ConcreteStatement(subgroup == null ? null : buildGroup(subgroup, module, referable, concrete instanceof Concrete.Definition def ? def : null, enclosingClass, errorReporter, resolved), buildNamespaceCommand(statement.getNamespaceCommand()), buildLevelsDefinition(statement.getLevelsDefinition(), referable)));
+      statements.add(new ConcreteStatement(subgroup == null ? null : buildGroup(subgroup, module, referable, concrete instanceof Concrete.Definition def ? def : null, enclosingClass, errorReporter, resolved), buildNamespaceCommand(statement.getNamespaceCommand())));
     }
 
     if (concrete instanceof Concrete.Definition cDef && parentDef instanceof Concrete.ClassDefinition && cDef.getUseParent() == parentDef.getData()) {
@@ -159,25 +159,15 @@ public class ConcreteBuilder implements AbstractDefinitionVisitor<Concrete.Resol
 
     List<ConcreteNamespaceCommand.NameRenaming> renamings = new ArrayList<>();
     for (Abstract.NameRenaming renaming : command.getRenamings()) {
-      renamings.add(new ConcreteNamespaceCommand.NameRenaming(renaming, renaming.getScopeContext(), renaming.getOldReference(), renaming.getPrecedence(), renaming.getNewName()));
+      renamings.add(new ConcreteNamespaceCommand.NameRenaming(renaming, renaming.isStatic(), renaming.getOldReference(), renaming.getPrecedence(), renaming.getNewName()));
     }
 
     List<ConcreteNamespaceCommand.NameHiding> hidings = new ArrayList<>();
     for (Abstract.NameHiding hiding : command.getHidings()) {
-      hidings.add(new ConcreteNamespaceCommand.NameHiding(hiding, hiding.getScopeContext(), hiding.getHiddenReference()));
+      hidings.add(new ConcreteNamespaceCommand.NameHiding(hiding, hiding.isStatic(), hiding.getHiddenReference()));
     }
 
     return new ConcreteNamespaceCommand(command, command.isImport(), reference instanceof LongUnresolvedReference ? (LongUnresolvedReference) reference : new LongUnresolvedReference(reference.getData(), Collections.singletonList(reference.getData() instanceof AbstractReference ref ? ref : null), Collections.singletonList(reference.getRefName())), command.isUsing(), renamings, hidings);
-  }
-
-  private static Concrete.LevelsDefinition buildLevelsDefinition(Abstract.LevelParameters parameters, LocatedReferable parent) {
-    if (parameters == null) return null;
-    List<TCLevelReferable> referables = new ArrayList<>();
-    LevelDefinition levelDefinition = new LevelDefinition(referables, parent);
-    for (Abstract.AbstractReferable referable : parameters.getReferables()) {
-      referables.add(new TCLevelReferable(referable, referable.getRefName(), levelDefinition));
-    }
-    return new Concrete.LevelsDefinition(parameters.getData(), referables);
   }
 
   private static List<ParameterReferable> buildExternalParameters(Concrete.Definition definition) {

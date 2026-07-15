@@ -1757,7 +1757,6 @@ public class DefinitionTypechecker extends BaseDefinitionTypechecker implements 
 
     // Check truncatedness
     if (def.isTruncated()) {
-      // TODO[sorts]: Move this to typecheckDataHeader
       if (userSort == null) {
         originalErrorReporter.report(new CertainTypecheckingError(CertainTypecheckingError.Kind.TRUNCATED_WITHOUT_UNIVERSE, def));
       } else {

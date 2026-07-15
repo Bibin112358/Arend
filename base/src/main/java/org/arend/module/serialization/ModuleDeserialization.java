@@ -249,7 +249,7 @@ public class ModuleDeserialization {
     List<ConcreteStatement> statements = new ArrayList<>(groupProto.getSubgroupCount());
     ConcreteGroup group = new ConcreteGroup(DocFactory.nullDoc(), referable, null, statements, Collections.emptyList(), Collections.emptyList());
     for (ModuleProtos.Group subgroup : groupProto.getSubgroupList()) {
-      statements.add(new ConcreteStatement(readGroup(subgroup, group, modulePath), null, null));
+      statements.add(new ConcreteStatement(readGroup(subgroup, group, modulePath), null));
     }
 
     return group;
