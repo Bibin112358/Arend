@@ -124,7 +124,7 @@
       : in~ s = {SetColimit F} in~ s'
       => path (\lam i => ~-equiv s s' (f,p) i)
 
-    \lemma unext-ub.{s,u} {J : JoinSemilattice.{s}} {F : Functor J SetCat.{u}} {s s' : \Sigma (j : J) (F j)} (p : inC s = inC s')
+    \lemma unext-ub.{u} {J : JoinSemilattice} {F : Functor J SetCat.{u}} {s s' : \Sigma (j : J) (F j)} (p : inC s = inC s')
       : ∃ (j : J) (p : s.1 <= j) (q : s'.1 <= j) (F.Func p s.2 = F.Func q s'.2)
       => Quotient.equalityClosure (\new Equivalence (\Sigma (j : J) (F j)) _ {
         | ~-transitive => later \lam (inP s) (inP t) => inP (s.1 ∨ t.1, s.2 <=∘ join-left, t.3 <=∘ join-right, Func-app F *> pmap (F.Func join-left) s.4 *> inv (Func-app F) *> poset-app *> Func-app F *> pmap (F.Func join-right) t.4 *> inv (Func-app F))
@@ -135,10 +135,10 @@
     \lemma Func-app.{u} {J : Precat} (F : Functor J SetCat.{u}) {j1 j2 j3 : J} {f : Hom j1 j2} {g : Hom j2 j3} {a : F j1} : F.Func (g ∘ f) a = F.Func g (F.Func f a)
       => pmap (__ a) F.Func-o
 
-    \lemma poset-app.{s,u} {J : Poset.{s}} {F : Functor J SetCat.{u}} {j j' : J} {f g : j <= j'} {a : F j} : F.Func f a = F.Func g a
+    \lemma poset-app.{u} {J : Poset} {F : Functor J SetCat.{u}} {j j' : J} {f g : j <= j'} {a : F j} : F.Func f a = F.Func g a
       => pmap (F.Func __ a) prop-pi
 
-    \lemma poset-id.{s,u} {J : Poset.{s}} {F : Functor J SetCat.{u}} {j : J} {p : j <= j} {a : F j} : F.Func p a = a
+    \lemma poset-id.{u} {J : Poset} {F : Functor J SetCat.{u}} {j : J} {p : j <= j} {a : F j} : F.Func p a = a
       => poset-app *> pmap (__ a) F.Func-id
 
     \func inMap (j : J) (a : F j) : SetColimit F

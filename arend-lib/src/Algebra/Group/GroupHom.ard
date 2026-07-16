@@ -112,4 +112,8 @@
   \func id {G : AddGroup} : AddGroupHom G G \cowith
     | func x => x
     | func-+ => idp
+
+  \func \fixl 8 compose \alias \infixl 8 ∘ {A B C : AddGroup} (g : AddGroupHom B C) (f : AddGroupHom A B) : AddGroupHom A C \cowith
+    | func x => g (f x)
+    | func-+ => pmap g f.func-+ *> g.func-+
 }

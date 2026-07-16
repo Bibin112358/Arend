@@ -111,7 +111,7 @@
   }
 
 \instance LocaleCat.{u} : Cat Locale.{u}
-  => FrameCat.{u}.op -- TODO[sorts]: Why do we need level here?
+  => FrameCat.op
 
 \instance LocaleCartesianPrecat.{u} : CartesianPrecat
   | Precat => LocaleCat.{u}

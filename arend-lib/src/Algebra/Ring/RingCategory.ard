@@ -82,21 +82,21 @@
       | f_hinv => exts \lam e i => f_iso.f_hinv i e
     }
 
-    \lemma Iso<->Inj+Surj.{u} {G H : Ring.{u}} (f : RingHom G H) : Iso {RingCat.{u}} f <-> (\Sigma (IsInj f) (IsSurj f)) =>
+    \lemma Iso<->Inj+Surj.{u} {G H : Ring.{u}} (f : RingHom G H) : Iso {RingCat} f <-> (\Sigma (IsInj f) (IsSurj f)) =>
       (\lam p => (GroupCat.Iso<->Inj+Surj (AddGroupHom.toGroupHom f)).1 \new Iso {
         | hinv => AddGroupHom.toGroupHom hinv
         | hinv_f => exts \lam e i => p.hinv_f i e
         | f_hinv => exts \lam e i => p.f_hinv i e
       }, \lam p => Group-Iso->Ring-Iso ((GroupCat.Iso<->Inj+Surj (AddGroupHom.toGroupHom f)).2 p))
 
-    \lemma Iso<->IsEquiv.{u} {G H : Ring.{u}} {f : RingHom G H} : Iso {RingCat.{u}} f <-> IsEquiv f
+    \lemma Iso<->IsEquiv.{u} {G H : Ring.{u}} {f : RingHom G H} : Iso {RingCat} f <-> IsEquiv f
       => (\lam e => \have t => (Iso<->Inj+Surj f).1 e \in IsEquiv.fromInjSurj t.1 t.2,
           \lam e => (Iso<->Inj+Surj f).2 (IsEquiv.isInj e, IsEquiv.isSurj e))
 
-    \func image-iso.{u} {R S : Ring.{u}} {f : RingHom R S} (p : IsSurj f) : Iso {RingCat.{u}} {f.Image.IRing} {S}
+    \func image-iso.{u} {R S : Ring.{u}} {f : RingHom R S} (p : IsSurj f) : Iso {RingCat} {f.Image.IRing} {S}
       => (RingCat.Iso<->Inj+Surj f.image).2 (RingHom.image.isInj, RingHom.image.isSurj p)
 
-    \func Image=Cod.{u} {R S : Ring.{u}} (f : RingHom R S) (p : IsSurj f) : (ringHomImage f).IRing = {Ring.{u}} S
+    \func Image=Cod.{u} {R S : Ring.{u}} (f : RingHom R S) (p : IsSurj f) : (ringHomImage f).IRing = S
       => {?} -- TODO[sorts]: RingCat.{u}.isotoid (image-iso.{u} p)
   }
 
@@ -152,7 +152,7 @@
       | ret_f x => path \lam i => e.hinv_f i x
       | f_sec y => path \lam i => e.f_hinv i y
 
-    \func Image=Cod.{u} {R : Ring.{u}} {S : CRing.{u}} (f : RingHom R S) (p : IsSurj f) : (RingHom.ImageC f).ICRing = {CRing.{u}} S
+    \func Image=Cod.{u} {R : Ring.{u}} {S : CRing.{u}} (f : RingHom R S) (p : IsSurj f) : (RingHom.ImageC f).ICRing = S
       => {?} -- TODO[sorts]: ext CRing { | Ring => RingCat.Image=Cod f p }
   }
 
@@ -185,8 +185,8 @@
   }
 
 \instance CRingBicat.{u} : BicompleteCat.{u}
-  | Cat => CRingCat.{u}
-  | limit => CRingLimit.{u}
+  | Cat => CRingCat
+  | limit => CRingLimit
   | colimit => CocompletePrecat.applyEquiv catEquiv
   \where {
     \func CRingLimit.{u} {J : Precat.{u,u}} (F : Functor J CRingCat.{u}) : Limit F \cowith
@@ -220,8 +220,7 @@
           (\lam _ => Fin 3,  finSet, nil, equality (apply 3 (var 0 :: apply 2 (var 1 :: var 2 :: nil) :: nil)) (apply 2 (apply 3 (var 0 :: var 1 :: nil) :: apply 3 (var 0 :: var 2 :: nil) :: nil))) ::
           nil)
 
-    -- TODO[sorts]: Removing .{u} after ModelCat makes it resolve to .{0}. Shouldn't this be impossible?
-    \func catEquiv.{u} : CatEquiv CRingCat.{u} (ModelCat.{u} theory) \cowith
+    \func catEquiv.{u} : CatEquiv CRingCat.{u} (ModelCat theory) \cowith
       | LAdj => ringtoMod.functor
       | RAdj => modToRing.functor
       | eta {
@@ -280,7 +279,7 @@
       | negative-left {x} => M.isModel _ (inP (6,idp)) (\lam {_} _ => x) (\case __)
       | ldistr {x} {y} {z} => M.isModel _ (inP (7,idp)) (\lam {_} => x :: y :: z :: nil) (\case __)
       \where {
-        \func functor.{u} : Functor (ModelCat.{u} theory) CRingCat.{u} (modToRing __) \cowith
+        \func functor.{u} : Functor (ModelCat.{u} theory) CRingCat (modToRing __) \cowith
           | Func f => \new RingHom {
             | func => f.funcs
             | func-zro => f.func-op 0 nil
@@ -312,7 +311,7 @@
         | _, inP (7,idp) => \lam rho _ => ldistr
       }
       \where {
-        \func functor.{u} : Functor CRingCat.{u} (ModelCat.{u} theory) (ringtoMod __) \cowith
+        \func functor.{u} : Functor CRingCat.{u} (ModelCat theory) (ringtoMod __) \cowith
           | Func f => \new ModelHom {
             | funcs => f
             | func-op => \case \elim __ \with {
@@ -330,5 +329,4 @@
 
     \sfunc createsLimits.{u} {J : Precat.{u,u}} (F : Functor J CRingCat.{u}) : CreatesLimit CRingCat.forget F
       => \lam _ => (CRingBicat.limit F, CRingCat.forget.preservesLimit F, CRingCat.forget.reflectsLimit F)
-
   }

@@ -100,14 +100,11 @@
     => IsPrincipalOpenAt-char.2 idp
 
   \lemma IsPrincipalOpenAt-char {a b : L} {ba : b <= a} {x : R a} : IsPrincipalOpenAt ba x <-> b = principalOpen x
-    => {?}
-  {- TODO[sorts]
-  (\lam xp => <=-antisymmetric (Join-cond (ba, transport (\lam r => Inv (R.F.Func r x)) prop-pi xp.1)) $ Join-univ \lam s => xp.2 s.1 s.2,
+    => (\lam xp => <=-antisymmetric (Join-cond (ba, transport (\lam r => Inv (R.F.Func r x)) prop-pi xp.1)) $ Join-univ \lam s => xp.2 s.1 s.2,
         \lam p => (transport Inv (inv (path \lam i => R.F.Func-o i _) *> pmap (R.F.Func __ x) prop-pi) $
                      (R.F.Func (=_<= p)).func-Inv $ LocalPredicate.localPredicate_locale inv-localPredicate {_} {R.F.Func (=_<= (inv p) <=∘ ba) x} \lam Uy zy =>
                      transport Inv (inv (path \lam i => R.F.Func-o i _) *> pmap (R.F.Func __ x) prop-pi *> path \lam i => R.F.Func-o i _) $ (R.F.Func zy).func-Inv Uy.2,
                    \lam ca xc => Join-cond (later (ca, xc)) <=∘ =_<= (inv p)))
-  -}
 
   \type IsAffineOpen (a : L) => Given
     (∀ {x : R a} {b} (ba : b <= a) (IsPrincipalOpenAt ba x) (Localization (powers x) (R b) (R.F.Func ba)))

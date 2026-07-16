@@ -96,12 +96,9 @@
             | F c => L c
             | Func f => limMap (cone f)
             | Func-id {X} => limUnique \lam j => limBeta {L X} (cone (id X)) j *> pmap (`∘ _) Func-id *> id-left *> inv id-right
-            | Func-o {_} {Y} {Z} {g} {f} => {?}
-             {- TODO[sorts]
-              limUnique (\lam j => rewrite (limBeta {L Z} (cone (f ∘ g)) j, inv o-assoc,
+            | Func-o {_} {Y} {Z} {g} {f} => limUnique (\lam j => rewrite (limBeta {L Z} (cone (f ∘ g)) j, inv o-assoc,
                                                                           limBeta {L Z} (cone g) j) (unfold coneMap
                 (rewrite (Func-o {G j}, o-assoc, o-assoc) (rewrite (limBeta {L Y} (cone f) j) (unfold coneMap idp)))))
-             -}
           }
 
         \func cone-nat-map (j : J) : Hom apex (G j) => \new NatTrans {
@@ -115,15 +112,11 @@
 
         \func lim-nat-map {z : VPresheaf D C} (z-cone : Cone G z) : Hom z apex => \new NatTrans {
           | trans X => limMap $ cone-at-point X z z-cone
-          | natural {X} {Y} f => {?}
-         {- TODO[sorts]
-           limUnique (\lam (j : J) => unfold
-            $ rewrite (inv o-assoc, limBeta {L Y} (cone-at-point Y z z-cone) j,
-                       inv o-assoc, limBeta {L Y} (cone f), o-assoc,
-                       limBeta {L X} (cone-at-point X z z-cone))
-                $ natural {coneMap {z-cone} j} f
-          )
-         -}
+          | natural {X} {Y} f => limUnique \lam j =>
+            rewrite (inv o-assoc, (L Y).limBeta (cone-at-point Y z z-cone) j,
+                     inv o-assoc, (L Y).limBeta (cone f), o-assoc,
+                     (L X).limBeta (cone-at-point X z z-cone))
+              $ natural {coneMap {z-cone} j} f
         }
       }
 

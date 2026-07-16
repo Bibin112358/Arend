@@ -14,6 +14,7 @@
 \import Algebra.Ring.RingHom
 \import Category \hiding (id,∘)
 \import Category.Meta
+\import Category.PreAdditive
 -- \import Category.PreAdditive
 \import Data.Array
 \import Equiv
@@ -42,13 +43,11 @@
   \lemma in-mono {N : LModule R} (S : SubLModule R N) : IsInj (in S) => \lam p => exts p
 }
 
-{- TODO[sorts]
-\instance LModulePreAdditive (R : Ring) : PreAdditivePrecat \cowith
+\instance LModulePreAdditive.{u} (R : Ring) : PreAdditivePrecat (LModule.{u} R) \cowith
   | Precat => LModuleCat R
-  | AbHom => LinearMapAbGroup
+  | AbHom {A} {B} => LinearMapAbGroup A B
   | l-bilinear => exts \lam _ => func-+
   | r-bilinear => exts \lam _ => idp
--}
 
 -- TODO[sorts]: Move these instances somewhere else.
 \instance LinearMapAbGroup {R : Ring} (A B : LModule R) : AbGroup (LinearMap A B)

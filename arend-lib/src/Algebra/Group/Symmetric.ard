@@ -296,15 +296,14 @@
 
 \instance EquivFin (A B : FinSet) : FinSet (QEquiv {A} {B})
   => \case decideEq A.finCard B.finCard, A.finEq, B.finEq \with {
-    | yes e, inP Ae, inP Be => {?}
-{- TODO[sorts]
- transport FinSet (QEquiv_= (later \new QEquiv {
-      | f e => e
-      | ret e => e
-      | ret_f => idpe
-      | f_sec => idpe
-    }) *> pmap2 {\Set} {\Set} (QEquiv {__} {__}) (QEquiv_= $ transport (\lam x => QEquiv {Fin x} {A}) e Ae) (QEquiv_= Be)) (SymFin B.finCard)
--}
+    | yes e, inP Ae, inP Be =>
+      flip (coe \lam i => FinSet (QEquiv {A} {QEquiv_= Be i})) right $
+      flip (coe \lam i => FinSet (QEquiv {QEquiv_= Ae i} {_})) right $
+      \have r => equiv_fin {A.finCard} {B.finCard}
+      \in \new FinSet {
+        | finCard => r.1
+        | finEq => inP (symQEquiv r.2)
+      }
     | no q, _, _ => \new FinSet {
       | finCard => 0
       | finEq => inP $ emptyEquiv (later \case __) \lam e => q \case A.finEq, B.finEq \with {

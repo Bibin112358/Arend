@@ -47,15 +47,21 @@
     | no x/=y => absurd (x//=y x/=y)
   }
 
-  \lemma choice {B : E -> \Set} (p : \Pi (x : E) -> TruncP (B x)) : TruncP (\Pi (x : E) -> B x) => \case finEq \with {
-    | inP e => {?} -- TODO[sorts]: (rewrite (path (QEquiv_= e) : Fin finCard = {\Set} E) in \lam (B : Fin finCard -> \Set) => finiteAC {finCard} {B}) B
-  }
+  \lemma choice {B : E -> \Type} (p : \Pi (x : E) -> TruncP (B x)) : TruncP (\Pi (x : E) -> B x)
+    => \case finEq \with {
+      | inP e => \case finiteAC (\lam j => p (e j)) \with {
+        | inP h => inP \lam x => transport B (e.f_ret x) $ h (e.ret x)
+      }
+    }
 
-  \lemma liftDepSurj {A : E -> \Set} {B : E -> \1-Type} {f : \Pi {x : E} -> A x -> B x} (isSur : \Pi {x : E} (y : B x) -> ∃ (a : A x) (f a = y)) (g : \Pi (x : E) -> B x) : ∃ (g' : \Pi (x : E) -> A x) ∀ x (f (g' x) = g x)
+  \lemma liftDepSurj {A B : E -> \Type} {f : \Pi {x : E} -> A x -> B x} (isSur : \Pi {x : E} (y : B x) -> ∃ (a : A x) (f a = y)) (g : \Pi (x : E) -> B x) : ∃ (g' : \Pi (x : E) -> A x) ∀ x (f (g' x) = g x)
     => TruncP.map (choice (\lam x => isSur (g x))) (\lam h => (\lam x => (h x).1, \lam x => (h x).2))
 
-  \lemma liftSurj {A : \Set} {B : \1-Type} {f : A -> B} (isSur : \Pi (y : B) -> ∃ (x : A) (f x = y)) (g : E -> B) : ∃ (g' : E -> A) ∀ x (f (g' x) = g x)
+  \lemma liftSurj {A B : \Type} {f : A -> B} (isSur : IsSurj f) (g : E -> B) : ∃ (g' : E -> A) ∀ x (f (g' x) = g x)
     => liftDepSurj (\lam {_} => isSur) g
+
+  \lemma splitSurj {A : \Type} {f : A -> E} (isSur : IsSurj f) : IsSplitSurj f
+    => liftSurj isSur id
 } \where {
     \use \level levelProp {A : \Set} (X Y : FinSet A) : X = Y
       => ext (\case X.finEq, Y.finEq \with {
@@ -193,6 +199,11 @@
 \lemma finCard_inj {A B : FinSet} (f : A -> B) (inj : IsInj f) : A.finCard <= B.finCard
   => \case A.finEq, B.finEq \with {
     | inP e1, inP e2 => FinSet.FinCardInj (\lam x => e2.ret (f (e1 x))) \lam p => e1.isInj $ inj $ (symQEquiv e2).isInj p
+  }
+
+\lemma FinSet-transport (A : FinSet) {B : \Set} (e : QEquiv {A} {B}) : FinSet B A.finCard \cowith
+  | finEq => \case A.finEq \with {
+    | inP e' => inP (transQEquiv e' e)
   }
 
 \lemma transport_zero {n m : Nat} (p : n = m) : transport Fin (pmap suc p) 0 = 0 \elim p
