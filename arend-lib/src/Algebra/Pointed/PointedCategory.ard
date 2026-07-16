@@ -6,6 +6,11 @@
 \import Logic
 \import Paths
 \import Paths.Meta
+\import Set
+\import Set.SetCategory
+\import Set.SetCategory
+\import Set.SetHom
+\import Set.SetHom
 
 \instance PointedCat.{u} : Cat Pointed.{u}
   | Hom X Y => PointedHom X Y
@@ -14,7 +19,7 @@
   | id-left => idp
   | id-right => idp
   | o-assoc => idp
-  | univalence => {?} -- TODO[sorts]: sip (\lam p1 p2 => ext (func-ide {p1}))
+  | univalence => sip \lam p1 p2 => ext (func-ide {p1})
 
 \instance AddPointedCat.{u} : Cat AddPointed.{u}
   | Hom X Y => AddPointedHom X Y
@@ -23,7 +28,7 @@
   | id-left => idp
   | id-right => idp
   | o-assoc => idp
-  | univalence => {?} -- TODO[sorts]: sip (\lam p1 p2 => ext (func-zro {p1}))
+  | univalence => sip \lam p1 p2 => ext (func-zro {p1})
 
 \type Kernel (f : AddPointedHom) => \Sigma (a : f.Dom) (f a = 0)
 

@@ -178,9 +178,7 @@
   | id-left => idp
   | id-right => idp
   | o-assoc => idp
-  | univalence => {?}
-{- TODO[sorts]
- sip \lam {X} {S1} {S2} (h1 : UniformHom) (h2 : UniformHom) => exts UniformLocale {
+  | univalence => sip \lam {X} {S1} {S2} h1 h2 => exts UniformLocale {
     | <= x y => ext (h1.func-<=, h2.func-<=)
     | meet x y => h1.func-meet
     | top => h1.func-top
@@ -189,7 +187,6 @@
     | isUniform U => ext (\lam uU => uniform-lem (h1.func-uniform uU) (\lam Uy x<=y => isDownset uU Uy (h2.func-<= x<=y)),
                           \lam uU => uniform-lem (h2.func-uniform uU) (\lam Uy x<=y => isDownset uU Uy (h1.func-<= x<=y)))
   }
-  -}
   \where {
     \lemma uniform-lem {L : PreuniformLocale} {U : L -> \Prop}
                        (u : isUniform (\lam y => ∃ (x : L) (U x) (y <= x)))

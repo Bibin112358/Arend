@@ -16,7 +16,7 @@
 \import Topology.Locale.LocaleCat
 \import Topology.Locale.PreorderSite
 \import Topology.TopSpace
-\import Topology.TopSpace.Category
+\import Topology.TopSpace.TopSpaceCategory
 \open SiteLocale
 \open Cover
 

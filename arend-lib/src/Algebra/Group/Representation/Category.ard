@@ -1,5 +1,6 @@
 \import Algebra.Group
-\import Algebra.Group.GSet.Category
+\import Algebra.Group.GSet.GSetCategory
+\import Algebra.Group.GroupHom
 \import Algebra.Group.GSet
 \import Algebra.Group.Representation
 \import Algebra.Module
@@ -17,7 +18,7 @@
   \override Dom : LinRepres LinearMap.R G
   \override Cod : LinRepres LinearMap.R G
   | func-** {e : Dom} {g : G} : func (g ** e) = g ** func e -- equivariance
-  }
+}
 
 \instance RepresentationCat.{u} (R : Ring) (G : Group) : Cat (LinRepres.{u} R G)
   | Hom => InterwiningMap
@@ -29,12 +30,9 @@
   | id-left => ext idp
   | id-right => ext idp
   | o-assoc => ext idp
-  | univalence => {?}
-{- TODO[sorts]
- sip \lam (e : InterwiningMap) _ => exts (e.func-zro, \lam _ _ => e.func-+,
-                                                           \lam _ => e.func-negative, \lam _ _ => e.func-*c,
-                                                           \lam _ _ => e.func-** )
--}
+  | univalence => sip \lam e _ => exts (e.func-zro, \lam _ _ => e.func-+,
+                                        \lam _ => e.func-negative, \lam _ _ => e.func-*c,
+                                        \lam _ _ => e.func-** )
   \where {
     \func id-interwining (X : LinRepres R G) : InterwiningMap X X \cowith
       | LinearMap => LinearMap.id

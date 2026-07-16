@@ -29,7 +29,7 @@
   | id-left => idp
   | id-right => idp
   | o-assoc => idp
-  | univalence => {?} -- TODO[sorts]: sip \lam f _ => exts (f.func-ide, \lam _ _ => f.func-*, \lam _ => f.func-inverse)
+  | univalence => sip \lam f _ => exts (f.func-ide, \lam _ _ => f.func-*, \lam _ => f.func-inverse)
   \where {
     \func ForgetSet.{u} : FaithfulFunctor GroupCat.{u} SetCat.{u} \cowith
       | F G => G
@@ -132,7 +132,7 @@
   | id-left => idp
   | id-right => idp
   | o-assoc => idp
-  | univalence => {?} -- TODO[sorts]: sip \lam {X} {A} {B} p1 p2 => exts (p1.func-zro, \lam _ _ => p1.func-+, AddGroup.negative-equality A B p1.func-zro p1.func-+)
+  | univalence => sip \lam {X} {A} {B} p1 p2 => exts (p1.func-zro, \lam _ _ => p1.func-+, AddGroup.negative-equality A B p1.func-zro p1.func-+)
   \where {
     \func forgetToAddMonoid.{u} : Functor AddGroupCat.{u} AddMonoidCat.{u} \cowith
       | F A => A

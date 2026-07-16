@@ -17,11 +17,8 @@ import org.arend.core.expr.visitor.ElimBindingVisitor;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
-import org.arend.core.subst.ExprSubstitution;
-import org.arend.core.subst.Levels;
-import org.arend.core.subst.UnfoldVisitor;
+import org.arend.core.subst.*;
 import org.arend.ext.core.level.LevelSubstitution;
-import org.arend.core.subst.SubstVisitor;
 import org.arend.ext.core.ops.CMP;
 import org.arend.ext.core.ops.NormalizationMode;
 import org.arend.ext.error.LocalError;
@@ -785,10 +782,6 @@ public class TwoStageEquations implements Equations {
       ClassCallExpression solution;
       if (cmp == CMP.LE) {
         Equations wrapper = useWrapper ? new LevelEquationsWrapper(this) : this;
-        Levels levels = classDef.generateInferVars(this, pair.proj1.getSourceNode(), true);
-        Map<ClassField, Expression> implementations = new LinkedHashMap<>();
-        solution = new ClassCallExpression(classDef, levels, implementations);
-        ReferenceExpression thisExpr = new ReferenceExpression(solution.getThisBinding());
 
         int minIndex = 0;
         int minValue = Integer.MAX_VALUE;
@@ -802,6 +795,11 @@ public class TwoStageEquations implements Equations {
 
         ClassCallExpression minClassCall = pair.proj2.get(minIndex);
         pair.proj2.remove(minIndex);
+
+        Map<ClassField, Expression> implementations = new LinkedHashMap<>();
+        solution = new ClassCallExpression(classDef, minClassCall.getLevels(), implementations);
+        ReferenceExpression thisExpr = new ReferenceExpression(solution.getThisBinding());
+
         for (Map.Entry<ClassField, Expression> entry : minClassCall.getImplementedHere().entrySet()) {
           implementations.put(entry.getKey(), entry.getValue().subst(minClassCall.getThisBinding(), thisExpr));
         }
@@ -863,8 +861,27 @@ public class TwoStageEquations implements Equations {
           solution.removeDependencies(minClassCall.getImplementedHere().keySet());
         }
 
+        if (solution.getLevels().size() > classDef.getLevelParameters().size() && implementations.size() < minClassCall.getImplementedHere().size()) {
+          int n = classDef.getLevelParameters().size();
+          for (ClassField field : classDef.getNotImplementedFields()) {
+            if (!field.isInfiniteField()) continue;
+            if (minClassCall.isImplemented(field)) {
+              if (!implementations.containsKey(field)) {
+                break;
+              }
+            } else {
+              if (++n >= minClassCall.getLevels().size()) {
+                break;
+              }
+            }
+          }
+          if (n < minClassCall.getLevels().size()) {
+            solution.setLevels(new ListLevels(new ArrayList<>(minClassCall.getLevels().toList().subList(0, n))));
+          }
+        }
+
         for (ClassCallExpression lowerBound : pair.proj2) {
-          if (!lowerBound.getLevels(classDef).compare(levels, CMP.LE, this, pair.proj1.getSourceNode()) || !new CompareVisitor(this, CMP.LE, pair.proj1.getSourceNode()).compareLevels(lowerBound, solution)) {
+          if (!new CompareVisitor(this, CMP.LE, pair.proj1.getSourceNode()).compareLevels(lowerBound, solution)) {
             reportBoundsError(pair.proj1, pair.proj2, CMP.GE);
             allOK = false;
             continue loop;
@@ -930,12 +947,16 @@ public class TwoStageEquations implements Equations {
       return SolveResult.SOLVED;
     }
 
-    if (!var.canBeInfinite() && expr.getUnderlyingExpression().isInfinityLevel() || fromEquations && expr.findBinding(var)) {
+    if (fromEquations && expr.findBinding(var)) {
       return inferenceError(var, expr);
     }
 
     Expression expectedType = var.getType().normalize(NormalizationMode.WHNF).replaceInferenceVariable();
     Expression result = ElimBindingVisitor.keepBindings(expr, var.getBounds(), isLowerBound);
+
+    if (result != null && !var.canBeInfinite() && result.isInfinityLevel()) {
+      return inferenceError(var, expr);
+    }
 
     // boolean ok = true;
     Expression actualType;
@@ -970,7 +991,7 @@ public class TwoStageEquations implements Equations {
       return trySolve2 ? SolveResult.NOT_SOLVED : inferenceError(var, expr);
     }
 
-    if (/* ok && */ new CompareVisitor(this, CMP.LE, var.getSourceNode()).normalizedCompare(actualType, expectedType, UniverseExpression.OMEGA, false)) {
+    if (new CompareVisitor(this, CMP.LE, var.getSourceNode()).normalizedCompare(actualType, expectedType, UniverseExpression.OMEGA, false)) {
       if (var.isSolved()) {
         if (!new CompareVisitor(this, CMP.EQ, var.getSourceNode()).compare(var.getSolution(), result, expectedType, true)) {
           myVisitor.getErrorReporter().report(new SolveEquationError(myVisitor.getExpressionPrettifier(), var.getSolution(), result, var.getSourceNode()));

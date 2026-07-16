@@ -29,7 +29,6 @@ import org.arend.ext.concrete.definition.FunctionKind;
 import org.arend.ext.concrete.expr.ConcreteExpression;
 import org.arend.ext.concrete.expr.ConcreteUniverseExpression;
 import org.arend.ext.core.definition.CoreFunctionDefinition;
-import org.arend.ext.core.level.LevelSubstitution;
 import org.arend.ext.core.ops.NormalizationMode;
 import org.arend.ext.module.LongName;
 import org.arend.ext.prettifier.ExpressionPrettifier;
@@ -315,19 +314,7 @@ public class ToAbstractVisitor extends BaseExpressionVisitor<Void, Concrete.Expr
       return cVar(defCall, myDefinitionRenamer.renameDefinition(ref), ref);
     }
 
-    List<Level> pLevels;
-    if (defCall instanceof LeveledDefCallExpression) {
-      List<? extends LevelVariable> params = def.getLevelParameters();
-      LevelSubstitution subst = defCall.getLevelSubstitution();
-      pLevels = new ArrayList<>(params.size());
-      for (LevelVariable param : params) {
-        pLevels.add((Level) subst.get(param));
-      }
-    } else {
-      pLevels = Collections.singletonList(null);
-    }
-
-    return cDefCall(defCall, myDefinitionRenamer.renameDefinition(ref), ref, visitLevelsNull(pLevels, showStdVar));
+    return cDefCall(defCall, myDefinitionRenamer.renameDefinition(ref), ref, visitLevelsNull(defCall instanceof LeveledDefCallExpression leveledDefCall ? new ArrayList<>(leveledDefCall.getLevels().toList()) : Collections.emptyList(), showStdVar));
   }
 
   @Override

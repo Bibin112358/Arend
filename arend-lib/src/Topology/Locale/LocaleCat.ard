@@ -35,15 +35,12 @@
   | id-left => idp
   | id-right => idp
   | o-assoc => idp
-  | univalence => {?}
-{- TODO[sorts]
- sip \lam {X} {S1} {S2} (h1 : FrameHom) (h2 : FrameHom) => exts Locale {
+  | univalence => sip \lam {X} {S1} {S2} h1 h2 => exts Locale {
     | <= x y => ext (h1.func-<=, h2.func-<=)
     | meet x y => h1.func-meet
     | top => h1.func-top
     | Join C => h1.func-Join *> <=-antisymmetric (S2.SJoin-univ \lam Ca => h1.func-<= $ S1.SJoin-cond Ca) (h1.func-<= $ S1.SJoin-univ \lam Ca => h2.func-<= $ S2.SJoin-cond Ca) *> inv h2.func-Join
   }
--}
   \where {
     \func equiv_iso.{u} {L M : Locale.{u}} {f : FrameHom L M} (e : QEquiv f) : Iso {FrameCat.{u}} f \cowith
       | hinv => \new FrameHom {
@@ -70,15 +67,12 @@
   | id-left => idp
   | id-right => idp
   | o-assoc => idp
-  | univalence => {?}
-{- TODO[sorts]
- sip \lam {X} {S1} {S2} h1 h2 => exts PreorderSite {
+  | univalence => sip \lam {X} {S1} {S2} h1 h2 => exts PreorderSite {
     | <= x y => propExt h1.func-<= h2.func-<=
     | isBasicCover x U => propExt
       (\lam x<=U => transport (isBasicCover x) SetIm_id $ h1.func-basicCover x<=U)
       (\lam x<=U => transport (isBasicCover x) SetIm_id $ h2.func-basicCover x<=U)
   }
--}
 
 \func FrameReflectiveSubcat.{u} : ReflectiveSubPrecat FrameCat.{u} PreorderSiteCat.{u} \cowith
   | F L => LocaleSite L

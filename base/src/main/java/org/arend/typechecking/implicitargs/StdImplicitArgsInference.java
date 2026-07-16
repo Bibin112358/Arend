@@ -249,6 +249,10 @@ public class StdImplicitArgsInference implements ImplicitArgsInference {
     }
 
     if (result instanceof DefCallResult defCallResult && !isExplicit && defCallResult.getDefinition() instanceof ClassField field) {
+      if (field.isInfiniteField()) {
+        Expression fieldExpr = FieldCallExpression.make(field, argResult.expression);
+        return new TypecheckingResult(fieldExpr, fieldExpr.getType());
+      }
       ClassCallExpression classCall = argResult.type.normalize(NormalizationMode.WHNF).cast(ClassCallExpression.class);
       PiExpression piType = null;
       if (classCall != null) {

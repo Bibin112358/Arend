@@ -125,7 +125,7 @@
   | id-left => idp
   | id-right => idp
   | o-assoc => idp
-  | univalence => {?} -- TODO[sorts]: subCat.faithful-univalence LocallyRingedLocalePrecat.forget embedding
+  | univalence => subCat.faithful-univalence LocallyRingedLocalePrecat.forget embedding
   \where {
     \protected \lemma embedding.{u} : Embedding {LocallyRingedLocale.{u}} {RingedLocale} (\lam L => L) \cowith
       | isEmb L L' => later \new Retraction {
@@ -139,8 +139,8 @@
       }
 
     \lemma iso-char.{u} {X Y : LocallyRingedLocale.{u}} {f : LocallyRingedLocaleHom X Y} : f.IsIso <-> Iso {LocallyRingedLocalePrecat.{u}} f
-      => {?} -- TODO[sorts]: <->trans RingedLocaleCat.iso-char $ later (subCat.faithful-reflects-iso LocallyRingedLocalePrecat.forget embedding, LocallyRingedLocalePrecat.forget.Func-iso __)
+      => <->trans RingedLocaleCat.iso-char $ later (subCat.faithful-reflects-iso LocallyRingedLocalePrecat.forget embedding, LocallyRingedLocalePrecat.forget.Func-iso __)
 
     \lemma iso-affine.{u} {X Y : LocallyRingedLocale.{u}} (f : LocallyRingedLocaleHom X Y) (iso : f.IsIso) (aff : Y.IsAffineScheme) : X.IsAffineScheme
-      => {?} -- TODO[sorts]: transportInv (\lam Z => Z.IsAffineScheme) (LocallyRingedLocaleCat.isotoid $ iso-char.1 iso) aff
+      => transportInv (\lam Z => Z.IsAffineScheme) (LocallyRingedLocaleCat.isotoid $ iso-char.1 iso) aff
   }

@@ -5,6 +5,9 @@ import org.arend.core.context.binding.EvaluatingBinding;
 import org.arend.core.context.binding.inference.InferenceVariable;
 import org.arend.core.context.param.TypedSingleDependentLink;
 import org.arend.core.context.param.UnusedIntervalDependentLink;
+import org.arend.core.sort.Level;
+import org.arend.core.sort.Sort;
+import org.arend.core.subst.ListLevels;
 import org.arend.ext.variable.Variable;
 import org.arend.core.context.param.DependentLink;
 import org.arend.core.context.param.SingleDependentLink;
@@ -158,6 +161,36 @@ public class ElimBindingVisitor extends ExpressionTransformer<Void> {
 
     if (myKeepVisitor != null) {
       myKeepVisitor.getBindings().remove(expr.getThisBinding());
+    }
+
+    if (newFieldSet.size() < expr.getImplementedHere().size() && result.isInfinityLevel()) {
+      List<Level> levels = new ArrayList<>(expr.getLevels().toList());
+      for (ClassField field : expr.getDefinition().getNotImplementedFields()) {
+        if (newFieldSet.containsKey(field) || !field.isInfiniteField()) continue;
+        if (!field.getType().isPiInfinityLevel()) {
+          break;
+        }
+        Expression fieldImpl = expr.getImplementationHere(field, new ReferenceExpression(result.getThisBinding()));
+        if (fieldImpl == null) {
+          break;
+        }
+        Expression fieldType = fieldImpl.getType().normalize(NormalizationMode.WHNF);
+        while (fieldType instanceof PiExpression piExpr) {
+          fieldType = piExpr.getCodomain();
+        }
+        if (!(fieldType instanceof UniverseExpression universe)) {
+          break;
+        }
+        Sort sort = universe.getSortExpression().withInfLevel();
+        if (sort.getPLevel().isInfinity()) {
+          break;
+        }
+        levels.add(sort.getPLevel());
+      }
+
+      if (levels.size() > expr.getLevels().size()) {
+        result = new ClassCallExpression(expr.getDefinition(), new ListLevels(levels), newFieldSet);
+      }
     }
 
     return result;

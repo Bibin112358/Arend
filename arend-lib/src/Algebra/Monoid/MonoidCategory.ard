@@ -28,7 +28,7 @@
   | id-left => idp
   | id-right => idp
   | o-assoc => idp
-  | univalence => {?} -- TODO[sorts]: sip \lam p1 p2 => exts (p1.func-ide, \lam _ _ => p1.func-*)
+  | univalence => sip \lam p1 p2 => exts (p1.func-ide, \lam _ _ => p1.func-*)
   \where {
     \func forget.{u} : Functor MonoidCat.{u} SetCat.{u} \cowith
       | F R => R
@@ -177,7 +177,7 @@
   | id-left => idp
   | id-right => idp
   | o-assoc => idp
-  | univalence => {?} -- TODO[sorts]: sip \lam p1 p2 => exts (p1.func-zro, \lam _ _ => p1.func-+)
+  | univalence => sip \lam p1 p2 => exts (p1.func-zro, \lam _ _ => p1.func-+)
   \where {
     \func forget.{u} : Functor AddMonoidCat.{u} SetCat.{u} \cowith
       | F R => R

@@ -13,7 +13,7 @@
 \import Set.Filter
 \import Set.Subset
 \import Topology.CoverSpace
-\import Topology.CoverSpace.Category
+\import Topology.CoverSpace.CoverSpaceCategory
 \import Topology.CoverSpace.Complete
 \import Topology.CoverSpace.StronglyComplete (StronglyCompleteCoverSpace)
 \import Topology.Locale \hiding (<=<_<=)

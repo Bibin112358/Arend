@@ -1,6 +1,6 @@
 \import Category
 \import Category.Meta
-\import Function ()
+\import Function.Meta
 \import Order.Lattice
 \import Order.LinearOrder
 \import Order.PartialOrder
@@ -16,7 +16,7 @@
   | id-left => idp
   | id-right => idp
   | o-assoc => idp
-  | univalence => {?} -- TODO[sorts]: sip (\lam {_} {_} {_} p p1 => ext (ext (\lam _ _ => ext (\lam _x => func-<= {p} _x, \lam _x => func-<= {p1} _x))))
+  | univalence => sip \lam {_} {_} {_} p p1 => ext (ext (\lam _ _ => ext (\lam _x => func-<= {p} _x, \lam _x => func-<= {p1} _x)))
 
 \record StrictPosetHom \extends SetHom {
   \override Dom : StrictPoset
@@ -39,7 +39,7 @@
   | id-left => idp
   | id-right => idp
   | o-assoc => idp
-  | univalence => {?} -- TODO[sorts]: sip (\lam {_} {_} {_} p p1 => ext (ext (\lam _ _ => ext (\lam _x => func-< {p} _x, \lam _x => func-< {p1} _x))))
+  | univalence => sip \lam {_} {_} {_} p p1 => ext $ ext \lam _ _ => ext (\lam _x => func-< {p} _x, \lam _x => func-< {p1} _x)
 
 \instance DecLinearOrderCat.{u} : Cat LinearOrder.Dec.{u}
   | Hom E1 E2 => PosetHom E1 E2
@@ -48,9 +48,7 @@
   | id-left => idp
   | id-right => idp
   | o-assoc => idp
-  | univalence => {?}
-{- TODO[sorts]
- sip \lam {A} {S1 S2 : LinearOrder.Dec} (f : PosetHom) (g : PosetHom) => ext LinearOrder.Dec {
+  | univalence => sip \lam {A} {S1} {S2} f g => ext LinearOrder.Dec {
     | < => ext \lam _ _ => ext (\lam l => LinearOrder.<=_/= (f.func-<= (LinearOrder.<_<= l)) (StrictPoset.<_/= l),
                                 \lam l => LinearOrder.<=_/= (g.func-<= (LinearOrder.<_<= l)) (StrictPoset.<_/= l))
     | meet => ext \lam _ _ => S1.<=-antisymmetric (g.func-<= (meet-univ (f.func-<= meet-left) (f.func-<= meet-right))) (meet-univ (g.func-<= meet-left) (g.func-<= meet-right))
@@ -58,4 +56,3 @@
     | # => ext \lam _ _ => ext (\lam a => nonEqualApart (Set#.apartNotEqual a),
                                 \lam a => nonEqualApart (Set#.apartNotEqual a))
   }
--}
