@@ -80,6 +80,11 @@ public class ConcretePrelude implements ArendPrelude {
   }
 
   @Override
+  public CoreFunctionDefinition getByte() {
+    return Prelude.BYTE;
+  }
+
+  @Override
   public CoreDataDefinition getInt() {
     return Prelude.INT;
   }
@@ -95,7 +100,7 @@ public class ConcretePrelude implements ArendPrelude {
   }
 
   @Override
-  public CoreDataDefinition getString() {
+  public CoreFunctionDefinition getString() {
     return Prelude.STRING;
   }
 
@@ -275,6 +280,12 @@ public class ConcretePrelude implements ArendPrelude {
   public ArendRef getFinFromNatRef() {
     if (Prelude.FIN_FROM_NAT != null) return Prelude.FIN_FROM_NAT.getRef();
     return Scope.resolveName(myPreludeScope, Arrays.asList("Fin", "fromNat"));
+  }
+
+  @Override
+  public ArendRef getByteRef() {
+    if (Prelude.BYTE != null) return Prelude.BYTE.getRef();
+    return myPreludeScope.resolveName("Byte");
   }
 
   @Override

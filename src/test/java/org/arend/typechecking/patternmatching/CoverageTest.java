@@ -1,11 +1,34 @@
 package org.arend.typechecking.patternmatching;
 
 import org.arend.typechecking.TypeCheckingTestCase;
+import org.arend.typechecking.error.local.NotEnoughPatternsError;
 import org.junit.Test;
 
 import static org.arend.Matchers.missingClauses;
+import static org.arend.Matchers.typecheckingError;
 
 public class CoverageTest extends TypeCheckingTestCase {
+  // Regression test for a soundness hole: `String` used to be declared with zero constructors
+  // (`\data String`), so the coverage checker treated it as uninhabited even though string
+  // literals (bypassing the constructor mechanism) actually inhabit it. This let `\case s \with {}`
+  // "prove" `Empty` for any `s : String`. `String` is now `Array Byte`, which has real constructors,
+  // so both the general and explicit-absurd-pattern forms below must be rejected.
+  @Test
+  public void stringCaseIsNotExhaustive() {
+    typeCheckModule(
+        "\\data Empty\n" +
+        "\\func f (s : String) : Empty => \\case s \\with {}", 1);
+    assertThatErrorsAre(missingClauses(2));
+  }
+
+  @Test
+  public void stringAbsurdPatternIsRejected() {
+    typeCheckModule(
+        "\\data Empty\n" +
+        "\\func f (s : String) : Empty => \\case s \\with { () }", 1);
+    assertThatErrorsAre(typecheckingError(NotEnoughPatternsError.class));
+  }
+
   @Test
   public void coverageInCase() {
     typeCheckDef("\\func test : Nat => \\case 1 \\with { zero => 0 }", 1);

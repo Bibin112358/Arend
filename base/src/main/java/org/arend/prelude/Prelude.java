@@ -66,11 +66,12 @@ public class Prelude implements ArendPrelude {
   public static Constructor FIN_ZERO;
   public static Constructor FIN_SUC;
   public static FunctionDefinition FIN_FROM_NAT;
+  public static FunctionDefinition BYTE;
 
   public static DataDefinition INT;
   public static Constructor POS, NEG;
 
-  public static DataDefinition STRING;
+  public static FunctionDefinition STRING;
 
   public static FunctionDefinition COERCE, COERCE2;
 
@@ -135,6 +136,7 @@ public class Prelude implements ArendPrelude {
           FIN_SUC = FIN.getConstructor("suc");
         }
       }
+      case "Byte" -> BYTE = (FunctionDefinition) definition;
       case "+" -> PLUS = (FunctionDefinition) definition;
       case "-" -> MINUS = (FunctionDefinition) definition;
       case "*" -> MUL = (FunctionDefinition) definition;
@@ -143,7 +145,7 @@ public class Prelude implements ArendPrelude {
         POS = INT.getConstructor("pos");
         NEG = INT.getConstructor("neg");
       }
-      case "String" -> STRING = (DataDefinition) definition;
+      case "String" -> STRING = (FunctionDefinition) definition;
       case "I" -> {
         INTERVAL = (DataDefinition) definition;
         INTERVAL.setSort(new Sort(new Level(0), Level.INFINITY));
@@ -255,6 +257,7 @@ public class Prelude implements ArendPrelude {
     consumer.accept(SUC);
     consumer.accept(FIN);
     consumer.accept(FIN_FROM_NAT);
+    consumer.accept(BYTE);
     consumer.accept(INT);
     consumer.accept(POS);
     consumer.accept(NEG);
@@ -357,6 +360,11 @@ public class Prelude implements ArendPrelude {
   }
 
   @Override
+  public FunctionDefinition getByte() {
+    return BYTE;
+  }
+
+  @Override
   public FunctionDefinition getPlus() {
     return PLUS;
   }
@@ -387,7 +395,7 @@ public class Prelude implements ArendPrelude {
   }
 
   @Override
-  public CoreDataDefinition getString() {
+  public CoreFunctionDefinition getString() {
     return STRING;
   }
 
@@ -554,6 +562,11 @@ public class Prelude implements ArendPrelude {
   @Override
   public ArendRef getFinFromNatRef() {
     return FIN_FROM_NAT == null ? null : FIN_FROM_NAT.getRef();
+  }
+
+  @Override
+  public ArendRef getByteRef() {
+    return BYTE == null ? null : BYTE.getRef();
   }
 
   @Override
