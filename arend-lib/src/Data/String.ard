@@ -1,0 +1,21 @@
+\import Arith.Fin.Order
+\import Data.Array
+\import Data.List (ListDecSet)
+\import Paths
+\import Paths.Meta
+\import Set
+
+-- String is `Array Byte` (open-length), so its decidable equality can't come directly from
+-- ArrayDec (which is for a fixed length). Routing through List's ordinary inductive equality
+-- avoids hand-deriving a transport-based proof across a varying length field: toList/fromList
+-- (Data.Array) are mutually inverse (fromList_toList), so toList is injective, and decidability
+-- transfers along an injection into an already-DecSet type.
+--
+-- DecSet (Fin 256) isn't found by plain instance search here (it's only available transitively
+-- through FinOrder/LinearOrder.Dec), so it's passed explicitly, mirroring the same workaround
+-- already used in Set.Fin.
+\instance StringDecSet : DecSet String
+  | decideEq s t => \case (ListDecSet (FinOrder 256)).decideEq (toList s) (toList t) \with {
+    | yes p => yes (inv fromList_toList *> pmap fromList p *> fromList_toList)
+    | no q => no (\lam p => q (pmap toList p))
+  }
