@@ -1,0 +1,17 @@
+\import Data.Bool
+\import Data.Array
+\import Data.String
+
+\data Empty
+
+\lemma testStringEq : "abc" = "abc" => idp
+\lemma testStringNeq (p : "abc" = "abd") : Empty => \case p \with {}
+
+\lemma testStringEqTrue : ("abc" StringDecSet.== "abc") = true => idp
+\lemma testStringEqFalse : ("abc" StringDecSet.== "abd") = false => idp
+
+\lemma testStringConcat : "abcd" = "ab" ++ "cd" => idp
+\lemma testStringConcatNot (p : "abc" = "ab" ++ "d") : Empty => \case p \with {}
+
+\lemma testStringConcatTrue : ("abcd" StringDecSet.== "ab" ++ "cd") = true => idp
+\lemma testStringConcatFalse : ("abc" StringDecSet.== "ab" ++ "d") = false => idp
