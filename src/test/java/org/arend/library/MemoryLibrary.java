@@ -3,6 +3,7 @@ package org.arend.library;
 import org.arend.ext.ui.ArendUI;
 import org.arend.library.classLoader.ClassLoaderDelegate;
 import org.arend.server.ArendLibrary;
+import org.arend.util.Version;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,6 +27,11 @@ public class MemoryLibrary implements ArendLibrary {
   @Override
   public long getModificationStamp() {
     return -1;
+  }
+
+  @Override
+  public @Nullable Version getLibraryVersion() {
+    return null;
   }
 
   @Override
