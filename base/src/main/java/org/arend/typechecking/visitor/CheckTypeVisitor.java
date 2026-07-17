@@ -3621,10 +3621,13 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       if (checker != null) {
         int numberOfErrors = getNumberOfErrors();
         TypecheckingResult result = TypecheckingResult.fromChecked(checker.typecheckString(string, expr.getResolvedExpression(), this, new ContextDataImpl(expr, Collections.emptyList(), null, null, expectedType, null)));
-        if (result == null && getNumberOfErrors() == numberOfErrors) {
-          errorReporter.report(new TypecheckingError("Cannot check string", expr));
+        // Unlike numbers (where an extension is expected to always handle the literal, since it
+        // decides how to elaborate it for arbitrary Semiring-like types), String has one fixed,
+        // always-applicable default (Array Byte) -- so a declining extension (no result, no error
+        // of its own) falls through to that default instead of hard-failing.
+        if (result != null || getNumberOfErrors() != numberOfErrors) {
+          return result;
         }
-        return result;
       }
     }
 
