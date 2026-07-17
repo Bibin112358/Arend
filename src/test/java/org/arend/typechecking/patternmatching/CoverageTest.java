@@ -29,6 +29,16 @@ public class CoverageTest extends TypeCheckingTestCase {
     assertThatErrorsAre(typecheckingError(NotEnoughPatternsError.class));
   }
 
+  // The exact snippet that originally motivated this fix: `\case "s" \with {}` used to typecheck,
+  // "proving" Empty from a string literal directly (not just a postulated String variable).
+  @Test
+  public void stringLiteralCaseIsNotExhaustive() {
+    typeCheckModule(
+        "\\data Empty\n" +
+        "\\func f : Empty => \\case \"s\" \\with {}", 1);
+    assertThatErrorsAre(missingClauses(2));
+  }
+
   @Test
   public void coverageInCase() {
     typeCheckDef("\\func test : Nat => \\case 1 \\with { zero => 0 }", 1);
