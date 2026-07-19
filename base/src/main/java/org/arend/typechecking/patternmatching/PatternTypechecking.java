@@ -555,13 +555,15 @@ public class PatternTypechecking {
       }
 
       Expression expr = parameters.getType().subst(paramsSubst).normalize(NormalizationMode.WHNF);
-      if (expr instanceof ClassCallExpression classCall && classCall.getDefinition() == Prelude.DEP_ARRAY && !classCall.isImplemented(Prelude.ARRAY_ELEMENTS_TYPE)) {
+      List<FunCallExpression> typeConstructorFunCalls = new ArrayList<>();
+      Expression unfoldedExpr = unfoldType(expr, typeConstructorFunCalls);
+      if (unfoldedExpr instanceof ClassCallExpression classCall && classCall.getDefinition() == Prelude.DEP_ARRAY && !classCall.isImplemented(Prelude.ARRAY_ELEMENTS_TYPE)) {
         myErrorReporter.report(new TypecheckingError("The type of elements of the array must be specified", pattern));
         return null;
       }
 
       if (pattern instanceof Concrete.NumberPattern) {
-        var newPattern = translateNumberPatterns((Concrete.NumberPattern) pattern, expr);
+        var newPattern = translateNumberPatterns((Concrete.NumberPattern) pattern, unfoldedExpr);
         if (newPattern == null) {
           return null;
         }
@@ -577,8 +579,8 @@ public class PatternTypechecking {
       if (pattern instanceof Concrete.TuplePattern) {
         List<Concrete.Pattern> patternArgs = ((Concrete.TuplePattern) pattern).getPatterns();
         // Either sigma or class patterns
-        SigmaExpression sigmaExpr = expr.cast(SigmaExpression.class);
-        ClassCallExpression classCall = sigmaExpr == null ? expr.cast(ClassCallExpression.class) : null;
+        SigmaExpression sigmaExpr = unfoldedExpr.cast(SigmaExpression.class);
+        ClassCallExpression classCall = sigmaExpr == null ? unfoldedExpr.cast(ClassCallExpression.class) : null;
         if (sigmaExpr != null || classCall != null) {
           DependentLink newParameters = sigmaExpr != null ? DependentLink.Helper.copy(sigmaExpr.getParameters()) : classCall.getClassFieldParameters();
           Result conResult = doTypechecking(patternArgs, newParameters, paramsSubst, totalSubst, pattern, false, 0);
@@ -597,6 +599,9 @@ public class PatternTypechecking {
             typecheckAsPattern(pattern.getAsReferable(), null, null);
           } else {
             Expression newExpr = newPattern.toExpression(conResult.exprs);
+            for (int i = typeConstructorFunCalls.size() - 1; i >= 0; i--) {
+              newExpr = TypeConstructorExpression.match(typeConstructorFunCalls.get(i), newExpr);
+            }
             typecheckAsPattern(pattern.getAsReferable(), newExpr, expr);
             exprs.add(newExpr);
             paramsSubst.add(parameters, newExpr);
@@ -611,7 +616,7 @@ public class PatternTypechecking {
             }
             return null;
           }
-          if (!expr.isInstance(DataCallExpression.class)) {
+          if (!unfoldedExpr.isInstance(DataCallExpression.class)) {
             if (!expr.reportIfError(myErrorReporter, pattern)) {
               myErrorReporter.report(new TypeMismatchError(DocFactory.text("a data type, a sigma type, or a class"), expr, pattern));
             }
@@ -640,7 +645,7 @@ public class PatternTypechecking {
             }
 
             levels = Levels.EMPTY;
-            DataCallExpression dataCall = expr.cast(DataCallExpression.class);
+            DataCallExpression dataCall = unfoldedExpr.cast(DataCallExpression.class);
             LamExpression typeLam = dataCall == null || dataCall.getDefinition() != Prelude.PATH ? null : dataCall.getDefCallArguments().getFirst().normalize(NormalizationMode.WHNF).cast(LamExpression.class);
             Expression type = ElimBindingVisitor.elimLamBinding(typeLam);
             if (type == null) {
@@ -847,6 +852,9 @@ public class PatternTypechecking {
           } else {
             args.addAll(conResult.exprs);
             Expression newExpr = FunCallExpression.make(constructor, levels.subst(levelSolution), args);
+            for (int i = typeConstructorFunCalls.size() - 1; i >= 0; i--) {
+              newExpr = TypeConstructorExpression.match(typeConstructorFunCalls.get(i), newExpr);
+            }
             typecheckAsPattern(pattern.getAsReferable(), newExpr, expr);
             exprs.add(newExpr);
             paramsSubst.add(parameters, newExpr);
@@ -858,10 +866,9 @@ public class PatternTypechecking {
       }
 
       // Constructor patterns
-      List<FunCallExpression> typeConstructorFunCalls = new ArrayList<>();
-      Expression unfoldedExpr = unfoldType(expr, typeConstructorFunCalls).getUnderlyingExpression();
-      DataCallExpression dataCall = unfoldedExpr instanceof DataCallExpression ? (DataCallExpression) unfoldedExpr : null;
-      ClassCallExpression classCall = unfoldedExpr instanceof ClassCallExpression ? (ClassCallExpression) unfoldedExpr : null;
+      Expression underlyingExpr = unfoldedExpr.getUnderlyingExpression();
+      DataCallExpression dataCall = underlyingExpr instanceof DataCallExpression ? (DataCallExpression) underlyingExpr : null;
+      ClassCallExpression classCall = underlyingExpr instanceof ClassCallExpression ? (ClassCallExpression) underlyingExpr : null;
       if (!(dataCall != null || classCall != null && classCall.getDefinition() == Prelude.DEP_ARRAY)) {
         if (!expr.reportIfError(myErrorReporter, pattern)) {
           myErrorReporter.report(new TypeMismatchError(DocFactory.text("a data type"), expr, pattern));
