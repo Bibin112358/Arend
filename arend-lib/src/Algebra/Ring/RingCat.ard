@@ -1,14 +1,15 @@
 \import Algebra.Group
-\import Algebra.Group.GroupCategory
+\import Algebra.Group.GroupCat
 \import Algebra.Group.GroupHom
 \import Algebra.Monoid
-\import Algebra.Monoid.MonoidCategory
+\import Algebra.Monoid.MonoidCat
 \import Algebra.Monoid.MonoidHom
 \import Algebra.Pointed
 \import Algebra.Pointed.PointedHom
+\import Algebra.Pointed.SubPointed
 \import Algebra.Ring
 \import Algebra.Ring.RingHom
-\import Algebra.Ring.Sub
+\import Algebra.Ring.SubRing
 \import Algebra.Semiring
 \import Category
 \import Category.Adjoint
@@ -93,10 +94,12 @@
       => (\lam e => \have t => (Iso<->Inj+Surj f).1 e \in IsEquiv.fromInjSurj t.1 t.2,
           \lam e => (Iso<->Inj+Surj f).2 (IsEquiv.isInj e, IsEquiv.isSurj e))
 
-    \func image-iso.{u} {R S : Ring.{u}} {f : RingHom R S} (p : IsSurj f) : Iso {RingCat} {f.Image.IRing} {S}
-      => (RingCat.Iso<->Inj+Surj f.image).2 (RingHom.image.isInj, RingHom.image.isSurj p)
+    \func image-iso.{u} {R S : Ring.{u}} {f : RingHom R S} (p : IsSurj f) : Iso {RingCat} {ImRing f} {S}
+      => (RingCat.Iso<->Inj+Surj $ IRing.embed {ImageRing f}).2 (IAddPointed.embed-inj, \lam y => \case p y \with {
+        | inP (x,fx=y) => inP (ImRingLeftHom f x, fx=y)
+      })
 
-    \func Image=Cod.{u} {R S : Ring.{u}} (f : RingHom R S) (p : IsSurj f) : (ringHomImage f).IRing = S
+    \func Image=Cod.{u} {R S : Ring.{u}} (f : RingHom R S) (p : IsSurj f) : IRing (ImageRing f) = S
       => {?} -- TODO[sorts]: RingCat.{u}.isotoid (image-iso.{u} p)
   }
 
@@ -152,7 +155,7 @@
       | ret_f x => path \lam i => e.hinv_f i x
       | f_sec y => path \lam i => e.f_hinv i y
 
-    \func Image=Cod.{u} {R : Ring.{u}} {S : CRing.{u}} (f : RingHom R S) (p : IsSurj f) : (RingHom.ImageC f).ICRing = S
+    \func Image=Cod.{u} {R : Ring.{u}} {S : CRing.{u}} (f : RingHom R S) (p : IsSurj f) : ICRing (ImageRing f) = S
       => {?} -- TODO[sorts]: ext CRing { | Ring => RingCat.Image=Cod f p }
   }
 

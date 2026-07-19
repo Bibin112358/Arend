@@ -12,11 +12,11 @@
 \import Set.Fin.Pigeonhole
 
 \class BoundedPigeonholeSet \extends NoetherianSet {
-  | finCard : Nat
-  | boundedPigeonhole (f : Fin (suc finCard) -> E) : ∃ (i j : Fin (suc finCard)) (i /= j) (f i = f j)
-  | isNoetherianSet => bounded-bar (suc finCard) \lam l => boundedPigeonhole l
+  | card : Nat
+  | boundedPigeonhole (f : Fin (suc card) -> E) : ∃ (i j : Fin (suc card)) (i /= j) (f i = f j)
+  | isNoetherianSet => bounded-bar (suc card) \lam l => boundedPigeonhole l
 
-  \lemma boundedPigeonhole< (f : Fin (suc finCard) -> E) : ∃ (i j : Fin (suc finCard)) (i < j) (f i = f j)
+  \lemma boundedPigeonhole< (f : Fin (suc card) -> E) : ∃ (i j : Fin (suc card)) (i < j) (f i = f j)
     => TruncP.map (boundedPigeonhole f) \lam t => \case LinearOrder.trichotomy t.1 t.2 \with {
       | less c => (t.1, t.2, c, t.4)
       | equals c => absurd (t.3 c)
@@ -24,7 +24,7 @@
     }
 }
 
-\lemma pigeonhole-surj (A : BoundedPigeonholeSet) {B : \Set} (f : A -> B) (s : IsSurj f) : BoundedPigeonholeSet B A.finCard \cowith
+\lemma pigeonhole-surj (A : BoundedPigeonholeSet) {B : \Set} (f : A -> B) (s : IsSurj f) : BoundedPigeonholeSet B A.card \cowith
   | boundedPigeonhole g =>
     \have | (inP t) => FinSet.finiteAC (\lam j => s (g j))
           | (inP r) => A.boundedPigeonhole (\lam j => (t j).1)

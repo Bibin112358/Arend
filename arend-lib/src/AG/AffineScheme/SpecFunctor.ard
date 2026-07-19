@@ -9,11 +9,11 @@
 \import Algebra.Monoid
 \import Algebra.Monoid.Localization
 \import Algebra.Monoid.MonoidHom
-\import Algebra.Monoid.Sub
+\import Algebra.Monoid.SubMonoid
 \import Algebra.Pointed
 \import Algebra.Ring
 \import Algebra.Ring.Localization
-\import Algebra.Ring.RingCategory
+\import Algebra.Ring.RingCat
 \import Algebra.Ring.RingHom
 \import Category
 \import Category.Functor

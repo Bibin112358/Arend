@@ -5,7 +5,7 @@
 \import Algebra.Monoid
 \import Algebra.Monoid.GCD
 \import Algebra.Monoid.Localization
-\import Algebra.Monoid.Sub
+\import Algebra.Monoid.SubMonoid
 \import Algebra.Ordered
 \import Algebra.StrictlyOrdered
 \import Algebra.Ring

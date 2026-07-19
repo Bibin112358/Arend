@@ -15,7 +15,7 @@
 \import Algebra.Ring.Poly
 \import Algebra.Ring.Reduced
 \import Algebra.Ring.RingHom
-\import Algebra.Ring.Sub
+\import Algebra.Ring.SubRing
 \import Algebra.Ring.ZeroDimensional
 \import Algebra.Semiring
 \import Arith.Fin
@@ -61,8 +61,8 @@
   }
 
 \func polyImage_field {K : DiscreteField} {E : ImpotentCRing} (f : RingHom K E) (a : E) (ai : isIntegral f a)
-  : DiscreteField { | CRing => SubRing.cStruct (polyImage f a) }
-  => zeroDim->field {ImpotentCRing.subring {SubRing.cStruct (polyImage f a)} SubRing.embed \lam p => ext p} (integralExt-zeroDim (polyImage_integralExt a ai))
+  : DiscreteField { | CRing => ICRing (polyImage f a) }
+  => zeroDim->field {ImpotentCRing.subring {ICRing (polyImage f a)} IRing.embed \lam p => ext p} (integralExt-zeroDim (polyImage_integralExt a ai))
 
 \lemma integral_dom-zeroDim {R S : CRing} (f : RingHom R S) (inj : IsInj f) (fi : isIntegralExt f) (Sd : S.IsZeroDimensional) : R.IsZeroDimensional
   => \lam x => \case Sd (f x) \with {
@@ -87,15 +87,15 @@
           | l' => mkArray \lam j => l j - pow a (d j)
           | subring : SubRing S => mPolyImage f l'
           | t => mPolyImage-finGen f l'
-     \in (SubRing.cStruct subring, mPolyImageHom f l', t.1, t.2, subring.embed,
+     \in (ICRing subring, mPolyImageHom f l', t.1, t.2, IRing.embed,
           \lam j => (padd pzero (later (l' j, mPolyImage-element f l' j)) + pow (padd 1 0) (d j),
                      inv $ (polyMapEvalRingHom _ _).func-+ *> pmap (`+ _) (pmap (`+ _) S.zro_*-left *> zro-left) *> +-assoc *> pmap (l j +) (+-comm *> S.toZero ((polyMapEvalRingHom _ _).func-pow *> pmap (pow __ _) equation)) *> zro-right),
           \lam q => ext q,
-          \case MPoly_poly-field (mPolyImageHom f l') p/=0 ((zro, transport (mPolyImage f l') f.func-zro (mPolyImage-ext f l' zro)) :: \lam j => (l' j, mPolyImage-element f l' j)) \with {
+          \case MPoly_poly-field {_} {ICRing (mPolyImage f l')} (mPolyImageHom f l') p/=0 ((zro, transport (mPolyImage f l') f.func-zro (mPolyImage-ext f l' zro)) :: \lam j => (l' j, mPolyImage-element f l' j)) \with {
             | inP s => isIntegral.fromInv s.2 s.3 $ pmap (polyEval __ a) change-vars_map *> change-vars_eval *> pmap2 (mPolyEval __ __) (ext \case \elim __ \with {
               | 0 => simplify
               | suc j => simplify
-            }) (inv (mPoly-map-comp {_} {_} {_} {_} {mPolyImageHom f l'} {subring.embed})) *> pe
+            }) (inv (mPoly-map-comp {_} {_} {ICRing (mPolyImage f l')} {_} {mPolyImageHom f l'} {IRing.embed})) *> pe
           },
           idp)
     \where {

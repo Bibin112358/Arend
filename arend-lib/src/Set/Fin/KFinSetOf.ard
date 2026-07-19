@@ -28,7 +28,7 @@
   \lemma toKFin : TruncP (KFinSet (\Sigma (x : X) (P x)))
     => \case enumerate \with {
       | inP (n,f,fs) => inP \new KFinSet {
-        | finCard => n
+        | card => n
         | finSurj => inP (f,fs)
       }
     }

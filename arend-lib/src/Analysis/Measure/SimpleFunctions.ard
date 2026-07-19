@@ -413,7 +413,7 @@
           \let P => SigmaFin (ProdFin (FinFin b.len) (FinFin c.len)) \lam s => DecFin (decideEq (f1 s.1).1 (f2 s.2).1)
           \in \case P.finEq \with {
             | inP Pe => inP (
-              \new Array (\Sigma V B) P.finCard \lam j => ((b (Pe j).1.1).1, (b (Pe j).1.1).2 * (c (Pe j).1.2).2),
+              \new Array (\Sigma V B) P.card \lam j => ((b (Pe j).1.1).1, (b (Pe j).1.1).2 * (c (Pe j).1.2).2),
               \lam {i} {j} i/=j => \case decideEq (Pe i).1.1 (Pe j).1.1, decideEq (Pe i).1.2 (Pe j).1.2 \with {
                 | yes e, yes e' => absurd $ i/=j $ Pe.isInj $ ext $ ext (e,e')
                 | no q, _ => equation.bRing {br q}

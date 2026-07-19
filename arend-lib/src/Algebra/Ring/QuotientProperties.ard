@@ -3,8 +3,9 @@
 \import Algebra.Monoid
 \import Algebra.Ring
 \import Algebra.Ring.Factor
-\import Algebra.Ring.RingCategory
+\import Algebra.Ring.RingCat
 \import Algebra.Ring.RingHom
+\import Algebra.Ring.SubRing
 \import Category
 \import Category.Subcat
 \import Function (IsInj, IsSurj)
@@ -15,8 +16,8 @@
 \import Paths.Meta
 \import Relation.Equivalence
 
-\func ringKerImageHom {R : CRing} {S : CRing} (f : RingHom R S) : RingHom (FactorRing (RingHom.KernelC f)) f.Image.IRing \cowith
-  | func (x : FactorRing (RingHom.KernelC f)) : f.Image.IRing \with {
+\func ringKerImageHom {R : CRing} {S : CRing} (f : RingHom R S) : RingHom (FactorRing (RingHom.KernelC f)) (IRing (ImageRing f)) \cowith
+  | func (x : FactorRing (RingHom.KernelC f)) : IRing (ImageRing f) \with {
     | in~ a => (f a, inP (a, idp))
     | ~-equiv x y r => ext $ inv $ rewrite (zro-left, +-assoc, negative-left, zro-right) in pmap (S.`+ f y) (rewrite r in f.func-minus {x} {y})
   }
@@ -35,5 +36,5 @@
       => \lam {in~ a} {in~ a'} p => FactorRing.fequiv (unfold (rewrite (AddGroupHom.func-minus {f}) (AddGroup.toZero (pmap (\lam x => x.1) p))))
   }
 
-\lemma ringKerImageHom-iso.{u} {R S : CRing.{u}} (f : RingHom R S) : Iso {CRingCat.{u}} {FactorRing (RingHom.KernelC f)} {(RingHom.ImageC f).ICRing} (ringKerImageHom f)
+\lemma ringKerImageHom-iso.{u} {R S : CRing.{u}} (f : RingHom R S) : Iso {CRingCat.{u}} {FactorRing (RingHom.KernelC f)} {ICRing (ImageRing f)} (ringKerImageHom f)
   => subCat-iso.conv {_} {CRing.{u}} $ (RingCat.Iso<->Inj+Surj (ringKerImageHom f)).2 (ringKerImageHom.isInj, ringKerImageHom.isSurj)

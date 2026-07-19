@@ -1,7 +1,7 @@
 \import Algebra.Meta
 \import Algebra.Monoid
 \import Algebra.Monoid.AbLocalization
-\import Algebra.Monoid.Sub
+\import Algebra.Monoid.SubMonoid
 \import Algebra.Ordered
 \import Algebra.Pointed
 \import Function.Meta

@@ -108,17 +108,6 @@
     | inverse => inverse
     | inverse-left => inverse-right
     | inverse-right => inverse-left
-
-  \lemma check-for-inv {x y : E} (p : x * y = ide) : y = inverse x
-    => simplify in pmap (inverse x *) p
-
-  \lemma equality-check {g h : E} (p : inverse g * h = ide) : g = h
-    => inv $ simplify in pmap (g *) p
-
-  \lemma equality-corrolary (g h : E) (p : g = h) : inverse g * h = ide =>
-    inverse g * h ==< pmap (inverse g *) (inv p) >==
-    inverse g * g ==< inverse-left >==
-    ide `qed
 } \where {
   \open Monoid(Inv)
 

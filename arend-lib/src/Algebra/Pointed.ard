@@ -8,9 +8,12 @@
       => path (\lam i => \new Pointed (p @ i) (pathOver {p @} q @ i))
   }
 
-\class AddPointed \extends BaseSet
+\class AddPointed \extends BaseSet {
   | zro : E
-  \where {
+
+  \protected \func IsZero : \Prop
+    => \Pi (x : E) -> x = 0
+} \where {
     \use \coerce fromPointed (P : Pointed) => \new AddPointed P.E P.ide
     \use \coerce toPointed (P : AddPointed) => \new Pointed P.E P.zro
   }

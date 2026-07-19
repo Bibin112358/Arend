@@ -118,7 +118,7 @@
 \type Countable (A : \Type) => \Sigma (f : Nat -> Maybe A) (\Pi (a : A) -> ∃ (n : Nat) (f n = just a))
 
 \func fin-countable (A : KFinSet) : TruncP (Countable A)
-  => TruncP.map A.finSurj \lam (f,fs) => (\lam n => \case LinearOrder.dec<_<= n A.finCard \with {
+  => TruncP.map A.finSurj \lam (f,fs) => (\lam n => \case LinearOrder.dec<_<= n A.card \with {
        | inl q => just $ f (toFin n q)
        | inr q => nothing
      }, \lam a => TruncP.map (fs a) \lam (j,fj=a) => (j, rewrite (LinearOrder.dec<_reduce $ fin_< j) $ pmap just $ pmap f (fin_nat-inj toFin=id) *> fj=a))

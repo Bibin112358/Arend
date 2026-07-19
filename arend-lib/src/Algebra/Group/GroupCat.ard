@@ -1,12 +1,11 @@
 \import Algebra.Group
 \import Algebra.Group.GroupHom
-\import Algebra.Group.Sub
+\import Algebra.Group.SubGroup
 \import Algebra.Meta
 \import Algebra.Monoid
-\import Algebra.Monoid.MonoidCategory
+\import Algebra.Monoid.MonoidCat
 \import Algebra.Monoid.MonoidHom
 \import Algebra.Pointed
-\import Algebra.Pointed.PointedCategory
 \import Algebra.Pointed.PointedHom
 \import Category
 \import Category.Functor
@@ -86,39 +85,6 @@
           | ret_f x => inv (aux' p)
           | f_sec y => inv (aux'' p)
       }
-
-    \lemma Iso<->TrivialKer+Surj.{u} {G H : Group.{u}} (f : GroupHom G H) : Iso f <-> (\Sigma f.TrivialKernel (IsSurj f))
-      => <->trans (Iso<->Inj+Surj f) helper
-      \where \private \func helper : (\Sigma (IsInj f) (IsSurj f)) <-> (\Sigma f.TrivialKernel (IsSurj f)) =>
-        (\lam p => (f.Kernel-injectivity-corrolary p.1, p.2),
-         \lam p => (f.Kernel-injectivity-test p.1, p.2))
-  }
-
-\func quotient-map {S : Group} {H : NormalSubGroup S} : GroupHom S H.quotient \cowith
-  | func (s : S) => NormalSubGroup.quotient-proj-setwise s
-  | func-ide => idp
-  | func-* => idp
-
-\instance ImageGroup (f : GroupHom) : Group
-  | Monoid => ImageMonoid f
-  | inverse a => (inverse a.1, TruncP.map a.2 \lam s => (inverse s.1, f.func-inverse *> pmap inverse s.2))
-  | inverse-left => ext inverse-left
-  | inverse-right => ext inverse-right
-
-\func ImageGroupLeftHom (f : GroupHom) : GroupHom f.Dom (ImageGroup f) \cowith
-  | MonoidHom => ImageMonoidLeftHom f
-
-\func ImageGroupRightHom (f : GroupHom) : GroupHom (ImageGroup f) f.Cod \cowith
-  | MonoidHom => ImageMonoidRightHom f
-
-\func ImageSubGroup (f : GroupHom) : SubGroup f.Cod \cowith
-  | contains h => ∃ (g : f.Dom) (f g = h)
-  | contains_ide => inP (Group.ide {f.Dom}, f.func-ide)
-  | contains_* cont1 cont2 => \case \elim  cont1, \elim  cont2 \with {
-    | inP a, inP b => inP (a.1 * b.1, rewrite (f.func-*, a.2, b.2) idp)
-  }
-  | contains_inverse cont1 => \case \elim cont1 \with {
-    | inP a => inP (inverse a.1, rewrite (f.func-inverse, a.2) idp)
   }
 
 \instance AddGroupCat.{u} : Cat AddGroup.{u}
@@ -163,43 +129,3 @@
       | Func-id => idp
       | Func-o => idp
   }
-
-\instance KerAddGroup (f : AddGroupHom) : AddGroup
-  | AddMonoid => KerAddMonoid f
-  | negative a => (negative a.1, f.func-negative *> pmap negative a.2 *> AddGroup.negative_zro)
-  | negative-left => ext negative-left
-  | negative-right => ext negative-right
-
-\func KerGroupHom (f : AddGroupHom) : AddGroupHom (KerAddGroup f) f.Dom \cowith
-  | AddMonoidHom => KerMonoidHom f
-
-\instance KerAbGroup {A : AbGroup} (f : AddGroupHom A) : AbGroup
-  | AddGroup => KerAddGroup f
-  | AbMonoid => KerAbMonoid f
-
-\lemma kernel=0<->inj {f : AddGroupHom} : IsInj f <-> (\Pi (x : Kernel f) -> x = 0)
-  => (\lam fi x => ext $ fi $ x.2 *> inv func-zro,
-      \lam c {a} {a'} p => AddGroup.fromZero $ pmap __.1 (c (a - a', func-+ *> pmap (_ +) f.func-negative *> AddGroup.toZero p)))
-
-\instance ImageAddGroup (f : AddGroupHom) : AddGroup
-  | AddMonoid => ImageAddMonoid f
-  | negative a => (negative a.1, TruncP.map a.2 \lam s => (negative s.1, f.func-negative *> pmap negative s.2))
-  | negative-left => ext negative-left
-  | negative-right => ext negative-right
-
-\func ImageAddGroupLeftHom (f : AddGroupHom) : AddGroupHom f.Dom (ImageAddGroup f) \cowith
-  | AddMonoidHom => ImageAddMonoidLeftHom f
-
-\func ImageAddGroupRightHom (f : AddGroupHom) : AddGroupHom (ImageAddGroup f) f.Cod \cowith
-  | AddMonoidHom => ImageAddMonoidRightHom f
-
-\instance ImageAbGroup {A : AddGroup} {B : AbGroup} (f : AddGroupHom A B) : AbGroup
-  | AddGroup => ImageAddGroup f
-  | AbMonoid => ImageAbMonoid f
-
-\func conjugateHom {E : Group} (g : E) : GroupHom E E \cowith
-  | func => conjugate g
-  | func-ide => unfold conjugate $ rewrite (E.ide-right, E.inverse-right) idp
-  | func-* {x y : E} =>
-    \have aux {x y z w t e : E} : x * y * z * (w * t * e) = (x * y) * (z * w) * (t * e) => equation
-    \in inv $ rewrite (aux, E.inverse-left, E.ide-right) equation

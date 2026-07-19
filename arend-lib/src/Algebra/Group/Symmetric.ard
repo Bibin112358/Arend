@@ -295,17 +295,17 @@
   }
 
 \instance EquivFin (A B : FinSet) : FinSet (QEquiv {A} {B})
-  => \case decideEq A.finCard B.finCard, A.finEq, B.finEq \with {
+  => \case decideEq A.card B.card, A.finEq, B.finEq \with {
     | yes e, inP Ae, inP Be =>
       flip (coe \lam i => FinSet (QEquiv {A} {QEquiv_= Be i})) right $
       flip (coe \lam i => FinSet (QEquiv {QEquiv_= Ae i} {_})) right $
-      \have r => equiv_fin {A.finCard} {B.finCard}
+      \have r => equiv_fin {A.card} {B.card}
       \in \new FinSet {
-        | finCard => r.1
+        | card => r.1
         | finEq => inP (symQEquiv r.2)
       }
     | no q, _, _ => \new FinSet {
-      | finCard => 0
+      | card => 0
       | finEq => inP $ emptyEquiv (later \case __) \lam e => q \case A.finEq, B.finEq \with {
         | inP p1, inP p2 => FinSet.FinCardBij $ p1 `transQEquiv` e `transQEquiv` symQEquiv p2
       }
@@ -539,11 +539,11 @@
 
     \lemma inverstions_transposition_> {n : Nat} {e : Sym (suc n)} {a : Fin n} (ea<ea+1 : e a < e (suc a))
       : suc (inversions e) = inversions (transposition1 a * e)
-      => finCard_Equiv {OrFin (InversionsFin e) (FinFin 1)} {InversionsFin (transposition1 a * e)} (Inverstions_transposition_> ea<ea+1)
+      => card_Equiv {OrFin (InversionsFin e) (FinFin 1)} {InversionsFin (transposition1 a * e)} (Inverstions_transposition_> ea<ea+1)
 
     \lemma inverstions_transposition_< {n : Nat} {e : Sym (suc n)} {a : Fin n} (ea+1<ea : e (suc a) < e a)
       : suc (inversions (transposition1 a * e)) = inversions e
-      => finCard_Equiv {OrFin (InversionsFin (transposition1 a * e)) (FinFin 1)} {InversionsFin e} (Inverstions_transposition_< ea+1<ea)
+      => card_Equiv {OrFin (InversionsFin (transposition1 a * e)) (FinFin 1)} {InversionsFin e} (Inverstions_transposition_< ea+1<ea)
 
     \open Nat(mod)
 
@@ -580,7 +580,7 @@
   \where {
     \open Monoid(pow,BigProd)
 
-    \func aux {k n : Nat} (e : Sym n) (p : (Sym.SupportFin e).finCard < k)
+    \func aux {k n : Nat} (e : Sym n) (p : (Sym.SupportFin e).card < k)
       : \Sigma (l : Array (Sym n))
                (∀ (e' : l) (isCycle e'))
                (\Pi (i1 i2 : Fin l.len) {i : Fin n} -> Support (l i1) i -> Support (l i2) i -> i1 = i2)
@@ -621,7 +621,7 @@
               | inr p, inl j => \lam s => absurd $ r-supp $ rewriteI (pmap __.1 s) p.2
               | inr p, inr p' => \lam s => pmap inr $ ext (pmap __.1 s)
             }
-            | r => aux (inverse c * e) $ NatSemiring.<_+-left _ t.2.1 <∘l finCard_inj {OrFin (FinFin t.1) (SupportFin (inverse c * e))} {SupportFin e} supp-f supp-f-inj <∘l <_suc_<= p
+            | r => aux (inverse c * e) $ NatSemiring.<_+-left _ t.2.1 <∘l card_inj {OrFin (FinFin t.1) (SupportFin (inverse c * e))} {SupportFin e} supp-f supp-f-inj <∘l <_suc_<= p
           \in (c :: r.1, \case \elim __ \with {
             | 0 => cycle-isCycle t1>1
             | suc j => r.2 j

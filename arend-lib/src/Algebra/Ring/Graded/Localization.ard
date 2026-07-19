@@ -2,12 +2,12 @@
 \import Algebra.Meta
 \import Algebra.Monoid
 \import Algebra.Monoid.Localization
-\import Algebra.Monoid.Sub
+\import Algebra.Monoid.SubMonoid
 \import Algebra.Pointed
 \import Algebra.Ring
 \import Algebra.Ring.Graded
 \import Algebra.Ring.Localization
-\import Algebra.Ring.Sub
+\import Algebra.Ring.SubRing
 \import Arith.Nat
 \import Data.Or
 \import Function.Meta
@@ -21,7 +21,7 @@
 \open SubMonoid
 
 \func HomogenLocRing {R : GradedCRing} (S : SubMonoid R) : CRing
-  => SubRing.cStruct subRing
+  => ICRing subRing
   \where {
     \func subRing : SubRing (LocRing S) \cowith
       | contains x => ∃ (y : \Sigma (x y : R) (S y)) (x = inl~ y) (n : Nat) (isHomogen y.1 n) (isHomogen y.2 n)

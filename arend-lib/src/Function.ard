@@ -27,6 +27,11 @@
       => \lam z => \have | (inP (y,gy=z)) => gs z
                          | (inP (x,fx=y)) => fs y
                    \in inP (x, pmap g fx=y *> gy=z)
+
+    \lemma factor {A B C : \Type} {f : A -> B} {g : B -> C} (hs : IsSurj (\lam x => g (f x))) : IsSurj g
+      => \lam z => \case hs z \with {
+        | inP (x,p) => inP (f x, p)
+      }
   }
 
 \func IsSplitSurj {A B : \Type} (f : A -> B)

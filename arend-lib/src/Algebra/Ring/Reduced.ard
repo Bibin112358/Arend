@@ -1,6 +1,6 @@
 \import Algebra.Field
 \import Algebra.Group
-\import Algebra.Group.Sub
+\import Algebra.Group.SubGroup
 \import Algebra.Meta
 \import Algebra.Monoid
 \import Algebra.Ring

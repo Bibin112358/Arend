@@ -311,7 +311,7 @@
        | inP (l, inj, q) =>
         \let l' : Array M => remove (\lam m => decideEq (msCoef p m) 0) l
         \in KFinSet.KFin+Dec=>Fin (\new KFinSet {
-         | finCard => l'.len
+         | card => l'.len
          | finSurj => inP (\lam j => (l' j, remove.no-element \lam m => decideEq (msCoef p m) 0), \lam x => \case index-dec l' x.1 \with {
            | inl s => inP (s.1, ext s.2)
            | inr r => absurd $ x.2 $ rewrite q $ monoidSet-coefs_BigSum *> BigSum_zro \lam j => BigSum_zro $ later $ rewrite (decideEq/=_reduce \lam p' => r $ rewrite p' $ remove.element $ later $ rewriteI p' x.2) \case __

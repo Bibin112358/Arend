@@ -1,6 +1,7 @@
 \import Algebra.Field
 \import Algebra.Group
 \import Algebra.Group.GroupHom
+\import Algebra.Group.SubGroup
 \import Algebra.Meta
 \import Algebra.Monoid
 \import Algebra.Monoid.MonoidHom
@@ -9,7 +10,6 @@
 \import Algebra.Ring.Ideal
 \import Algebra.Ring.MPoly
 \import Algebra.Ring.Poly()
-\import Algebra.Ring.Sub
 \import Algebra.Semiring
 \import Arith.Int
 \import Arith.Nat
@@ -72,26 +72,9 @@
   \override Cod : Ring
 
   \protected \func Kernel : TIdeal Dom \cowith
-    | SubAddGroup => AddGroupHom.Kernel
+    | SubAddGroup => KernelAddGroup \this
     | ideal-left A0 => rewrite (func-*, A0, zro_*-right) idp
     | ideal-right A0 => rewrite (func-*, A0, zro_*-left) idp
-
-  \protected \func Image : SubRing Cod \cowith
-    | SubRing => ringHomImage _
-
-  \protected \func image : RingHom Image.IRing Cod \cowith
-    | func x => x.1
-    | func-+ => idp
-    | func-ide => idp
-    | func-* => idp
-    \where {
-      \lemma isInj : IsInj image => \lam p => ext p
-
-      \lemma isSurj (s : IsSurj func) : IsSurj image
-        => \lam y => \case s y \with {
-        | inP (x, p) => inP ((func x, inP (x, idp)), p)
-      }
-    }
 } \where {
     \func equals {R S : Ring} {f g : RingHom R S} (p : \Pi (x : R) -> f x = g x) : f = g
       => exts p
@@ -142,9 +125,6 @@
 
   \func KernelC {R : CRing} {S : Ring} (f : RingHom R S) : Ideal R \cowith
     | TIdeal => f.Kernel
-
-  \func ImageC {R : Ring} {S : CRing} (f : RingHom R S) : CSubRing S \cowith
-    | SubRing => ringHomImage f
 }
 
 \func natMap {R : Semiring} : SemiringHom NatSemiring R \cowith

@@ -1,14 +1,14 @@
 \import Algebra.Field
 \import Algebra.Group
-\import Algebra.Group.GroupCategory
+\import Algebra.Group.GroupCat
 \import Algebra.Group.GroupHom
 \import Algebra.Monoid
-\import Algebra.Monoid.MonoidCategory
+\import Algebra.Monoid.MonoidCat
 \import Algebra.Monoid.MonoidHom
 \import Algebra.Pointed
 \import Algebra.Pointed.PointedHom
 \import Algebra.Ring
-\import Algebra.Ring.RingCategory
+\import Algebra.Ring.RingCat
 \import Algebra.Ring.RingHom
 \import Algebra.Semiring
 \import Category

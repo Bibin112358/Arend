@@ -1,7 +1,7 @@
 \import Algebra.Group
 \import Algebra.Meta
 \import Algebra.Monoid
-\import Algebra.Monoid.Sub
+\import Algebra.Monoid.SubMonoid
 \import Algebra.Pointed
 \import Function.Meta
 \import Logic

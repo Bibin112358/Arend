@@ -5,13 +5,13 @@
 \import Algebra.Monoid
 \import Algebra.Monoid.Localization
 \import Algebra.Monoid.MonoidHom
-\import Algebra.Monoid.Sub
+\import Algebra.Monoid.SubMonoid
 \import Algebra.Ring.Graded
 \import Algebra.Ring.Graded.Localization
 \import Algebra.Ring.Localization
-\import Algebra.Ring.RingCategory
+\import Algebra.Ring.RingCat
 \import Algebra.Ring.RingHom
-\import Algebra.Ring.Sub
+\import Algebra.Ring.SubRing
 \import Arith.Nat
 \import Category.Functor
 \import Data.Or
@@ -81,7 +81,7 @@
 
     \func StructureSheaf.{u} {R : GradedCRing.{u}} : Functor (ProjPreorder R).op CRingCat.{u} \cowith
       | F a => HomogenLocRing (powers a.1)
-      | Func {b} {a} ba => SubRing.corestrict (SpecStructureSheaf.Func (\box ba) RingHom.∘ SubRing.embed) $ unfold \lam s => Func-homogen ba s.2
+      | Func {b} {a} ba => IRing.corestrict (SpecStructureSheaf.Func (\box ba) RingHom.∘ IRing.embed) $ unfold \lam s => Func-homogen ba s.2
       | Func-id => later $ exts \lam x => ext $ path \lam i => SpecStructureSheaf.Func-id i _
       | Func-o => later $ exts \lam x => ext $ path \lam i => SpecStructureSheaf.Func-o i _
 
@@ -91,7 +91,7 @@
       | localization-inv {_} (inP (k,idp)) => transportInv Inv (StructureSheaf.Func ba).func-pow $
         Inv.Inv_pow $ HomogenLocRing.homogen-Inv1 (ProjCarrier.homogen b) (L.localization-inv powers-id)
       | localization-inj {y} {z} p => \case L.localization-inj (pmap __.1 p) \with {
-        | inP (_, inP (k,idp), q) => inP (_, inP (k,idp), ext $ pmap (_ *) SubRing.embed.func-pow *> q *> pmap (_ *) (inv SubRing.embed.func-pow))
+        | inP (_, inP (k,idp), q) => inP (_, inP (k,idp), ext $ pmap (_ *) IRing.embed.func-pow *> q *> pmap (_ *) (inv IRing.embed.func-pow))
       }
       | localization-surj z => \case L.localization-surj z.1 \with {
         | inP (y, _, inP (n,idp), p) => \case Func-homogen-conv ba $ transport HomogenLocRing.subRing p $ contains_* z.2 $ Func-homogen ba (HomogenLocRing.subRing.contains_pow x.2) \with {

@@ -174,7 +174,7 @@
     => \case J.finEq \with {
       | inP e => {?}
        {- TODO[sorts]
-        transport {FinSet} (\lam X => \Pi (g : X -> E) -> IsIndependentSet g <-> (\Pi (c : X -> R) -> FinSum (\lam j => c j *c g j) = 0 -> \Pi (j : X) -> c j = 0)) {FinFin J.finCard} {J} (ext (QEquiv_= e, idp))
+        transport {FinSet} (\lam X => \Pi (g : X -> E) -> IsIndependentSet g <-> (\Pi (c : X -> R) -> FinSum (\lam j => c j *c g j) = 0 -> \Pi (j : X) -> c j = 0)) {FinFin J.card} {J} (ext (QEquiv_= e, idp))
           (\lam g => <->sym (IsIndependent<->IsIndependentSet {_} {g}) `<->trans` later (\lam f c p j => f c (inv FinSum=BigSum *> p) j, \lam f c p j => f c (FinSum=BigSum *> p) j)) g
        -}
     }
@@ -246,7 +246,7 @@
   \protected \func IsFinitelyGenerated : \Prop
     => ∃ (l : Array E) (IsGenerated l)
 
-  \lemma basisSet_basis (J : FinSet) {g : J -> E} (gb : IsBasisSet g) : ∃ (l : Array E J.finCard) (IsBasis l)
+  \lemma basisSet_basis (J : FinSet) {g : J -> E} (gb : IsBasisSet g) : ∃ (l : Array E J.card) (IsBasis l)
     => \case J.finEq \with {
          | inP e => inP (\lam j => g (e j), IsBasis<->IsBasisSet.2 $ IsBasisSet-equiv e gb)
        }

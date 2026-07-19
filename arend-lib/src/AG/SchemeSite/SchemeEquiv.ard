@@ -8,7 +8,7 @@
 \import Algebra.Monoid
 \import Algebra.Monoid.Localization
 \import Algebra.Monoid.MonoidHom
-\import Algebra.Monoid.Sub
+\import Algebra.Monoid.SubMonoid
 \import Algebra.Pointed
 \import Algebra.Ring.Ideal
 \import Category.Functor

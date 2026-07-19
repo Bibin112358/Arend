@@ -70,7 +70,7 @@
     \open ColimitData \hiding (T,thExt,ColimitStr)
 
     \func emptyFin {S : \Set} : FinSet (\Sigma S Empty) \cowith
-      | finCard => 0
+      | card => 0
       | finEq => inP \new QEquiv {
         | f => \case __
         | ret => \case __.2

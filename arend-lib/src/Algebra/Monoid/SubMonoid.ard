@@ -1,7 +1,7 @@
 \import Algebra.Monoid
 \import Algebra.Monoid.MonoidHom
 \import Algebra.Pointed
-\import Algebra.Pointed.Sub
+\import Algebra.Pointed.SubPointed
 \import Arith.Nat
 \import Data.Array
 \import Function.Iterate
@@ -17,46 +17,35 @@
 \class SubSemigroup \extends SubSet {
   \override S : Semigroup
   | contains_* {x y : S} : contains x -> contains y -> contains (x * y)
-
-  \func ISemigroup : Semigroup \cowith
-    | BaseSet => ISet
-    | * x y => (x.1 * y.1, contains_* x.2 y.2)
-    | *-assoc => ext *-assoc
-} \where {
-  \func cStruct {A : CSemigroup} (S : SubSemigroup A) : CSemigroup \cowith
-    | Semigroup => S.ISemigroup
-    | *-comm => ext *-comm
 }
+
+\instance ISemigroup (S : SubSemigroup {}) : Semigroup \cowith
+  | BaseSet => S.ISet
+  | * x y => (x.1 * y.1, contains_* x.2 y.2)
+  | *-assoc => ext *-assoc
+
+\instance ICSemigroup {A : CSemigroup} (S : SubSemigroup A) : CSemigroup
+  | Semigroup => ISemigroup S
+  | *-comm => ext *-comm
 
 \class SubMonoid \extends SubPointed, SubSemigroup {
   \override S : Monoid
-
-  \func IMonoid : Monoid \cowith
-    | Pointed => IPointed
-    | Semigroup => ISemigroup
-    | ide-left => ext ide-left
-    | ide-right => ext ide-right
 
   \lemma contains_pow {x : S} (s : contains x) {n : Nat} : contains (Monoid.pow x n) \elim n
     | 0 => contains_ide
     | suc n => contains_* (contains_pow s) s
 
-  \lemma sub-pow {x : IMonoid} {n : Nat} : (IMonoid.pow x n).1 = Monoid.pow x.1 n \elim n
+  \lemma sub-pow {x : IMonoid \this} {n : Nat} : ((IMonoid \this).pow x n).1 = Monoid.pow x.1 n \elim n
     | 0 => idp
     | suc n => pmap (`* x.1) sub-pow
-
-  \func embedMonoid : MonoidHom IMonoid S \cowith
-    | func => __.1
-    | func-ide => idp
-    | func-* => idp
 } \where {
-  \func cStruct {A : CMonoid} (S : SubMonoid A) : CMonoid \cowith
-    | Monoid => S.IMonoid
-    | CSemigroup => SubSemigroup.cStruct S
-
-  \func max {A : Monoid} : SubMonoid \cowith
-    | SubPointed => SubPointed.max {A}
+  \func max {X : Monoid} : SubMonoid \cowith
+    | SubPointed => SubPointed.max {X}
     | contains_* _ _ => ()
+
+  \func maxHom {X : Monoid} : MonoidHom X (IMonoid max) \cowith
+    | PointedHom => SubPointed.maxHom
+    | func-* => idp
 
   \func closure {M : Monoid} (S : SubSet M) : SubMonoid M \cowith
     | contains x => ∃ (n : Nat) (iterr apl n S x)
@@ -100,6 +89,20 @@
     | contains_* (inP (a,Sa,fa=x)) (inP (b,Sb,fb=y)) => inP (a * b, contains_* Sa Sb, f.func-* *> pmap2 (*) fa=x fb=y)
 }
 
+\instance IMonoid (S : SubMonoid {}) : Monoid
+  | Pointed => IPointed S
+  | Semigroup => ISemigroup S
+  | ide-left => ext ide-left
+  | ide-right => ext ide-right
+  \where
+    \func embed : MonoidHom (IMonoid S) S.S \cowith
+      | PointedHom => IPointed.embed
+      | func-* => idp
+
+\instance ICMonoid {A : CMonoid} (S : SubMonoid A) : CMonoid
+  | Monoid => IMonoid S
+  | CSemigroup => ICSemigroup S
+
 \class DecSubMonoid \extends SubMonoid, DecSubPointed {
   \override S : Monoid
 }
@@ -112,22 +115,62 @@
     | nil => contains_zro
     | a :: l => contains_+ (p 0) $ contains_BigSum \lam j => p (suc j)
 
-  \func IAddMonoid : AddMonoid \cowith
-    | AddPointed => IAddPointed
-    | + x y => (x.1 + y.1, contains_+ x.2 y.2)
-    | zro-left => ext zro-left
-    | zro-right => ext zro-right
-    | +-assoc => ext +-assoc
-
-  \lemma sub-BigSum {l : Array IAddMonoid} : (IAddMonoid.BigSum l).1 = AddMonoid.BigSum (map __.1 l) \elim l
+  \lemma sub-BigSum {l : Array (IAddMonoid \this)} : ((IAddMonoid \this).BigSum l).1 = AddMonoid.BigSum (map __.1 l) \elim l
     | nil => idp
     | a :: l => pmap (a.1 +) sub-BigSum
 } \where {
-  \func abStruct {A : AbMonoid} (S : SubAddMonoid A) : AbMonoid \cowith
-    | AddMonoid => S.IAddMonoid
-    | +-comm => ext +-comm
-
   \func max {A : AddMonoid} : SubAddMonoid \cowith
     | SubAddPointed => SubAddPointed.max {A}
     | contains_+ _ _ => ()
+
+  \func maxHom {A : AddMonoid} : AddMonoidHom A (IAddMonoid max) \cowith
+    | AddPointedHom => SubAddPointed.maxHom
+    | func-+ => idp
 }
+
+\instance IAddMonoid (S : SubAddMonoid {}) : AddMonoid
+  | AddPointed => IAddPointed S
+  | + x y => (x.1 + y.1, contains_+ x.2 y.2)
+  | zro-left => ext zro-left
+  | zro-right => ext zro-right
+  | +-assoc => ext +-assoc
+  \where
+    \func embed : AddMonoidHom (IAddMonoid S) S.S \cowith
+      | AddPointedHom => IAddPointed.embed
+      | func-+ => idp
+
+\instance IAbMonoid {A : AbMonoid} (S : SubAddMonoid A) : AbMonoid
+  | AddMonoid => IAddMonoid S
+  | +-comm => ext +-comm
+
+
+\func KernelMonoid (f : MonoidHom) : SubMonoid f.Dom \cowith
+  | SubPointed => Kernel f
+  | contains_* p q => func-* *> pmap2 (*) p q *> ide-left
+
+\func KernelAddMonoid (f : AddMonoidHom) : SubAddMonoid f.Dom \cowith
+  | SubAddPointed => AddKernel f
+  | contains_+ p q => func-+ *> pmap2 (+) p q *> zro-left
+
+\func ImageAddMonoid (f : AddMonoidHom) : SubAddMonoid f.Cod \cowith
+  | SubAddPointed => ImageAddPointed f
+  | contains_+ (inP a) (inP b) => inP (a.1 + b.1, func-+ *> pmap2 (+) a.2 b.2)
+
+\func ImAddMonoid (f : AddMonoidHom) : AddMonoid
+  => IAddMonoid (ImageAddMonoid f)
+
+\func ImAddMonoidLeftHom (f : AddMonoidHom) : AddMonoidHom f.Dom (ImAddMonoid f) \cowith
+  | AddPointedHom => ImAddPointedLeftHom f
+  | func-+ => ext func-+
+
+
+\func ImageMonoid (f : MonoidHom) : SubMonoid f.Cod \cowith
+  | SubPointed => ImagePointed f
+  | contains_* (inP a) (inP b) => inP (a.1 * b.1, func-* *> pmap2 (*) a.2 b.2)
+
+\func ImMonoid (f : MonoidHom) : Monoid
+  => IMonoid (ImageMonoid f)
+
+\func ImMonoidLeftHom (f : MonoidHom) : MonoidHom f.Dom (ImMonoid f) \cowith
+  | PointedHom => ImPointedLeftHom f
+  | func-* => ext func-*

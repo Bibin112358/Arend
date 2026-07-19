@@ -3,10 +3,10 @@
 \import AG.SchemeSite.SchemeSiteHom
 \import Algebra.Monoid
 \import Algebra.Monoid.MonoidHom
-\import Algebra.Monoid.Sub
+\import Algebra.Monoid.SubMonoid
 \import Algebra.Pointed.PointedHom
 \import Algebra.Ring.Localization
-\import Algebra.Ring.RingCategory
+\import Algebra.Ring.RingCat
 \import Algebra.Ring.RingHom
 \import Category
 \import Category.Functor

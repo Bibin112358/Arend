@@ -1,7 +1,7 @@
 \import Algebra.Meta
 \import Algebra.Monoid
 \import Algebra.Monoid.Localization
-\import Algebra.Monoid.Sub
+\import Algebra.Monoid.SubMonoid
 \import Algebra.Ring
 \import Algebra.Ring.Ideal
 \import Algebra.Ring.Localization

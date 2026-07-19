@@ -3,8 +3,10 @@
 \import Set
 
 \class SubSet (S : BaseSet) (\classifying contains : S -> \Prop) {
+  \type Total => \Sigma (x : S) (contains x)
+
   \func ISet : BaseSet \cowith
-    | E => \Sigma (x : S) (contains x)
+    | E => Total
 }
 
 \class DecSubSet \extends SubSet

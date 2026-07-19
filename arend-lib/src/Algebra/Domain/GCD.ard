@@ -5,7 +5,8 @@
 \import Algebra.Monoid
 \import Algebra.Monoid.GCD
 \import Algebra.Monoid.Localization
-\import Algebra.Monoid.Sub
+\import Algebra.Monoid.MonoidHom
+\import Algebra.Monoid.SubMonoid
 \import Algebra.Pointed
 \import Algebra.Ring
 \import Algebra.Ring.Localization \hiding (FieldOfQuotients)
@@ -88,8 +89,9 @@
       | inP c, inP d => \case loc_poly (\lam s p => nonZero-cancel-right (apartNonZero s) p) d.1 d.2 (rewrite c.5 in d.3) \with {
         | inP e => rewrite c.5 \case decide#0 c.1 \with {
           | inl q => inP (0, ~-lequiv1 $ simplify $ inv q)
-          | inr c1#0 => inP (_, inv $ div_loc $ nonZero_ldiv $ CancelGCDMonoid.gcd_pow_div {nonZeroGCDMonoid} {c.2,c.3} {c.1,c1#0} {e.1}
-                          (transport (LDiv _) (ext $ inv subMonoid.embedMonoid.func-pow) $ ldiv_nonZero {_} {_} {_, pow_#0 c1#0} e.2) $ IsCoprime.<=gcd $ later \new GCD {
+          | inr c1#0 =>
+            inP (_, inv $ div_loc $ nonZero_ldiv $ CancelGCDMonoid.gcd_pow_div {nonZeroGCDMonoid} {c.2,c.3} {c.1,c1#0} {e.1}
+                          (transportInv (LDiv _) (ext IMonoid.embed.func-pow) $ ldiv_nonZero {_} {_} {_, pow_#0 c1#0} e.2) $ IsCoprime.<=gcd $ later \new GCD {
                             | res|val1 => LDiv.ide-div
                             | res|val2 => LDiv.ide-div
                             | res-univ g g|c2 g|c1 => ldiv_nonZero $ GCD.res-univ {c.4} g.1 (nonZero_ldiv g|c1) (nonZero_ldiv g|c2)

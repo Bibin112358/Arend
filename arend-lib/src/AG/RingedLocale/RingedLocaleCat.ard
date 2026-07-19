@@ -1,7 +1,7 @@
 \import AG.RingedLocale
 \import Algebra.Monoid
 \import Algebra.Pointed
-\import Algebra.Ring.RingCategory
+\import Algebra.Ring.RingCat
 \import Algebra.Ring.RingHom
 \import Category
 \import Category.Functor

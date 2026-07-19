@@ -1,20 +1,17 @@
 \import Algebra.Monoid
 \import Algebra.Monoid.MonoidHom
 \import Algebra.Pointed
-\import Algebra.Pointed.PointedCategory
 \import Algebra.Pointed.PointedHom
 \import Category
 \import Category.Adjoint
 \import Category.Functor
 \import Category.Limit
 \import Category.Meta
-\import Equiv
 \import Logic
 \import Logic.FirstOrder.Algebraic
 \import Logic.FirstOrder.Algebraic.AlgModelCat
 \import Logic.FirstOrder.Term
 \import Logic.Meta
-\import Meta
 \import Paths
 \import Paths.Meta
 \import Set.SetCategory
@@ -185,57 +182,3 @@
       | Func-id => idp
       | Func-o => idp
   }
-
-\instance KerAddMonoid (f : AddMonoidHom) : AddMonoid
-  | AddPointed => KerAddPointed f
-  | + a b => (a.1 + b.1, func-+ *> pmap2 (+) a.2 b.2 *> zro-left)
-  | zro-left => ext zro-left
-  | zro-right => ext zro-right
-  | +-assoc => ext +-assoc
-
-\func KerMonoidHom (f : AddMonoidHom) : AddMonoidHom (KerAddMonoid f) f.Dom \cowith
-  | AddPointedHom => KerPointedHom f
-  | func-+ => idp
-
-\instance KerAbMonoid {A : AbMonoid} (f : AddMonoidHom A) : AbMonoid (Kernel f)
-  | AddMonoid => KerAddMonoid f
-  | +-comm => ext +-comm
-
-\instance ImageAddMonoid (f : AddMonoidHom) : AddMonoid
-  | AddPointed => ImageAddPointed f
-  | + a b => (a.1 + b.1, \case a.2, b.2 \with {
-    | inP t, inP s => inP (t.1 + s.1, func-+ *> pmap2 (+) t.2 s.2)
-  })
-  | zro-left => ext zro-left
-  | zro-right => ext zro-right
-  | +-assoc => ext +-assoc
-
-\instance ImageMonoid (f : MonoidHom) : Monoid
-  | Pointed => ImagePointed f
-  | * a b => (a.1 * b.1, \case a.2, b.2 \with {
-    | inP t, inP s => inP (t.1 * s.1, func-* *> pmap2 (*) t.2 s.2)
-  })
-  | ide-left => ext ide-left
-  | ide-right => ext ide-right
-  | *-assoc => ext *-assoc
-
-\func ImageMonoidLeftHom(f : MonoidHom) : MonoidHom f.Dom (ImageMonoid f) \cowith
-  | PointedHom => ImagePointedLeftHom f
-  | func-* => ext func-*
-
-\func ImageMonoidRightHom (f : MonoidHom) : MonoidHom (ImageMonoid f) f.Cod \cowith
-  | PointedHom => ImagePointedRightHom f
-  | func-* => idp
-
-
-\func ImageAddMonoidLeftHom (f : AddMonoidHom) : AddMonoidHom f.Dom (ImageAddMonoid f) \cowith
-  | AddPointedHom => ImageAddPointedLeftHom f
-  | func-+ => ext func-+
-
-\func ImageAddMonoidRightHom (f : AddMonoidHom) : AddMonoidHom (ImageAddMonoid f) f.Cod \cowith
-  | AddPointedHom => ImageAddPointedRightHom f
-  | func-+ => idp
-
-\instance ImageAbMonoid {A : AddMonoid} {B : AbMonoid} (f : AddMonoidHom A B) : AbMonoid
-  | AddMonoid => ImageAddMonoid f
-  | +-comm => ext +-comm

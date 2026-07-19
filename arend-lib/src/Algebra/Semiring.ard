@@ -120,7 +120,7 @@
   \lemma BigSum_replicate1 {n : Nat} : BigSum (replicate n ide) = natCoef n
     => BigSum_replicate *> ide-right
 
-  \lemma FinSum_replicate {A : FinSet} {x : E} : FinSum {_} {A} (\lam _ => x) = natCoef A.finCard * x
+  \lemma FinSum_replicate {A : FinSet} {x : E} : FinSum {_} {A} (\lam _ => x) = natCoef A.card * x
     => FinSum-const *> BigSum_replicate
 
   \lemma BigProd_zro {l : Array E} (j : Fin l.len) (p : l j = 0) : BigProd l = 0 \elim l, j

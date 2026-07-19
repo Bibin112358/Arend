@@ -1,9 +1,9 @@
 \import Algebra.Meta
 \import Algebra.Monoid
 \import Algebra.Monoid.MonoidHom
-\import Algebra.Monoid.Sub
+\import Algebra.Monoid.SubMonoid
 \import Algebra.Pointed
-\import Algebra.Pointed.Sub
+\import Algebra.Pointed.SubPointed
 \import Equiv
 \import Function
 \import Function.Meta
