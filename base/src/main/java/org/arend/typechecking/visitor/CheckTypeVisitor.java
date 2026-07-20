@@ -3575,6 +3575,45 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   }
 
   @Override
+  public @Nullable TypecheckingResult checkArray(@NotNull List<? extends TypedExpression> elements, @Nullable CoreExpression elementsType, @Nullable TypedExpression tail, @NotNull ConcreteExpression marker) {
+    if (!((elementsType == null || elementsType instanceof Expression) && (tail == null || tail instanceof TypecheckingResult) && marker instanceof Concrete.Expression)) {
+      throw new IllegalArgumentException();
+    }
+
+    List<Expression> coreElements = new ArrayList<>(elements.size());
+    Expression inferredElementsType = null;
+    for (TypedExpression element : elements) {
+      if (!(element instanceof TypecheckingResult result)) {
+        throw new IllegalArgumentException();
+      }
+      coreElements.add(result.expression);
+      if (inferredElementsType == null) {
+        inferredElementsType = result.type;
+      }
+    }
+
+    Expression coreElementsType = elementsType != null ? (Expression) elementsType : inferredElementsType;
+    if (coreElementsType == null) {
+      throw new IllegalArgumentException("elementsType must be given if elements is empty and tail is null");
+    }
+    Sort sort = coreElementsType.getSortOfType();
+    if (sort == null) {
+      return null;
+    }
+
+    TypecheckingResult tailResult = (TypecheckingResult) tail;
+    LevelPair levels = new LevelPair(sort.getPLevel(), sort.getHLevel());
+    Expression length = tailResult == null ? new SmallIntegerExpression(coreElements.size()) : FieldCallExpression.make(Prelude.ARRAY_LENGTH, tailResult.expression);
+    for (int i = 0; tailResult != null && i < coreElements.size(); i++) {
+      length = Suc(length);
+    }
+    Expression elementsTypeFun = new LamExpression(levels.toSort().max(Sort.SET0), new TypedSingleDependentLink(true, null, Fin(length)), coreElementsType);
+
+    Expression resultExpr = ArrayExpression.make(levels, elementsTypeFun, coreElements, tailResult == null ? null : tailResult.expression);
+    return new TypecheckingResult(resultExpr, resultExpr.getType());
+  }
+
+  @Override
   public @Nullable Definition getCoreDefinition(@Nullable ArendRef ref) {
     return ref instanceof TCDefReferable ? ((TCDefReferable) ref).getTypechecked() : null;
   }

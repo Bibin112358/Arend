@@ -3,6 +3,8 @@ package org.arend.lib;
 import org.arend.ext.LiteralTypechecker;
 import org.arend.ext.concrete.ConcreteFactory;
 import org.arend.ext.concrete.expr.ConcreteExpression;
+import org.arend.ext.concrete.expr.ConcreteReferenceExpression;
+import org.arend.ext.concrete.expr.ConcreteTupleExpression;
 import org.arend.ext.core.expr.CoreDataCallExpression;
 import org.arend.ext.core.expr.CoreExpression;
 import org.arend.ext.core.ops.NormalizationMode;
@@ -18,6 +20,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 public class StdLiteralTypechecker implements LiteralTypechecker {
   private static ArendRef resolveName(FullName fullName, ExpressionResolver resolver) {
@@ -72,34 +76,54 @@ public class StdLiteralTypechecker implements LiteralTypechecker {
     return typechecker.checkNumber(number, contextData.getExpectedType(), contextData.getMarker());
   }
 
-  // Builds `\new String { bytes => b0 :: b1 :: ... :: nil }`, UTF-8 encoding the literal into
-  // byte values and letting the ordinary number-literal path (Fin's ConCallExpression.make
-  // special-casing) elaborate each one into a compact Fin 256 value -- no separate fast-path
-  // construction code is needed here, since that machinery already exists in the kernel for any
-  // Fin-typed number literal, string or not. `String`/`bytes` are arend-lib names (not Prelude),
-  // so they're resolved and identity-checked here; `nil`/`::` are Array's own Prelude constructors,
-  // reachable via the factory without any resolution ambiguity risk.
+  // Resolution only has an ExpressionResolver (no typechecker), so it just resolves the names the
+  // typechecking side will need and passes them through as a 3-tuple. Actual array construction
+  // happens in typecheckString, via ExpressionTypechecker.checkArray -- a direct core-level builder
+  // that takes a plain List of already-typechecked elements, so it has no concrete-syntax-tree
+  // depth dependency on the literal's length at all (unlike building a `::`/`nil` chain via
+  // ConcreteFactory.app(), which overflowed the stack of concrete-tree visitors like
+  // SyntacticDesugarVisitor for anything much longer than a few hundred bytes).
   @Override
   public @Nullable ConcreteExpression resolveString(@NotNull String unescapedString, @NotNull ExpressionResolver resolver, @NotNull ContextData contextData) {
     ArendRef stringRef = resolveName(Names.STRING, resolver);
     ArendRef bytesRef = resolveName(Names.STRING_BYTES, resolver);
-    if (stringRef == null || bytesRef == null) return null;
+    ArendRef byteRef = resolveName(Names.BYTE, resolver);
+    if (stringRef == null || bytesRef == null || byteRef == null) return null;
 
     ConcreteFactory factory = contextData.getFactory();
-    ArendRef nilRef = factory.getPrelude().getEmptyArrayRef();
-    ArendRef consRef = factory.getPrelude().getArrayConsRef();
-    if (nilRef == null || consRef == null) return null;
+    return factory.tuple(factory.ref(stringRef), factory.ref(bytesRef), factory.ref(byteRef));
+  }
 
-    byte[] bytes = unescapedString.getBytes(StandardCharsets.UTF_8);
-    ConcreteExpression array = factory.ref(nilRef);
-    for (int i = bytes.length - 1; i >= 0; i--) {
-      array = factory.app(factory.ref(consRef), true, factory.number(bytes[i] & 0xFF), array);
-    }
-    return factory.newExpr(factory.classExt(factory.ref(stringRef), factory.implementation(bytesRef, array)));
+  private static @Nullable ArendRef asRef(ConcreteExpression expr) {
+    return expr instanceof ConcreteReferenceExpression ref ? ref.getReferent() : null;
   }
 
   @Override
   public @Nullable TypedExpression typecheckString(@NotNull String unescapedString, @Nullable ConcreteExpression resolved, @NotNull ExpressionTypechecker typechecker, @NotNull ContextData contextData) {
-    return resolved == null ? null : typechecker.typecheck(resolved, contextData.getExpectedType());
+    if (!(resolved instanceof ConcreteTupleExpression tuple) || tuple.getFields().size() != 3) return null;
+    ArendRef stringRef = asRef(tuple.getFields().get(0));
+    ArendRef bytesRef = asRef(tuple.getFields().get(1));
+    ArendRef byteRef = asRef(tuple.getFields().get(2));
+    if (stringRef == null || bytesRef == null || byteRef == null) return null;
+
+    ConcreteFactory factory = contextData.getFactory();
+    ConcreteExpression marker = contextData.getMarker();
+    TypedExpression byteTypeResult = typechecker.typecheck(factory.ref(byteRef), null);
+    if (byteTypeResult == null) return null;
+    CoreExpression byteType = byteTypeResult.getExpression();
+
+    byte[] bytes = unescapedString.getBytes(StandardCharsets.UTF_8);
+    List<TypedExpression> elements = new ArrayList<>(bytes.length);
+    for (byte b : bytes) {
+      TypedExpression element = typechecker.checkNumber(BigInteger.valueOf(b & 0xFF), byteType, marker);
+      if (element == null) return null;
+      elements.add(element);
+    }
+
+    TypedExpression array = typechecker.checkArray(elements, byteType, null, marker);
+    if (array == null) return null;
+
+    ConcreteExpression newExpr = factory.newExpr(factory.classExt(factory.ref(stringRef), factory.implementation(bytesRef, factory.core(array))));
+    return typechecker.typecheck(newExpr, contextData.getExpectedType());
   }
 }
