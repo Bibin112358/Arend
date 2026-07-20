@@ -117,7 +117,7 @@
           \have | (inP (p,pq)) => gg x
                 | (inP ((s : MPoly (Fin l.len) (PolyAlgebra R)),sq)) => MPoly-surj {Fin l.len} (polyMapEvalRingHom f a) fg p
           \in inP (MPoly_Fin-suc'.retHom s, pq *> rewrite (inv sq, MPoly_Fin-suc'.map-comm) (pmap (mPolyEval l)
-              (inv mPoly-map-comp *> pmap (mPoly-map __ s) {?} {- TODO[sorts] (exts \lam p => inv polyEval_polyMap *> pmap (polyEval __ _) (polyMap-comp f g)) -} *> mPoly-map-comp {_} {PolyAlgebra R} {PolyAlgebra S}) *> inv MPoly_Fin-suc'.eval-comm))
+              (inv mPoly-map-comp *> pmap (mPoly-map __ s) (exts \lam p => unfold (inv polyEval_polyMap) *> pmap (polyEval __ _) (polyMap-comp f g)) *> mPoly-map-comp {_} {PolyAlgebra R} {PolyAlgebra S}) *> inv MPoly_Fin-suc'.eval-comm))
 
     \lemma isAlgebraGenerated-poly {R E : CRing} {f : RingHom R E} {a : E}
                                    (fg : \Pi (x : E) -> ∃ (p : Poly R) (polyMapEval f p a = x)) : isAlgebraGenerated f (a :: nil)

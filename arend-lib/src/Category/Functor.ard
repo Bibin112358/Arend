@@ -131,11 +131,9 @@
 
 \instance FunctorCat (C : Precat) (D : Cat) : Cat (Functor C D)
   | Precat => FunctorPrecat C D
-  | univalence => Cat.makeUnivalence $ later \lam e => {?}
-  {- TODO[sorts]
+  | univalence => Cat.makeUnivalence $ later \lam e =>
     (exts (\lam X => D.isotoid (FunctorPrecat.mapIso e X), \lam {X} {Y} h => Cat.transport_Hom_iso (FunctorPrecat.mapIso e X) (FunctorPrecat.mapIso e Y) (natural h)),
      simp_coe $ simp_coe \lam X => Cat.transport_iso (FunctorPrecat.mapIso e X))
-  -}
 
 \instance FamPrecat {J : \Type} (D : Precat) : Precat (J -> D)
   | Hom F G => \Pi {j : J} -> Hom (F j) (G j)

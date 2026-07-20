@@ -172,11 +172,11 @@
 
   \lemma IsIndependentSet-fin {J : FinSet} {g : J -> E} : IsIndependentSet g <-> (\Pi (c : J -> R) -> FinSum (\lam j => c j *c g j) = 0 -> \Pi (j : J) -> c j = 0)
     => \case J.finEq \with {
-      | inP e => {?}
-       {- TODO[sorts]
-        transport {FinSet} (\lam X => \Pi (g : X -> E) -> IsIndependentSet g <-> (\Pi (c : X -> R) -> FinSum (\lam j => c j *c g j) = 0 -> \Pi (j : X) -> c j = 0)) {FinFin J.card} {J} (ext (QEquiv_= e, idp))
-          (\lam g => <->sym (IsIndependent<->IsIndependentSet {_} {g}) `<->trans` later (\lam f c p j => f c (inv FinSum=BigSum *> p) j, \lam f c p j => f c (FinSum=BigSum *> p) j)) g
-       -}
+      | inP e =>
+        \have isc => IsIndependent<->IsIndependentSet {_} {\lam i => g (e i)}
+        \in (\lam gi c p j => pmap c (inv (e.f_ret j)) *> isc.2 (IsIndependentSet-right-inj e.isInj gi) (\lam i => c (e i)) (inv (FinSum_char2 e) *> p) (e.ret j),
+             \lam gi => transport IsIndependentSet (ext \lam j => pmap g $ e.f_ret j) $ IsIndependentSet-right-inj (symQEquiv e).isInj $ isc.1 \lam c p i =>
+               pmap c (inv $ e.ret_f i) *> gi (\lam j => c (e.ret j)) (FinSum_char2 e *> pmap BigSum (exts \lam i => pmap (c __ *c _) (e.ret_f i)) *> p) (e i))
     }
 
   \type IsGeneratingSet {J : \Set} (g : J -> E) : \Prop

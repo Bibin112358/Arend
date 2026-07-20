@@ -170,7 +170,7 @@
   => \let | g => factorHom {Ideal.closure1 p} ∘ polyHom
           | fgi => integralExt-comp f g fi $ poly-integralExt pm (Ideal.closure1_LDiv.2 $ inP LDiv.id-div)
      \in \case fgi (in~ (padd 1 0)) \with {
-       | inP (q,qm,r) => {?} -- TODO[sorts]: TruncP.map (Ideal.closure1_LDiv.1 (FactorRing.unfequiv0 {Ideal.closure1 p} $ inv factorHom_polyMapEval *> pmap (polyEval __ _) (later $ polyMap-comp _ _) *> r)) \lam d => (q,qm,d)
+       | inP (q,qm,r) => TruncP.map (Ideal.closure1_LDiv.1 (FactorRing.unfequiv0 {Ideal.closure1 p} $ inv factorHom_polyMapEval *> pmap (polyEval __ _) (polyMap-comp f g) *> r)) \lam d => (q,qm,d)
      }
 
 \lemma integralExt-left {R S E : Ring} (f : RingHom R S) (g : RingHom S E) (inj : IsInj g) (int : isIntegralExt (g ∘ f)) : isIntegralExt f

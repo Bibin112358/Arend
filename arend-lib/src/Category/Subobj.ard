@@ -127,11 +127,8 @@
         | pbBeta2 => o-assoc *> pmap (_ ∘) (inv o-assoc *> pmap (`∘ _) (~-unsoequiv.left-right=id {_} {_} {Mono_pullback _ s} r) *> id-left) *> pbBeta2
         | pbEta e _ => m.isMono e
       }
-      | contraction P => {?}
-       {- TODO[sorts]
-        exts (s.isMono $ inv o-assoc *> pmap (`∘ _) (inv pbCoh) *> o-assoc *> pmap (_ ∘) r.4 *> pbCoh,
+      | contraction P => exts (s.isMono $ inv o-assoc *> pmap (`∘ _) (inv pbCoh) *> o-assoc *> pmap (_ ∘) r.4 *> pbCoh,
                                \lam p1 p2 c => m.isMono $ inv o-assoc *> pmap (`∘ _) r.2 *> pbBeta1 *> inv P.pbBeta1)
-       -}
     }
   }
 
