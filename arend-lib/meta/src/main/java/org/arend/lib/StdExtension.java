@@ -3,6 +3,7 @@ package org.arend.lib;
 import org.arend.ext.*;
 import org.arend.ext.concrete.ConcreteFactory;
 import org.arend.ext.concrete.definition.ConcreteMetaDefinition;
+import org.arend.ext.prettifier.ExpressionPrettifier;
 import org.arend.ext.reference.ArendRef;
 import org.arend.ext.typechecking.meta.MetaTypechecker;
 import org.arend.ext.typechecking.meta.TrivialMetaTypechecker;
@@ -60,6 +61,7 @@ public class StdExtension implements ArendExtension {
 
   private final StdGoalSolver goalSolver = new StdGoalSolver();
   private final StdLiteralTypechecker literalTypechecker = new StdLiteralTypechecker();
+  private final ExpressionPrettifier expressionPrettifier = new StringExpressionPrettifier(this);
   private final ListDefinitionListener definitionListener = new ListDefinitionListener().addDeclaredListeners(this);
   public ArendUI ui;
 
@@ -76,6 +78,10 @@ public class StdExtension implements ArendExtension {
   @Override
   public void setConcreteFactory(@NotNull ConcreteFactory factory) {
     this.factory = factory;
+  }
+
+  public ConcreteFactory getFactory() {
+    return factory;
   }
 
   private MetaRef makeRef(ModulePath modulePath, String name, MetaDefinition definition) {
@@ -587,5 +593,10 @@ public class StdExtension implements ArendExtension {
   @Override
   public @Nullable DefinitionListener getDefinitionListener() {
     return definitionListener;
+  }
+
+  @Override
+  public @Nullable ExpressionPrettifier getExpressionPrettifier() {
+    return expressionPrettifier;
   }
 }
