@@ -20,11 +20,9 @@ public interface ArendPrelude {
   CoreFunctionDefinition getMinus();
   CoreDataDefinition getFin();
   CoreFunctionDefinition getFinFromNat();
-  CoreFunctionDefinition getByte();
   CoreDataDefinition getInt();
   CoreConstructor getPos();
   CoreConstructor getNeg();
-  CoreFunctionDefinition getString();
   CoreFunctionDefinition getCoerce();
   CoreFunctionDefinition getCoerce2();
   CoreDataDefinition getPath();
@@ -59,11 +57,9 @@ public interface ArendPrelude {
   ArendRef getMinusRef();
   ArendRef getFinRef();
   ArendRef getFinFromNatRef();
-  ArendRef getByteRef();
   ArendRef getIntRef();
   ArendRef getPosRef();
   ArendRef getNegRef();
-  ArendRef getStringRef();
   ArendRef getCoerceRef();
   ArendRef getCoerce2Ref();
   ArendRef getPathRef();

@@ -59,7 +59,7 @@ public class StdExtension implements ArendExtension {
   public final ReflexivityKey reflexivityKey = new ReflexivityKey("reflexivity", this);
 
   private final StdGoalSolver goalSolver = new StdGoalSolver();
-  private final StdNumberTypechecker numberTypechecker = new StdNumberTypechecker();
+  private final StdLiteralTypechecker literalTypechecker = new StdLiteralTypechecker();
   private final ListDefinitionListener definitionListener = new ListDefinitionListener().addDeclaredListeners(this);
   public ArendUI ui;
 
@@ -581,7 +581,7 @@ public class StdExtension implements ArendExtension {
 
   @Override
   public @Nullable LiteralTypechecker getLiteralTypechecker() {
-    return numberTypechecker;
+    return literalTypechecker;
   }
 
   @Override

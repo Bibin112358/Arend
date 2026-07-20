@@ -17,8 +17,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 
-public class StdNumberTypechecker implements LiteralTypechecker {
+public class StdLiteralTypechecker implements LiteralTypechecker {
   private static ArendRef resolveName(FullName fullName, ExpressionResolver resolver) {
     ArendRef ref = resolver.resolveName(fullName.longName.getLastName());
     if (ref != null && ref.checkName(fullName)) {
@@ -69,5 +70,36 @@ public class StdNumberTypechecker implements LiteralTypechecker {
       }
     }
     return typechecker.checkNumber(number, contextData.getExpectedType(), contextData.getMarker());
+  }
+
+  // Builds `\new String { bytes => b0 :: b1 :: ... :: nil }`, UTF-8 encoding the literal into
+  // byte values and letting the ordinary number-literal path (Fin's ConCallExpression.make
+  // special-casing) elaborate each one into a compact Fin 256 value -- no separate fast-path
+  // construction code is needed here, since that machinery already exists in the kernel for any
+  // Fin-typed number literal, string or not. `String`/`bytes` are arend-lib names (not Prelude),
+  // so they're resolved and identity-checked here; `nil`/`::` are Array's own Prelude constructors,
+  // reachable via the factory without any resolution ambiguity risk.
+  @Override
+  public @Nullable ConcreteExpression resolveString(@NotNull String unescapedString, @NotNull ExpressionResolver resolver, @NotNull ContextData contextData) {
+    ArendRef stringRef = resolveName(Names.STRING, resolver);
+    ArendRef bytesRef = resolveName(Names.STRING_BYTES, resolver);
+    if (stringRef == null || bytesRef == null) return null;
+
+    ConcreteFactory factory = contextData.getFactory();
+    ArendRef nilRef = factory.getPrelude().getEmptyArrayRef();
+    ArendRef consRef = factory.getPrelude().getArrayConsRef();
+    if (nilRef == null || consRef == null) return null;
+
+    byte[] bytes = unescapedString.getBytes(StandardCharsets.UTF_8);
+    ConcreteExpression array = factory.ref(nilRef);
+    for (int i = bytes.length - 1; i >= 0; i--) {
+      array = factory.app(factory.ref(consRef), true, factory.number(bytes[i] & 0xFF), array);
+    }
+    return factory.newExpr(factory.classExt(factory.ref(stringRef), factory.implementation(bytesRef, array)));
+  }
+
+  @Override
+  public @Nullable TypedExpression typecheckString(@NotNull String unescapedString, @Nullable ConcreteExpression resolved, @NotNull ExpressionTypechecker typechecker, @NotNull ContextData contextData) {
+    return resolved == null ? null : typechecker.typecheck(resolved, contextData.getExpectedType());
   }
 }
