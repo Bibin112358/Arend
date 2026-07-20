@@ -1,17 +1,26 @@
 \import Data.Bool
-\import Data.Array
 \import Data.String
+\import Paths
 
 \data Empty
 
 \lemma testStringEq : "abc" = "abc" => idp
-\lemma testStringNeq (p : "abc" = "abd") : Empty => \case p \with {}
+\lemma testStringNeq (p : "abc" = "abd") : Empty => \case stringInj p \with {}
 
 \lemma testStringEqTrue : ("abc" StringDecSet.== "abc") = true => idp
 \lemma testStringEqFalse : ("abc" StringDecSet.== "abd") = false => idp
 
 \lemma testStringConcat : "abcd" = "ab" ++ "cd" => idp
-\lemma testStringConcatNot (p : "abc" = "ab" ++ "d") : Empty => \case p \with {}
+\lemma testStringConcatNot (p : "abc" = "ab" ++ "d") : Empty => \case stringInj p \with {}
 
 \lemma testStringConcatTrue : ("abcd" StringDecSet.== "ab" ++ "cd") = true => idp
 \lemma testStringConcatFalse : ("abc" StringDecSet.== "ab" ++ "d") = false => idp
+
+-- Regression for the original record-embedding bug: `\data String` with zero constructors used
+-- to make DefinitionTypechecker infer Sort.PROP for it, so any record field of type String was
+-- silently marked isProperty (proof-irrelevant), collapsing different string content to equal.
+-- `String` is now a `\record` with a real, non-Prop-sorted `bytes` field, so this no longer
+-- applies -- two records differing only in string content must not be equal.
+\record R (s : String)
+\lemma testRecordFieldDistinguishesContent (p : \new R { | s => "abc" } = \new R { | s => "abd" }) : Empty
+  => \case stringInj (pmap (\lam (r : R) => r.s) p) \with {}
