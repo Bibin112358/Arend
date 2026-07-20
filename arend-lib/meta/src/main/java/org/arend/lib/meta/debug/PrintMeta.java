@@ -1,6 +1,7 @@
 package org.arend.lib.meta.debug;
 
 import org.arend.ext.concrete.expr.ConcreteStringExpression;
+import org.arend.ext.prettyprinting.doc.DocFactory;
 import org.arend.ext.typechecking.BaseMetaDefinition;
 import org.arend.ext.typechecking.ContextData;
 import org.arend.ext.typechecking.ExpressionTypechecker;
@@ -42,7 +43,7 @@ public class PrintMeta extends BaseMetaDefinition {
       if (result == null) {
         return null;
       }
-      console.println(result.getExpression());
+      console.println(DocFactory.termDoc(result.getExpression(), typechecker.getExpressionPrettifier(), console.getPrettyPrinterConfig()));
     }
     return typechecker.typecheck(contextData.getArguments().size() > 1 ? contextData.getArguments().get(1).getExpression() : contextData.getFactory().tuple(), contextData.getExpectedType());
   }

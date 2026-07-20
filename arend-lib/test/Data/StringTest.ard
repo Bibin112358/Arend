@@ -1,6 +1,7 @@
 \import Data.Bool
 \import Data.String
 \import Paths
+\import Debug.Meta
 
 \data Empty
 
@@ -24,3 +25,5 @@
 \record R (s : String)
 \lemma testRecordFieldDistinguishesContent (p : \new R { | s => "abc" } = \new R { | s => "abd" }) : Empty
   => \case stringInj (pmap (\lam (r : R) => r.s) p) \with {}
+
+\func testPrintStringConcat => println ("Hello" ++ " " ++ "World" ++ "!")
