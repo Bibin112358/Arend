@@ -2,7 +2,6 @@
 \import Algebra.Group.GSet.SubGSet
 \import Algebra.Group.Representation
 \import Algebra.Group.Representation.InterwiningMap
-\import Algebra.Module.ModuleCat
 \import Algebra.Module.SubLModule
 \import Algebra.Pointed
 \import Logic

@@ -3,7 +3,7 @@
 \import Algebra.Group.Representation
 \import Algebra.Group.Representation.InterwiningMap
 \import Algebra.Module
-\import Algebra.Module.ModuleCat
+\import Algebra.Module.Instances
 \import Algebra.Module.LinearMap
 \import Algebra.Ring
 \import Category

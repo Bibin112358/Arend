@@ -5,7 +5,7 @@
 \import Algebra.Group.Representation.LinRepresCat
 \import Algebra.Group.Representation.SubLRepres
 \import Algebra.Module
-\import Algebra.Module.ModuleCat
+\import Algebra.Module.Instances
 \import Algebra.Module.LinearMap
 \import Algebra.Monoid
 \import Algebra.Ring
