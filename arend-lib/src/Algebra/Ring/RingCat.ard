@@ -98,9 +98,6 @@
       => (RingCat.Iso<->Inj+Surj $ IRing.embed {ImageRing f}).2 (IAddPointed.embed-inj, \lam y => \case p y \with {
         | inP (x,fx=y) => inP (ImRingLeftHom f x, fx=y)
       })
-
-    \func Image=Cod.{u} {R S : Ring.{u}} (f : RingHom R S) (p : IsSurj f) : IRing (ImageRing f) = S
-      => {?} -- TODO[sorts]: RingCat.{u}.isotoid (image-iso.{u} p)
   }
 
 \instance CRingCat.{u} : Cat CRing.{u}
@@ -154,9 +151,6 @@
     \lemma Iso_QEquiv.{u} (e : Iso {CRingCat.{u}}) : QEquiv e.f e.hinv \cowith
       | ret_f x => path \lam i => e.hinv_f i x
       | f_sec y => path \lam i => e.f_hinv i y
-
-    \func Image=Cod.{u} {R : Ring.{u}} {S : CRing.{u}} (f : RingHom R S) (p : IsSurj f) : ICRing (ImageRing f) = S
-      => {?} -- TODO[sorts]: ext CRing { | Ring => RingCat.Image=Cod f p }
   }
 
 \instance LimitCRing.{u} {J : Precat.{u,u}} (F : Functor J CRingCat.{u}) : CRing

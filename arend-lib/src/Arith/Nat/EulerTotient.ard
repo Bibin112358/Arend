@@ -12,7 +12,6 @@
 \import Algebra.Ring
 \import Algebra.Ring.Factor
 \import Algebra.Ring.Ideal
-\import Algebra.Ring.QuotientProperties
 \import Algebra.Ring.RingCat
 \import Algebra.Ring.RingHom
 \import Algebra.Semiring
@@ -29,6 +28,7 @@
 \import Order.PartialOrder
 \import Paths
 \import Paths.Meta
+\import Relation.Equivalence
 \import Set
 \import Set.Fin
 \import Set.Fin.Instances
@@ -96,18 +96,17 @@
 
   }
 
-\func ker-int-Coef (n : Nat) : RingHom.KernelC (intMap {FinRing {n}}) = {Ideal IntEuclidean} Ideal.closure1 {IntEuclidean} (suc n)
-  => exts \lam i => ext
-      (\lam (c : intMap i = zro) => \case modEq-ldiv i 0 n $ rewriteI mod-mod $ finEq-modeq {i IntEuclidean.mod pos (suc n)} {0} (rewrite intCoef-char in c) \with {
-        | (a, p) => inP ((a, ()) :: nil, simplify (rewrite (IntRing.*-comm, p) linarith))
-      }, \lam c => unfold $ rewrite (intCoef-char, (rewrite AddGroup.minus_zro in ldiv-modEq i 0 n) $ Ideal.closure1_LDiv.1 c) idp)
-
-{- TODO[sorts]: Define an explicit function and prove it is an equivalence.
-\func Z/nZ=FinRing (n : Nat) : Iso {_} {FactorRing (Ideal.closure1 {IntRing} (suc n))} {FinRing {n}}
-  => transport (\lam X => Iso {_} {FactorRing X} {FinRing {n}}) (ker-int-Coef n) $
-      transport (\lam X => Iso {_} {_} {X}) (CRingCat.Image=Cod (intMap {FinRing {n}}) intCoef-surj) $
-        ringKerImageHom-iso (intMap {FinRing {n}})
--}
+\lemma Z/nZ=FinRing {n : Nat}
+  : IsEquiv {FactorRing (Ideal.closure1 (pos (suc n)))} {FinRing {n}} (factor-lift FinRing.intHom factor-lem)
+  => IsEquiv.fromInjSurj (\lam {x} {y} => \case \elim x, \elim y \with {
+    | in~ x, in~ y => \lam p => FactorRing.fequiv $ Ideal.closure1_LDiv.2 $ inP $ later $ equal-mod_LDiv {_} {_} {suc n} (\case __) (inv FinRing.mod-mod *> p *> FinRing.mod-mod)
+  }) \lam y => inP (in~ y, fin_nat-inj $ FinRing.mod-mod *> natMod=mod y _ *> fin_mod_id y)
+  \where {
+    \func factor-lem {x : Int} (c : Ideal.closure1 (pos (suc n)) x) : FinRing.intHom {n} x = 0
+      => \case Ideal.closure1-lem.1 c \with {
+        | inP (d,p) => inv (FinRing.intCoef-char n x) *> pmap intMap p *> intMap.func-* *> pmap (`* _) (fin_nat-inj $ id_mod {suc n}) *> (FinRing {n}).zro_*-left
+      }
+  }
 
 \func EulerTotient (n : Nat) : Nat => (coPrimes n).card
 
