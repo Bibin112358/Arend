@@ -1,8 +1,8 @@
 \import Algebra.Linear.Matrix
 \import Algebra.Meta
 \import Algebra.Module
-\import Algebra.Module.ModuleCat
 \import Algebra.Module.LinearMap
+\import Algebra.Module.ModuleIso
 \import Algebra.Monoid
 \import Algebra.Pointed
 \import Algebra.Ring
@@ -69,13 +69,13 @@
         | suc n, inP (l,lb) => absurd $ R.zro/=ide $ inv $ lb.1 (replicate (suc n) (1 : R)) (f _) 0
       })
 
-    \lemma surj-iso.{u} {R : NonZeroCRing} {U V : FinModule.{u} R} (p : dimension U = dimension V) (g : LinearMap U V) (gs : IsSurj g) : Iso {LModuleCat.{u} R} g
+    \lemma surj-iso {R : NonZeroCRing} {U V : FinModule R} (p : dimension U = dimension V) (g : LinearMap U V) (gs : IsSurj g) : ModuleIso g
       => \case dimension-char, dimension-char \with {
         | inP s, inP (lv,bv) => \let (lu,bu) => rewrite p s
                                 \in basis-surj-iso bu bv g gs
       }
       \where
-        \lemma basis-surj-iso.{u} {R : CRing} {U V : LModule.{u} R} {n : Nat} {lu : Array U n} (bu : U.IsBasis lu) {lv : Array V n} (bv : V.IsBasis lv) (g : LinearMap U V) (gs : IsSurj g) : Iso g
+        \lemma basis-surj-iso {R : CRing} {U V : LModule R} {n : Nat} {lu : Array U n} (bu : U.IsBasis lu) {lv : Array V n} (bv : V.IsBasis lv) (g : LinearMap U V) (gs : IsSurj g) : ModuleIso g
           => \case surj-split {R} {U} {\new FinModule { | LModule => V | isFinModule => inP (lv,bv) }} g gs \with {
             | inP (h,gh=id) => rewriteI ((matrix-equiv bu bv).ret_f g) $ toLinearMapIso bu bv $ matirx-inv {R} {n} {toMatrix lv bu h} {toMatrix lu bv g} $ inv (toMatrix_* {R} {V} h g lv bu bv) *> cong (exts gh=id) *> toMatrix_ide bv
           }

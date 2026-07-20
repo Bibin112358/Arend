@@ -10,6 +10,7 @@
 \import Algebra.Module
 \import Algebra.Module.FinModule
 \import Algebra.Module.LinearMap
+\import Algebra.Module.ModuleIso
 \import Algebra.Module.SubLModule
 \import Algebra.Monoid
 \import Algebra.Monoid.GCD
@@ -147,12 +148,9 @@
 
     \lemma M~_toLinearMap {R : Ring} {U V : LModule R} {lu : Array U} {lv : Array V} (bu : U.IsBasis lu) (bv : V.IsBasis lv) {A B : Matrix R lu.len lv.len} (A~B : A M~ B)
       : ∃ (lu' : Array U lu.len) (lv' : Array V lv.len) (bu' : U.IsBasis lu') (bv' : V.IsBasis lv') (toLinearMap bu lv A = toLinearMap bu' lv' B)
-      => {?}
-       {- TODO[sorts]: Make change-basis-right independent of levels.
-         \let | (inP (C : Inv, D : Inv, A=CBD)) => ~-symmetric A~B
-              | t => pmap (toLinearMap bu lv) A=CBD *> toLinearMap_* (C.val MatrixRing.product B) D.val bu bv bv *> pmap (_ ∘) (toLinearMap_* C.val B bu bu bv) *> pmap (_ ∘) (change-basis-right (toLinearMapIso bu bu C) bu bv B) *> change-basis-left (toLinearMap bv lv D.val) (iso-basis (Iso.reverse {toLinearMapIso bu bu C}) bu) bv B
+      => \let | (inP (C : Inv, D : Inv, A=CBD)) => ~-symmetric A~B
+              | t => pmap (toLinearMap bu lv) A=CBD *> toLinearMap_* (C.val MatrixRing.product B) D.val bu bv bv *> pmap (_ LinearMap.∘) (toLinearMap_* C.val B bu bu bv) *> pmap (_ LinearMap.∘) (change-basis-right (toLinearMapIso bu bu C) bu bv B) *> change-basis-left (toLinearMap bv lv D.val) (iso-basis (toLinearMapIso bu bu C).reverse bu) bv B
          \in inP (_, _, _, iso-basis (toLinearMapIso bv bv D) bv, t)
-       -}
   }
 
 \instance image-fin {R : SmithDomain} {U V : FinModule R} (f : LinearMap U V) : FinModule
@@ -163,25 +161,22 @@
   \where {
     \protected \lemma basis {U V : LModule R} (f : LinearMap U V) {lu' : Array U} (bu' : U.IsBasis lu') {lv' : Array V} (bv' : V.IsBasis lv')
       : ∃ (l : Array (ImLModule f)) (IsBasis {ImLModule f} l) (l.len = rank (LinearMap.toMatrix lu' bv' f))
-      => {?}
-   {- TODO[sorts]: Make change-basis_M~ independent of levels.
- \let | (inP (lu, bu, lv, bv, d, g, d0)) => smith-bases bu' bv' f
+      => \let | (inP (lu, bu, lv, bv, d, g, d0)) => smith-bases bu' bv' f
               | r => rank (LinearMap.toMatrix lu bv f)
-              | lic j : Image f => (f (take r lu rank<=rows j), inP (_, idp))
+              | lic j : ImLModule f => (f (take r lu rank<=rows j), inP (_, idp))
          \in inP (lic,
                   (\lam c p j => R.nonZero-right (\lam c => NatSemiring.<-irreflexive $ fin_< j <∘l (rewrite toFin=id in (d0 _).1 c)) $
                                   V.independent-subset {lv} bv.1 rank<=columns (\lam i => c i * d (fin-inc_<= rank<=rows i))
                                     (pmap V.BigSum (exts \lam j => *c-assoc *> pmap (_ *c) (inv $ pmap f take-index *> g (fin-inc_<= rank<=rows j) *>
                                       pmap (_ *c) (fit_< lv (later $ rewrite toFin=id $ fin_< j <∘l rank<=columns) *>
                                         pmap lv (fin_nat-inj $ later $ toFin=id *> toFin=id *> inv toFin=id)))) *>
-                                     inv (ImageLModuleRightHom f).func-BigSum *> pmap __.1 p) j,
+                                     inv IModule.embed.func-BigSum *> pmap __.1 p) j,
                    \lam v => \have | (inP (u,fu=v)) => v.2
                                    | (inP (c,s)) => bu.2 u
                              \in inP (mkArray \lam j => c (fin-inc_<= rank<=rows j), ext $ inv fu=v *> pmap f s *> f.func-BigSum *>
                                     inv (V.BigSum-subset {_} {\lam j => f (c j *c lu j)} rank<=rows (\lam j => pmap (_ *c f __) take-index *> inv func-*c)
-                                          \lam j r<=j => func-*c *> pmap (_ *c) (g j *> pmap (`*c _) ((d0 j).2 r<=j) *> *c_zro-left) *> *c_zro-right) *> inv (ImageLModuleRightHom f).func-BigSum)),
+                                          \lam j r<=j => func-*c *> pmap (_ *c) (g j *> pmap (`*c _) ((d0 j).2 r<=j) *> *c_zro-left) *> *c_zro-right) *> inv IModule.embed.func-BigSum)),
                   rank.rank_M~ $ change-basis_M~ f bu bu' bv bv')
-    -}
 
     \lemma dimension_rank {f : LinearMap U V} {lu : Array U} (bu : U.IsBasis lu) {lv : Array V} (bv : V.IsBasis lv) : FinModule.dimension (image-fin f) = rank (LinearMap.toMatrix lu bv f)
       => \case basis f bu bv \with {

@@ -53,12 +53,12 @@
   \lemma IsIndependentSet-left-inj {J : \Set} (inj : IsInj func) {g : J -> Dom} (gi : LModule.IsIndependentSet g) : LModule.IsIndependentSet (\lam j => func (g j))
     => \lam c p => gi c $ inj $ func-BigSum *> pmap BigSum (exts \lam j => func-*c) *> p *> inv func-zro
 } \where {
-  \func id {R : Ring} {M : LModule R} : LinearMap M M \cowith
+  \protected \func id {R : Ring} {M : LModule R} : LinearMap M M \cowith
     | func a => a
     | func-+ => idp
     | func-*c => idp
 
-  \func \fixl 8 compose \alias \infixl 8 ∘ {R : Ring} {U V W : LModule R} (g : LinearMap V W) (f : LinearMap U V) : LinearMap U W \cowith
+  \protected \func \fixl 8 compose \alias \infixl 8 ∘ {R : Ring} {U V W : LModule R} (g : LinearMap V W) (f : LinearMap U V) : LinearMap U W \cowith
     | func a => g (f a)
     | func-+ => pmap g func-+ *> func-+
     | func-*c => pmap g func-*c *> func-*c
