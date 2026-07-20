@@ -8,35 +8,29 @@ import static org.arend.Matchers.missingClauses;
 import static org.arend.Matchers.typecheckingError;
 
 public class CoverageTest extends TypeCheckingTestCase {
-  // Regression test for a soundness hole: `String` used to be declared with zero constructors
-  // (`\data String`), so the coverage checker treated it as uninhabited even though string
-  // literals (bypassing the constructor mechanism) actually inhabit it. This let `\case s \with {}`
-  // "prove" `Empty` for any `s : String`. `String` is now `Array Byte`, which has real constructors,
-  // so both the general and explicit-absurd-pattern forms below must be rejected.
+  // Regression test for a soundness hole that originally motivated giving `String` real
+  // constructors instead of `\data String` with none (String has since moved to arend-lib
+  // entirely -- see arend-lib's Data/String.ard/StringTest.ard for the String-specific version of
+  // this regression, including the literal-syntax form `\case "s" \with {}`). The underlying
+  // kernel property doesn't need String at all: it's that the coverage checker correctly treats
+  // any type that unfolds to `DArray` (like `Array Nat` here) via its real, length-based
+  // emptiness check, rather than a zero-constructor `\data` being (wrongly) treated as
+  // uninhabited while still having inhabitants. Both the general and explicit-absurd-pattern
+  // forms below must be rejected.
   @Test
-  public void stringCaseIsNotExhaustive() {
+  public void arrayCaseIsNotExhaustive() {
     typeCheckModule(
         "\\data Empty\n" +
-        "\\func f (s : String) : Empty => \\case s \\with {}", 1);
+        "\\func f (s : Array Nat) : Empty => \\case s \\with {}", 1);
     assertThatErrorsAre(missingClauses(2));
   }
 
   @Test
-  public void stringAbsurdPatternIsRejected() {
+  public void arrayAbsurdPatternIsRejected() {
     typeCheckModule(
         "\\data Empty\n" +
-        "\\func f (s : String) : Empty => \\case s \\with { () }", 1);
+        "\\func f (s : Array Nat) : Empty => \\case s \\with { () }", 1);
     assertThatErrorsAre(typecheckingError(NotEnoughPatternsError.class));
-  }
-
-  // The exact snippet that originally motivated this fix: `\case "s" \with {}` used to typecheck,
-  // "proving" Empty from a string literal directly (not just a postulated String variable).
-  @Test
-  public void stringLiteralCaseIsNotExhaustive() {
-    typeCheckModule(
-        "\\data Empty\n" +
-        "\\func f : Empty => \\case \"s\" \\with {}", 1);
-    assertThatErrorsAre(missingClauses(2));
   }
 
   @Test
