@@ -88,7 +88,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 
@@ -3621,10 +3620,6 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       if (checker != null) {
         int numberOfErrors = getNumberOfErrors();
         TypecheckingResult result = TypecheckingResult.fromChecked(checker.typecheckString(string, expr.getResolvedExpression(), this, new ContextDataImpl(expr, Collections.emptyList(), null, null, expectedType, null)));
-        // Unlike numbers (where an extension is expected to always handle the literal, since it
-        // decides how to elaborate it for arbitrary Semiring-like types), String has one fixed,
-        // always-applicable default (Array Byte) -- so a declining extension (no result, no error
-        // of its own) falls through to that default instead of hard-failing.
         if (result != null || getNumberOfErrors() != numberOfErrors) {
           return result;
         }
@@ -3635,46 +3630,12 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       return checkExpr(expr.getResolvedExpression(), expectedType);
     }
 
-    // A string literal is UTF-8 encoded into a Fin 256 (i.e. Byte) array -- String is `Array Byte`,
-    // so this is just an array-of-bytes literal with no separate core representation of its own.
-    // elementsType/levels are pulled from String's own (already correctly typed) unfolding, rather
-    // than hand-built here, so their sort/levels are exactly what Array's real definition declares.
-    ClassCallExpression stringClassCall = (ClassCallExpression) ExpressionFactory.String().normalize(NormalizationMode.WHNF);
-    Expression elementsType = stringClassCall.getAbsImplementationHere(Prelude.ARRAY_ELEMENTS_TYPE);
-    assert elementsType != null;
-    byte[] bytes = string.getBytes(StandardCharsets.UTF_8);
-    // String's own DEP_ARRAY class call fixes A (the element type, to Byte) but not len -- substitute
-    // the actual length here, mirroring how visitTuple resolves elementsType for array literals.
-    Map<ClassField, Expression> impls = new LinkedHashMap<>();
-    impls.put(Prelude.ARRAY_LENGTH, new SmallIntegerExpression(bytes.length));
-    impls.putAll(stringClassCall.getImplementedHere());
-    elementsType = elementsType.subst(stringClassCall.getThisBinding(), new NewExpression(null, new ClassCallExpression(Prelude.DEP_ARRAY, stringClassCall.getLevels(), impls, stringClassCall.getSort(), stringClassCall.getUniverseKind())));
-    elementsType = elementsType.removeUnusedBinding(stringClassCall.getThisBinding());
-    assert elementsType != null;
-    List<Expression> elements = new ArrayList<>(bytes.length);
-    for (byte b : bytes) {
-      elements.add(finValue(b & 0xFF, 256));
-    }
-    return checkResult(expectedType, new TypecheckingResult(ArrayExpression.make(stringClassCall.getLevels().toLevelPair(), elementsType, elements, null), ExpressionFactory.String()), expr);
-  }
-
-  // Builds the Fin `size` value representing `value`. ConCallExpression.make special-cases
-  // FIN_ZERO/FIN_SUC to reuse Nat's compact IntegerExpression representation: FIN_ZERO reduces
-  // straight to SmallIntegerExpression(0), and applying FIN_SUC to an already-compact value calls
-  // its .suc() (a plain integer increment), producing another compact value -- not a wrapper around
-  // the previous one. So this loop never builds a chain of nested constructor applications; at each
-  // step `result` is replaced by a new compact value, regardless of how many iterations run.
-  private static Expression finValue(int value, int size) {
-    if (value < 0 || value >= size) {
-      throw new IllegalArgumentException("finValue: " + value + " is not a valid index into Fin " + size);
-    }
-    // zero : Fin (suc n) and suc : Fin n -> Fin (suc n), so the innermost value is `zero` typed at
-    // the smallest Fin that fits it, Fin (size - value), and each suc grows the Fin size by one.
-    Expression result = ConCallExpression.make(Prelude.FIN_ZERO, Levels.EMPTY, new SingletonList<>(new SmallIntegerExpression(size - value - 1)), Collections.emptyList());
-    for (int i = 0; i < value; i++) {
-      result = ConCallExpression.make(Prelude.FIN_SUC, Levels.EMPTY, new SingletonList<>(new SmallIntegerExpression(size - value + i)), new SingletonList<>(result));
-    }
-    return result;
+    // Unlike Nat/Int/Fin, String has no bootstrap-Prelude representation to fall back on -- it's
+    // library-owned (arend-lib), so a string literal with no extension to elaborate it (or an
+    // extension that declines without reporting its own error) is a hard failure, symmetric with
+    // how number literals already behave when a registered extension declines.
+    errorReporter.report(new TypecheckingError("Cannot check string", expr));
+    return null;
   }
 
   @Override

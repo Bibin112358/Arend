@@ -80,11 +80,6 @@ public class ConcretePrelude implements ArendPrelude {
   }
 
   @Override
-  public CoreFunctionDefinition getByte() {
-    return Prelude.BYTE;
-  }
-
-  @Override
   public CoreDataDefinition getInt() {
     return Prelude.INT;
   }
@@ -97,11 +92,6 @@ public class ConcretePrelude implements ArendPrelude {
   @Override
   public CoreConstructor getNeg() {
     return Prelude.NEG;
-  }
-
-  @Override
-  public CoreFunctionDefinition getString() {
-    return Prelude.STRING;
   }
 
   @Override
@@ -283,12 +273,6 @@ public class ConcretePrelude implements ArendPrelude {
   }
 
   @Override
-  public ArendRef getByteRef() {
-    if (Prelude.BYTE != null) return Prelude.BYTE.getRef();
-    return myPreludeScope.resolveName("Byte");
-  }
-
-  @Override
   public ArendRef getIntRef() {
     if (Prelude.INT != null) return Prelude.INT.getRef();
     return myPreludeScope.resolveName("Int");
@@ -304,12 +288,6 @@ public class ConcretePrelude implements ArendPrelude {
   public ArendRef getNegRef() {
     if (Prelude.NEG != null) return Prelude.NEG.getRef();
     return myPreludeScope.resolveName("neg");
-  }
-
-  @Override
-  public ArendRef getStringRef() {
-    if (Prelude.STRING != null) return Prelude.STRING.getRef();
-    return myPreludeScope.resolveName("String");
   }
 
   @Override

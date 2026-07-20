@@ -73,8 +73,6 @@
       => n Nat.mod suc m
   }
 
-\func Byte => Fin 256
-
 \data Int
   | \coerce pos Nat
   | neg Nat \with { zero => pos zero }
@@ -83,8 +81,6 @@
   \where \func \infixl 9 !! (a : DArray) (i : Fin a.len) => a.at i
 
 \func Array (A : \Type) => DArray { | A _ => A }
-
-\func String => Array Byte
 
 \cons nil {A : Fin 0 -> \Type} : DArray A \cowith
   | at => \case __
