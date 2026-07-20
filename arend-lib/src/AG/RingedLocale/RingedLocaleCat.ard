@@ -59,18 +59,15 @@
         }) \lam {x} => e x
 
       \lemma ring-iso.{u} {L : Locale.{u}} {R1 R2 : RingedLocale.{u} L} {f : RingedLocaleHom R1 R2 LocaleHom.id} (e : Iso {RingedLocalePrecat.{u}} f) (a : R2) : Iso (f.f# a)
-        => {?}
-      {- TODO[sorts]
-           \have | ei=id => inv FrameCat.id-left *> path (\lam i => (e.hinv_f i).f*)
+        => \have | ei=id => inv FrameHom.id-left *> path (\lam i => (e.hinv_f i).f*)
                  | gp : \Sigma (g : RingedLocaleHom R2 R1 (id L)) (g = e.hinv) => RingedLocaleHom.castOver e.hinv ei=id
                  | fg => RingedLocaleHom.eqCast $ pmap (f RingedLocalePrecat.∘) gp.2 *> e.f_hinv
                  | gf => RingedLocaleHom.eqCast $ pmap (RingedLocalePrecat.`∘ f) gp.2 *> e.hinv_f
            \in \new Iso {
-            | hinv => gp.1.f# a
-            | hinv_f => path (\lam i => (fg i).f# a)
-            | f_hinv => path (\lam i => (gf i).f# a)
-          }
-      -}
+             | hinv => gp.1.f# a
+             | hinv_f => path (\lam i => (fg i).f# a)
+             | f_hinv => path (\lam i => (gf i).f# a)
+           }
 
       \lemma iso-char.{u} {X Y : RingedLocale.{u}} {f : RingedLocaleHom X Y} : f.IsIso <-> Iso {RingedLocalePrecat.{u}} f
         => (\lam (inP ef*, ef#) => iso-over-id (FrameCat.isotoid $ FrameCat.equiv_iso ef*) f.f* f.f# FrameCat.idtoiso_isotoid ef#,

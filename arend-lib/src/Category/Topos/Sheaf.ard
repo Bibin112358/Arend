@@ -280,7 +280,7 @@
   => subCat {VPresheafCat D C} {VSheaf D C} (\new Embedding {
     | f P => P
     | isEmb _ _ => \new Retraction {
-      | sec p => {?} -- TODO[sorts]: ext VSheaf { | VPresheaf => p }
+      | sec p => ext VSheaf { | VPresheaf => p }
       | f_sec => idpe
     }
   })

@@ -12,7 +12,7 @@
 
 -- | Presheaves valued in {D}
 \record VPresheaf (D : Precat) (C : Precat) (\coerce F : Functor C.op D) {
-  \func toPresheaf.{s} (U : Functor D SetCat.{s}) : Presheaf C \cowith
+  \func toPresheaf.{u} (U : Functor D SetCat.{u}) : Presheaf C \cowith
     | F => Comp U F
 } \where {
     \func functor-at-point {D : Cat} {C : Precat} {J : Precat} (G : Functor J (VPresheafCat D C)) (c : C) : Functor J D \cowith
@@ -23,7 +23,7 @@
   }
 
 -- | Presheaves valued in sets
-\func Presheaf.{s} (C : Precat) => VPresheaf SetCat.{s} C
+\func Presheaf.{u} (C : Precat) => VPresheaf SetCat.{u} C
 
 \instance VPresheafCat (D : Cat) (C : Precat) : Cat
   => subCat {FunctorCat C.op D} {VPresheaf D C} (\new Embedding {
@@ -34,10 +34,10 @@
     }
   })
 
-\instance PresheafCat.{s} (C : Precat) : Cat
-  => VPresheafCat SetCat.{s} C
+\instance PresheafCat.{u} (C : Precat) : Cat
+  => VPresheafCat SetCat.{u} C
 
-\instance VPresheafComplete.{s} (D : CompleteCat.{s}) (C : Precat) : CompleteCat.{s}
+\instance VPresheafComplete.{u} (D : CompleteCat.{u}) (C : Precat) : CompleteCat.{u}
   | Cat => VPresheafCat D C
   | limit => limit
   | terminal {
@@ -75,7 +75,7 @@
     | tupleEq c => exts \lam a => D.pair-unique (path \lam i => c 0 i a) (path \lam i => c 1 i a)
   }
   \where {
-    \protected \func limit.{s} {D : CompleteCat.{s}} {C : Precat} {J : Precat.{s,s}} (G : Functor J (VPresheafCat D C)) : Limit G \cowith
+    \protected \func limit.{u} {D : CompleteCat.{u}} {C : Precat} {J : Precat.{u,u}} (G : Functor J (VPresheafCat D C)) : Limit G \cowith
       | apex => apex
       | coneMap => cone-nat-map
       | coneCoh h => exts \lam _ => coneCoh h
@@ -143,13 +143,13 @@
 \instance VPresheafCocomplete.{s,o2,h2,o1,h1} (D : CocompleteCat.{s,o2,h2}) (C : Precat.{o1,h1}) : CocompleteCat.{s} (VPresheafCat D C)
   => {?}
 
-\instance VPresheafCatBicomplete.{s} (D : BicompleteCat.{s}) (C : Precat) : BicompleteCat.{s} (VPresheafCat D C)
+\instance VPresheafCatBicomplete.{u} (D : BicompleteCat.{u}) (C : Precat) : BicompleteCat.{u} (VPresheafCat D C)
   | Cat => VPresheafCat D C
   | limit => limit {VPresheafComplete D C}
   | colimit => colimit {VPresheafCocomplete D C}
 
-\func PresheafCatBicomplete.{s} (C : Precat) : BicompleteCat.{s} (PresheafCat.{s} C)
-  => VPresheafCatBicomplete SetBicat.{s} C
+\func PresheafCatBicomplete.{u} (C : Precat) : BicompleteCat.{u} (PresheafCat.{u} C)
+  => VPresheafCatBicomplete SetBicat.{u} C
 -}
 
 --\open PrecatWithBprod

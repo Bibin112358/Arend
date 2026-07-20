@@ -273,7 +273,7 @@ public class ExtMeta extends BaseMetaDefinition {
                     return null;
                   }
 
-                  TypedExpression superEquality = typechecker.typecheck(factory.appBuilder(factory.ref(typechecker.getPrelude().getEqualityRef())).app(factory.ref(implClass.getRef()), false).app(left).app(right).build(), null);
+                  TypedExpression superEquality = typechecker.typecheck(factory.appBuilder(factory.ref(typechecker.getPrelude().getEqualityRef())).app(factory.core(classCall.toSuperClass(implClass).computeTyped()), false).app(left).app(right).build(), null);
                   if (superEquality == null) {
                     return null;
                   }

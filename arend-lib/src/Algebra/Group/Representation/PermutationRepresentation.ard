@@ -54,7 +54,7 @@
     }
 
   -- | We prove that $span(1,1,\ldots)$ is neither zero submodule nor does it contain the whole space.
-  \func SubRepr-non-trivial (it : invSubRepr.IsTrivial) : 0 = {R} 1 \elim it
+  \lemma SubRepr-non-trivial (it : invSubRepr.IsTrivial) : 0 = {R} 1 \elim it
     | byLeft zm => inv $ path \lam i => zm (\lam _ => 1) i somepoint
     | byRight cs => cases (decideEq-somepoint somepoint', decideEq-somepoint somepoint, unfold nonConstantVector in cs nonConstantVector {somepoint'} {somepoint}) \with {
         | yes p, yes _, x => absurd (different-points p)
@@ -63,8 +63,7 @@
         | no _, no q, x => absurd (q idp)
       }
 
-  {- TODO[sorts]
-  \func Not-Irreducible : Not (Irreducible (PermRepr X)) => \lam prf-irred => SubRepr-non-trivial (prf-irred invSubRepr)
-  -}
+  \lemma Not-Irreducible (p : IsIrreducible {R} (PermRepr X)) : 0 = {R} 1
+    => SubRepr-non-trivial (p invSubRepr)
 }
 

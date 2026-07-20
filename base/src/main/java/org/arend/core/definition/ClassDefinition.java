@@ -194,7 +194,7 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
   public List<ClassField> getOverridableInfiniteFields(Set<ClassField> implemented) {
     List<ClassField> result = new ArrayList<>();
     for (ClassField field : myNotImplementedFields) {
-      if (!implemented.contains(field) && field.isInfiniteField() && field.getType().isPiInfinityLevel()) {
+      if (field.isInfiniteField() && !implemented.contains(field) && field.getType().isPiInfinityLevel()) {
         result.add(field);
       }
     }

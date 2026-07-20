@@ -12,6 +12,7 @@ import org.arend.core.expr.visitor.StripVisitor;
 import org.arend.core.pattern.ConstructorExpressionPattern;
 import org.arend.core.sort.Level;
 import org.arend.core.subst.*;
+import org.arend.ext.core.definition.CoreClassDefinition;
 import org.arend.ext.core.definition.CoreClassField;
 import org.arend.ext.core.expr.CoreClassCallExpression;
 import org.arend.ext.core.expr.CoreExpression;
@@ -82,6 +83,43 @@ public class ClassCallExpression extends LeveledDefCallExpression implements Cor
   @NotNull
   public Levels getLevels(ClassDefinition superClass) {
     return getDefinition().castLevels(superClass, getLevels());
+  }
+
+  @Override
+  public @NotNull ClassCallExpression toSuperClass(@NotNull CoreClassDefinition superClass) {
+    if (!(superClass instanceof ClassDefinition superClassDef && getDefinition().isSubClassOf(superClass))) throw new IllegalArgumentException();
+    Levels levels = getLevels(superClassDef);
+    int s = getDefinition().getLevelParameters().size();
+    int m = getLevels().size() - s;
+    if (m > 0) {
+      List<ClassField> infiniteFields = getDefinition().getOverridableInfiniteFields(myImplementations.keySet());
+      List<ClassField> superInfiniteFields = superClassDef.getOverridableInfiniteFields(myImplementations.keySet());
+      int n = 0;
+      for (; n < superInfiniteFields.size() && n < infiniteFields.size() && n < m; n++) {
+        if (superInfiniteFields.get(n) != infiniteFields.get(n)) break;
+      }
+      if (n > 0) {
+        List<Level> newLevels = new ArrayList<>();
+        newLevels.addAll(levels.toList());
+        newLevels.addAll(getLevels().toList().subList(s, s + n));
+        levels = new ListLevels(newLevels);
+      }
+    }
+
+    Map<ClassField, Expression> implementations = new LinkedHashMap<>();
+    if (!myImplementations.isEmpty()) {
+      for (ClassField field : superClassDef.getNotImplementedFields()) {
+        if (getDefinition().isImplemented(field)) {
+          break;
+        }
+        Expression impl = myImplementations.get(field);
+        if (impl != null) {
+          implementations.put(field, impl);
+        }
+      }
+    }
+
+    return new ClassCallExpression(superClassDef, levels, implementations);
   }
 
   public void fixOrderOfImplementations() {

@@ -117,13 +117,10 @@
         (\new Inv e (H.inverse e) (m *> H.inverse-left *> inv z) (m *> H.inverse-right *> inv z)))
 
   \func equals.{u} (G H : Group.{u}) (p : G = {Monoid.{u}} H) : G = {Group.{u}} H
-    => {?}
-   {- TODO[sorts]
-    exts Group.{u} {
+    => exts Group {
          | Monoid => p
          | inverse => inverse-equality p
        }
-    -}
     \where {
       \lemma inverse-equality.{u} {G H : Group.{u}} (p : G = {Monoid.{u}} H) (e : G) : coe (p @ __) (inverse e) right = inverse (coe (p @ __) e right)
         => \let | h' {H' : Monoid.{u}} (q : G = {Monoid.{u}} H') => transport (\lam (H' : Monoid.{u}) => MonoidHom G H') q MonoidHom.id

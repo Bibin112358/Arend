@@ -316,12 +316,9 @@
       | inP d => Inv.Inv_LDiv (LocRing.isLocalization.localization-inv powers-id) (locR.func-LDiv d)
     }
     | Func-id => LocRing.isLocalization.isEpiHom \lam a => Localization.lift_inL *> path \lam i => locR (S.R.Func-id i a)
-    | Func-o => {?}
-{- TODO[sorts]
- LocRing.isLocalization.isEpiHom \lam a => Localization.lift_inL
+    | Func-o => LocRing.isLocalization.isEpiHom \lam a => Localization.lift_inL
       *> later (path (\lam i => locR (S.R.Func-o i a)) *> inv Localization.lift_inL)
-      *> pmap (RingLocalization.liftHom1 _ (locR RingHom.∘ _) _) (inv Localization.lift_inL)
--}
+      *> pmap (RingLocalization.liftHom1 _ (locR RingHom.∘ S.R.Func _) _) (inv Localization.lift_inL)
   }
   | loc-stable {a'} {a} {b} a'a ba => \case loc-stable a'a.1 ba.1 \with {
     | inP (b',b'a',b'b,x,bl,b'l) => \case bl.localization-surj b.2 \with {

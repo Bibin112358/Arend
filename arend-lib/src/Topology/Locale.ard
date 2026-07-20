@@ -457,6 +457,12 @@
     | func-meet {x} {y} => pmap g func-meet *> func-meet
     | func-Join => pmap g func-Join *> func-SJoin
 
+  \protected \lemma id-left {L M : Locale} {f : FrameHom L M} : id ∘ f = f
+    => idp
+
+  \protected \lemma id-right {L M : Locale} {f : FrameHom L M} : f ∘ id = f
+    => idp
+
   \lemma direct_o {L M K : Locale} (f : FrameHom L M) (g : FrameHom M K) {x : K} : direct {g ∘ f} x = f.direct (g.direct x)
     => <=-antisymmetric (direct-adjoint.1 $ direct-adjoint.1 $ later $ direct-counit {g ∘ f}) $
         (direct-adjoint {g ∘ f}).1 $ g.func-<= direct-counit <=∘ direct-counit
