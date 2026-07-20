@@ -44,12 +44,18 @@ public class InferenceReferenceExpression extends Expression implements CoreInfe
 
     ClassCallExpression classCall = type.cast(ClassCallExpression.class);
     if (classCall != null && !classCall.getDefinition().getNotImplementedFields().isEmpty()) {
-      type = new ClassCallExpression(classCall.getDefinition(), classCall.getLevels());
+      boolean hasAdditionalLevels = classCall.getLevels().size() > classCall.getDefinition().getLevelParameters().size();
+      Map<ClassField, Expression> newImplementations = new LinkedHashMap<>();
+      type = new ClassCallExpression(classCall.getDefinition(), classCall.getLevels(), newImplementations);
       binding.setType(type);
       result.myImplementedFields = new HashSet<>();
       for (Map.Entry<ClassField, Expression> entry : classCall.getImplementedHere().entrySet()) {
         ClassField field = entry.getKey();
         if (field.isProperty()) continue;
+        if (hasAdditionalLevels && field.isInfiniteField()) {
+          newImplementations.put(entry.getKey(), entry.getValue());
+          continue;
+        }
         equations.addEquation(FieldCallExpression.make(field, result), entry.getValue().normalize(NormalizationMode.WHNF), classCall.getFieldType(field, result), CMP.EQ, binding.getSourceNode(), binding, entry.getValue().getStuckInferenceVariable(), false);
         if (result.getSubstExpression() != null) {
           Expression solution = result.getSubstExpression();

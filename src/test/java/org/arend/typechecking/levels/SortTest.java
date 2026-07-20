@@ -523,4 +523,14 @@ public class SortTest extends TypeCheckingTestCase {
       \\func test.{u} (s : S.{u}) : R.{u} => s
       """);
   }
+
+  @Test
+  public void classInferenceLevelTest() {
+    typeCheckModule("""
+      \\record R (A B : \\Type)
+      \\func foo {r : R.{2} Nat} (p : (\\new R Nat \\Set4) = {R.{5} Nat} r) => 0
+      \\func test => foo idp
+      """, 1);
+    assertThatErrorsAre(Matchers.argInferenceError());
+  }
 }
