@@ -11,6 +11,12 @@ import org.arend.ext.module.ModulePath;
 import org.arend.ext.prettyprinting.PrettyPrinterFlag;
 import org.arend.ext.util.Pair;
 import org.arend.frontend.library.*;
+import org.arend.frontend.query.*;
+import org.arend.frontend.query.classhierarchy.ClassHierarchyTool;
+import org.arend.frontend.query.findusages.FindUsagesTool;
+import org.arend.frontend.query.proofsearch.ProofSearchTool;
+import org.arend.frontend.query.scopeinfo.ScopeInfoTool;
+import org.arend.frontend.query.symbolsearch.SymbolSearchTool;
 import org.arend.frontend.repl.PlainCliRepl;
 import org.arend.frontend.repl.jline.JLineCliRepl;
 import org.arend.frontend.source.PreludeResourceSource;
@@ -18,17 +24,13 @@ import org.arend.library.classLoader.FileClassLoaderDelegate;
 import org.arend.library.error.LibraryIOError;
 import org.arend.ext.module.FullName;
 import org.arend.ext.module.ModuleLocation;
-import org.arend.proof.ArendExpressionMatcher;
-import org.arend.proof.ProofSearchQuery;
 import org.arend.module.error.DefinitionNotFoundError;
 import org.arend.module.error.ModuleNotFoundError;
 import org.arend.naming.reference.GlobalReferable;
 import org.arend.naming.reference.LocatedReferable;
 import org.arend.naming.reference.TCDefReferable;
 import org.arend.naming.scope.EmptyScope;
-import org.arend.naming.scope.Scope;
 import org.arend.prelude.Prelude;
-import org.arend.util.Triple;
 import org.arend.server.ArendServer;
 import org.arend.server.ProgressReporter;
 import org.arend.server.impl.ArendServerImpl;
@@ -45,19 +47,20 @@ import org.arend.typechecking.error.local.GoalError;
 import org.arend.typechecking.order.MapTarjanSCC;
 import org.arend.util.FileUtils;
 
-import org.arend.ext.reference.Precedence;
 import org.arend.source.PersistableBinarySource;
-import org.arend.term.prettyprint.PrettyPrintVisitor;
+
 import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
 import static org.arend.ext.prettyprinting.PrettyPrinterConfig.DEFAULT;
-import static org.arend.proof.Utils.getSignatures;
 
 public class ConsoleMain {
+
   private boolean myExitWithError;
   private boolean mySuppressErrorOutput;
   private final Map<ModuleLocation, GeneralError.Level> myModuleResults = new LinkedHashMap<>();
@@ -66,54 +69,11 @@ public class ConsoleMain {
   private final static String SHOW_SIZES = "show-sizes";
   private final static String SHOW_MODULES = "show-modules";
   private final static String SHOW_MODULES_WITH_INSTANCES = "show-modules-with-instances";
-  private final static String PRINT_FULL = "print-full";
-  private final static String ANSI_GREEN = "\u001B[32m";
-  private final static String ANSI_RESET = "\u001B[0m";
 
-  private static class HighlightingPrettyPrintVisitor extends PrettyPrintVisitor {
-    private final Set<Concrete.SourceNode> highlightedNodes;
-    private int highlightCount = 0;
-
-    public HighlightingPrettyPrintVisitor(StringBuilder builder, int indent, Set<Concrete.SourceNode> highlightedNodes) {
-      super(builder, indent);
-      this.highlightedNodes = highlightedNodes;
-    }
-
-    @Override
-    protected PrettyPrintVisitor copy(StringBuilder builder, int indent, boolean doIndent) {
-      return new HighlightingPrettyPrintVisitor(builder, indent, highlightedNodes);
-    }
-
-    @Override
-    public void printExpr(Concrete.Expression expr, Precedence prec) {
-      if (highlightedNodes.contains(expr)) {
-        myBuilder.append(ANSI_GREEN);
-        highlightCount++;
-      }
-      super.printExpr(expr, prec);
-      if (highlightedNodes.contains(expr)) {
-        highlightCount--;
-        if (highlightCount == 0) {
-          myBuilder.append(ANSI_RESET);
-        }
-      }
-    }
-
-    @Override
-    public void prettyPrintParameter(Concrete.Parameter parameter) {
-      if (highlightedNodes.contains(parameter)) {
-        myBuilder.append(ANSI_GREEN);
-        highlightCount++;
-      }
-      super.prettyPrintParameter(parameter);
-      if (highlightedNodes.contains(parameter)) {
-        highlightCount--;
-        if (highlightCount == 0) {
-          myBuilder.append(ANSI_RESET);
-        }
-      }
-    }
-  }
+  /** The query tools, in help/dispatch order; iterated for registration, {@code --help} and dispatch. */
+  public static final List<ConsoleQueryTool> QUERY_TOOLS = List.of(
+          SymbolSearchTool.INSTANCE, ProofSearchTool.INSTANCE, FindUsagesTool.INSTANCE,
+          ClassHierarchyTool.INSTANCE, ScopeInfoTool.INSTANCE);
 
   private final ErrorReporter mySystemErrErrorReporter = error -> {
     System.err.println(error);
@@ -122,6 +82,12 @@ public class ConsoleMain {
   };
 
   private CommandLine parseArgs(String[] args) {
+    if (hasRawFlag(args, "h", "help")) {
+      for (ConsoleQueryTool tool : QUERY_TOOLS) {
+        if (hasRawFlag(args, tool.shortName(), tool.longName())) { tool.printHelp(); return null; }
+      }
+      // else fall through: the general -h handler below prints the grouped help.
+    }
     try {
       Options cmdOptions = new Options();
       cmdOptions.addOption("h", "help", false, "print this message");
@@ -130,21 +96,27 @@ public class ConsoleMain {
       cmdOptions.addOption(Option.builder("e").longOpt("extensions").hasArg().argName("dir").desc("language extensions directory").build());
       cmdOptions.addOption(Option.builder("m").longOpt("extension-main").hasArg().argName("class").desc("main extension class").build());
       cmdOptions.addOption(Option.builder("c").longOpt("double-check").desc("double check correctness of the result").build());
-      cmdOptions.addOption(Option.builder("i").longOpt("interactive").hasArg().optionalArg(true).argName("type").desc("start an interactive REPL, type can be plain or jline (default)").build());
-      cmdOptions.addOption(Option.builder("p").longOpt("print").hasArg().argName("target").desc("print a definition or a module").build());
-      cmdOptions.addOption(Option.builder("ps").longOpt("proof-search").hasArgs().argName("pattern").desc("search for definitions matching the pattern").build());
+      cmdOptions.addOption(Option.builder("i").longOpt("interactive").hasArg().optionalArg(true).argName("plain|jline").desc("start an interactive REPL").build());
+      cmdOptions.addOption(Option.builder("p").longOpt("print").hasArg().argName("MODULE[:DEF]").desc("after the typecheck, print the elaborated/typechecked form of MODULE (or a single DEF inside it): implicits filled in, eliminators desugared.").build());
+      // The query tools (-ss/-ps/-fu/-ch/-sc): registered from the shared registry so each flag's option identity lives on its ConsoleQueryTool.
+      for (ConsoleQueryTool tool : QUERY_TOOLS) {
+        cmdOptions.addOption(Option.builder(tool.shortName()).longOpt(tool.longName())
+            .hasArgs().argName(tool.argName()).desc(tool.cliDescription()).build());
+      }
+      cmdOptions.addOption(Option.builder().longOpt("json").desc("with -ss/-ps/-fu/-sc/-ch: print results as a single JSON object on stdout ({results:[...],count:N}; -sc uses {target,entries:[...],count:N}; -ch uses {target,superclasses:[...],subclasses:[...],instances:[...],newSites:[...],counts}); all diagnostics ([INFO]/[WARN]/[ERROR], query echo) go to a log file, keeping stdout pure JSON and the console clean (ignored in REPL mode). For -fu, each usage is a separate entry (never grouped by row).").build());
+      cmdOptions.addOption(Option.builder().longOpt("log-file").hasArg().argName("path").desc("with --json -ss/-ps/-fu/-sc/-ch: write diagnostics here instead of the default <tmpdir>/arend-symbol-search.log").build());
       cmdOptions.addOption("r", "recompile", false, "recompile all modules from source, ignoring binary caches (.arc files)");
       cmdOptions.addOption(null, "serialize", false, "after typechecking, persist typechecked modules as .arc binary caches; without this flag, no .arc files are written");
       cmdOptions.addOption("t", "test", false, "run tests");
       cmdOptions.addOption("v", "version", false, "print language version");
-      cmdOptions.addOption(Option.builder().longOpt(SHOW_TIMES).build());
-      cmdOptions.addOption(Option.builder().longOpt(SHOW_SIZES).build());
-      cmdOptions.addOption(Option.builder().longOpt(SHOW_MODULES).build());
-      cmdOptions.addOption(Option.builder().longOpt(SHOW_MODULES_WITH_INSTANCES).build());
+      cmdOptions.addOption(Option.builder().longOpt(SHOW_TIMES).desc("after typechecking, print every definition's typecheck duration, sorted descending").build());
+      cmdOptions.addOption(Option.builder().longOpt(SHOW_SIZES).desc("after typechecking, print every definition's typechecked core-term size (number of subterms), sorted descending").build());
+      cmdOptions.addOption(Option.builder().longOpt(SHOW_MODULES).desc("after typechecking, print the module import-DAG in topological order via Tarjan SCC. Single modules: `[Module]`; import cycles: `[M1, M2, ...]`.").build());
+      cmdOptions.addOption(Option.builder().longOpt(SHOW_MODULES_WITH_INSTANCES).desc("like --show-modules, but restricted to modules that define at least one \\instance -- useful for spotting cycles among instance-providing modules").build());
       CommandLine cmdLine = new DefaultParser().parse(cmdOptions, args);
 
       if (cmdLine.hasOption("h")) {
-        new HelpFormatter().printHelp("arend [FILES]", cmdOptions);
+        ConsoleHelp.printGrouped(cmdOptions, List.of(SHOW_TIMES, SHOW_SIZES, SHOW_MODULES, SHOW_MODULES_WITH_INSTANCES));
         return null;
       }
 
@@ -158,6 +130,26 @@ public class ConsoleMain {
       System.err.println(e.getMessage());
       return null;
     }
+  }
+
+  /** True if {@code -<shortOpt>} or {@code --<longOpt>} appears as a raw arg token (stopping at a bare {@code --}). */
+  private static boolean hasRawFlag(String[] args, String shortOpt, String longOpt) {
+    String shortFlag = "-" + shortOpt, longFlag = "--" + longOpt;
+    for (String arg : args) {
+      if (arg.equals("--")) break;
+      if (arg.equals(shortFlag) || arg.equals(longFlag)) return true;
+    }
+    return false;
+  }
+
+  /**
+   * Parses {@code args} with {@code tool} and runs the resulting {@link ConsoleQueryTool.ConsoleToolRunner}
+   * against {@code ctx}; returns {@code null} on parse failure (the tool has already printed the
+   * diagnostic), else the tool's exit code.
+   */
+  private static Integer runQueryTool(ConsoleQueryTool tool, String[] args, ConsoleQueryTool.QueryContext ctx) {
+    ConsoleQueryTool.ConsoleToolRunner parsed = tool.parseArgs(args);
+    return parsed == null ? null : parsed.run(ctx);
   }
 
   private void updateSourceResult(ModuleLocation module, GeneralError.Level result) {
@@ -405,40 +397,72 @@ public class ConsoleMain {
       return false;
     }
 
-    for (SourceLibrary library : requestedLibraries) {
-      loadLibrary(libraryManager, library, server);
-    }
-
-    for (SourceLibrary library : requestedLibraries) {
-      if (!loadDependencies(library, libraryManager, libDirs, server)) {
-        return false;
+    // In `--json` query mode stdout must carry ONLY the JSON. Redirect both System.out and
+    // System.err to a log file so every diagnostic (library-loading chatter, query echo,
+    // [WARN]/[ERROR]) lands there; the JSON goes to the captured real stdout, and a pointer
+    // line on real stderr says where the log went. Fall back to stderr if the file can't be
+    // opened. `--json` without a query flag is a no-op.
+    boolean anyQueryFlag = QUERY_TOOLS.stream().anyMatch(t -> cmdLine.hasOption(t.shortName()));
+    boolean jsonSearch = cmdLine.hasOption("json") && anyQueryFlag;
+    PrintStream realStdout = System.out;
+    PrintStream realStderr = System.err;
+    PrintStream jsonLog = null;
+    Path jsonLogPath = null;
+    if (jsonSearch) {
+      jsonLogPath = resolveJsonLogPath(cmdLine);
+      try {
+        jsonLog = new PrintStream(Files.newOutputStream(jsonLogPath), true, StandardCharsets.UTF_8);
+        System.setOut(jsonLog);
+        System.setErr(jsonLog);
+      } catch (IOException e) {
+        realStderr.println("[WARN] cannot open -ss log file " + jsonLogPath + " (" + e.getMessage()
+            + "); routing diagnostics to stderr instead");
+        System.setOut(realStderr);
+        jsonLog = null;
+        jsonLogPath = null;
       }
     }
 
-    if (myExitWithError) {
-      return false;
-    }
+    // The load loops and the -ss/-ps/-fu/-sc/-ch blocks run inside this try so the
+    // redirected streams are ALWAYS restored -- including the early `return false`
+    // exits below, which the old code leaked past. The typecheck blocks after it
+    // are reached only when none of those matched, hence never in JSON mode.
+    try {
+      for (SourceLibrary library : requestedLibraries) {
+        loadLibrary(libraryManager, library, server);
+      }
 
-    if (cmdLine.hasOption("ps")) {
-      String[] psArgs = cmdLine.getOptionValues("ps");
-      boolean printFull = false;
-      List<String> patterns = new ArrayList<>();
-      for (String arg : psArgs) {
-        if (arg.equals(PRINT_FULL)) {
-          printFull = true;
-        } else {
-          patterns.add(arg);
+      for (SourceLibrary library : requestedLibraries) {
+        if (!loadDependencies(library, libraryManager, libDirs, server)) {
+          return false;
         }
       }
-      if (patterns.isEmpty()) {
-        System.err.println("[ERROR] Missing proof search pattern");
+
+      if (myExitWithError) {
         return false;
       }
-      if (patterns.size() > 1) {
-        System.err.println("[ERROR] Only one proof search pattern is allowed. Use quotes if the pattern contains spaces.");
-        return false;
+
+      // Dispatch whichever query flag is present. Each tool parses its own sub-args and
+      // runs against this shared context; each tool implements ConsoleQueryTool (its INSTANCE).
+      ConsoleQueryTool.QueryContext queryCtx = new ConsoleQueryTool.QueryContext(
+          requestedLibraries, libraryManager, server, mySystemErrErrorReporter, realStdout, jsonSearch, Set.of());
+      for (ConsoleQueryTool tool : QUERY_TOOLS) {
+        if (cmdLine.hasOption(tool.shortName())) {
+          Integer code = runQueryTool(tool, cmdLine.getOptionValues(tool.shortName()), queryCtx);
+          return code != null && code == 0 && !myExitWithError;
+        }
       }
-      return matchAndPrint(server, requestedLibraries, patterns.getFirst(), printFull);
+    } finally {
+      if (jsonSearch) {
+        System.setOut(realStdout);
+        System.setErr(realStderr);
+        if (jsonLog != null) {
+          jsonLog.close();
+          String cmd = QUERY_TOOLS.stream().filter(t -> cmdLine.hasOption(t.shortName()))
+              .map(t -> "-" + t.shortName()).findFirst().orElse("-ss");
+          realStderr.println("[INFO] " + cmd + " diagnostics written to " + jsonLogPath);
+        }
+      }
     }
 
     TimedProgressReporter timedProgressReporter = cmdLine.hasOption(SHOW_TIMES) ? new TimedProgressReporter() : null;
@@ -950,6 +974,17 @@ public class ConsoleMain {
     }
   }
 
+  /**
+   * The file that {@code --json -ss} writes its diagnostics to. Honours an
+   * explicit {@code --log-file <path>}; otherwise defaults to
+   * {@code <java.io.tmpdir>/arend-symbol-search.log}, overwritten each run.
+   */
+  private static Path resolveJsonLogPath(CommandLine cmdLine) {
+    String custom = cmdLine.getOptionValue("log-file");
+    if (custom != null && !custom.isEmpty()) return Paths.get(custom);
+    return Paths.get(System.getProperty("java.io.tmpdir"), "arend-symbol-search.log");
+  }
+
   private void loadLibrary(LibraryManager libraryManager, SourceLibrary library, ArendServer server) {
     System.out.println("[INFO] Loading " + library.getLibraryName());
     long time = System.currentTimeMillis();
@@ -1006,76 +1041,6 @@ public class ConsoleMain {
     } else {
       myExitWithError = true;
     }
-  }
-
-  private boolean matchAndPrint(ArendServer server, List<SourceLibrary> requestedLibraries, String pattern, boolean printFull) {
-    ProofSearchQuery.ParsingResult<ProofSearchQuery> queryResult = ProofSearchQuery.fromString(pattern);
-    if (queryResult == null) return false;
-    if (queryResult instanceof ProofSearchQuery.ParsingResult.Error<ProofSearchQuery> error) {
-      System.err.println("Search pattern error at " + error.range + ": " + error.message);
-      return false;
-    }
-    ProofSearchQuery query = ((ProofSearchQuery.ParsingResult.OK<ProofSearchQuery>) queryResult).value;
-    ArendExpressionMatcher matcher = new ArendExpressionMatcher(query);
-
-    for (SourceLibrary library : requestedLibraries) {
-      System.out.println("[INFO] Resolving " + library.getLibraryName());
-      long time = System.currentTimeMillis();
-      server.getCheckerFor(library.findModules(false).stream().map(modulePath -> new ModuleLocation(library.getLibraryName(), ModuleLocation.LocationKind.SOURCE, modulePath)).toList())
-              .resolveAll(UnstoppableCancellationIndicator.INSTANCE, ProgressReporter.empty());
-      System.out.println("[INFO] " + "Resolved " + library.getLibraryName() + " (" + TimedProgressReporter.timeToString(System.currentTimeMillis() - time) + ")");
-    }
-
-    for (ModuleLocation moduleLocation : server.getModules()) {
-      for (DefinitionData data : server.getResolvedDefinitions(moduleLocation)) {
-        for (Triple<Concrete.GeneralDefinition, List<Concrete.Expression>, Concrete.Expression> signature : getSignatures(data.definition())) {
-          TCDefReferable referable = signature.first().getData();
-          List<Concrete.Expression> parameters = signature.second();
-          Concrete.Expression codomain = signature.third();
-
-          Scope scope = server.getReferableScope(data.definition().getData());
-
-          ArendExpressionMatcher.ProofSearchMatchingResult result = matcher.match(parameters, codomain, scope);
-          if (result == null) continue;
-          if (referable.getData() != null) {
-            System.out.println(referable.getRefName() + " " + referable.getData().toString());
-          } else {
-            System.out.println(referable.getRefFullName().toString());
-          }
-
-          Set<Concrete.SourceNode> highlightedNodes = new HashSet<>(result.inCodomain());
-          if (result.inPattern() != null) {
-            for (Pair<Concrete.Expression, List<Concrete.Expression>> parameterData : result.inPattern()) {
-              highlightedNodes.addAll(parameterData.proj2);
-            }
-          }
-          highlightedNodes.addAll(result.inCodomain());
-
-          Precedence topPrec = new Precedence(Concrete.Expression.PREC);
-          if (printFull) {
-            StringBuilder builder = new StringBuilder();
-            HighlightingPrettyPrintVisitor visitor = new HighlightingPrettyPrintVisitor(builder, 0, highlightedNodes);
-            data.definition().accept(visitor, null);
-            System.out.println(builder);
-          } else {
-            if (result.inPattern() != null) {
-              for (Pair<Concrete.Expression, List<Concrete.Expression>> parameterData : result.inPattern()) {
-                StringBuilder builder = new StringBuilder();
-                HighlightingPrettyPrintVisitor visitor = new HighlightingPrettyPrintVisitor(builder, 0, highlightedNodes);
-                parameterData.proj1.prettyPrint(visitor, topPrec);
-                System.out.print("(" + builder + ") -> ");
-              }
-            }
-            StringBuilder builder = new StringBuilder();
-            HighlightingPrettyPrintVisitor visitor = new HighlightingPrettyPrintVisitor(builder, 0, highlightedNodes);
-            codomain.prettyPrint(visitor, topPrec);
-            System.out.println(builder);
-          }
-          System.out.println();
-        }
-      }
-    }
-    return true;
   }
 
   public static void main(String[] args) {
