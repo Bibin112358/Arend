@@ -1352,8 +1352,10 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
       AbsExpression subImpl = subClassCall.getAbsImplementation(field);
       if (subImpl != null) {
         Expression type = subImpl.apply(new ReferenceExpression(subClassCall.getThisBinding()), subClassCall.getLevelSubstitution()).getType();
+        if (myNormalize) type = type.normalize(NormalizationMode.WHNF);
         while (type instanceof PiExpression piExpr) {
           type = piExpr.getCodomain();
+          if (myNormalize) type = type.normalize(NormalizationMode.WHNF);
         }
         Sort sort = type.toSort();
         if (sort != null) {

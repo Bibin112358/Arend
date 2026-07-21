@@ -50,7 +50,7 @@
     | isLimit x => inP \new QEquiv {
       | ret c => Meet-univ $ TSetIm-elim c.coneMap
       | ret_f h => prop-pi
-      | f_sec c => exts \lam j => prop-pi
+      | f_sec c => ext
     }
   }
   | pullback {x} {y} f g => \new Pullback {

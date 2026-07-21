@@ -533,4 +533,13 @@ public class SortTest extends TypeCheckingTestCase {
       """, 1);
     assertThatErrorsAre(Matchers.argInferenceError());
   }
+
+  @Test
+  public void doubleInferenceClassCallLevelTest() {
+    typeCheckModule("""
+      \\record R (A : \\Type) (a : A)
+      \\func foo {X : \\Type} (x y : X) => 0
+      \\func test {A B : \\Set3} (r : R A) (s : R B) => foo r s
+      """);
+  }
 }

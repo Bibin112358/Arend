@@ -53,7 +53,7 @@
   => ext (\lam x => *-assoc)
 
 \lemma equivPathComposition.{u} {G : Group.{u}} (g g' : G) : QEquiv-to-= (rightMulEquiv g) *> QEquiv-to-= (rightMulEquiv g') = QEquiv-to-= (rightMulEquiv (g * g'))
-  => {?} -- TODO[sorts]: QEquiv-to-=-functorial (rightMulEquiv g) (rightMulEquiv g') *> pmap QEquiv-to-= (QEquiv.equals {_} {_} {_} {rightMulEquiv (g * g')} \lam a => *-assoc)
+  => QEquiv-to-=-functorial (rightMulEquiv g) (rightMulEquiv g') *> pmap QEquiv-to-= (QEquiv.equals {G} {G} {_} {rightMulEquiv (g * g')} \lam a => *-assoc)
 
 \func code.{u} {G : Group.{u}} (x : K1 G) : \Set u \elim x
   | base => G

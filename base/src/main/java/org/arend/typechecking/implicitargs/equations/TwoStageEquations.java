@@ -761,6 +761,36 @@ public class TwoStageEquations implements Equations {
     }
   }
 
+  // The level of the sort that a field implementation belongs to, or null if it isn't a (finite) sort.
+  private static Level implementationLevel(Expression impl) {
+    Expression type = impl.getType().normalize(NormalizationMode.WHNF);
+    while (type instanceof PiExpression piExpr) {
+      type = piExpr.getCodomain().normalize(NormalizationMode.WHNF);
+    }
+    Sort sort = type.toSort();
+    return sort == null ? null : sort.getPLevel();
+  }
+
+  // Field {@code field} was implemented in {@code minImpl}'s class call, but that implementation
+  // was dropped while merging with {@code bounds}. If it is still implemented with a finite sort
+  // in every bound, return the join of all the levels so the caller can specify it as a level
+  // argument of the solution instead of leaving the field completely unbounded.
+  private static Level droppedFieldLevel(Expression minImpl, ClassField field, List<ClassCallExpression> bounds) {
+    Level level = implementationLevel(minImpl);
+    if (level == null || level.isInfinity()) {
+      return null;
+    }
+    for (ClassCallExpression bound : bounds) {
+      Expression boundImpl = bound.getAbsImplementationHere(field);
+      Level boundLevel = boundImpl == null ? null : implementationLevel(boundImpl);
+      if (boundLevel == null || boundLevel.isInfinity()) {
+        return null;
+      }
+      level = level.max(boundLevel);
+    }
+    return level;
+  }
+
   private boolean solveClassCallBounds(List<Pair<InferenceVariable, List<ClassCallExpression>>> list, CMP cmp, boolean useWrapper) {
     boolean allOK = true;
     boolean solved = false;
@@ -861,23 +891,17 @@ public class TwoStageEquations implements Equations {
           solution.removeDependencies(minClassCall.getImplementedHere().keySet());
         }
 
-        if (solution.getLevels().size() > classDef.getLevelParameters().size() && implementations.size() < minClassCall.getImplementedHere().size()) {
-          int n = classDef.getLevelParameters().size();
-          for (ClassField field : classDef.getNotImplementedFields()) {
-            if (!field.isInfiniteField()) continue;
-            if (minClassCall.isImplemented(field)) {
-              if (!implementations.containsKey(field)) {
-                break;
-              }
-            } else {
-              if (++n >= minClassCall.getLevels().size()) {
-                break;
-              }
+        if (implementations.size() < minClassCall.getImplementedHere().size()) {
+          List<Level> newLevels = new ArrayList<>(minClassCall.getLevels().toList().subList(0, Math.min(classDef.getLevelParameters().size(), minClassCall.getLevels().size())));
+          for (ClassField field : classDef.getOverridableInfiniteFields(implementations.keySet())) {
+            Expression minImpl = minClassCall.getAbsImplementationHere(field);
+            Level level = minImpl != null ? droppedFieldLevel(minImpl, field, pair.proj2) : minClassCall.getFieldLevelOverride(field);
+            if (level == null) {
+              break;
             }
+            newLevels.add(level);
           }
-          if (n < minClassCall.getLevels().size()) {
-            solution.setLevels(new ListLevels(new ArrayList<>(minClassCall.getLevels().toList().subList(0, n))));
-          }
+          solution.setLevels(new ListLevels(newLevels));
         }
 
         for (ClassCallExpression lowerBound : pair.proj2) {

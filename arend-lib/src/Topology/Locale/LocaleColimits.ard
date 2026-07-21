@@ -27,7 +27,7 @@
       | func-Join>= => ()
 
     \lemma initialMap-unique {L : Locale} {f g : LocaleHom InitialLocale L} : f = g
-      => exts \lam _ => idp
+      => ext
   }
 
 \func PushoutLocale {L M K : Locale} (f : LocaleHom L M) (g : LocaleHom L K) : Locale (\Sigma (x : M) (y : K) (f x = g y)) \cowith
