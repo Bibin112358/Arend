@@ -279,6 +279,54 @@ public class TerminationCheckTest extends TypeCheckingTestCase {
     typeCheckModule("\\data Bool | true | false\n\\func f (p : \\Sigma Bool Nat) => f p\n", 2);
   }
 
+  private static final String listMaybe =
+    "\\data List (A : \\Type) | nil | \\infixr 5 :: A (List A)\n" +
+    "\\func \\infixl 5 ++ {A : \\Type} (xs ys : List A) : List A \\elim xs | nil => ys | :: x xs => x :: (xs ++ ys)\n" +
+    "\\data Maybe (A : \\Type) | nothing | just A\n";
+
+  // Issue #130: recursion through a generic container instantiated at the recursive type.
+  @Test
+  public void issue130_listOfPattern() {
+    typeCheckModule(listMaybe +
+      "\\data Pattern | PVar Nat | PCons Nat (List Pattern)\n" +
+      "\\func getVars (p : List Pattern) : List Nat\n" +
+      "  | nil => nil\n" +
+      "  | (PVar n) :: ps => n :: getVars ps\n" +
+      "  | (PCons n ps) :: ps' => getVars ps ++ getVars ps'\n" +
+      "\\func getVarsP (p : Pattern) : List Nat\n" +
+      "  | PVar n => n :: nil\n" +
+      "  | PCons n ps => getVarsL ps\n" +
+      "\\func getVarsL (p : List Pattern) : List Nat\n" +
+      "  | nil => nil\n" +
+      "  | p :: ps => getVarsP p ++ getVarsL ps", 0);
+  }
+
+  @Test
+  public void issue130_maybeOfTE() {
+    typeCheckModule(listMaybe +
+      "\\data TE | EMaybe (Maybe TE)\n" +
+      "\\func sc (e : TE) : Maybe (\\Sigma) | EMaybe mt => scM mt\n" +
+      "\\func scM (m : Maybe TE) : Maybe (\\Sigma) | nothing => nothing | just e => sc e\n" +
+      "\\func scMR (e : TE) : Maybe (\\Sigma) | EMaybe (just mt) => scMR mt | EMaybe nothing => nothing", 0);
+  }
+
+  @Test
+  public void issue130_roseTree() {
+    typeCheckModule(listMaybe +
+      "\\data Rose | rose (List Rose)\n" +
+      "\\func size (r : Rose) : Nat | rose rs => sizeL rs\n" +
+      "\\func sizeL (rs : List Rose) : Nat | nil => 0 | r :: rs => size r Nat.+ sizeL rs", 0);
+  }
+
+  // Negative control: rebuilding a larger term must still be rejected.
+  @Test
+  public void issue130_roseRebuildRejected() {
+    typeCheckModule(listMaybe +
+      "\\data Rose | rose (List Rose)\n" +
+      "\\func bad (r : Rose) : Nat | rose rs => badL rs\n" +
+      "\\func badL (rs : List Rose) : Nat | nil => 0 | r :: rs => bad (rose (r :: rs))", -1);
+  }
+
   @Test
   public void test34() {
     TestVertex ack = new TestVertex("ack", "x", "y");
