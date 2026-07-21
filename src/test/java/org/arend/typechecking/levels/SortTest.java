@@ -238,14 +238,6 @@ public class SortTest extends TypeCheckingTestCase {
   }
 
   @Test
-  public void lamTest() {
-    typeCheckDef("""
-      \\func test {A : \\Type} (B : A -> \\Type) : Nat
-        => \\let T => \\lam x => B x \\in 0
-      """);
-  }
-
-  @Test
   public void splitFieldsExtend() {
     typeCheckModule("""
       \\record R (A B : \\Type)

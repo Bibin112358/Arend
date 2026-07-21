@@ -197,16 +197,13 @@
 
 \func UniformCat.{u} : Cat UniformLocale.{u} => subCat {PreuniformCat.{u}} (\new Embedding {
   | f L => L
-  | isEmb L M => {?}
-{- TODO[sorts]
- \new Retraction {
+  | isEmb L M => \new Retraction {L = {UniformLocale.{u}} M} {
     | sec p => path (\lam i => \new UniformLocale {
       | PreuniformLocale => p i
       | isAdmissible => prop-dpi (\Pi (b : p __) -> b <= Join (`<=u b)) L.isAdmissible M.isAdmissible i
     })
     | f_sec => idpe
   }
--}
 })
 
 \func CompletionSite (L : UniformLocale) : PreorderSite \cowith
@@ -296,7 +293,7 @@
       \lam {x} (inP (a,Ua,x<=a)) => isDownset uU (transportInv U completionLocale.completion_embed Ua) (func-<= {completionLocale} x<=a))
   \where {
     \lemma isMono.{u} {L M : UniformLocale.{u}} {f g : UniformHom M (Completion L)} (p : completion UniformHom.∘ f = completion UniformHom.∘ g) : f = g
-      => {?} -- TODO[sorts]: ext $ path (\lam i => func {WFS.left-epi {LocaleCartesianPrecat.{u}} sdense_wclosed_ofs completion completionLocale.sdense (wregular_wHausdorff uniform=>wregular) p i})
+      => ext $ path (\lam i => func {WFS.left-epi {LocaleCartesianPrecat} sdense_wclosed_ofs {_} {Completion L} completion completionLocale.sdense {M} (wregular_wHausdorff uniform=>wregular) p i})
   }
 
 \sfunc completion-factor {L M : UniformLocale} (f : UniformEmbedding M L) (sd : f.IsStronglyDense) : \Sigma (g : UniformHom (Completion L) M) (f UniformHom.∘ g = completion)
@@ -327,13 +324,9 @@
   }
 
 \lemma completion-isComplete.{u} (L : UniformLocale.{u}) : (Completion L).IsComplete
-  => {?}
-{- TODO[sorts]
- \have | (g,fact) => completion-factor (UniformEmbedding.comp completion completion) (sdense-comp completion completionLocale.sdense completion completionLocale.sdense)
-           | gc=id => completion.isMono $ equation *> fact *> inv id-right
-           | cg=id => completion.isMono $ equation *> pmap (PreuniformCat.`∘ completion) gc=id *> PreuniformCat.id-left *> inv id-right
-     \in inP (g, cg=id, gc=id)
--}
+  => \have | (g,fact) => completion-factor (UniformEmbedding.comp completion completion) (sdense-comp completion completionLocale.sdense completion completionLocale.sdense)
+           | cg=id => completion.isMono {_} {_} {_} {UniformHom.id} fact
+     \in inP (g, cg=id, completion.isMono {_} {_} {_} {UniformHom.id} $ pmap (UniformHom.`∘ _) cg=id)
 
 \func completion-functor {L M : UniformLocale} (f : UniformHom M L) : UniformHom (Completion M) (Completion L) \cowith
   | FrameHom => LocaleSite.adjointMap (presentation f)
@@ -364,22 +357,17 @@
       )
   }
 
-\lemma completion-natural {L M : UniformLocale} (f : UniformHom M L) : completion UniformHom.∘ completion-functor f = f UniformHom.∘ completion
-  => {?}
-{- TODO[sorts]
- exts \lam S => <=-antisymmetric
-    (SJoin-univ \lam Ca => LocaleSite.locale_cover (completionLocale.presentation.func-Cover Ca) <=∘ Join-univ (SetIm-elim $ later \lam {x} (inP (_, inP ((b,Sb),idp), Cx)) => LocaleSite.locale_cover (completionLocale.presentation.func-Cover Cx) <=∘ Join-univ (SetIm-elim $ later \lam {_} (inP (c,c<=<b,idp)) => f.func-<= $ <=u_<= c<=<b) <=∘ SJoin-cond Sb))
-    (SJoin-univ \lam {a} Sa => func-<= (isAdmissible a) <=∘ func-Join>= <=∘ SJoin-univ \lam {b} b<=ua => later $ SJoin-cond $ unfolds $ cover-refl $ inP (_, SetIm-con Sa, cover-refl $ inP (b, b<=ua, idp))) *> inv func-SJoin
-  -}
+\lemma completion-natural {L M : UniformLocale} {f : UniformHom M L} : completion UniformHom.∘ completion-functor f = f UniformHom.∘ completion
+  => exts \lam S => <=-antisymmetric
+      (SJoin-univ \lam Ca => LocaleSite.locale_cover (completionLocale.presentation.func-Cover Ca) <=∘ Join-univ (SetIm-elim $ later \lam {x} (inP (_, inP ((b,Sb),idp), Cx)) => LocaleSite.locale_cover (completionLocale.presentation.func-Cover Cx) <=∘ Join-univ (SetIm-elim $ later \lam {_} (inP (c,c<=<b,idp)) => f.func-<= $ <=u_<= c<=<b) <=∘ SJoin-cond Sb))
+      (SJoin-univ \lam {a} Sa => func-<= (isAdmissible a) <=∘ func-Join>= <=∘ SJoin-univ \lam {b} b<=ua => later $ SJoin-cond $ unfolds $ cover-refl $ inP (_, SetIm-con Sa, cover-refl $ inP (b, b<=ua, idp)))
+      *> inv f.func-SJoin
 
 \lemma completion-isReflector.{u} {L M : UniformLocale.{u}} (Mc : M.IsComplete)
   : IsEquiv {UniformHom M (Completion L)} {UniformHom M L} (\lam g => completion UniformHom.∘ g)
   \elim Mc
-  | inP Mc => {?}
-{- TODO[sorts]
- inP \new QEquiv {
+  | inP Mc => inP \new QEquiv {
     | ret f => completion-functor f UniformHom.∘ Mc.1
-    | ret_f g => completion.isMono $ inv o-assoc *> rewrite (completion-natural (completion UniformHom.∘ g)) (UniformCat.o-assoc {_} {_} {_} {_} {completion ∘ g} {completion} {Mc.1} *> rewrite Mc.3 id-right)
-    | f_sec f => inv (UniformCat.o-assoc {_} {_} {_} {_} {completion} {completion-functor f} {Mc.1}) *> rewrite completion-natural (UniformCat.o-assoc {_} {_} {_} {_} {f} {completion} {Mc.1} *> pmap (f ∘) Mc.3 *> UniformCat.id-right {M} {L})
+    | ret_f g => completion.isMono $ pmap (UniformHom.`∘ _) completion-natural *> pmap (completion UniformHom.∘ g UniformHom.∘) Mc.2
+    | f_sec f => pmap (UniformHom.`∘ _) completion-natural *> pmap (f UniformHom.∘) Mc.2
   }
--}

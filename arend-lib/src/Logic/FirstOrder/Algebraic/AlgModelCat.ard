@@ -154,16 +154,16 @@
 
       \instance thExt : Theory
         | Signature => sigExt
-        | axioms S => OneOf ((∃ (S' : Sequent) (T.axioms S') (S = liftSequent S')) ::
-            (∃ (j : J) (s : Sort) (f : Symb s) (vars : DArray (\lam i => G j (domain f i))) (S = (\lam _ => Empty, emptyFin, nil, equality (apply (inl f) (\lam i => apply (inr (in0 (j, vars i))) nil)) (apply (inr (in0 (j, operation f vars))) nil)))) ::
-            (∃ (j : J) (P : PredSymb) (vars : DArray (\lam i => G j (predDomain P i))) (relation P vars) (S = (\lam _ => Empty, emptyFin, nil, predicate P (\new DArray { | at i => apply (inr (in0 (j, vars i))) nil })))) ::
-            (∃ (j j' : J) (h : J.Hom j j') (s : Sort) (x : G j s) (S = (\lam _ => Empty, emptyFin, nil, equality (apply (inr (in0 (j', G.Func h x))) nil) (apply (inr (in0 (j, x))) nil)))) :: nil)
+        | axioms S => OneOf (∃ (S' : Sequent) (T.axioms S') (S = liftSequent S'),
+            ∃ (j : J) (s : Sort) (f : Symb s) (vars : DArray (\lam i => G j (domain f i))) (S = (\lam _ => Empty, emptyFin, nil, equality (apply (inl f) (\lam i => apply (inr (in0 (j, vars i))) nil)) (apply (inr (in0 (j, operation f vars))) nil))),
+            ∃ (j : J) (P : PredSymb) (vars : DArray (\lam i => G j (predDomain P i))) (relation P vars) (S = (\lam _ => Empty, emptyFin, nil, predicate P (\new DArray { | at i => apply (inr (in0 (j, vars i))) nil }))),
+            ∃ (j j' : J) (h : J.Hom j j') (s : Sort) (x : G j s) (S = (\lam _ => Empty, emptyFin, nil, equality (apply (inr (in0 (j', G.Func h x))) nil) (apply (inr (in0 (j, x))) nil))))
 
       \instance ColimitStr : Structure T
         | E => QTerm (\lam _ => Empty)
         | operation h args => qapply (inl h) args
         | relation P args => ∃ (args' : DArray (\lam i => Term (\lam _ => Empty) (predDomain P i)))
-                               (isTheorem nil (predicate P args'))
+                               (isTheorem.{u} nil (predicate P args'))
                                (\Pi (i : Fin (predDomain P).len) -> qinj (args' i) = args i)
 
       \lemma substInterpT {V : Sort -> \Set u} (rho : \Pi {s : Sort} -> V s -> Term (\lam _ => Empty) s) {s : Sort} (t : Term {T} V s)
@@ -172,13 +172,11 @@
         | apply f d => unfold $ cong (ext (\lam j => substInterpT rho (d j))) *> inv (path (qmerge _))
 
       \lemma substInterpF {V : Sort -> \Set u} (rho : \Pi {s : Sort} -> V s -> Term (\lam _ => Empty) s) (phi : Formula {T} V)
-        : isFormulaTrue (\lam v => qinj (rho v)) phi <-> isTheorem nil (substF (liftFormula phi) (\lam {s} v => rho {s} v))
-        => {?}
-        {- TODO[sorts]
+        : isFormulaTrue (\lam v => qinj (rho v)) phi <-> isTheorem.{u} nil (substF (liftFormula phi) (\lam {s} v => rho {s} v))
         \elim phi
         | equality t t' => <->trans (<->_=.2 $ pmap2 (=) (substInterpT _ t) (substInterpT _ t')) qinj-equality
-        | predicate P d => (\lam (inP (d',q,e)) => congruenceF (\lam j => qinj-equality.1 (e j *> substInterpT rho (d j))) q, \lam q => inP (\new DArray { | at j => subst (liftTerm (d j)) (\lam {s} => rho) }, q, \lam i => inv (substInterpT rho (d i))))
-        -}
+        | predicate P d => (\lam (inP (d',q,e)) => congruenceF (\lam j => qinj-equality.1 (e j *> substInterpT rho (d j))) q,
+                            \lam q => inP (\new DArray { | at j => subst (liftTerm (d j)) (\lam {s} => rho) }, q, \lam i => inv (substInterpT rho (d i))))
 
       \func Colimit : Model T \cowith
         | Structure => ColimitStr

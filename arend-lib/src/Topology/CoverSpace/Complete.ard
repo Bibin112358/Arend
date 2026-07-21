@@ -211,12 +211,9 @@
   \default isSeparatedCoverSpace p => isHausdorff (separated-char 7 6 p)
 
   \lemma embedding-inj {Y : PrecoverSpace} {f : PrecoverMap \this Y} (fe : f.IsEmbedding) : IsInj f
-    => {?}
-{- TODO[sorts]
- \lam {x} {x'} fx=fx' => isSeparatedCoverSpace $ separated-char 4 7 \lam x<=<U => \case cauchy-cover (fe x<=<U) (f x) \with {
+    => \lam {x} {x'} fx=fx' => isSeparatedCoverSpace $ separated-char 4 7 \lam x<=<U => \case Y.cauchy-cover (fe x<=<U) (f x) \with {
       | inP (V, inP (W,h,p), Vfx) => h (x, (idp, p Vfx)) (p $ rewrite fx=fx' in Vfx)
     }
-  -}
 } \where {
     \lemma separated-char {S : CoverSpace} {x y : S} : TFAE (
     {- 0 -} pointCF x ⊆ pointCF y,

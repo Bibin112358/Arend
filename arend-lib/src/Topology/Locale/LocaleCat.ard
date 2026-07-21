@@ -167,11 +167,9 @@
   }
 
 \lemma regular_surj.{u} {L M : Locale.{u}} {f : LocaleHom L M} (reg : IsRegularMono {LocaleCat.{u}} f) : IsSurj f \elim reg
-  | inP E => {?}
-{- TODO[sorts]
+  | inP E =>
     \let E' => localeEqualizer E.f E.g
-    \in transport IsSurj (path \lam i => (E'.eqBeta i).func) $ IsSurj.comp Nucleus.map.surjective (FrameCat.iso_equiv (Equalizer.unique E E').op).isSurj
--}
+    \in transport IsSurj (path \lam i => (E'.eqBeta {L} i).func) $ IsSurj.comp Nucleus.map.surjective (FrameCat.iso_equiv (Equalizer.unique E E').op).isSurj
 
 \lemma surj_regular.{u} {L M : Locale.{u}} {f : LocaleHom L M} (sur : IsSurj f) : IsRegularMono {LocaleCat.{u}} f
   => inP \new Equalizer {

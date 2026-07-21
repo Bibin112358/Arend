@@ -134,5 +134,6 @@
     \open ExUpperRealSemigroup(<=_*,ldistr_<=,rdistr_<=)
   }
 
-\lemma ex-upper-*-locally-uniform : LocallyUniformMap (ManhattanProductPseudoMetricSpace UpperRealMetric UpperRealMetric) ExUpperRealMetric (\lam s => s.1 ExUpperReal.* s.2)
-  => {?} -- TODO[sorts]: transport (LocallyUniformMap (ManhattanProductPseudoMetricSpace UpperRealMetric UpperRealMetric) ExUpperRealMetric) (ext \lam s => UpperRealSemigroup.*-ex) upper-*-locally-uniform
+\lemma ex-upper-*-locally-uniform
+  : LocallyUniformMap (ManhattanProductPseudoMetricSpace UpperRealMetric UpperRealMetric) ExUpperRealMetric (\lam s => s.1 ExUpperReal.* s.2)
+  => transport (LocallyUniformMap _ _) (ext \lam s => UpperRealSemigroup.*-ex) (upper-ex-isometry LocallyUniformMap.∘l upper-*-locally-uniform)

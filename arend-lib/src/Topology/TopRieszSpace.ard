@@ -66,6 +66,6 @@
   \lemma meet-uniform : UniformMap (ProductTopAbGroup \this \this) \this (\lam s => s.1 ∧ s.2)
     => transportInv (UniformMap _ _) (later $ ext \lam s => meet_abs) $ *q-right-uniform ∘ subtract-uniform ∘ tuple +-uniform (abs-uniform ∘ subtract-uniform)
 } \where {
-  \open UniformMap
+  \open UniformMap (∘)
   \open ProductUniformSpace
 }

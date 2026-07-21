@@ -15,7 +15,6 @@
 \import Topology.UniformSpace
 \open ClosurePrecoverSpace
 \open Set
-\open UniformMap
 
 \instance RegularPreuniformSpaceHasProduct.{u} : HasProduct RegularPreuniformSpace.{u}
   | Product X Y => ProductRegularPreuniformSpace X Y
@@ -78,7 +77,7 @@
       }
 
     \func prod {X X' Y Y' : UniformSpace} (f : UniformMap X Y) (f' : UniformMap X' Y') : UniformMap (ProductUniformSpace X X') (ProductUniformSpace Y Y')
-      => tuple (f ∘ proj1) (f' ∘ proj2)
+      => tuple (f UniformMap.∘ proj1) (f' UniformMap.∘ proj2)
 
     \lemma prodCover {X Y : UniformSpace} {C : Set (Set X)} (Cu : X.isUniform C) {D : Set (Set Y)} (Du : Y.isUniform D)
       : isUniform {ProductUniformSpace X Y} \lam W => ∃ (U : C) (V : D) (W = \lam s => \Sigma (U s.1) (V s.2))
