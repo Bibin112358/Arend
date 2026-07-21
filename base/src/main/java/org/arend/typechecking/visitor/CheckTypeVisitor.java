@@ -3575,42 +3575,37 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   }
 
   @Override
-  public @Nullable TypecheckingResult checkArray(@NotNull List<? extends TypedExpression> elements, @Nullable CoreExpression elementsType, @Nullable TypedExpression tail, @NotNull ConcreteExpression marker) {
-    if (!((elementsType == null || elementsType instanceof Expression) && (tail == null || tail instanceof TypecheckingResult) && marker instanceof Concrete.Expression)) {
+  public @Nullable TypecheckingResult checkByteArray(byte @NotNull [] bytes, @NotNull ConcreteExpression marker) {
+    if (!(marker instanceof Concrete.Expression)) {
       throw new IllegalArgumentException();
     }
-
-    List<Expression> coreElements = new ArrayList<>(elements.size());
-    Expression inferredElementsType = null;
-    for (TypedExpression element : elements) {
-      if (!(element instanceof TypecheckingResult result)) {
-        throw new IllegalArgumentException();
-      }
-      coreElements.add(result.expression);
-      if (inferredElementsType == null) {
-        inferredElementsType = result.type;
-      }
-    }
-
-    Expression coreElementsType = elementsType != null ? (Expression) elementsType : inferredElementsType;
-    if (coreElementsType == null) {
-      throw new IllegalArgumentException("elementsType must be given if elements is empty and tail is null");
-    }
-    Sort sort = coreElementsType.getSortOfType();
+    // Element type is Fin 256; every element is generated here via finValue, so the array is
+    // well-typed by construction -- there is nothing caller-supplied to check.
+    Expression elementsType = ExpressionFactory.Fin(new SmallIntegerExpression(256));
+    Sort sort = elementsType.getSortOfType();
     if (sort == null) {
       return null;
     }
-
-    TypecheckingResult tailResult = (TypecheckingResult) tail;
     LevelPair levels = new LevelPair(sort.getPLevel(), sort.getHLevel());
-    Expression length = tailResult == null ? new SmallIntegerExpression(coreElements.size()) : FieldCallExpression.make(Prelude.ARRAY_LENGTH, tailResult.expression);
-    for (int i = 0; tailResult != null && i < coreElements.size(); i++) {
-      length = Suc(length);
+    List<Expression> elements = new ArrayList<>(bytes.length);
+    for (byte b : bytes) {
+      elements.add(finValue(b & 0xFF, 256));
     }
-    Expression elementsTypeFun = new LamExpression(levels.toSort().max(Sort.SET0), new TypedSingleDependentLink(true, null, Fin(length)), coreElementsType);
-
-    Expression resultExpr = ArrayExpression.make(levels, elementsTypeFun, coreElements, tailResult == null ? null : tailResult.expression);
+    Expression length = new SmallIntegerExpression(bytes.length);
+    Expression elementsTypeFun = new LamExpression(levels.toSort().max(Sort.SET0), new TypedSingleDependentLink(true, null, Fin(length)), elementsType);
+    Expression resultExpr = ArrayExpression.make(levels, elementsTypeFun, elements, null);
     return new TypecheckingResult(resultExpr, resultExpr.getType());
+  }
+
+  // Builds the Fin `size` value representing `value`. ConCallExpression.make special-cases
+  // FIN_ZERO/FIN_SUC to reuse Nat's compact IntegerExpression representation, so this never builds a
+  // chain of nested constructor applications -- at each step `result` is a fresh compact value.
+  private static Expression finValue(int value, int size) {
+    Expression result = ConCallExpression.make(Prelude.FIN_ZERO, Levels.EMPTY, new SingletonList<>(new SmallIntegerExpression(size - value - 1)), Collections.emptyList());
+    for (int i = 0; i < value; i++) {
+      result = ConCallExpression.make(Prelude.FIN_SUC, Levels.EMPTY, new SingletonList<>(new SmallIntegerExpression(size - value + i)), new SingletonList<>(result));
+    }
+    return result;
   }
 
   @Override
