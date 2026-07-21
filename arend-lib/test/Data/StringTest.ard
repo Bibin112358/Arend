@@ -1,6 +1,7 @@
 \import Data.Bool
 \import Data.String
 \import Paths
+\import Set  -- for the == DecSet operator
 \import Debug.Meta
 
 \data Empty
@@ -8,8 +9,8 @@
 \lemma testStringEq : "abc" = "abc" => idp
 \lemma testStringNeq (p : "abc" = "abd") : Empty => \case stringInj p \with {}
 
-\lemma testStringEqTrue : ("abc" StringDecSet.== "abc") = true => idp
-\lemma testStringEqFalse : ("abc" StringDecSet.== "abd") = false => idp
+\lemma testStringEqTrue : ("abc" == "abc") = true => idp
+\lemma testStringEqFalse : ("abc" == "abd") = false => idp
 
 \lemma testStringEmpty : "" = "" => idp
 \lemma testStringEmptyConcatL : "abc" = "" ++ "abc" => idp
@@ -18,8 +19,8 @@
 \lemma testStringConcat : "abcd" = "ab" ++ "cd" => idp
 \lemma testStringConcatNot (p : "abc" = "ab" ++ "d") : Empty => \case stringInj p \with {}
 
-\lemma testStringConcatTrue : ("abcd" StringDecSet.== "ab" ++ "cd") = true => idp
-\lemma testStringConcatFalse : ("abc" StringDecSet.== "ab" ++ "d") = false => idp
+\lemma testStringConcatTrue : ("abcd" == "ab" ++ "cd") = true => idp
+\lemma testStringConcatFalse : ("abc" == "ab" ++ "d") = false => idp
 
 -- Regression for the original record-embedding bug: `\data String` with zero constructors used
 -- to make DefinitionTypechecker infer Sort.PROP for it, so any record field of type String was
