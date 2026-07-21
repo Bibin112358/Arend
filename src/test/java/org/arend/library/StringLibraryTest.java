@@ -53,13 +53,13 @@ public class StringLibraryTest extends ArendTestCase {
     assertNotNull("Could not load arend-lib from " + configFile, arendLib);
     libraryManager.updateLibrary(arendLib, server);
 
-    // Typecheck some other, unrelated arend-lib module first, purely to force Prelude to be fully
-    // typechecked (not just resolved) before any snippet below runs -- otherwise the very first
-    // module ever typechecked in this server session, if it's the one using string literals, can
-    // see an uninitialized Prelude and fail with "Cannot check string" regardless of imports.
-    ModuleLocation warmup = server.findModule(new ModulePath("Logic"), "arend-lib", false, true);
-    assertNotNull("Could not find arend-lib's Logic module", warmup);
-    server.getCheckerFor(Collections.singletonList(warmup)).typecheck(UnstoppableCancellationIndicator.INSTANCE, ProgressReporter.empty());
+    // Deliberately no Prelude "warmup" here: each test gets a fresh server (ArendTestCase's
+    // @Before), so its typecheckSnippet call is the *first* module typechecked in the session --
+    // and it uses string literals. That first-module-uses-a-literal path is exactly what used to
+    // fail with "Cannot check string" when literal elaboration needed an already-typechecked
+    // Prelude at resolve time. Since checkByteArray moved that work to typecheck time (String's
+    // resolveString now only resolves names), the path is safe, and running these tests without a
+    // warmup keeps them as a real regression guard for it. Do not add a warmup back.
   }
 
   private static Path findRepoRoot() {
