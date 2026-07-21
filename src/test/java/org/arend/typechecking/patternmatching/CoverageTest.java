@@ -1,38 +1,11 @@
 package org.arend.typechecking.patternmatching;
 
 import org.arend.typechecking.TypeCheckingTestCase;
-import org.arend.typechecking.error.local.NotEnoughPatternsError;
 import org.junit.Test;
 
 import static org.arend.Matchers.missingClauses;
-import static org.arend.Matchers.typecheckingError;
 
 public class CoverageTest extends TypeCheckingTestCase {
-  // Regression test for a soundness hole that originally motivated giving `String` real
-  // constructors instead of `\data String` with none (String has since moved to arend-lib
-  // entirely -- see arend-lib's Data/String.ard/StringTest.ard for the String-specific version of
-  // this regression, including the literal-syntax form `\case "s" \with {}`). The underlying
-  // kernel property doesn't need String at all: it's that the coverage checker correctly treats
-  // any type that unfolds to `DArray` (like `Array Nat` here) via its real, length-based
-  // emptiness check, rather than a zero-constructor `\data` being (wrongly) treated as
-  // uninhabited while still having inhabitants. Both the general and explicit-absurd-pattern
-  // forms below must be rejected.
-  @Test
-  public void arrayCaseIsNotExhaustive() {
-    typeCheckModule(
-        "\\data Empty\n" +
-        "\\func f (s : Array Nat) : Empty => \\case s \\with {}", 1);
-    assertThatErrorsAre(missingClauses(2));
-  }
-
-  @Test
-  public void arrayAbsurdPatternIsRejected() {
-    typeCheckModule(
-        "\\data Empty\n" +
-        "\\func f (s : Array Nat) : Empty => \\case s \\with { () }", 1);
-    assertThatErrorsAre(typecheckingError(NotEnoughPatternsError.class));
-  }
-
   @Test
   public void coverageInCase() {
     typeCheckDef("\\func test : Nat => \\case 1 \\with { zero => 0 }", 1);
