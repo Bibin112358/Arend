@@ -3654,9 +3654,10 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       if (checker != null) {
         int numberOfErrors = getNumberOfErrors();
         TypecheckingResult result = TypecheckingResult.fromChecked(checker.typecheckString(string, expr.getResolvedExpression(), this, new ContextDataImpl(expr, Collections.emptyList(), null, null, expectedType, null)));
-        if (result != null || getNumberOfErrors() != numberOfErrors) {
-          return result;
+        if (result == null && getNumberOfErrors() == numberOfErrors) {
+          errorReporter.report(new TypecheckingError("Cannot check string", expr));
         }
+        return result;
       }
     }
 
@@ -3665,9 +3666,9 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
     }
 
     // Unlike Nat/Int/Fin, String has no bootstrap-Prelude representation to fall back on -- it's
-    // library-owned (arend-lib), so a string literal with no extension to elaborate it (or an
-    // extension that declines without reporting its own error) is a hard failure, symmetric with
-    // how number literals already behave when a registered extension declines.
+    // library-owned (arend-lib), so a string literal with no extension to elaborate it is a hard
+    // failure. (A declining extension is handled symmetrically inside the checker block above,
+    // mirroring how number literals behave.)
     errorReporter.report(new TypecheckingError("Cannot check string", expr));
     return null;
   }
