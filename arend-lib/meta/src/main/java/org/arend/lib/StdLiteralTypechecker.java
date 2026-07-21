@@ -20,8 +20,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 
 public class StdLiteralTypechecker implements LiteralTypechecker {
   private static ArendRef resolveName(FullName fullName, ExpressionResolver resolver) {
@@ -76,22 +74,20 @@ public class StdLiteralTypechecker implements LiteralTypechecker {
     return typechecker.checkNumber(number, contextData.getExpectedType(), contextData.getMarker());
   }
 
-  // Resolution only has an ExpressionResolver (no typechecker), so it just resolves the names the
-  // typechecking side will need and passes them through as a 3-tuple. Actual array construction
-  // happens in typecheckString, via ExpressionTypechecker.checkArray -- a direct core-level builder
-  // that takes a plain List of already-typechecked elements, so it has no concrete-syntax-tree
-  // depth dependency on the literal's length at all (unlike building a `::`/`nil` chain via
-  // ConcreteFactory.app(), which overflowed the stack of concrete-tree visitors like
-  // SyntacticDesugarVisitor for anything much longer than a few hundred bytes).
+  // Resolution only has an ExpressionResolver (no typechecker), so it just resolves the arend-lib
+  // names the typechecking side needs -- `String` and its `bytes` field -- and passes them through
+  // as a 2-tuple. The byte array itself can't be built here: it's assembled in typecheckString via
+  // ExpressionTypechecker.checkByteArray, a compact core-level builder with no concrete-syntax-tree
+  // depth dependency on the literal's length (unlike a `::`/`nil` chain, which is quadratic to
+  // elaborate and overflows the concrete-tree visitors' stack for large literals).
   @Override
   public @Nullable ConcreteExpression resolveString(@NotNull String unescapedString, @NotNull ExpressionResolver resolver, @NotNull ContextData contextData) {
     ArendRef stringRef = resolveName(Names.STRING, resolver);
     ArendRef bytesRef = resolveName(Names.STRING_BYTES, resolver);
-    ArendRef byteRef = resolveName(Names.BYTE, resolver);
-    if (stringRef == null || bytesRef == null || byteRef == null) return null;
+    if (stringRef == null || bytesRef == null) return null;
 
     ConcreteFactory factory = contextData.getFactory();
-    return factory.tuple(factory.ref(stringRef), factory.ref(bytesRef), factory.ref(byteRef));
+    return factory.tuple(factory.ref(stringRef), factory.ref(bytesRef));
   }
 
   private static @Nullable ArendRef asRef(ConcreteExpression expr) {
@@ -100,29 +96,16 @@ public class StdLiteralTypechecker implements LiteralTypechecker {
 
   @Override
   public @Nullable TypedExpression typecheckString(@NotNull String unescapedString, @Nullable ConcreteExpression resolved, @NotNull ExpressionTypechecker typechecker, @NotNull ContextData contextData) {
-    if (!(resolved instanceof ConcreteTupleExpression tuple) || tuple.getFields().size() != 3) return null;
+    if (!(resolved instanceof ConcreteTupleExpression tuple) || tuple.getFields().size() != 2) return null;
     ArendRef stringRef = asRef(tuple.getFields().get(0));
     ArendRef bytesRef = asRef(tuple.getFields().get(1));
-    ArendRef byteRef = asRef(tuple.getFields().get(2));
-    if (stringRef == null || bytesRef == null || byteRef == null) return null;
-
-    ConcreteFactory factory = contextData.getFactory();
-    ConcreteExpression marker = contextData.getMarker();
-    TypedExpression byteTypeResult = typechecker.typecheck(factory.ref(byteRef), null);
-    if (byteTypeResult == null) return null;
-    CoreExpression byteType = byteTypeResult.getExpression();
+    if (stringRef == null || bytesRef == null) return null;
 
     byte[] bytes = unescapedString.getBytes(StandardCharsets.UTF_8);
-    List<TypedExpression> elements = new ArrayList<>(bytes.length);
-    for (byte b : bytes) {
-      TypedExpression element = typechecker.checkNumber(BigInteger.valueOf(b & 0xFF), byteType, marker);
-      if (element == null) return null;
-      elements.add(element);
-    }
-
-    TypedExpression array = typechecker.checkArray(elements, byteType, null, marker);
+    TypedExpression array = typechecker.checkByteArray(bytes, contextData.getMarker());
     if (array == null) return null;
 
+    ConcreteFactory factory = contextData.getFactory();
     ConcreteExpression newExpr = factory.newExpr(factory.classExt(factory.ref(stringRef), factory.implementation(bytesRef, factory.core(array))));
     return typechecker.typecheck(newExpr, contextData.getExpectedType());
   }

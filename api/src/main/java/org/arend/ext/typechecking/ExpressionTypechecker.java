@@ -338,16 +338,17 @@ public interface ExpressionTypechecker extends UserDataHolder {
   @Nullable TypedExpression checkNumber(@NotNull BigInteger number, @Nullable CoreExpression expectedType, @NotNull ConcreteExpression marker);
 
   /**
-   * Builds an array directly from already-typechecked elements, without going through concrete
-   * syntax (unlike a {@code ::}/{@code nil} chain built with {@link ConcreteFactory}, whose
-   * concrete-tree depth is proportional to the number of elements).
+   * Builds a compact {@code Array (Fin 256)} directly from raw bytes, without going through concrete
+   * syntax. Each element is generated internally from the corresponding byte, so unlike a general
+   * array builder there is nothing caller-supplied to type-check: the result is well-typed by
+   * construction. Use this for large byte-array literals, where a {@code b0 :: b1 :: ... :: nil}
+   * concrete chain would be quadratic to elaborate (one set of level equations per {@code ::}) and
+   * would overflow the concrete-tree visitors' Java stack.
    *
-   * @param elements      the elements of the array, in order
-   * @param elementsType  the type of the elements; must be non-{@code null} if {@code elements} is empty and {@code tail} is {@code null}
-   * @param tail          an optional tail array to which {@code elements} are prepended, or {@code null} for a finite array
-   * @return an array containing {@code elements} followed by {@code tail}
+   * @param bytes  the bytes of the array, in order
+   * @return       an {@code Array (Fin 256)} containing {@code bytes} (as values {@code 0..255})
    */
-  @Nullable TypedExpression checkArray(@NotNull List<? extends TypedExpression> elements, @Nullable CoreExpression elementsType, @Nullable TypedExpression tail, @NotNull ConcreteExpression marker);
+  @Nullable TypedExpression checkByteArray(byte @NotNull [] bytes, @NotNull ConcreteExpression marker);
 
   /**
    * Returns the definitions corresponding to the given reference.

@@ -17,7 +17,6 @@ public class Names {
   public static final FullName NIL = fullName(getListModule(), new LongName("List", "nil"));
   public static final FullName STRING = fullName(getStringModule(), new LongName("String"));
   public static final FullName STRING_BYTES = fullName(getStringModule(), new LongName("String", "bytes"));
-  public static final FullName BYTE = fullName(getStringModule(), new LongName("Byte"));
   public static final FullName BASE_SET = fullName(getSetModule(), new LongName("BaseSet"));
   public static final FullName CARRIER = fullName(getSetModule(), new LongName("BaseSet", "E"));
   public static final FullName ZRO = fullName(getPointedModule(), new LongName("AddPointed", "zro"));

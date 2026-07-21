@@ -11,6 +11,10 @@
 \lemma testStringEqTrue : ("abc" StringDecSet.== "abc") = true => idp
 \lemma testStringEqFalse : ("abc" StringDecSet.== "abd") = false => idp
 
+\lemma testStringEmpty : "" = "" => idp
+\lemma testStringEmptyConcatL : "abc" = "" ++ "abc" => idp
+\lemma testStringEmptyConcatR : "abc" = "abc" ++ "" => idp
+
 \lemma testStringConcat : "abcd" = "ab" ++ "cd" => idp
 \lemma testStringConcatNot (p : "abc" = "ab" ++ "d") : Empty => \case stringInj p \with {}
 
