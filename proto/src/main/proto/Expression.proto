@@ -38,6 +38,12 @@ message Expression {
         At at = 25;
     }
 
+    // 30 / "string" held the retired StringExpression node; string literals now
+    // elaborate to `\new String { bytes => Array (Fin 256) }` and serialize via the
+    // New/ClassCall/Array messages. Reserved to prevent accidental field-number reuse.
+    reserved 30;
+    reserved "string";
+
     message Abs {
         TypedBinding binding = 1;
         Expression expression = 2;
