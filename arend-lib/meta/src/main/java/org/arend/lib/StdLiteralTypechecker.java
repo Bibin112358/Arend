@@ -101,8 +101,7 @@ public class StdLiteralTypechecker implements LiteralTypechecker {
     CoreClassField bytesField = stringClass.findField("bytes");
     if (bytesField == null) return null;
 
-    TypedExpression array = typechecker.checkByteArray(unescapedString.getBytes(StandardCharsets.UTF_8), contextData.getMarker());
-    if (array == null) return null;
+    TypedExpression array = typechecker.checkByteArray(unescapedString.getBytes(StandardCharsets.UTF_8));
 
     ConcreteFactory factory = contextData.getFactory();
     ConcreteExpression newExpr = factory.newExpr(factory.classExt(factory.ref(stringRef), factory.implementation(bytesField.getRef(), factory.core(array))));

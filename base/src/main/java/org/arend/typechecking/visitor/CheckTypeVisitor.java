@@ -3575,25 +3575,18 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   }
 
   @Override
-  public @Nullable TypecheckingResult checkByteArray(byte @NotNull [] bytes, @NotNull ConcreteExpression marker) {
-    if (!(marker instanceof Concrete.Expression)) {
-      throw new IllegalArgumentException();
-    }
-    // Element type is Fin 256; every element is generated here via finValue, so the array is
-    // well-typed by construction -- there is nothing caller-supplied to check.
+  public @NotNull TypecheckingResult checkByteArray(byte @NotNull [] bytes) {
+    // Element type is Fin 256 (sort \Set0, since Prelude.FIN has sort \Set0); every element is
+    // generated here via finValue, so the array is well-typed by construction -- there is nothing
+    // caller-supplied to check.
     Expression elementsType = ExpressionFactory.Fin(new SmallIntegerExpression(256));
-    Sort sort = elementsType.getSortOfType();
-    if (sort == null) {
-      return null;
-    }
-    LevelPair levels = new LevelPair(sort.getPLevel(), sort.getHLevel());
     List<Expression> elements = new ArrayList<>(bytes.length);
     for (byte b : bytes) {
       elements.add(finValue(b & 0xFF, 256));
     }
-    Expression length = new SmallIntegerExpression(bytes.length);
-    Expression elementsTypeFun = new LamExpression(levels.toSort().max(Sort.SET0), new TypedSingleDependentLink(true, null, Fin(length)), elementsType);
-    Expression resultExpr = ArrayExpression.make(levels, elementsTypeFun, elements, null);
+    TypedSingleDependentLink param = new TypedSingleDependentLink(true, null, Fin(new SmallIntegerExpression(bytes.length)));
+    Expression elementsTypeFun = new LamExpression(Sort.SET0, param, elementsType);
+    Expression resultExpr = ArrayExpression.make(LevelPair.SET0, elementsTypeFun, elements, null);
     return new TypecheckingResult(resultExpr, resultExpr.getType());
   }
 

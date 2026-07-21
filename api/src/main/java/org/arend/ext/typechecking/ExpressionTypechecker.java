@@ -360,7 +360,7 @@ public interface ExpressionTypechecker extends UserDataHolder {
    * @param bytes  the bytes of the array, in order
    * @return       an {@code Array (Fin 256)} containing {@code bytes} (as values {@code 0..255})
    */
-  @Nullable TypedExpression checkByteArray(byte @NotNull [] bytes, @NotNull ConcreteExpression marker);
+  @NotNull TypedExpression checkByteArray(byte @NotNull [] bytes);
 
   /**
    * Returns the definitions corresponding to the given reference.
