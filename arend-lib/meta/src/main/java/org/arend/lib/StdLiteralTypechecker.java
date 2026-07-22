@@ -9,6 +9,7 @@ import org.arend.ext.core.definition.CoreClassField;
 import org.arend.ext.core.expr.CoreDataCallExpression;
 import org.arend.ext.core.expr.CoreExpression;
 import org.arend.ext.core.ops.NormalizationMode;
+import org.arend.ext.error.TypecheckingError;
 import org.arend.ext.module.FullName;
 import org.arend.ext.reference.ArendRef;
 import org.arend.ext.reference.ExpressionResolver;
@@ -89,13 +90,25 @@ public class StdLiteralTypechecker implements LiteralTypechecker {
 
   @Override
   public @Nullable TypedExpression typecheckString(@NotNull String unescapedString, @Nullable ConcreteExpression resolved, @NotNull ExpressionTypechecker typechecker, @NotNull ContextData contextData) {
-    if (!(resolved instanceof ConcreteReferenceExpression stringRefExpr)) return null;
+    // resolveString returns null (leaving the literal unresolved) when the String type isn't in
+    // scope -- almost always because Data.String wasn't imported. Report an actionable error rather
+    // than letting the caller fall back to the generic "Cannot check string".
+    if (!(resolved instanceof ConcreteReferenceExpression stringRefExpr)) {
+      typechecker.getErrorReporter().report(new TypecheckingError("String literals require the String type to be in scope; did you forget to `\\import Data.String`?", contextData.getMarker()));
+      return null;
+    }
     ArendRef stringRef = stringRefExpr.getReferent();
-    if (!(typechecker.getCoreDefinition(stringRef) instanceof CoreClassDefinition stringClass)) return null;
+    if (!(typechecker.getCoreDefinition(stringRef) instanceof CoreClassDefinition stringClass)) {
+      typechecker.getErrorReporter().report(new TypecheckingError("Data.String.String is expected to be a `\\record`", contextData.getMarker()));
+      return null;
+    }
 
     // `bytes` is String's own field, taken from the resolved class definition.
     CoreClassField bytesField = stringClass.findField("bytes");
-    if (bytesField == null) return null;
+    if (bytesField == null) {
+      typechecker.getErrorReporter().report(new TypecheckingError("Data.String.String is expected to have a `bytes` field", contextData.getMarker()));
+      return null;
+    }
 
     TypedExpression array = typechecker.checkByteArray(unescapedString.getBytes(StandardCharsets.UTF_8));
 
