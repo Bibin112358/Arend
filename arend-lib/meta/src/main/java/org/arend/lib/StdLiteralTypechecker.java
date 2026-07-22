@@ -75,14 +75,11 @@ public class StdLiteralTypechecker implements LiteralTypechecker {
     return typechecker.checkNumber(number, contextData.getExpectedType(), contextData.getMarker());
   }
 
-  // Resolution only has an ExpressionResolver (no typechecker), so it resolves the one arend-lib name
-  // the literal denotes -- the `String` type -- and returns a genuine reference to it (the head of the
-  // `\new String { ... }` elaboration, mirroring how resolveNumber returns `natCoef n`). `bytes` is
-  // String's own field, so typecheckString derives it from String's definition rather than resolving
-  // and carrying it separately. The byte array is built there too, via ExpressionTypechecker.checkByteArray,
-  // a compact core-level builder with no concrete-syntax-tree depth dependency on the literal's length
-  // (unlike a `::`/`nil` chain, which is quadratic to elaborate and overflows the concrete-tree visitors'
-  // stack for large literals).
+  // resolveString runs with only an ExpressionResolver (no typechecker), so it resolves the `String`
+  // type and returns a reference to it; typecheckString then builds the `\new String { | bytes => ... }`
+  // value. The byte array is built at the core level by ExpressionTypechecker.checkByteArray, whose cost
+  // is independent of the literal's length. (A `::`/`nil` list literal would instead be quadratic to
+  // elaborate and can overflow the concrete-tree visitor stack for large literals.)
   @Override
   public @Nullable ConcreteExpression resolveString(@NotNull String unescapedString, @NotNull ExpressionResolver resolver, @NotNull ContextData contextData) {
     ArendRef stringRef = resolveName(Names.STRING, resolver);
@@ -96,8 +93,7 @@ public class StdLiteralTypechecker implements LiteralTypechecker {
     ArendRef stringRef = stringRefExpr.getReferent();
     if (!(typechecker.getCoreDefinition(stringRef) instanceof CoreClassDefinition stringClass)) return null;
 
-    // `bytes` is String's own field, derived from the resolved type here (typecheckString has no
-    // resolver) -- the same lookup StringExpressionPrettifier uses to read a String value's bytes.
+    // `bytes` is String's own field, taken from the resolved class definition.
     CoreClassField bytesField = stringClass.findField("bytes");
     if (bytesField == null) return null;
 

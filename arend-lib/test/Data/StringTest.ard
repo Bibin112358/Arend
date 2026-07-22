@@ -12,6 +12,12 @@
 \lemma testStringEqTrue : ("abc" == "abc") = true => idp
 \lemma testStringEqFalse : ("abc" == "abd") = false => idp
 
+-- Multibyte (UTF-8) content: exercises the byte-array representation beyond ASCII.
+\lemma testStringEqMultibyte : "€λ" = "€λ" => idp
+\lemma testStringEqMultibyteTrue : ("€λ" == "€λ") = true => idp
+\lemma testStringNeqMultibyte (p : "€" = "λ") : Empty => \case stringInj p \with {}
+\lemma testStringEqMultibyteFalse : ("€" == "λ") = false => idp
+
 \lemma testStringEmpty : "" = "" => idp
 \lemma testStringEmptyConcatL : "abc" = "" ++ "abc" => idp
 \lemma testStringEmptyConcatR : "abc" = "abc" ++ "" => idp
@@ -22,11 +28,8 @@
 \lemma testStringConcatTrue : ("abcd" == "ab" ++ "cd") = true => idp
 \lemma testStringConcatFalse : ("abc" == "ab" ++ "d") = false => idp
 
--- Regression for the original record-embedding bug: `\data String` with zero constructors used
--- to make DefinitionTypechecker infer Sort.PROP for it, so any record field of type String was
--- silently marked isProperty (proof-irrelevant), collapsing different string content to equal.
--- `String` is now a `\record` with a real, non-Prop-sorted `bytes` field, so this no longer
--- applies -- two records differing only in string content must not be equal.
+-- A record field of type String must not be proof-irrelevant: two records differing only in their
+-- String content must be distinguishable, not provably equal.
 \record R (s : String)
 \lemma testRecordFieldDistinguishesContent (p : \new R { | s => "abc" } = \new R { | s => "abd" }) : Empty
   => \case stringInj (pmap (\lam (r : R) => r.s) p) \with {}

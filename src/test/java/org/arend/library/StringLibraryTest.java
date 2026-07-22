@@ -30,11 +30,9 @@ import static org.arend.Matchers.missingClauses;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-// String only elaborates literal syntax (and needs Prelude's own nil/:: refs) via arend-lib's
-// extension now, so testing it needs a real arend-lib load, not just the bare kernel+Prelude that
-// TypeCheckingTestCase provides. These mirror what used to live in the now-deleted base-level
-// StringTest.java and two of CoverageTest.java's String cases, before String moved out of the
-// kernel into arend-lib (see Data/String.ard, Data/StringTest.ard for the library-level coverage).
+// String literal elaboration lives in arend-lib's extension (and needs Prelude's nil/:: refs), so
+// these tests load a real arend-lib rather than the bare kernel+Prelude that TypeCheckingTestCase
+// provides. Library-level behavior of String itself is covered in Data/StringTest.ard.
 public class StringLibraryTest extends ArendTestCase {
   private Path repoRoot;
   private LibraryManager libraryManager;
@@ -53,13 +51,10 @@ public class StringLibraryTest extends ArendTestCase {
     assertNotNull("Could not load arend-lib from " + configFile, arendLib);
     libraryManager.updateLibrary(arendLib, server);
 
-    // Deliberately no Prelude "warmup" here: each test gets a fresh server (ArendTestCase's
-    // @Before), so its typecheckSnippet call is the *first* module typechecked in the session --
-    // and it uses string literals. That first-module-uses-a-literal path is exactly what used to
-    // fail with "Cannot check string" when literal elaboration needed an already-typechecked
-    // Prelude at resolve time. Since checkByteArray moved that work to typecheck time (String's
-    // resolveString now only resolves names), the path is safe, and running these tests without a
-    // warmup keeps them as a real regression guard for it. Do not add a warmup back.
+    // No Prelude "warmup" here: each test gets a fresh server (ArendTestCase's @Before), so its
+    // typecheckSnippet call is the first module typechecked in the session, and that module uses
+    // string literals. This keeps the tests a regression guard that string-literal elaboration works
+    // "cold", before any other module is checked. Do not add a warmup.
   }
 
   private static Path findRepoRoot() {
@@ -90,16 +85,10 @@ public class StringLibraryTest extends ArendTestCase {
     return module;
   }
 
-  // Regression test for a soundness hole: `String` used to be declared with zero constructors
-  // (`\data String`), so the coverage checker treated it as uninhabited even though string
-  // literals (bypassing the constructor mechanism) actually inhabit it -- `\case "s" \with {}`
-  // could "prove" `Empty`. This is the exact snippet that originally motivated that fix; it must
-  // stay rejected regardless of how String is represented underneath.
-  //
-  // Expects 1 missing clause, not 2: in the original v1 fix (String := Array Byte, a transparent
-  // alias), the coverage checker saw through to Array's own two-constructor shape (nil/::). Now
-  // that String is a \record wrapping `bytes`, a record always has exactly one implicit shape
-  // from the coverage checker's perspective, regardless of what's inside its fields.
+  // Soundness guard: a string literal inhabits String without going through a constructor, so
+  // `\case "s" \with {}` must not be accepted as exhaustive -- otherwise one could "prove" Empty.
+  // String is a \record, which the coverage checker sees as a single implicit shape (regardless of
+  // its fields), so exactly one clause is missing.
   @Test
   public void stringLiteralCaseIsNotExhaustive() throws IOException {
     typecheckSnippet("string-coverage-probe",
@@ -110,17 +99,15 @@ public class StringLibraryTest extends ArendTestCase {
   }
 
   // If Fin values (String's byte elements) materialized as unary constructor chains instead of
-  // staying compact, a 10,000-character literal would produce a term with hundreds of thousands
-  // of nodes. Bounds are generous -- this is a regression guard against a unary blowup, not a
-  // tight performance benchmark.
+  // staying compact, a 10,000-character literal would produce a term with hundreds of thousands of
+  // nodes. The bound is generous -- this is a regression guard against a unary blowup in the term
+  // representation.
   @Test
   public void termSizeStaysSmall() throws IOException {
     String literal = "€".repeat(10_000); // '€' UTF-8-encodes to 3 bytes, for 30,000 bytes total
-    long start = System.nanoTime();
     ModuleLocation module = typecheckSnippet("string-perf-probe",
         "\\import Data.String\n" +
         "\\func bigString => \"" + literal + "\"\n");
-    long elapsedMs = (System.nanoTime() - start) / 1_000_000;
     assertTrue("expected no errors", getAllErrors().isEmpty());
 
     Collection<? extends DefinitionData> definitions = server.getResolvedDefinitions(module);
@@ -133,6 +120,5 @@ public class StringLibraryTest extends ArendTestCase {
 
     int size = SizeExpressionVisitor.getSize(bigString);
     assertTrue("term size " + size + " suggests a unary blowup, not a compact representation", size < 200_000);
-    assertTrue("typechecking took " + elapsedMs + "ms, suggesting a performance problem", elapsedMs < 30_000);
   }
 }

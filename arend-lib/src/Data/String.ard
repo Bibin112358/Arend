@@ -8,8 +8,8 @@
 \func Byte => Fin 256
 
 -- `String` wraps `Array Byte` in a record rather than being a transparent alias, so that (a) it
--- doesn't unify with `Array Byte` during instance search (which caused DecSet resolution to fail
--- to find this very instance when String was a plain alias) and (b) `Array`'s byte-indexing
+-- doesn't unify with `Array Byte` during instance search (so a `DecSet String` instance is found
+-- rather than colliding with `DecSet (Array Byte)`) and (b) `Array`'s byte-indexing
 -- operations (`.at`/`!!`) aren't implicitly available on String -- a byte index essentially never
 -- corresponds to a character index under UTF-8, so exposing them by default would be misleading.
 -- No implicit coercion in either direction is provided for the same reason: coercion doesn't

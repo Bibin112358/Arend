@@ -38,9 +38,8 @@ message Expression {
         At at = 25;
     }
 
-    // 30 / "string" held the retired StringExpression node; string literals now
-    // elaborate to `\new String { bytes => Array (Fin 256) }` and serialize via the
-    // New/ClassCall/Array messages. Reserved to prevent accidental field-number reuse.
+    // Field 30 / "string" previously encoded a string node that no longer exists.
+    // Reserved to prevent accidental reuse of the field number or name.
     reserved 30;
     reserved "string";
 

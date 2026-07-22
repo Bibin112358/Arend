@@ -3,6 +3,7 @@ package org.arend.lib;
 import org.arend.ext.*;
 import org.arend.ext.concrete.ConcreteFactory;
 import org.arend.ext.concrete.definition.ConcreteMetaDefinition;
+import org.arend.ext.concrete.expr.ConcreteExpression;
 import org.arend.ext.prettifier.ExpressionPrettifier;
 import org.arend.ext.reference.ArendRef;
 import org.arend.ext.typechecking.meta.MetaTypechecker;
@@ -81,8 +82,8 @@ public class StdExtension implements ArendExtension {
     this.factory = factory;
   }
 
-  public ConcreteFactory getFactory() {
-    return factory;
+  public ConcreteExpression makeString(String s) {
+    return factory.string(s);
   }
 
   private MetaRef makeRef(ModulePath modulePath, String name, MetaDefinition definition) {

@@ -3576,29 +3576,20 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
   @Override
   public @NotNull TypecheckingResult checkByteArray(byte @NotNull [] bytes) {
-    // Element type is Fin 256 (sort \Set0, since Prelude.FIN has sort \Set0); every element is
-    // generated here via finValue, so the array is well-typed by construction -- there is nothing
-    // caller-supplied to check.
-    Expression elementsType = ExpressionFactory.Fin(new SmallIntegerExpression(256));
+    // construct lambda `\lam (_ : Fin bytes.length) => Fin 256`.
+    TypedSingleDependentLink param = new TypedSingleDependentLink(true, null, Fin(bytes.length));
+    Expression elementsType = Fin(256);
+    // sort \Set0, since Prelude.FIN has sort \Set0
+    Expression elementsTypeFun = new LamExpression(Sort.SET0, param, elementsType);
+
+    // build the array expression
     List<Expression> elements = new ArrayList<>(bytes.length);
     for (byte b : bytes) {
-      elements.add(finValue(b & 0xFF, 256));
+      elements.add(new SmallIntegerExpression(b & 0xFF));
     }
-    TypedSingleDependentLink param = new TypedSingleDependentLink(true, null, Fin(new SmallIntegerExpression(bytes.length)));
-    Expression elementsTypeFun = new LamExpression(Sort.SET0, param, elementsType);
+
     Expression resultExpr = ArrayExpression.make(LevelPair.SET0, elementsTypeFun, elements, null);
     return new TypecheckingResult(resultExpr, resultExpr.getType());
-  }
-
-  // Builds the Fin `size` value representing `value`. ConCallExpression.make special-cases
-  // FIN_ZERO/FIN_SUC to reuse Nat's compact IntegerExpression representation, so this never builds a
-  // chain of nested constructor applications -- at each step `result` is a fresh compact value.
-  private static Expression finValue(int value, int size) {
-    Expression result = ConCallExpression.make(Prelude.FIN_ZERO, Levels.EMPTY, new SingletonList<>(new SmallIntegerExpression(size - value - 1)), Collections.emptyList());
-    for (int i = 0; i < value; i++) {
-      result = ConCallExpression.make(Prelude.FIN_SUC, Levels.EMPTY, new SingletonList<>(new SmallIntegerExpression(size - value + i)), new SingletonList<>(result));
-    }
-    return result;
   }
 
   @Override
@@ -3658,10 +3649,9 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       return checkExpr(expr.getResolvedExpression(), expectedType);
     }
 
-    // Unlike Nat/Int/Fin, String has no bootstrap-Prelude representation to fall back on -- it's
-    // library-owned (arend-lib), so a string literal with no extension to elaborate it is a hard
-    // failure. (A declining extension is handled symmetrically inside the checker block above,
-    // mirroring how number literals behave.)
+    // String is library-owned (arend-lib), not part of the bootstrap Prelude, so there is no core
+    // representation to fall back on: without a literal-typechecker extension a string literal cannot
+    // be elaborated, which is a hard error.
     errorReporter.report(new TypecheckingError("Cannot check string", expr));
     return null;
   }
