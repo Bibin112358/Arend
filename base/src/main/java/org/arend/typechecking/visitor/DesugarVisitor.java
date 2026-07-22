@@ -115,7 +115,7 @@ public class DesugarVisitor extends BaseConcreteExpressionVisitor<Void> {
     // Process expressions
     super.visitFunction(def, null);
 
-    if (def instanceof Concrete.CoClauseFunctionDefinition function) {
+    if (def instanceof Concrete.CoClauseFunctionDefinition function && def.getLevelParameters() == null) {
       if (myConcreteProvider.getConcrete(function.getUseParent()) instanceof Concrete.ResolvableDefinition parent) {
         def.setLevelParameters(Concrete.LevelParameters.copyLevelParameters(def.getData(), parent.getLevelParameters()));
       }

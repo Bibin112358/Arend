@@ -873,4 +873,15 @@ public class VarsTest extends TypeCheckingTestCase {
       }
       """);
   }
+
+  @Test
+  public void levelsCoclauseTest() {
+    typeCheckModule("""
+      \\record R (f : Nat -> Nat)
+      \\func foo.{u} (X : \\Set u) (g : (X -> X) -> Nat) => 0
+        \\where
+          \\func test : R \\cowith
+            | f (n : Nat) : Nat => g (\\lam x => x)
+      """);
+  }
 }

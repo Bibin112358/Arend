@@ -246,8 +246,7 @@
     | ~-f# {b} {a} {bfa} {bga} => isEpi (prehom.f# {X} bfa) (prehom.f# {X} bga) \lam x => lift_inL *> r.~-f# *> inv lift_inL
   }
   \where {
-    -- TODO[sorts]: Deleting .{u}, X, and Y results in an error.
-    \protected \func prehom.{u} {X : SatSchemeSite.{u}} {Y : SchemeSite.{u}} (f : SchemeSitePrehom X Y) : SchemeSitePrehom X (SatSite Y) \cowith
+    \protected \func prehom (f : SchemeSitePrehom X Y) : SchemeSitePrehom X (SatSite Y) \cowith
       | <=f* b a => \Sigma (ba : b f.<=f* a.1) (Inv (f.f# ba a.2))
       | <=f*-left b'b ba => (<=f*-left b'b ba.1, transport Inv f.f#_f*-left $ (X.R.Func b'b).func-Inv ba.2)
       | <=f*-right ba (aa', inP d) => (<=f*-right ba.1 aa', Inv.Inv_LDiv ba.2 $ transport (LDiv __ _) f.f#_f*-right $ (f.f# ba.1).func-LDiv d)
