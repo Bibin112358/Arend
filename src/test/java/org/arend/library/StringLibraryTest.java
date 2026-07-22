@@ -74,8 +74,10 @@ public class StringLibraryTest extends ArendTestCase {
     Path srcDir = Files.createTempDirectory("arend-string-test-" + libraryName);
     Files.writeString(srcDir.resolve("Snippet.ard"), source);
 
+    // args: name, isExternal, modStamp, dependencies, version, langVersion, extensionMainClass,
+    // modules, sourceBasePath, binaryBasePath, testBasePath, classLoaderDelegate
     FileSourceLibrary snippetLib = new FileSourceLibrary(libraryName, false, -1,
-        List.of("arend-lib"), null, "org.arend.lib.StdExtension", null,
+        List.of("arend-lib"), null, null, "org.arend.lib.StdExtension", null,
         srcDir, null, null, new FileClassLoaderDelegate(repoRoot.resolve("arend-lib").resolve("ext")));
     libraryManager.updateLibrary(snippetLib, server);
 
