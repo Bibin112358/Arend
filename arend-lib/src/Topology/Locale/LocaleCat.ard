@@ -149,7 +149,6 @@
   | Func-id => idp
   | Func-o => idp
 
--- TODO[sorts]: Why do we have to specify LocaleCat explicitly?
 \func localeEqualizer.{u} {L M : Locale.{u}} (f g : LocaleHom L M) : Equalizer {LocaleCat.{u}} f g \cowith
   | apex => nucleus.locale
   | eql => nucleus.map

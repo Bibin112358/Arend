@@ -163,7 +163,7 @@
         | E => QTerm (\lam _ => Empty)
         | operation h args => qapply (inl h) args
         | relation P args => ∃ (args' : DArray (\lam i => Term (\lam _ => Empty) (predDomain P i)))
-                               (isTheorem.{u} nil (predicate P args'))
+                               (IsTheorem nil (predicate P args'))
                                (\Pi (i : Fin (predDomain P).len) -> qinj (args' i) = args i)
 
       \lemma substInterpT {V : Sort -> \Set u} (rho : \Pi {s : Sort} -> V s -> Term (\lam _ => Empty) s) {s : Sort} (t : Term {T} V s)
@@ -172,10 +172,10 @@
         | apply f d => unfold $ cong (ext (\lam j => substInterpT rho (d j))) *> inv (path (qmerge _))
 
       \lemma substInterpF {V : Sort -> \Set u} (rho : \Pi {s : Sort} -> V s -> Term (\lam _ => Empty) s) (phi : Formula {T} V)
-        : isFormulaTrue (\lam v => qinj (rho v)) phi <-> isTheorem.{u} nil (substF (liftFormula phi) (\lam {s} v => rho {s} v))
+        : IsFormulaTrue (\lam v => qinj (rho v)) phi <-> IsTheorem nil (substF (liftFormula phi) (\lam {s} v => rho {s} v))
         \elim phi
         | equality t t' => <->trans (<->_=.2 $ pmap2 (=) (substInterpT _ t) (substInterpT _ t')) qinj-equality
-        | predicate P d => (\lam (inP (d',q,e)) => congruenceF (\lam j => qinj-equality.1 (e j *> substInterpT rho (d j))) q,
+        | predicate P d => (\lam (inP (d',q,e)) => congruenceP (\lam j => qinj-equality.1 (e j *> substInterpT rho (d j))) q,
                             \lam q => inP (\new DArray { | at j => subst (liftTerm (d j)) (\lam {s} => rho) }, q, \lam i => inv (substInterpT rho (d i))))
 
       \func Colimit : Model T \cowith
@@ -183,7 +183,7 @@
         | isModel S ax => \lam rho phiT =>
             \let | (inP (tau',p)) => S.2.liftDepSurj (\lam {v} => qinj-surj {_} {\lam _ => Empty} {v.1}) (\lam v => rho v.2)
                  | tau {s'} v => tau' (s',v)
-                 | eq : \Pi (phi : Formula {T} S.1) -> isFormulaTrue rho phi <-> isTheorem nil (substF (liftFormula phi) tau)
+                 | eq : \Pi (phi : Formula {T} S.1) -> IsFormulaTrue rho phi <-> IsTheorem nil (substF (liftFormula phi) tau)
                       => rewrite (path (\lam i {s'} v => inv (p (s',v)) i)) (substInterpF tau)
             \in (eq S.4).2 $ axiom (liftSequent S) (inP (0, inP (S,ax,idp))) tau (\lam j => (eq (S.3 j)).1 (phiT j)) idp
 
@@ -213,7 +213,7 @@
         | apply f d => unfold $ cong $ ext (\lam j => strExtT C (d j))
 
       \lemma strExtF {V : Sort -> \Set u} (C : Cone G.op) {rho : Env {C} V} (phi : Formula {T} V)
-        : isFormulaTrue {strExt C} rho (liftFormula phi) = isFormulaTrue {C} rho phi \elim phi
+        : IsFormulaTrue {strExt C} rho (liftFormula phi) = IsFormulaTrue {C} rho phi \elim phi
         | equality t t' => pmap2 (=) (strExtT C t) (strExtT C t')
         | predicate P d => cong (ext (\lam j => strExtT C (d j)))
 
@@ -260,7 +260,7 @@
       | apply f d => unfold $ cong $ ext (\lam k => limitStructureInterp (d k))
 
     \lemma limitStructureTruth.{u} {T : Theory.{u,u,u}} {J : Precat.{u,u}} {G : Functor J (ModelPrecat.{u} T)} {V : Sort -> \Set u} {rho : Env {limitStructure T G} V} (phi : Formula V)
-      : isFormulaTrue rho phi = (\Pi (j : J) -> isFormulaTrue (\lam v => (rho v).1 j) phi) \elim phi
+      : IsFormulaTrue rho phi = (\Pi (j : J) -> IsFormulaTrue (\lam v => (rho v).1 j) phi) \elim phi
       | equality t t' => ext (\lam ft j => inv (limitStructureInterp t) *> rewrite ft idp *> limitStructureInterp t', \lam ft => exts (\lam j => limitStructureInterp t *> ft j *> inv (limitStructureInterp t')))
       | predicate P d => ext (\lam ft j => transport (relation P) (exts (\lam k => limitStructureInterp (d k))) (ft j), \lam ft j => transport (relation P) (exts (\lam k => inv $ limitStructureInterp (d k))) (ft j))
 }

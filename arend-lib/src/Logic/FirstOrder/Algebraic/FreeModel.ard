@@ -11,7 +11,7 @@
   | E => QTerm X
   | operation h args => qapply h args
   | relation P args => ∃ (args' : DArray (\lam i => Term X (predDomain P i)))
-    (isTheorem nil (predicate P args'))
+    (IsTheorem nil (predicate P args'))
     (\Pi (i : Fin (predDomain P).len) -> qinj (args' i) = args i)
   \where {
     \open Theory
@@ -19,7 +19,7 @@
     \truncated \data QTerm.{u} {T : Theory.{u,u,u}} (V : T -> \Set u) (s : T) : \Set
       | qinj (Term V s)
       | qapply (f : Symb s) (DArray (\lam j => QTerm V (domain f j)))
-      | qquot {t t' : Term V s} (isTheorem nil (equality t t')) : qinj t = qinj t'
+      | qquot {t t' : Term V s} (IsTheorem nil (equality t t')) : qinj t = qinj t'
       | qmerge {f : Symb s} (ds : DArray (\lam j => Term V (domain f j))) : qinj (apply f ds) = qapply f (\new DArray { | at j => qinj (ds j) })
 
     \func qinj-surj.{u} {T : Theory.{u,u,u}} {V : T -> \Set u} {s : T} (q : QTerm V s) : ∃ (t : Term V s) (qinj t = q) \elim q
@@ -27,12 +27,12 @@
       | qapply f d => TruncP.map (FinSet.choice (\lam j => qinj-surj (d j)))
         \lam g => (apply f (\lam j => (g j).1), path (qmerge _) *> pmap (\lam x => qapply f (\new DArray (\lam j => QTerm V (domain f j)) x)) (ext \lam j => (g j).2))
 
-    \lemma qinj-equality.{u} {T : Theory.{u,u,u}} {V : T -> \Set u} {s : T} {t t' : Term V s} : (qinj t = qinj t') <-> isTheorem nil (equality t t')
+    \lemma qinj-equality.{u} {T : Theory.{u,u,u}} {V : T -> \Set u} {s : T} {t t' : Term V s} : (qinj t = qinj t') <-> IsTheorem nil (equality t t')
       => (transport (code t) __ (refl idp), \lam p => path (qquot p))
       \where {
         \func code.{u} {T : Theory.{u,u,u}} {V : T -> \Set u} {s : T} (t : Term V s) (q : QTerm V s) : \Prop \elim q
-          | qinj t' => isTheorem nil (equality t t')
-          | qapply f d => \Pi (d' : DArray (\lam j => Term V (domain f j))) -> (\Pi (j : Fin (DArray.len {domain f})) -> code (d' j) (d j)) -> isTheorem nil (equality t (apply f d'))
+          | qinj t' => IsTheorem nil (equality t t')
+          | qapply f d => \Pi (d' : DArray (\lam j => Term V (domain f j))) -> (\Pi (j : Fin (DArray.len {domain f})) -> code (d' j) (d j)) -> IsTheorem nil (equality t (apply f d'))
           | qquot {t1} {t2} p => ext (transitivity __ p, transitivity __ (symmetry p))
           | qmerge {f} ds => ext (\lam t~fds ds' ds'~ds => transitivity t~fds (symmetry (congruence ds'~ds)), \lam g => g ds (\lam j => refl idp))
       }
@@ -43,9 +43,9 @@
       | apply f d => pmap (qapply f) (exts \lam j => interpret=subst (d j)) *> inv (path (qmerge _))
 
     \lemma interpretF=substF.{u} {T : Theory.{u,u,u}} {X V : T -> \Set u} (rho : \Pi {s : T} -> V s -> Term X s) (phi : Formula V)
-      : (FreeStructure X).isFormulaTrue (\lam v => qinj (rho v)) phi <-> isTheorem nil (substF phi (\lam v => rho v)) \elim phi
+      : (FreeStructure X).IsFormulaTrue (\lam v => qinj (rho v)) phi <-> IsTheorem nil (substF phi (\lam v => rho v)) \elim phi
       | equality t t' => <->trans (<->_=.2 $ pmap2 (=) (interpret=subst t) (interpret=subst t')) qinj-equality
-      | predicate P d => (\lam (inP (d',q,e)) => congruenceF (\lam j => qinj-equality.1 (e j *> interpret=subst (d j))) q,
+      | predicate P d => (\lam (inP (d',q,e)) => congruenceP (\lam j => qinj-equality.1 (e j *> interpret=subst (d j))) q,
                           \lam q => inP (\new DArray { | at j => subst (d j) (\lam {s} => rho) }, q, \lam i => inv (interpret=subst (d i))))
 
     \func qinterpret.{u} {T : Theory.{u,u,u}} {M : Model T} {V : T -> \Set u} (rho : \Pi {s : T} -> V s -> M s) {s : T} (t : QTerm V s) : M s \elim t
@@ -63,6 +63,6 @@
   | isModel S ax rho phiT =>
     \let | (inP (tau',p)) => S.2.liftDepSurj (\lam {v} => FreeStructure.qinj-surj {_} {X} {v.1}) (\lam v => rho v.2)
          | tau {s'} v => tau' (s',v)
-         | eq : \Pi (phi : Formula {T} S.1) -> Structure.isFormulaTrue rho phi <-> T.isTheorem nil (substF phi tau)
+         | eq : \Pi (phi : Formula {T} S.1) -> Structure.IsFormulaTrue rho phi <-> T.IsTheorem nil (substF phi tau)
          => rewrite (path (\lam i {s'} v => inv (p (s',v)) i)) (FreeStructure.interpretF=substF tau)
     \in (eq S.4).2 $ Theory.axiom S ax tau (\lam j => (eq (S.3 j)).1 (phiT j)) idp

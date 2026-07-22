@@ -31,8 +31,7 @@
 \type IsSplittingField {k K : DiscreteField} (p : Poly k) (f : RingHom k K)
   => ∃ (l : Array K) (c : K) (RingHom.isAlgebraGenerated f l) (polyMap f p = c PolyRing.*c Monoid.BigProd (map (\lam a => padd 1 (negative a)) l))
 
--- TODO[sorts]: Refactor finGetExt-char so that it does not require levels.
-\lemma splitting-integral.{u} {k K : DiscreteField.{u}} {p : Poly k} {f : RingHom k K} (s : IsSplittingField p f) : isIntegralExt f \elim s
+\lemma splitting-integral {k K : DiscreteField} {p : Poly k} {f : RingHom k K} (s : IsSplittingField p f) : isIntegralExt f \elim s
   | inP s => (finGenExt-char $ inP (s.1,s.3)).2 K.zeroDimensional
 
 \lemma splitting-monic {k K : DiscreteField} {p : Poly k} (pm : isMonic p) {f : RingHom k K} (s : IsSplittingField p f)
