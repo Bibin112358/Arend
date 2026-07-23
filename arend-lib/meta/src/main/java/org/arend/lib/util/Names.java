@@ -30,6 +30,7 @@ public class Names {
   public static final FullName ORDERED_ASSOC_ALGEBRA = fullName(getOrderedModule(), new LongName("OrderedAAlgebra"));
   public static final FullName LEFT_MODULE = fullName(getModuleModule(), new LongName("LModule"));
   public static final FullName INT_RING = fullName(getIntModule(), new LongName("IntRing"));
+  public static final FullName NAT_SEMIRING = fullName(getNatModule(), new LongName("NatSemiring"));
   public static final FullName RAT_FIELD = fullName(getRatModule(), new LongName("RatField"));
 
   private static FullName fullName(ModulePath modulePath, LongName longName) {
