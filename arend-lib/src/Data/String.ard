@@ -1,41 +1,28 @@
 \import Arith.Fin.Order
-\import Data.Array (toList, fromList, fromList_toList, ++ \as arrayConcat)
-\import Data.List (ListDecSet)
+\import Set \hiding (ArrayDec) -- hide the fixed-length ArrayDec; DecSet (Array Byte) should use the open-length Data.Array.ArrayDecSet
+\import Data.Array
+\import Function
+\import Function.Meta
 \import Paths
-\import Paths.Meta
-\import Set
 
+-- `String` is a record wrapping `Array Byte` (not a `\func` alias) so it stays a distinct type:
+-- a `DecSet String` instance won't collide with `DecSet (Array Byte)` during instance search, and
+-- `Array`'s byte-indexing (`.at`/`!!`) isn't exposed on it -- a byte offset is not a character
+-- offset under UTF-8. For the same reasons, no coercion to/from `Array Byte` is provided.
 \func Byte => Fin 256
-
--- `String` wraps `Array Byte` in a record rather than being a transparent alias, so that (a) it
--- doesn't unify with `Array Byte` during instance search (so a `DecSet String` instance is found
--- rather than colliding with `DecSet (Array Byte)`) and (b) `Array`'s byte-indexing
--- operations (`.at`/`!!`) aren't implicitly available on String -- a byte index essentially never
--- corresponds to a character index under UTF-8, so exposing them by default would be misleading.
--- No implicit coercion in either direction is provided for the same reason: coercion doesn't
--- discriminate by operation, so it would silently reopen exactly the same two problems.
 \record String (bytes : Array Byte)
 
 \lemma stringExt {s t : String} (p : s.bytes = t.bytes) : s = t
   => path (\lam i => \new String { | bytes => p i })
 
 \lemma stringInj {s t : String} (p : s = t) : s.bytes = t.bytes
-  => pmap (\lam (x : String) => x.bytes) p
+  => pmap (String.bytes {__}) p
+
+\instance StringDecSet : DecSet String
+  | decideEq s t => \case decideEq s.bytes t.bytes \with {
+    | yes p => yes $ stringExt p
+    | no q => no $ q o stringInj
+  }
 
 \func \infixr 5 ++ (s t : String) : String
-  => \new String { | bytes => arrayConcat s.bytes t.bytes }
-
--- String's decidable equality can't come directly from ArrayDec (which is for a fixed length),
--- since `bytes` is open-length. Routing through List's ordinary inductive equality avoids
--- hand-deriving a transport-based proof across a varying length field: toList/fromList
--- (Data.Array) are mutually inverse (fromList_toList), so toList is injective, and decidability
--- transfers along an injection into an already-DecSet type.
---
--- DecSet (Fin 256) isn't found by plain instance search here (it's only available transitively
--- through FinOrder/LinearOrder.Dec), so it's passed explicitly, mirroring the same workaround
--- already used in Set.Fin.
-\instance StringDecSet : DecSet String
-  | decideEq s t => \case (ListDecSet (FinOrder 256)).decideEq (toList s.bytes) (toList t.bytes) \with {
-    | yes p => yes (stringExt (inv fromList_toList *> pmap fromList p *> fromList_toList))
-    | no q => no (\lam p => q (pmap (\lam (x : String) => toList x.bytes) p))
-  }
+  => \new String { | bytes => s.bytes Data.Array.++ t.bytes }

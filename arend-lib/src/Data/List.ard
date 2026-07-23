@@ -82,20 +82,6 @@
   | ide-right => ++_nil
   | *-assoc => ++-assoc
 
-\instance ListDecSet (A : DecSet) : DecSet (List A)
-  | decideEq => aux
-  \where {
-    \func aux {A : DecSet} (l l' : List A) : Dec (l = l') \elim l, l'
-      | nil, nil => yes idp
-      | nil, :: a l' => no contradiction
-      | :: a l, nil => no contradiction
-      | :: a l, :: a' l' => \case decideEq a a', aux l l' \with {
-        | yes e, yes e' => yes (pmap2 (::) e e')
-        | no q, _ => no (\lam p => q (pmap (headDef a) p))
-        | _, no q => no (\lam p => q (pmap tail p))
-      }
-  }
-
 \func splitAt {A : \Type} (n : Nat) (l : List A) : \Sigma (List A) (List A) \elim n, l
   | 0, l => (nil, l)
   | suc _, nil => (nil, nil)

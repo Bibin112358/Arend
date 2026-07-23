@@ -1,10 +1,8 @@
 \import Data.Bool
+\import Set  -- for the == DecSet operator
 \import Data.String
 \import Paths
-\import Set  -- for the == DecSet operator
-\import Debug.Meta
-
-\data Empty
+\import Logic
 
 \lemma testStringEq : "abc" = "abc" => idp
 \lemma testStringNeq (p : "abc" = "abd") : Empty => \case stringInj p \with {}
@@ -34,4 +32,6 @@
 \lemma testRecordFieldDistinguishesContent (p : \new R { | s => "abc" } = \new R { | s => "abd" }) : Empty
   => \case stringInj (pmap (\lam (r : R) => r.s) p) \with {}
 
-\func testPrintStringConcat => println ("Hello" ++ " " ++ "World" ++ "!")
+-- Manual test for String printing (not run automatically):
+-- \import Debug.Meta
+-- \func testPrintStringConcat => println ("Hello" ++ " " ++ "World" ++ "!")
