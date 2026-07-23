@@ -282,12 +282,6 @@ public class LinearSolver {
         result.add(new Hypothesis<>(factory.app(factory.ref(meta.eqToLeq), true, factory.app(factory.ref(meta.inv), true, hypothesis.proof)), hypothesis.instance, Equation.Operation.LESS_OR_EQUALS, terms.term2, terms.term1, terms.lcm));
       } else {
         result.add(new Hypothesis<>(hypothesis.proof, hypothesis.instance, hypothesis.operation, terms.term1, terms.term2, terms.lcm));
-        if (hypothesis.operation == Equation.Operation.LESS && compiler.isInt()) {
-          List<BigInteger> newCoefs = new ArrayList<>(terms.term1.coefficients());
-          newCoefs.set(0, newCoefs.getFirst().add(BigInteger.ONE));
-          ConcreteExpression proof = factory.app(factory.ref(meta.isucLleq), true, hypothesis.proof);
-          result.add(new Hypothesis<>(proof, hypothesis.instance, Equation.Operation.LESS_OR_EQUALS, new CompiledTerm(factory.app(factory.ref(meta.addTerm), true, terms.term1.concrete(), factory.ref(meta.ideTerm)), newCoefs, terms.term1.vars()), terms.term2, terms.lcm));
-        }
       }
     }
   }
