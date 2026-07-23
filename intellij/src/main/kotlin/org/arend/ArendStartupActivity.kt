@@ -71,10 +71,12 @@ class ArendStartupActivity : ProjectActivity {
                         indicator.text = ArendBundle.message("arend.startup.loading.arend.modules")
                         indicator.isIndeterminate = false
                         indicator.fraction = 0.0
+                        var frac = 0.0
                         val progressFraction = 1.0 / modules.size.toDouble()
                         for (module in modules) {
                             module.register()
-                            indicator.fraction += progressFraction
+                            frac += progressFraction
+                            indicator.fraction = frac
                         }
                         if (runReadAction { StudyTaskManager.getInstance(project).course } != null) {
                             project.registerStudyLibrary()

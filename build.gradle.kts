@@ -79,7 +79,7 @@ subprojects {
 }
 
 tasks.withType<Wrapper> {
-    gradleVersion = "8.13"
+    gradleVersion = "9.6.1"
 }
 
 dependencies {

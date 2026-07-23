@@ -1,7 +1,7 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.jetbrains.grammarkit.tasks.GenerateLexerTask
-import org.jetbrains.grammarkit.tasks.GenerateParserTask
+import org.jetbrains.intellij.platform.gradle.tasks.GenerateLexerTask
+import org.jetbrains.intellij.platform.gradle.tasks.GenerateParserTask
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.tasks.BuildPluginTask
@@ -20,9 +20,9 @@ val baseName = "intellij-arend"
 
 plugins {
     idea
-    kotlin("jvm") version "2.2.0"
-    id("org.jetbrains.intellij.platform") version "2.10.5"
-    id("org.jetbrains.grammarkit") version "2023.3"
+    kotlin("jvm") version "2.4.10"
+    id("org.jetbrains.intellij.platform") version "2.18.1"
+    id("org.jetbrains.intellij.platform.grammarkit") version "2.18.1"
 }
 
 repositories {
@@ -45,19 +45,21 @@ dependencies {
     implementation("org.apache.xmlgraphics:batik-dom:1.19")
 
     intellijPlatform {
-        create(IntelliJPlatformType.IntellijIdea, "2025.3")
-        bundledPlugins("com.intellij.modules.json", "org.jetbrains.plugins.yaml", "com.intellij.java")
+        create(IntelliJPlatformType.IntellijIdea, "2026.2")
+        bundledPlugins("com.intellij.modules.json", "org.jetbrains.plugins.yaml", "com.intellij.java", "com.intellij.modules.jcef")
         testBundledModules("intellij.platform.navbar", "intellij.platform.navbar.backend")
-        plugins("IdeaVIM:2.28.0", "com.jetbrains.edu:2026.1-2025.3-563")
+        plugins("IdeaVIM:2.28.0", "com.jetbrains.edu:2026.6-2026.2-98")
         testFramework(TestFrameworkType.Platform)
         testFramework(TestFrameworkType.Plugin.Java)
     }
 }
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_21
+    toolchain.languageVersion.set(JavaLanguageVersion.of(25))
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.release.set(25)
 }
 
 /*
@@ -144,9 +146,13 @@ val generateArendDocLexer = tasks.register<GenerateLexerTask>("genArendDocLexer"
     purgeOldFiles.set(true)
 }
 
+tasks.named<Jar>("sourcesJar") {
+    dependsOn(generateArendLexer, generateArendParser, generateArendDocLexer)
+}
+
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_21)
+        jvmTarget.set(JvmTarget.JVM_25)
         languageVersion.set(KotlinVersion.KOTLIN_2_2)
         apiVersion.set(KotlinVersion.KOTLIN_2_2)
         freeCompilerArgs.set(listOf("-Xjvm-default=all"))
@@ -197,7 +203,7 @@ tasks.register<Copy>("prelude") {
 }
 
 tasks.withType<Wrapper> {
-    gradleVersion = "8.13"
+    gradleVersion = "9.6.1"
 }
 
 tasks.register<RunIdeTask>("generateArendLib") {
