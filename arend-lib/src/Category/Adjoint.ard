@@ -13,8 +13,8 @@
   | RAdj : Functor D C
   | eta : NatTrans Id (Comp RAdj LAdj)
   | epsilon : NatTrans (Comp LAdj RAdj) Id
-  | eta_epsilon-left {Y : D} : RAdj.Func (epsilon Y) ∘ eta (RAdj Y) = id (RAdj Y)
-  | eta_epsilon-right {X : C} : epsilon (LAdj X) ∘ LAdj.Func (eta X) = id (LAdj X)
+  | eta_epsilon-left {Y : D} : RAdj.Func (epsilon Y) ∘ eta (RAdj Y) = id
+  | eta_epsilon-right {X : C} : epsilon (LAdj X) ∘ LAdj.Func (eta X) = id
 
   \lemma eta_epsilon-equiv {X : C} {Y : D} : QEquiv {Hom (LAdj X) Y} {Hom X (RAdj Y)} (Func __ ∘ eta X) (epsilon Y ∘ LAdj.Func __) \cowith
     | ret_f f => pmap (_ ∘) LAdj.Func-o *> inv o-assoc *> pmap (`∘ _) (epsilon.natural f) *> o-assoc *> pmap (f ∘) eta_epsilon-right *> id-right
@@ -77,7 +77,7 @@
       | natural f => inv (IsEquiv.f_ret eta-adjoint)
     }
     | epsilon {
-      | trans X => IsEquiv.ret eta-adjoint (id _)
+      | trans X => IsEquiv.ret eta-adjoint id
       | natural f => IsEquiv.isInj eta-adjoint $ pmap (`∘ _) RAdj.Func-o *> o-assoc *> pmap (_ ∘) (IsEquiv.f_ret eta-adjoint) *> inv o-assoc *> pmap (`∘ _) (IsEquiv.f_ret eta-adjoint) *> id-left *> inv (pmap (`∘ _) RAdj.Func-o *> o-assoc *> pmap (_ ∘) (IsEquiv.f_ret eta-adjoint) *> id-right)
     }
     | eta_epsilon-left => IsEquiv.f_ret eta-adjoint
@@ -98,7 +98,7 @@
       | natural f => IsEquiv.f_ret epsilon-adjoint
     }
     | eta {
-      | trans X => IsEquiv.ret epsilon-adjoint (id _)
+      | trans X => IsEquiv.ret epsilon-adjoint id
       | natural f => IsEquiv.isInj epsilon-adjoint $ pmap (_ ∘) LAdj.Func-o *> inv o-assoc *> pmap (`∘ _) (IsEquiv.f_ret epsilon-adjoint) *> id-left *>
       inv (pmap (_ ∘) LAdj.Func-o *> inv o-assoc *> pmap (`∘ _) (epsilon.natural _) *> o-assoc *> pmap (_ ∘) (IsEquiv.f_ret epsilon-adjoint) *> id-right)
     }

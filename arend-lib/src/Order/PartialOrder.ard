@@ -12,7 +12,7 @@
   | <=-transitive \alias \infixr 9 <=∘ {x y z : E} : x <= y -> y <= z -> x <= z
   | Ob => E
   | Hom => <=
-  | id _ => <=-refl
+  | id => <=-refl
   | o f g => g <=∘ f
   | id-left => prop-pi
   | id-right => prop-pi

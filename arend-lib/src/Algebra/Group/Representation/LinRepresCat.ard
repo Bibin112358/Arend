@@ -14,7 +14,7 @@
 
 \instance RepresentationCat.{u} (R : Ring) (G : Group) : Cat (LinRepres.{u} R G)
   | Hom A B => InterwiningMap A B
-  | id X => InterwiningMap.id
+  | id => InterwiningMap.id
   | o => InterwiningMap.∘
   | id-left => ext idp
   | id-right => ext idp

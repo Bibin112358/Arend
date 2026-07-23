@@ -51,7 +51,7 @@
 \instance SimplexPrecat : Precat
   | Ob => Nat
   | Hom n m => hom n m
-  | id _ => \new PosetHom {
+  | id => \new PosetHom {
     | func x => x
     | func-<= eq => eq
   }
@@ -81,8 +81,8 @@
   | 0 => \lam _ _ => ext (ext (ext \lam k => \case k), ext (ext \lam k => \case k))
   | suc n => isContr=>isProp \new Contr {
     | center => \new Iso {SimplexPrecat} {suc n} {suc n} {
-      | f => PosetCat.id (FinOrder (suc n))
-      | hinv => PosetCat.id (FinOrder (suc n))
+      | f => PosetCat.id
+      | hinv => PosetCat.id
       | hinv_f => idp
       | f_hinv => idp
     }

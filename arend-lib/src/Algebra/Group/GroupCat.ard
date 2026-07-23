@@ -23,7 +23,7 @@
 
 \instance GroupCat.{u} : Cat Group.{u}
   | Hom => GroupHom
-  | id _ => GroupHom.id
+  | id => GroupHom.id
   | o => GroupHom.∘
   | id-left => idp
   | id-right => idp
@@ -89,7 +89,7 @@
 
 \instance AddGroupCat.{u} : Cat AddGroup.{u}
   | Hom G H => AddGroupHom G H
-  | id _ => AddGroupHom.id
+  | id => AddGroupHom.id
   | o => AddGroupHom.∘
   | id-left => idp
   | id-right => idp

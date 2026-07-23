@@ -101,7 +101,7 @@
   \protected \func functor : Functor G.FreeCat D \cowith
     | F => F
     | Func {x y : G} (h : G.Paths x y) : Hom (F x) (F y) \elim h {
-      | Graph.empty idp => id (F x)
+      | Graph.empty idp => id
       | Graph.cons e h => Func h ∘ Diagram.Func e
     }
     | Func-id => idp
@@ -252,12 +252,12 @@
   \func map {D : Precat} {X Y : D} (f g : Hom X Y) {x y : Bool} (a : Arrows x y) : Hom (if x Y X) (if y Y X) \elim x, y, a
     | false, true, arrow1 => f
     | false, true, arrow2 => g
-    | false, false, id_false => id X
-    | true, true, id_true => id Y
+    | false, false, id_false => id
+    | true, true, id_true => id
 
   \func Shape : Precat Bool \cowith
     | Hom => Arrows
-    | id (x : Bool) : Arrows x x \with {
+    | id {x : Bool} : Arrows x x \elim x {
       | false => id_false
       | true => id_true
     }
@@ -323,7 +323,7 @@
       (\lam q => m.isMono $ pmap __.1 q)
       (\lam t => TruncP.map (p t.1 t.2) (\lam q => (q.1, ext q.2)))
 
-  \func id-equalizer {D : Precat} {X Y : D} {f : Hom X Y} : Equalizer f f X (id X)\cowith
+  \func id-equalizer {D : Precat} {X Y : D} {f : Hom X Y} : Equalizer f f X id \cowith
     | equal => idp
     | isEqualizer _ => inP \new QEquiv {
       | ret (h, _) => h
@@ -452,7 +452,7 @@
         : pbProj2 {P} ∘ (p-map P' P) = pbProj2 {P'} => pbBeta2 {P} {P'} {pbProj1 {P'}} {pbProj2 {P'}} {pbCoh {P'}}
 
       \func hinv'{D : Precat} {x y z : D} {f : Hom x z} {g : Hom y z} (P P' : Pullback f g)
-        : (p-map P' P) ∘ (p-map P P') = id P => pbEta {P} {P} {(p-map P' P) ∘ (p-map P P')} {id P}
+        : (p-map P' P) ∘ (p-map P P') = id => pbEta {P} {P} {(p-map P' P) ∘ (p-map P P')} {id}
           (rewriteI o-assoc $ rewrite (p-beta1 P P', p-beta1 P' P) (inv id-right))
           (rewriteI o-assoc $ rewrite (p-beta2 P P', p-beta2 P' P) (inv id-right))
     }
@@ -550,18 +550,18 @@
                          (rewriteI o-assoc $ rewrite (beta2,beta2) $ rewrite {2} o-assoc $ rewrite beta2 o-assoc)
 
   \func prodMap-split-right {x y x' y' : Ob} (f : Hom x y) (g : Hom x' y')
-    : prodMap f g = prodMap f (id y') ∘ prodMap (id x) g
+    : prodMap f g = prodMap f id ∘ prodMap id g
     => rewrite prodMap-comp $ rewrite (id-left, id-right) idp
 
   \func prod-id-left {x y z w : Ob} {g : Hom y z} {f : Hom x y}
-    : prodMap (id w) g ∘ prodMap (id w) f = prodMap (id w) (g ∘ f)
+    : prodMap (id {_} {w}) g ∘ prodMap id f = prodMap id (g ∘ f)
     => prodMap-comp *> pmap (prodMap __ _) id-left
 
   \func prod-id-right {x y z w : Ob} {g : Hom y z} {f : Hom x y}
-    : prodMap g (id w) ∘ prodMap f (id w) = prodMap (g ∘ f) (id w)
+    : prodMap g (id {_} {w}) ∘ prodMap f id = prodMap (g ∘ f) id
     => prodMap-comp *> pmap (prodMap _) id-left
 
-  \lemma prod-id {x y : Ob} : prodMap (id x) (id y) = id (Bprod x y)
+  \lemma prod-id {x y : Ob} : prodMap id id = id {_} {Bprod x y}
     => unfold prodMap $ rewrite (id-left, id-left) pair-eta
 
   \lemma beta1 {x y z : Ob} {f : Hom z x} {g : Hom z y} : proj1 ∘ pair f g = f => tupleBeta {Bprod x y}
@@ -578,11 +578,11 @@
   \lemma pair-comp {x y z w : Ob} {f : Hom x y} {g : Hom y z} {h : Hom y w} : pair g h ∘ f = pair (g ∘ f) (h ∘ f)
     => pair-unique (inv o-assoc *> pmap (`∘ f) beta1 *> inv beta1) (inv o-assoc *> pmap (`∘ f) beta2 *> inv beta2)
 
-  \lemma pair-eta {x y : Ob} : pair proj1 proj2 = id (Bprod x y)
+  \lemma pair-eta {x y : Ob} : pair proj1 proj2 = id {_} {Bprod x y}
     => pair-unique (beta1 *> inv id-right) (beta2 *> inv id-right)
 
   \func diagonal (x : Ob) : Hom x (Bprod x x)
-    => pair (id x) (id x)
+    => pair id id
 
   \lemma diagonal-splitMono {x : Ob} : SplitMono (diagonal x) proj1 \cowith
     | hinv_f => beta1
@@ -627,7 +627,7 @@
 
   \func bprodFunctorRight (Y : Ob) : Functor \this \this \cowith
     | F X => Bprod X Y
-    | Func f => prodMap f (id Y)
+    | Func f => prodMap f id
     | Func-id => unfold prodMap $ rewrite (id-left, id-left) pair-eta
     | Func-o => inv prod-id-right
 
@@ -639,7 +639,7 @@
     | hinv_f => swap-inv
     | f_hinv => swap-inv
 
-  \lemma swap-inv {x y : Ob} : swap ∘ swap = id (Bprod x y)
+  \lemma swap-inv {x y : Ob} : swap ∘ swap = id {_} {Bprod x y}
     => pair-unique (rewriteI o-assoc $ rewrite (beta1, beta2, id-right) idp)
                    (rewriteI o-assoc $ rewrite (beta2, beta1, id-right) idp)
 
@@ -663,7 +663,7 @@
 
 \class CartesianPrecat \extends PrecatWithTerminal, PrecatWithBprod {
   \func Bprod_terminal-left {X : Ob} : Iso {\this} {X} {Bprod terminal X}  \cowith
-    | f => pair terminalMap (id X)
+    | f => pair terminalMap id
     | hinv => proj2
     | hinv_f => beta2
     | f_hinv => pair-unique (rewrite (inv o-assoc, beta1, id-right) terminal-unique)
@@ -810,7 +810,7 @@
 \lemma splitMono_regular (f : SplitMono {}) : IsRegularMono f.f => inP \new Equalizer {
   | Y => f.cod
   | f => f.f ∘ f.hinv
-  | g => id f.cod
+  | g => id
   | equal => o-assoc *> pmap (_ ∘) f.hinv_f *> id-right *> inv id-left
   | isEqualizer Z => inP \new QEquiv {
     | ret (h,p) => f.hinv ∘ h

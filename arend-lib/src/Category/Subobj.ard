@@ -27,7 +27,7 @@
                                       (\lam (inP (f,mf=y)) => inP (f ∘ r.1, inv o-assoc *> pmap (`∘ _) mf=y *> r.2))
   }
   | <=-refl {x} => \case \elim x \with {
-    | in~ m => inP (id _, id-right)
+    | in~ m => inP (id, id-right)
   }
   | <=-transitive {x} {y} {z} => \case \elim x, \elim y, \elim z, \elim __, \elim __ \with {
     | in~ m1, in~ m2, in~ m3, inP p, inP q => inP (q.1 ∘ p.1, inv o-assoc *> pmap (`∘ _) q.2 *> p.2)
@@ -53,10 +53,10 @@
     | inP r1, inP r2 => inP (r1.1,r1.2,r2.1,r2.2)
   }
   \where {
-    \lemma left-right=id (r : \Sigma (f : Hom m1.dom m2.dom) (m2.f ∘ f = m1.f) (g : Hom m2.dom m1.dom) (m1.f ∘ g = m2.f)) : r.3 ∘ r.1 = id m1.dom
+    \lemma left-right=id (r : \Sigma (f : Hom m1.dom m2.dom) (m2.f ∘ f = m1.f) (g : Hom m2.dom m1.dom) (m1.f ∘ g = m2.f)) : r.3 ∘ r.1 = id
       => m1.isMono $ inv o-assoc *> pmap (`∘ _) r.4 *> r.2 *> inv id-right
 
-    \lemma right-left=id (r : \Sigma (f : Hom m1.dom m2.dom) (m2.f ∘ f = m1.f) (g : Hom m2.dom m1.dom) (m1.f ∘ g = m2.f)) : r.1 ∘ r.3 = id m2.dom
+    \lemma right-left=id (r : \Sigma (f : Hom m1.dom m2.dom) (m2.f ∘ f = m1.f) (g : Hom m2.dom m1.dom) (m1.f ∘ g = m2.f)) : r.1 ∘ r.3 = id
       => m2.isMono $ inv o-assoc *> pmap (`∘ _) r.2 *> r.4 *> inv id-right
   }
 
@@ -98,7 +98,7 @@
       | idp => TruncP.remove (\lam s s' => ext $ m.isMono $ s.2 *> inv s'.2) l
   }
 
-\lemma subobjLifts_id_top {C : Precat} {x : C} {s : Subobj x} : subobjLifts (id x) s <-> (s = subobjTop) \elim s
+\lemma subobjLifts_id_top {C : Precat} {x : C} {s : Subobj x} : subobjLifts id s <-> (s = subobjTop) \elim s
   | in~ m => rewrite (\peval subobjTop {_} {x}) (<=-antisymmetric $ inP (m, id-left), \lam r => =_<= (inv r))
 
 \sfunc subobjEq {C : PrecatWithBprod} (c : C) : Subobj (Bprod c c)
@@ -142,8 +142,8 @@
   => transport (subobjLifts __ _ <-> _) id-right $ <->trans (<->sym subobjPullback-lifts) subobjLifts_id_top
 
 \lemma subobjPullback_id {C : PrecatWithPullbacks} {x : C} {s : Subobj x}
-  : subobjPullback (id x) s = s \elim s
-  | in~ m => <=-antisymmetric (inP (pbProj2, inv pbCoh *> id-left)) (inP (pbMap m (id _) $ id-left *> inv id-right, pbBeta1))
+  : subobjPullback id s = s \elim s
+  | in~ m => <=-antisymmetric (inP (pbProj2, inv pbCoh *> id-left)) (inP (pbMap m id $ id-left *> inv id-right, pbBeta1))
 
 \lemma subobjPullback_o {C : PrecatWithPullbacks} {x y z : C} {f : Hom x y} {g : Hom y z} {s : Subobj z}
   : subobjPullback (g ∘ f) s = subobjPullback f (subobjPullback g s) \elim s
@@ -152,13 +152,13 @@
     (inP (pbMap pbProj1 (pbProj2 ∘ pbProj2) $ o-assoc *> pmap (g ∘) pbCoh *> inv o-assoc *> pmap (`∘ _) pbCoh *> o-assoc, pbBeta1))
 
 \lemma subobjPullback-top {C : PrecatWithPullbacks} {x y : C} {f : Hom x y} {s : Subobj y} (p : s = inso~ idIso) : subobjPullback f s = inso~ idIso \elim p
-  | idp => <=-antisymmetric (inP (pbProj1, id-left)) (inP (pbMap (id x) f (id-right *> inv id-left), pbBeta1))
+  | idp => <=-antisymmetric (inP (pbProj1, id-left)) (inP (pbMap id f (id-right *> inv id-left), pbBeta1))
 
 \lemma subobjPullback_top {C : PrecatWithPullbacks} {x y : C} {f : Hom x y} : subobjPullback f subobjTop = subobjTop
   => subobjPullback-top (\peval subobjTop {_} {y}) *> inv (\peval subobjTop {_} {x})
 
 \lemma subobjPullback-self {C : PrecatWithPullbacks} {h : Mono {C}} {s : Subobj h.cod} (p : s = inso~ h) : subobjPullback h.f s = inso~ idIso \elim p
-  | idp => <=-antisymmetric (inP (pbProj1, id-left)) (inP (pbMap (id _) (id _) idp, pbBeta1))
+  | idp => <=-antisymmetric (inP (pbProj1, id-left)) (inP (pbMap id id idp, pbBeta1))
 
 \func subobjPullback_Iso-equiv {C : PrecatWithPullbacks} (h : Iso {C}) : QEquiv {Subobj h.cod} {Subobj h.dom} \cowith
   | f => subobjPullback h.f
@@ -170,4 +170,4 @@
   : subobjPullback h.f s = inso~ (Mono.comp h.reverse m) \elim p
   | idp => <=-antisymmetric
     (inP (pbProj2, o-assoc *> pmap (_ ∘) (inv pbCoh) *> inv o-assoc *> pmap (`∘ _) h.hinv_f *> id-left))
-    (inP (pbMap (h.hinv ∘ m) (id _) $ inv o-assoc *> pmap (`∘ _) h.f_hinv *> id-left *> inv id-right, pbBeta1))
+    (inP (pbMap (h.hinv ∘ m) id $ inv o-assoc *> pmap (`∘ _) h.f_hinv *> id-left *> inv id-right, pbBeta1))

@@ -5,7 +5,7 @@
 
 \instance TopCat.{u} : Cat TopSpace.{u}
   | Hom => ContMap
-  | id X => ContMap.id
+  | id => ContMap.id
   | o => ContMap.∘
   | id-left => idp
   | id-right => idp

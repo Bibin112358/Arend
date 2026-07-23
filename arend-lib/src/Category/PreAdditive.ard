@@ -25,8 +25,8 @@
 
     {- | PreAdditiveCategory with one object is a ring -}
     \func PreAdditiveCategory-OneObject (X : PreAdditivePrecat (\Sigma)) : Ring (X.Hom () ()) \cowith
-      | AbGroup => X.AbHom {()}{()}
-      | ide => X.id ()
+      | AbGroup => X.AbHom {()} {()}
+      | ide => X.id
       | * => X.∘
       | ide-left => X.id-left
       | ide-right => X.id-right
@@ -35,8 +35,8 @@
       | rdistr => X.r-bilinear
 
     \func Ring_toCat (R : Ring) : PreAdditivePrecat (\Sigma) \cowith
-      | Hom () () => R
-      | id () => R.ide
+      | Hom _ _ => R
+      | id => R.ide
       | o => R.*
       | id-left => R.ide-left
       | id-right => R.ide-right

@@ -19,7 +19,7 @@
 
 \instance SetCat.{u} : Cat (\Set u)
   | Hom X Y => X -> Y
-  | id _ => \lam x => x
+  | id => \lam x => x
   | o g f => \lam x => g (f x)
   | id-left => idp
   | id-right => idp
@@ -158,11 +158,11 @@
       => \lam s t => ext $ NatSemiring.cancel-left n $ s.2 *> inv t.2
 
     \func natHom {n m : Nat} (s : \Sigma (k : Nat) (n + k = m)) : Hom (F n) (F m) \elim m, s
-      | _, (0, idp) => id (F n)
+      | _, (0, idp) => id
       | 0, (suc k, ())
       | suc m, (suc k, q) => f ∘ natHom (k, pmap pred q)
 
-    \lemma natHom_id {n : Nat} : natHom (0,idp) = id (F n) \elim n
+    \lemma natHom_id {n : Nat} : natHom (0,idp) = id {_} {F n} \elim n
       | 0 => idp
       | suc n => idp
 

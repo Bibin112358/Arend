@@ -34,7 +34,7 @@
 
 \instance RingCat.{u} : Cat Ring.{u}
   | Hom M N => RingHom M N
-  | id _ => RingHom.id
+  | id => RingHom.id
   | o => RingHom.∘
   | id-left => idp
   | id-right => idp
@@ -221,11 +221,11 @@
       | LAdj => ringtoMod.functor
       | RAdj => modToRing.functor
       | eta {
-        | trans M => id M
+        | trans M => RingHom.id
         | natural f => idp
       }
       | eta-iso {X} => \new Iso {
-        | hinv => id X
+        | hinv => RingHom.id
         | hinv_f => idp
         | f_hinv => idp
       }

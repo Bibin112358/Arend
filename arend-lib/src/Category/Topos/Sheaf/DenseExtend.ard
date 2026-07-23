@@ -35,7 +35,7 @@
                    | trans y => (e y).1
                    | natural {y} {y'} g => GS.separated-covering f.Func-dense-image \lam {u} (inP (x,u=fx)) => (G.Func-iso $ Iso.reverse {Iso.op {u=fx}}).isMono $
                      inv o-assoc *> pmap (`∘ _) (inv G.Func-o) *> inv o-assoc *> pmap (`∘ _) ((e y').2 (x, _)) *> o-assoc *> pmap (_ ∘) (inv F.Func-o) *> inv ((e y).2 (x, _)) *> pmap (`∘ _) G.Func-o *> o-assoc *> pmap (`∘ _) G.Func-o *> o-assoc
-                 }, exts \lam x => inv (pmap (`∘ _) G.Func-id *> id-left) *> (e (f x)).2 (x, id _) *> pmap (_ ∘) F.Func-id *> id-right)
+                 }, exts \lam x => inv (pmap (`∘ _) G.Func-id *> id-left) *> (e (f x)).2 (x, id) *> pmap (_ ∘) F.Func-id *> id-right)
 
 -- TODO: Genralize this from the map P -> SiteLocale P to a dense morphism of sites
 \lemma SiteLocaleSheaf.{u} {P : PreorderSite.{u}} {D : CompleteCat.{u}} (F : Functor P.op D) (FS : IsPreorderSheaf F) : VSheaf D (SiteLocale P) extend \cowith

@@ -78,7 +78,7 @@
 
     \instance ModelPrecat.{u} (T : Theory) : Precat (Model.{u} T)
       | Hom M N => ModelHom M N
-      | id M => \new ModelHom {
+      | id => \new ModelHom {
         | funcs x => x
         | func-op _ _ => idp
         | func-rel _ _ p => p

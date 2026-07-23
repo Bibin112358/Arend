@@ -21,7 +21,7 @@
 
 \func RingedLocalePrecat.{u} : Precat RingedLocale.{u} \cowith
   | Hom => RingedLocaleHom
-  | id _ => RingedLocaleHom.id
+  | id => RingedLocaleHom.id
   | o => RingedLocaleHom.∘
   | id-left => idp
   | id-right => idp
@@ -38,7 +38,7 @@
   | Precat => RingedLocalePrecat
   | univalence => Cat.makeUnivalenceFromPath \lam e =>
     \have sip => SIP-comb LocaleCat (\lam L => (VSheafCat CRingCat L).op) (\lam L => RingedLocale L) (RingedLocaleHom __ __)
-      (\lam h => Iso {RingedLocalePrecat} h) (\lam {L} {R} => RingedLocalePrecat.id R) (\lam {L} {R} => idIso)
+      (\lam h => Iso {RingedLocalePrecat} h) (\lam {L} {R} => RingedLocaleHom.id) (\lam {L} {R} => idIso)
       (\lam {L} => \new Embedding {
         | f R => R.R
         | isEmb R R' => \new Retraction {
@@ -60,7 +60,7 @@
 
       \lemma ring-iso.{u} {L : Locale.{u}} {R1 R2 : RingedLocale.{u} L} {f : RingedLocaleHom R1 R2 LocaleHom.id} (e : Iso {RingedLocalePrecat.{u}} f) (a : R2) : Iso (f.f# a)
         => \have | ei=id => inv FrameHom.id-left *> path (\lam i => (e.hinv_f i).f*)
-                 | gp : \Sigma (g : RingedLocaleHom R2 R1 (id L)) (g = e.hinv) => RingedLocaleHom.castOver e.hinv ei=id
+                 | gp : \Sigma (g : RingedLocaleHom R2 R1 LocaleHom.id) (g = e.hinv) => RingedLocaleHom.castOver e.hinv ei=id
                  | fg => RingedLocaleHom.eqCast $ pmap (f RingedLocalePrecat.∘) gp.2 *> e.f_hinv
                  | gf => RingedLocaleHom.eqCast $ pmap (RingedLocalePrecat.`∘ f) gp.2 *> e.hinv_f
            \in \new Iso {
@@ -97,7 +97,7 @@
 
 \func LocallyRingedLocalePrecat.{u} : Precat LocallyRingedLocale.{u} \cowith
   | Hom => LocallyRingedLocaleHom
-  | id _ => LocallyRingedLocaleHom.id
+  | id => LocallyRingedLocaleHom.id
   | o => LocallyRingedLocaleHom.∘
   | id-left => idp
   | id-right => idp
@@ -117,7 +117,7 @@
 
 \instance LocallyRingedLocaleCat.{u} : Cat LocallyRingedLocale.{u}
   | Hom => LocallyRingedLocaleHom
-  | id _ => LocallyRingedLocaleHom.id
+  | id => LocallyRingedLocaleHom.id
   | o => LocallyRingedLocaleHom.∘
   | id-left => idp
   | id-right => idp

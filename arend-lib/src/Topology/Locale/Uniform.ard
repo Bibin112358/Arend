@@ -173,7 +173,7 @@
 
 \func PreuniformCat.{u} : Cat PreuniformLocale.{u} \cowith
   | Hom => UniformHom
-  | id L => UniformHom.id
+  | id => UniformHom.id
   | o => UniformHom.∘
   | id-left => idp
   | id-right => idp

@@ -166,7 +166,7 @@ public class SIPMeta extends BaseMetaDefinition {
           .app(factory.core(obTyped), false)
           .app(factory.lam(Arrays.asList(factory.param(jRef1), factory.param(jRef2)), factory.app(factory.ref(typechecker.getPrelude().getEqualityRef()), true, Arrays.asList(
             factory.appBuilder(factory.ref(homFunc.getRef()))
-              .app(factory.app(factory.ref(transport), true, Arrays.asList(factory.lam(Collections.singletonList(factory.param(transportRef)), factory.app(factory.core(homTyped), true, Arrays.asList(eDom, factory.ref(transportRef)))), factory.ref(jRef2), factory.app(factory.core(idTyped), true, Collections.singletonList(eDom)))), false)
+              .app(factory.app(factory.ref(transport), true, Arrays.asList(factory.lam(Collections.singletonList(factory.param(transportRef)), factory.app(factory.core(homTyped), true, Arrays.asList(eDom, factory.ref(transportRef)))), factory.ref(jRef2), factory.core(idTyped))), false)
               .app(factory.ref(extRef))
               .build(),
             factory.app(factory.ref(typechecker.getPrelude().getCoerceRef()), true, Arrays.asList(factory.lam(Collections.singletonList(factory.param(iRef)), factory.app(factory.ref(typechecker.getPrelude().getAtRef()), true, Arrays.asList(factory.ref(jRef2), factory.ref(iRef)))), factory.ref(extRef), factory.ref(typechecker.getPrelude().getRightRef())))))))

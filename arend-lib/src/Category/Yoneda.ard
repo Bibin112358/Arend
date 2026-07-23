@@ -28,9 +28,9 @@
   | natural f => exts \lam g => path \lam i => F.Func-o i x
 
 \func Yoneda-lemma.{o,h} {C : Precat.{o,h}} {a : C} {F : Functor C.op SetCat.{h}} : QEquiv {NatTrans (HomLeft a) F} {F a} \cowith
-  | f nat => nat a (id a)
+  | f nat => nat a id
   | ret => Yoneda-trans
-  | ret_f nf => exts \lam _ => exts \lam f => inv (path \lam i => nf.natural f i (id a)) *> unfold (rewrite id-left idp)
+  | ret_f nf => exts \lam _ => exts \lam f => inv (path \lam i => nf.natural f i id) *> unfold (rewrite id-left idp)
   | f_sec x => path \lam i => F.Func-id i x
 
 \lemma Yoneda-apply.{o,h} {C : Precat.{o,h}} {a : C} (S T : Functor C.op SetCat.{h}) (f : NatTrans S T) {x : S a} : f ∘ Yoneda-trans x = Yoneda-trans (f a x)
@@ -53,7 +53,7 @@
 \instance PrecategoryOfElements.{s,o,h} {C : Precat.{o,h}} (P : Presheaf.{s} C) : Precat
   | Ob => \Sigma (c : C) (p : P c)
   | Hom x y => \Sigma (u : Hom x.1 y.1) (\property x.2 = P.F.Func u y.2)
-  | id (c, p) => (id c, rewrite P.F.Func-id idp)
+  | id => (id, rewrite P.F.Func-id idp)
   | o (u, eq) (u', eq') => (u ∘ u', eq' *> rewrite (eq, P.F.Func-o) idp)
   | id-left => exts id-left
   | id-right => exts id-right
@@ -84,7 +84,7 @@
     | natural {X} {Y} f => exts \lam g =>
       \let | ch => cone.coneCoh {X, g} {Y, Func {P} f g} (f, idp)
            | nat => (cone.coneMap (X, g)).natural f
-           | nat-applied => path \lam i => nat i (id X)
+           | nat-applied => path \lam i => nat i id
       \in run {
         repeat {3} unfold,
         rewriteI ch,
@@ -102,8 +102,8 @@
     \let | elem : PrecategoryOfElements P => (X, p)
          | eq-app => eq (X, p)
          | eq' => path (\lam i => (eq-app i) X)
-         | eq'' => path (\lam i => (eq' i) (id X))
-    \in repeat {3} unfold at eq'' $ (rewriteI (path (\lam i => (Func-id {P} {X}) i p) : Func {P} {X} {X} (id X) p = p)) eq''
+         | eq'' => path (\lam i => (eq' i) id)
+    \in repeat {3} unfold at eq'' $ (rewriteI (path (\lam i => (Func-id {P} {X}) i p) : Func {P} {X} {X} id p = p)) eq''
 
 \open PrecategoryOfElements
 
@@ -127,7 +127,7 @@
 
     \func induced-natural.{s,o,h} {C : Precat.{s,s}} {E : CocompletePrecat.{s,o,h}} {A : Functor C E} {X Y : Presheaf.{s} C} (f : NatTrans X Y)
       : NatTrans (Comp (diagram A Y).op (functorial X Y f).op) (diagram A X).op \cowith
-      | trans (q, a) => id (A q)
+      | trans (q, a) => id
       | natural _ => repeat {4} unfold $ rewrite (id-left, id-right) idp
 
     \func cone-in-induced.{s,o,h} {C : Precat.{s,s}} {E : CocompletePrecat.{s,o,h}} {A : Functor C E} {X Y : Presheaf.{s} C} (f : NatTrans X Y)
@@ -141,9 +141,9 @@
     \open YonedaLift
 
     \protected \func nat : NatTrans A (Comp (YonedaLift A) Yoneda) \cowith
-      | trans x => (ObjLift A (HomPresheaf x)).coneMap (x, id x)
-      | natural {X} {Y} f => inv $ (ObjLift A (HomPresheaf X)).limBeta (cone-in-induced {_} {_} {_} {HomPresheaf X} (Yoneda.Func f)) (X, id X) *>
-          id-right *> cong id-right *> inv ((ObjLift A (HomPresheaf Y)).coneCoh {Y, id Y} {X, f} (f, inv id-left))
+      | trans x => (ObjLift A (HomPresheaf x)).coneMap (x, id)
+      | natural {X} {Y} f => inv $ (ObjLift A (HomPresheaf X)).limBeta (cone-in-induced {_} {_} {_} {HomPresheaf X} (Yoneda.Func f)) (X, id) *>
+          id-right *> cong id-right *> inv ((ObjLift A (HomPresheaf Y)).coneCoh {Y, id} {X, f} (f, inv id-left))
 
     \protected \lemma nat-iso (x : C) : Iso (nat x) \cowith
       | hinv => (ObjLift A (HomPresheaf x)).limMap cone

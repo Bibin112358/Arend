@@ -9,7 +9,7 @@
 
 \class Functor (C : Precat) (D : Precat) (\classifying F : C -> D) {
   | Func {X Y : C} : Hom X Y -> Hom (F X) (F Y)
-  | Func-id {X : C} : Func (id X) = id (F X)
+  | Func-id {X : C} : Func (id {_} {X}) = id
   | Func-o {X Y Z : C} {g : Hom Y Z} {f : Hom X Y} : Func (g ∘ f) = Func g ∘ Func f
 
   \protected \func op : Functor C.op D.op F \cowith
@@ -25,12 +25,12 @@
     | f_hinv => inv Func-o *> pmap Func e.f_hinv *> Func-id
 } \where {
   \lemma transport_Hom {C D E : Precat} {x1 y1 : C} (p1 : x1 = y1) {x2 y2 : D} (p2 : x2 = y2) (F : Functor C E) (G : Functor D E) {g : Hom (F x1) (G x2)} {f : Hom (F y1) (G y2)}
-                       (h : transport (Hom (G x2)) (pmap G p2) (id (G x2)) ∘ g = f ∘ transport (Hom (F x1)) (pmap F p1) (id (F x1)))
+                       (h : transport (Hom (G x2)) (pmap G p2) id ∘ g = f ∘ transport (Hom (F x1)) (pmap F p1) id)
     : coe (\lam i => Hom (F (p1 @ i)) (G (p2 @ i))) g right = f \elim p1, p2
     | idp, idp => inv id-left *> h *> id-right
 
   \lemma transport_Hom-right {C D : Precat} {x y : C} (p : x = y) {z : D} (F : Functor C D) {g : Hom z (F x)}
-    : transport (Hom z) (pmap F p) g = F.Func (transport (Hom x) p (id x)) ∘ g \elim p
+    : transport (Hom z) (pmap F p) g = F.Func (transport (Hom x) p id) ∘ g \elim p
     | idp => inv (pmap (`∘ g) Func-id *> id-left)
 
   \lemma transport_Hom_iso-right {C : Cat} {D : Precat} (e : Iso {C}) {z : D} (F : Functor C D) {g : Hom z (F e.dom)}
@@ -57,7 +57,7 @@
 
 \func Const {C D : Precat} (d : D) : Functor C D \cowith
   | F _ => d
-  | Func _ => id d
+  | Func _ => id
   | Func-id => idp
   | Func-o => inv id-left
   \where {
@@ -93,7 +93,7 @@
     => (G.Func-splitMono e).isMono $ inv (a.natural e.f) *> pmap (`∘ _) p *> b.natural e.f
 
   \protected \func \fixl 8 id {C : Precat} {D : Precat} {F : Functor C D} : NatTrans F F \cowith
-    | trans X => D.id (F X)
+    | trans X => D.id
     | natural f => id-left *> inv id-right
 
   \protected \func \fixl 8 compose {C : Precat} {D : Precat} {F G H : Functor C D} (b : NatTrans G H) (a : NatTrans F G) : NatTrans F H \cowith
@@ -108,7 +108,7 @@
 
 \instance FunctorPrecat (C : Precat) (D : Precat) : Precat (Functor C D)
   | Hom => NatTrans
-  | id _ => NatTrans.id
+  | id => NatTrans.id
   | o => NatTrans.compose
   | id-left => exts (\lam X => id-left)
   | id-right => exts (\lam X => id-right)
@@ -137,7 +137,7 @@
 
 \instance FamPrecat {J : \Type} (D : Precat) : Precat (J -> D)
   | Hom F G => \Pi {j : J} -> Hom (F j) (G j)
-  | id F {j} => id (F j)
+  | id => id
   | o g f {j} => g ∘ f
   | id-left => ext (\lam {j} => id-left)
   | id-right => ext (\lam {j} => id-right)
@@ -190,7 +190,7 @@
   \protected \lemma inverse-right {X Y : C} {f : Hom (F X) (F Y)} : Func (inverse f) = f
     => IsEquiv.f_ret isFullyFaithful
 
-  \lemma inverse-id {x : C} : inverse (id (F x)) = id x
+  \lemma inverse-id {x : C} : inverse (id {_} {F x}) = id {_} {x}
     => pmap inverse (inv Func-id) *> inverse-left
 
   \lemma inverse-o {x y z : C} {g : Hom (F y) (F z)} {f : Hom (F x) (F y)} : inverse (g ∘ f) = inverse g ∘ inverse f

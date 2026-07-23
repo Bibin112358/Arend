@@ -54,26 +54,26 @@
 \class PrecatWithPowerObject \extends FinCompletePrecat {
   | Power : Ob -> Ob
   | Power-belongs (a : Ob) : Subobj {\this} (Bprod a (Power a))
-  | Power-univ {c a : Ob} : IsEquiv {Hom c (Power a)} {Subobj {\this} (Bprod a c)} (\lam h => subobjPullback (prodMap (id a) h) (Power-belongs a))
+  | Power-univ {c a : Ob} : IsEquiv {Hom c (Power a)} {Subobj {\this} (Bprod a c)} (\lam h => subobjPullback (prodMap id h) (Power-belongs a))
 
   \func Power-char {c a : Ob} (s : Subobj (Bprod a c)) : Hom c (Power a)
     => IsEquiv.ret Power-univ s
 
-  \lemma pullback_Power {c a : Ob} {s : Subobj (Bprod a c)} : subobjPullback (prodMap (id a) (Power-char s)) (Power-belongs a) = s
+  \lemma pullback_Power {c a : Ob} {s : Subobj (Bprod a c)} : subobjPullback (prodMap id (Power-char s)) (Power-belongs a) = s
     => IsEquiv.f_ret Power-univ
 
-  \lemma Power_pullback {c a : Ob} {f : Hom c (Power a)} : Power-char (subobjPullback (prodMap (id a) f) (Power-belongs a)) = f
+  \lemma Power_pullback {c a : Ob} {f : Hom c (Power a)} : Power-char (subobjPullback (prodMap id f) (Power-belongs a)) = f
     => IsEquiv.ret_f Power-univ
 
-  \lemma Power-char_o {a b c : Ob} {f : Hom a b} {s : Subobj (Bprod c b)} : Power-char s ∘ f = Power-char (subobjPullback (prodMap (id c) f) s)
+  \lemma Power-char_o {a b c : Ob} {f : Hom a b} {s : Subobj (Bprod c b)} : Power-char s ∘ f = Power-char (subobjPullback (prodMap id f) s)
     => IsEquiv.isInj Power-univ $ pmap (subobjPullback __ _) (inv prod-id-left) *> subobjPullback_o *> pmap (subobjPullback _) pullback_Power *> inv pullback_Power
 
   \lemma Power_lift-char {a b c : Ob} {f : Hom a b} {s : Subobj (Bprod c b)}
-    : subobjLifts (prodMap (id c) f) s <-> (Power-char s ∘ f = Power-char subobjTop)
+    : subobjLifts (prodMap id f) s <-> (Power-char s ∘ f = Power-char subobjTop)
     => rewrite pullback_Power in revered {_} {_} {_} {_} {f} {Power-char s}
     \where {
       \protected \lemma revered {g : Hom b (Power c)}
-        : subobjLifts (prodMap (id c) f) (subobjPullback (prodMap (id c) g) (Power-belongs c)) <-> (g ∘ f = Power-char subobjTop)
+        : subobjLifts (prodMap id f) (subobjPullback (prodMap id g) (Power-belongs c)) <-> (g ∘ f = Power-char subobjTop)
         => <->trans subobjPullback-lifts $ transportInv (subobjLifts __ _ <-> _) prod-id-left $
             <->trans subobjLifts_top (\lam p => inv Power_pullback *> pmap Power-char p, later \lam p => rewrite p pullback_Power)
     }
@@ -110,11 +110,11 @@
                 (inv o-assoc *> pmap (`∘ _) beta2 *> o-assoc *> pmap (_ ∘) beta2 *> inv beta2)))
     }
 
-  \lemma PHom-univ {a b c : Ob} : IsEquiv {Hom a (PHom b c)} {Hom (Bprod a b) c} (\lam g => PHom-eval ∘ prodMap g (id b))
+  \lemma PHom-univ {a b c : Ob} : IsEquiv {Hom a (PHom b c)} {Hom (Bprod a b) c} (\lam g => PHom-eval ∘ prodMap g id)
     => IsEquiv.fromInjSurj (\lam {g} {g'} p =>
-          \have | t => pmap (subobjPullback (prodMap (id c) swap ∘ associator)) $ subobjPullback_o *> IsEquiv.isInj (IsEquiv.ret-equiv Power-univ)
+          \have | t => pmap (subobjPullback (prodMap id swap ∘ associator)) $ subobjPullback_o *> IsEquiv.isInj (IsEquiv.ret-equiv Power-univ)
                         (inv Power-char_o *> inv o-assoc *> pmap (`∘ _) (inv PHom-eval.char.2) *> o-assoc *> pmap (Power-singleton c ∘) p *> inv o-assoc *> pmap (`∘ _) PHom-eval.char.2 *> o-assoc *> Power-char_o) *> inv subobjPullback_o
-                | lem g : associator-iso.hinv ∘ prodMap (id c) (pair proj2 (Equalizer.eql ∘ proj1) ∘ prodMap g (id b)) ∘ (prodMap (id c) swap ∘ associator) = prodMap (id _) (Equalizer.eql ∘ g)
+                | lem g : associator-iso.hinv ∘ prodMap id (pair proj2 (Equalizer.eql ∘ proj1) ∘ prodMap g id) ∘ (prodMap id swap ∘ associator) = prodMap id (Equalizer.eql ∘ g)
                   => pmap (_ ∘ prodMap _ __ ∘ _) (pair-comp *> pmap2 pair (beta2 *> id-left) (o-assoc *> pmap (_ ∘) beta1)) *> pmap2 (_ ∘ pair __ __ ∘ _) id-left pair-comp *> pmap (`∘ _) associator-inv-pair *> pair-comp *> pmap2 pair
                       (pair-comp *> pmap2 pair (inv o-assoc *> pmap (`∘ _) beta1 *> pmap (`∘ _) id-left *> beta1) (o-assoc *> pmap (_ ∘) (inv o-assoc *> pmap (`∘ _) beta2 *> o-assoc *> pmap (_ ∘) beta2) *> inv o-assoc *> pmap (`∘ _) beta2 *> beta1) *> inv pair-comp *> pmap (`∘ _) pair-eta)
                       (o-assoc *> o-assoc *> pmap (_ ∘) (o-assoc *> pmap (_ ∘) (pmap (_ ∘) (inv o-assoc *> pmap (`∘ _) beta2 *> o-assoc) *> inv o-assoc *> pmap2 (∘) beta1 beta2 *> beta2)) *> inv o-assoc)
@@ -128,7 +128,7 @@
           pmap (subobjPullback _) (inv pullback_Power) *> inv subobjPullback_o *> pmap (subobjPullback __ _) prod-id-left))
     \where {
       \func graph (h : Hom (Bprod a b) c) : Subobj (Bprod (Bprod c b) a)
-        => subobjPullback (prodMap (id c) (h ∘ swap) ∘ associator) (subobjEq c)
+        => subobjPullback (prodMap id (h ∘ swap) ∘ associator) (subobjEq c)
 
       \lemma graph-eq (h : Hom (Bprod a b) c)
         : Power-char (subobjPullback PHom.psmap (Power-singleton-subobj c)) ∘ Power-char (graph h) = Power-char subobjTop ∘ Power-char (graph h)
@@ -153,7 +153,7 @@
 
     \class FromPowerObject \extends ToposPrecat
       | Omega => Power terminal
-      | Omega-true => subobjPullback (pair terminalMap (id _)) (Power-belongs terminal)
+      | Omega-true => subobjPullback (pair terminalMap id) (Power-belongs terminal)
       | Omega-univ => transport IsEquiv
           (ext \lam h => inv subobjPullback_o *> pmap (subobjPullback __ _) (pair-unique terminal-unique $ inv o-assoc *> pmap (`∘ _) beta2 *> o-assoc *> pmap (h ∘) beta2 *> id-right *> inv id-left *> pmap (`∘ h) (inv beta2) *> o-assoc) *> subobjPullback_o) $
           IsEquiv.trans Power-univ $ inP (subobjPullback_Iso-equiv Bprod_terminal-left)

@@ -95,7 +95,7 @@
           | F => \new Functor {
             | F c => L c
             | Func f => limMap (cone f)
-            | Func-id {X} => limUnique \lam j => limBeta {L X} (cone (id X)) j *> pmap (`∘ _) Func-id *> id-left *> inv id-right
+            | Func-id {X} => limUnique \lam j => limBeta {L X} (cone id) j *> pmap (`∘ _) Func-id *> id-left *> inv id-right
             | Func-o {_} {Y} {Z} {g} {f} => limUnique (\lam j => rewrite (limBeta {L Z} (cone (f ∘ g)) j, inv o-assoc,
                                                                           limBeta {L Z} (cone g) j) (unfold coneMap
                 (rewrite (Func-o {G j}, o-assoc, o-assoc) (rewrite (limBeta {L Y} (cone f) j) (unfold coneMap idp)))))

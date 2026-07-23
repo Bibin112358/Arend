@@ -30,7 +30,7 @@
 
 \func FrameCat.{u} : Cat Locale.{u} \cowith
   | Hom => FrameHom
-  | id L => FrameHom.id
+  | id => FrameHom.id
   | o => FrameHom.∘
   | id-left => idp
   | id-right => idp
@@ -62,7 +62,7 @@
 
 \func PreorderSiteCat.{u} : Cat PreorderSite.{u} \cowith
   | Hom => PreorderSiteHom
-  | id X => PreorderSiteHom.id
+  | id => PreorderSiteHom.id
   | o => PreorderSiteHom.∘
   | id-left => idp
   | id-right => idp

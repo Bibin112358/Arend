@@ -7,7 +7,7 @@
 
 \instance PrecoverSpaceCat.{u} : Cat PrecoverSpace.{u}
   | Hom => PrecoverMap
-  | id X => PrecoverMap.id
+  | id => PrecoverMap.id
   | o => PrecoverMap.∘
   | id-left => idp
   | id-right => idp
@@ -18,7 +18,7 @@
 
 \instance CoverSpaceCat.{u} : Cat CoverSpace.{u}
   | Hom => CoverMap
-  | id X => CoverMap.id
+  | id => CoverMap.id
   | o => CoverMap.∘
   | id-left => idp
   | id-right => idp

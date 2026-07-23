@@ -11,7 +11,7 @@
 
 \instance LModuleCat.{u} (R : Ring) : Cat (LModule.{u} R)
   | Hom A B => LinearMap A B
-  | id _ => LinearMap.id
+  | id => LinearMap.id
   | o => LinearMap.∘
   | id-left => idp
   | id-right => idp

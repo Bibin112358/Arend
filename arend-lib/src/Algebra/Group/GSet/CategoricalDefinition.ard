@@ -21,7 +21,7 @@
 \instance DeloopM (M : Monoid) : Precat
   | Ob => \Sigma
   | Hom _ _ => M
-  | id _ => M.ide
+  | id => M.ide
   | o => *
   | id-left => ide-left
   | id-right => ide-right

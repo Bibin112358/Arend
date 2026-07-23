@@ -8,7 +8,7 @@
 \instance ProductPrecat (C D : Precat) : Precat
   | Ob => \Sigma C.Ob D.Ob
   | Hom X Y => \Sigma (C.Hom X.1 Y.1) (D.Hom X.2 Y.2)
-  | id X => (id X.1, id X.2)
+  | id => (id, id)
   | o f g => (f.1 ∘ g.1, f.2 ∘ g.2)
   | id-left => rewrite (id-left, id-left) idp
   | id-right => rewrite (id-right, id-right) idp

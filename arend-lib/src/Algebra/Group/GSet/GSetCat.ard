@@ -7,7 +7,7 @@
 
 \instance GSetCategory.{u} (G : Group) : Cat (GSet.{u} G)
   | Hom A B => EquivariantMap A B
-  | id X => EquivariantMap.id
+  | id => EquivariantMap.id
   | o => EquivariantMap.∘
   | id-left => idp
   | id-right => idp

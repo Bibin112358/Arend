@@ -15,13 +15,13 @@
 \class CartesianClosedPrecat \extends CartesianPrecat {
   | CHom : Ob -> Ob -> Ob
   | CHom-eval {X Y : Ob} : Hom (Bprod (CHom X Y) X) Y
-  | CHom-univ {X Y Z : Ob} : IsEquiv {Hom Z (CHom X Y)} {Hom (Bprod Z X) Y} (\lam g => CHom-eval ∘ prodMap g (id X))
+  | CHom-univ {X Y Z : Ob} : IsEquiv {Hom Z (CHom X Y)} {Hom (Bprod Z X) Y} (\lam g => CHom-eval ∘ prodMap g id)
 
   \func curry {X Y Z : Ob} (f : Hom (Bprod Z X) Y) : Hom Z (CHom X Y)
     => IsEquiv.ret CHom-univ f
 
   \func uncurry {X Y Z : Ob} (g : Hom Z (CHom X Y)) : Hom (Bprod Z X) Y
-    => CHom-eval ∘ prodMap g (id X)
+    => CHom-eval ∘ prodMap g id
 
   \lemma curry_uncurry {X Y Z : Ob} {g : Hom Z (CHom X Y)} : curry (uncurry g) = g
     => IsEquiv.ret_f CHom-univ

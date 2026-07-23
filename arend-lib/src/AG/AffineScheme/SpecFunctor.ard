@@ -42,7 +42,7 @@
   | Func-id {R} => ~-hequiv {Spec.satSite R} {Spec.satSite R} _ _ $ later \new ~ {
     | ~-dir c => cover-refl ((), c)
     | ~-conv c => cover-refl c.2
-    | ~-f# {b} {a} {bfa} {bga} {x} => LocRing.isLocalization.isEpi ((sitePrehom (id R)).f# bfa) (SpecFunc bga.2)
+    | ~-f# {b} {a} {bfa} {bga} {x} => LocRing.isLocalization.isEpi ((sitePrehom id).f# bfa) (SpecFunc bga.2)
       \lam y => pmap (SpecFunc bga.2) lift_inL *> lift_inL *> inv lift_inL
   }
   | Func-o {R} {S} {T} {g} {f} => ~-hequiv (sitePrehom (f RingHom.∘ g)) _ $ later \new ~ {

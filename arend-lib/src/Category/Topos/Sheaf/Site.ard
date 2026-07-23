@@ -17,7 +17,7 @@
       => ∀ {y : P} ∃ (z : Q) (f : Hom y.1 z.1) (z.2 ∘ f = y.2)
 
     \lemma <=_Refines {P Q : Presieve x} (P<=Q : P ⊆ Q) : Refines P Q
-      => \lam {y} Py => inP (y, P<=Q Py, id y.1, id-right)
+      => \lam {y} Py => inP (y, P<=Q Py, id, id-right)
 
     \protected \func pushforward (F : Functor) {x : F.C} (P : Presieve x) : Presieve (F x)
       => \lam py => ∃ (px : P) (py = (F px.1, Func px.2)) -- (f : Hom py.1 (F px.1)) (py.2 = Func px.2 ∘ f)
@@ -38,15 +38,15 @@
 }
 
 \truncated \data Covering {C : Site} (x : C) (U : Presieve x) : \Prop
-  | covering-inj {y : C} (s : Hom x y) (p : Hom y x) (p ∘ s = id x) (U (y,p))
+  | covering-inj {y : C} (s : Hom x y) (p : Hom y x) (p ∘ s = id) (U (y,p))
   | covering-trans {T : Presieve x} (isCover x T)
                    (∀ {y : T} (Covering y.1 \lam z => ∃ (u : U) (f : Hom z.1 u.1) (u.2 ∘ f = y.2 ∘ z.2)))
   \where {
     \lemma covering-id {x : C} {U : Presieve x} (Uid : U ObOver.id) : Covering x U
-      => covering-inj (id x) (id x) id-left Uid
+      => covering-inj id id id-left Uid
 
     \lemma covering-basic {x : C} {U : Presieve x} (x<=U : isCover x U) : Covering x U
-      => covering-trans x<=U \lam {y} Uy => covering-id $ inP (y, Uy, id y.1, idp)
+      => covering-trans x<=U \lam {y} Uy => covering-id $ inP (y, Uy, id, idp)
 
     \lemma covering-sub {x : C} {V U : Presieve x} (x<=V : Covering x V) (V<=U : V ⊆ U) : Covering x U \elim x<=V
       | covering-inj s p ps=id Vy => covering-inj s p ps=id (V<=U Vy)
@@ -58,11 +58,11 @@
       | covering-trans y<=T R => \case cover-stable h y<=T \with {
         | inP (pT,x<=pT,pT<=T) => covering-trans x<=pT \lam {pt} pTpt => \case pT<=T pTpt \with {
           | inP (t,Tt,pt>t,pt>t_h) => covering-sub (covering-stable pt>t (R Tt)) \lam {pz} (inP (z, inP (v,Vv,z>v,z>v_t), pz>z,pz>z_pt>t)) =>
-            inP ((pz.1, pt.2 ∘ pz.2), inP (v, Vv, z>v ∘ pz>z, inv o-assoc *> pmap (`∘ _) z>v_t *> o-assoc *> pmap (_ ∘) pz>z_pt>t *> inv o-assoc *> pmap (`∘ _) pt>t_h *> o-assoc), id pz.1, id-right)
+            inP ((pz.1, pt.2 ∘ pz.2), inP (v, Vv, z>v ∘ pz>z, inv o-assoc *> pmap (`∘ _) z>v_t *> o-assoc *> pmap (_ ∘) pz>z_pt>t *> inv o-assoc *> pmap (`∘ _) pt>t_h *> o-assoc), id, id-right)
         }
       }
 
-    \lemma covering-stable-retract {x : C} {y : C} (g : Hom y x) (h : Hom x y) (h_g : h ∘ g = id y) {V : Presieve y}
+    \lemma covering-stable-retract {x : C} {y : C} (g : Hom y x) (h : Hom x y) (h_g : h ∘ g = id) {V : Presieve y}
       (c : Covering x (\lam px => ∃ (py : V) (f : Hom px.1 py.1) (py.2 ∘ f = h ∘ px.2))) : Covering y V
       => covering-refine (covering-stable g c) \lam {py} (inP (px, inP (v,Vv,px_v,px_v_h), py_px, py_px_g)) =>
         inP (v, Vv, px_v ∘ py_px, inv o-assoc *> pmap (`∘ _) px_v_h *> o-assoc *> pmap (h ∘) py_px_g *> inv o-assoc *> pmap (`∘ _) h_g *> id-left)
@@ -82,5 +82,5 @@
         inP (u, Uu, py>u ∘ px>py, inv o-assoc *> pmap (`∘ _) py>u_p *> o-assoc *> pmap (p ∘) px>py_s *> inv o-assoc *> pmap (`∘ _) ps=id *> id-left)
       | covering-trans x<=T T<=V => covering-trans x<=T \lam {z} Tz => covering-trans* (T<=V Tz) \lam {w} (inP (v,Vv,w>v,w>v_z)) =>
         covering-sub (covering-stable w>v (R Vv)) \lam {a} (inP (b, inP (u,Uu,b>u,b>u_v), a>b, a>b_w>v)) =>
-          inP ((a.1, w.2 ∘ a.2), inP (u, Uu, b>u ∘ a>b, inv o-assoc *> pmap (`∘ _) b>u_v *> o-assoc *> pmap (_ ∘) a>b_w>v *> inv o-assoc *> pmap (`∘ _) w>v_z *> o-assoc), id a.1, id-right)
+          inP ((a.1, w.2 ∘ a.2), inP (u, Uu, b>u ∘ a>b, inv o-assoc *> pmap (`∘ _) b>u_v *> o-assoc *> pmap (_ ∘) a>b_w>v *> inv o-assoc *> pmap (`∘ _) w>v_z *> o-assoc), id, id-right)
   }

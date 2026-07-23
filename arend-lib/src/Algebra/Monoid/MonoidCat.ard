@@ -20,7 +20,7 @@
 
 \instance MonoidCat.{u} : Cat Monoid.{u}
   | Hom M N => MonoidHom M N
-  | id _ => MonoidHom.id
+  | id => MonoidHom.id
   | o => MonoidHom.∘
   | id-left => idp
   | id-right => idp
@@ -90,11 +90,11 @@
       | LAdj => monoidToMod.functor
       | RAdj => modToMonoid.functor
       | eta {
-        | trans M => id M
+        | trans M => id
         | natural f => idp
       }
       | eta-iso {X} => \new Iso {
-        | hinv => id X
+        | hinv => id
         | hinv_f => idp
         | f_hinv => idp
       }
@@ -169,7 +169,7 @@
 
 \instance AddMonoidCat.{u} : Cat AddMonoid.{u}
   | Hom M N => AddMonoidHom M N
-  | id _ => AddMonoidHom.id
+  | id => AddMonoidHom.id
   | o => AddMonoidHom.∘
   | id-left => idp
   | id-right => idp

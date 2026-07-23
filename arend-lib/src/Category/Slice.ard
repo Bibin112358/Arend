@@ -5,7 +5,7 @@
 
 \func ObOver {C : Precat} (x : C) => \Sigma (y : C) (Hom y x)
   \where {
-    \protected \func id : ObOver x => (x, C.id x)
+    \protected \func id : ObOver x => (x, C.id)
 
     \sfunc equals {y z : ObOver x} (p : y.1 = z.1) (q : y.2 = z.2 ∘ C.idtoiso p) : y = z
       => Jl (\lam z' p' => \Pi (z2 : Hom z' x) -> y.2 = z2 ∘ C.idtoiso p' -> y = (z',z2)) (\lam z2 q' => pmap {_} {ObOver x} (y.1,__) (q' *> id-right)) p z.2 q
@@ -16,7 +16,7 @@
 
 \instance SlicePrecat {C : Precat} (x : C) : Precat (ObOver x)
   | Hom (y,f) (z,g) => \Sigma (h : Hom y z) (g ∘ h = f)
-  | id (y,f) => (id y, id-right)
+  | id => (id, id-right)
   | o (h1,p1) (h2,p2) => (h1 ∘ h2, inv o-assoc *> pmap (`∘ h2) p1 *> p2)
   | id-left => ext id-left
   | id-right => ext id-right

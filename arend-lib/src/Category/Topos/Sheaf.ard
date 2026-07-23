@@ -179,18 +179,18 @@
           | coneCoh h => $ inv o-assoc *> pmap (`∘ _) (inv Func-o) *> mf.isMatching (inv o-assoc *> h.2)
         }
         | ret c => \new MatchingFamily {
-          | family j => c.coneMap (j.1.1, j.1, j.2, id j.1.1)
-          | isMatching {j} {j'} {z} {g} {g'} p => c.coneCoh {j.1.1, j.1, j.2, id j.1.1} (g, pmap (`∘ g) id-right) *> inv id-left *> pmap (`∘ _) (inv Func-id) *> c.coneCoh {z, j.1, j.2, g} {z, j'.1, j'.2, g'} (id z, id-right *> p) *> inv (c.coneCoh {j'.1.1, j'.1, j'.2, id j'.1.1} (g', pmap (`∘ g') id-right))
+          | family j => c.coneMap (j.1.1, j.1, j.2, id)
+          | isMatching {j} {j'} {z} {g} {g'} p => c.coneCoh {j.1.1, j.1, j.2, id} (g, pmap (`∘ g) id-right) *> inv id-left *> pmap (`∘ _) (inv Func-id) *> c.coneCoh {z, j.1, j.2, g} {z, j'.1, j'.2, g'} (id, id-right *> p) *> inv (c.coneCoh {j'.1.1, j'.1, j'.2, id} (g', pmap (`∘ g') id-right))
         }
         | ret_f mf => exts \lam j => pmap (`∘ _) Func-id *> id-left
-        | f_sec c => exts \lam j => c.coneCoh {j.2.1, j.2, j.3, id j.2.1} (j.4, pmap (`∘ _) id-right)
+        | f_sec c => exts \lam j => c.coneCoh {j.2.1, j.2, j.3, id} (j.4, pmap (`∘ _) id-right)
       } \in (\lam sc => transport IsEquiv (ext \lam h => exts \lam j => inv $ pmap (`∘ h) Func-o *> o-assoc) $ IsEquiv.trans sc (inP e),
              \lam lc => transport IsEquiv (ext \lam h => exts \lam j => pmap (Func __ ∘ h) id-right) $ IsEquiv.trans lc $ inP (symQEquiv e))
       \where {
         \func coneJ : Precat \cowith
           | Ob => Given (y : C) (px : S) (Hom y px.1)
           | Hom t s => \Sigma (f : Hom s.1 t.1) (t.2.2 ∘ t.4 ∘ f = s.2.2 ∘ s.4)
-          | id s => (id s.1, id-right)
+          | id => (id, id-right)
           | o f g => (g.1 ∘ f.1, inv o-assoc *> pmap (`∘ _) g.2 *> f.2)
           | id-left => ext id-right
           | id-right => ext id-left
@@ -217,7 +217,7 @@
     | covering-inj s p ps=id Up \as x<=U => IsEquiv.fromInjSurj (separated-covering-inj x<=U) \lam mf => inP (Func s ∘ mf.family (_, Up), exts \lam j =>
       inv o-assoc *> pmap (`∘ _) (inv Func-o) *> mf.isMatching (inv o-assoc *> pmap (`∘ _) ps=id *> id-left *> inv id-right) *> pmap (`∘ _) Func-id *> id-left)
     | covering-trans {T} x<=T T<=U => covering-refined
-      (Covering.covering-trans x<=T \lam {t} Tt => Covering.covering-sub (T<=U Tt) \lam {z} r => inP $ later (_, TSetIm-con $ later ((t,Tt),(z,r)), id z.1, id-right))
+      (Covering.covering-trans x<=T \lam {t} Tt => Covering.covering-sub (T<=U Tt) \lam {z} r => inP $ later (_, TSetIm-con $ later ((t,Tt),(z,r)), id, id-right))
       (later \lam ((t,Tt), (z, inP (u,Uu,f,f_t))) => inP ((u,Uu),f,f_t)) $
       covering-comp {_} {x} {d} {Given T} {__.1} (isSheaf x<=T) {\lam t => Given (z : ObOver t.1.1) ∃ (u : U) (f : Hom z.1 u.1) (u.2 ∘ f = t.1.2 ∘ z.2)} {__.1}
         (\lam {t} => Covering.covering-sub (T<=U t.2) \lam {z} r => TSetIm-con $ later (z,r))

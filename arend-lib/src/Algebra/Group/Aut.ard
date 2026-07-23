@@ -21,7 +21,7 @@
   }
 
 \func End {C : Precat} (c : C) : Monoid (Hom c c) \cowith
-  | ide => id c
+  | ide => id
   | * => ∘
   | ide-left => id-left
   | ide-right => id-right

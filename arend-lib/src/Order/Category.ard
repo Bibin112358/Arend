@@ -11,7 +11,7 @@
 
 \instance PosetCat.{u} : Cat Poset.{u}
   | Hom P1 P2 => PosetHom P1 P2
-  | id _ => PosetHom.id
+  | id => PosetHom.id
   | o => PosetHom.∘
   | id-left => idp
   | id-right => idp
@@ -34,7 +34,7 @@
 
 \instance StrictPosetCat.{u} : Cat StrictPoset.{u}
   | Hom P1 P2 => StrictPosetHom P1 P2
-  | id _ => StrictPosetHom.id
+  | id => StrictPosetHom.id
   | o => StrictPosetHom.∘
   | id-left => idp
   | id-right => idp
@@ -43,7 +43,7 @@
 
 \instance DecLinearOrderCat.{u} : Cat LinearOrder.Dec.{u}
   | Hom E1 E2 => PosetHom E1 E2
-  | id _ => PosetHom.id
+  | id => PosetHom.id
   | o => PosetHom.∘
   | id-left => idp
   | id-right => idp

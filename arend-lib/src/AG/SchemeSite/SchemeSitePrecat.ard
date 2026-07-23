@@ -11,7 +11,7 @@
 
 \func SchemeSitePrehomPrecat.{u} : Precat SchemeSite.{u} \cowith
   | Hom => SchemeSitePrehom
-  | id _ => SchemeSitePrehom.id
+  | id => SchemeSitePrehom.id
   | o => SchemeSitePrehom.∘
   | id-left {_} {_} {f} => SchemeSitePrehom.equals (\lam b a => (\lam (inP (b',b<=b',b'<=a)) => <=f*-right b<=b' b'<=a, \lam b<=a => inP (a, b<=a, <=-refl)))
     \lam a b (inP (a',b<=a',a'<=a)) b<=ga x => compose.f#-eval *> f.f#_f*-right *> pmap (f.f# __ x) prop-pi
@@ -26,7 +26,7 @@
 
 \instance SchemeSitePrecat.{u} : Precat SchemeSite.{u}
   | Hom => SchemeSiteHom
-  | id _ => SchemeSiteHom.id
+  | id => SchemeSiteHom.id
   | o => SchemeSiteHom.∘
   | id-left {X} {Y} {f} => \case \elim f \with {
     | in~ f => pmap inh~ SchemeSitePrehomPrecat.id-left

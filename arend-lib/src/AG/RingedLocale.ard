@@ -185,7 +185,7 @@
     \protected \func id.{u} {L : RingedLocale.{u}} : RingedLocaleHom L L \cowith
       | f* => FrameHom.id
       | f# {
-        | trans x => Cat.id _
+        | trans x => Cat.id
         | natural p => ext $ pmap (\lam x => (L.R.F.Func x).func) prop-pi
       }
 
