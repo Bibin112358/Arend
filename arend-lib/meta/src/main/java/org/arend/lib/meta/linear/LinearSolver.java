@@ -278,7 +278,7 @@ public class LinearSolver {
         result.add(new Hypothesis<>(hypothesis.proof, hypothesis.instance, hypothesis.operation, terms.term1, terms.term2, terms.lcm));
         if (hypothesis.operation == Equation.Operation.LESS && compiler.isInt()) {
           List<BigInteger> newCoefs = new ArrayList<>(terms.term1.coefficients());
-          newCoefs.set(0, newCoefs.get(0).add(BigInteger.ONE));
+          newCoefs.set(0, newCoefs.getFirst().add(BigInteger.ONE));
           ConcreteExpression proof = factory.app(factory.ref(meta.isucLleq), true, hypothesis.proof);
           result.add(new Hypothesis<>(proof, hypothesis.instance, Equation.Operation.LESS_OR_EQUALS, new CompiledTerm(factory.app(factory.ref(meta.addTerm), true, terms.term1.concrete(), factory.ref(meta.ideTerm)), newCoefs, terms.term1.vars()), terms.term2, terms.lcm));
         }
@@ -436,15 +436,12 @@ public class LinearSolver {
     }
 
     List<Hypothesis<CoreExpression>> rules = new ArrayList<>();
-    List<CoreBinding> allBindings = new ArrayList<>();
     ContextHelper helper = new ContextHelper(hint);
     for (CoreBinding binding : helper.getContextBindings(typechecker)) {
-      allBindings.add(binding);
       Hypothesis<CoreExpression> hypothesis = bindingToHypothesis(binding, false);
       if (hypothesis != null) rules.add(hypothesis);
     }
     for (CoreBinding binding : helper.getAdditionalBindings(typechecker)) {
-      allBindings.add(binding);
       Hypothesis<CoreExpression> hypothesis = bindingToHypothesis(binding, true);
       if (hypothesis != null) rules.add(hypothesis);
     }
