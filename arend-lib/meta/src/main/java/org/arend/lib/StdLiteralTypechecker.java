@@ -77,10 +77,11 @@ public class StdLiteralTypechecker implements LiteralTypechecker {
   }
 
   // resolveString runs with only an ExpressionResolver (no typechecker), so it resolves the `String`
-  // type and returns a reference to it; typecheckString then builds the `\new String { | bytes => ... }`
-  // value. The byte array is built at the core level by ExpressionTypechecker.checkByteArray, whose cost
-  // is independent of the literal's length. (A `::`/`nil` list literal would instead be quadratic to
-  // elaborate and can overflow the concrete-tree visitor stack for large literals.)
+  // type and returns a reference to it; typecheckString then builds the `\new String { | bytes => ... }` value.
+  // The byte array is built directly at the core level by ExpressionTypechecker.checkByteArray, which
+  // is linear in the literal's length and avoids per-element elaboration. (A `::`/`nil` list literal
+  // would instead be quadratic to elaborate and can overflow the concrete-tree visitor stack for
+  // large literals.)
   @Override
   public @Nullable ConcreteExpression resolveString(@NotNull String unescapedString, @NotNull ExpressionResolver resolver, @NotNull ContextData contextData) {
     ArendRef stringRef = resolveName(Names.STRING, resolver);
