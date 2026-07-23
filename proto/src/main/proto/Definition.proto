@@ -53,7 +53,7 @@ message Definition {
         map<int32, RefList> default_dependencies = 15;
         map<int32, RefList> default_impl_dependencies = 16;
         int32 coercing_field_ref = 5;
-        Sort sort = 6;
+        SortExpression sort = 6;
         bool is_record = 7;
         CoerceData coerce_data = 8;
         repeated int32 good_field = 9;
@@ -80,7 +80,8 @@ message Definition {
     message ParametersLevel {
         bool hasParameters = 1;
         repeated Telescope parameter = 2;
-        int32 level = 3;
+        // BigInteger, big-endian two's complement; empty => null.
+        bytes level = 3;
     }
     message ClassParametersLevel {
         ParametersLevel parameters_level = 1;
@@ -99,9 +100,10 @@ message Definition {
         repeated bool good_this_parameters = 3;
         repeated TypeClassParameterKind type_class_parameters = 4;
         repeated int32 recursive_definition = 14;
-        Sort sort = 5;
+        SortExpression sort = 5;
         repeated Constructor constructor = 6;
-        int32 truncated_level = 15;
+        // BigInteger, big-endian two's complement; empty => null (not truncated).
+        bytes truncated_level = 15;
         bool is_squashed = 8;
         int32 squasher = 10;
         repeated bool covariant_parameter = 11;

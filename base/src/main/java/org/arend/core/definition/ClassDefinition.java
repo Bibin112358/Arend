@@ -269,6 +269,10 @@ public class ClassDefinition extends TopLevelDefinition implements CoreClassDefi
     mySort = computeSort(Collections.emptyMap(), null, makeIdLevels(), LevelSubstitution.EMPTY, true, GetTypeVisitor.INSTANCE);
   }
 
+  public void setSortExpression(SortExpression sort) {
+    mySort = sort;
+  }
+
   @NotNull
   @Override
   public SortExpression getSortExpression() {

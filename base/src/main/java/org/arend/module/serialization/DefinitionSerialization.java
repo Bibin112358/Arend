@@ -158,7 +158,7 @@ public class DefinitionSerialization implements ArendSerializer {
     for (ClassField field : definition.getCovariantFields()) {
       builder.addCovariantField(myCallTargetIndexProvider.getDefIndex(field));
     }
-    // builder.setSort(defSerializer.writeSort(definition.getSortExpression()));
+    builder.setSort(defSerializer.writeSortExpression(definition.getSortExpression()));
 
     for (ClassDefinition classDefinition : definition.getSuperClasses()) {
       builder.addSuperClassRef(myCallTargetIndexProvider.getDefIndex(classDefinition));
@@ -269,7 +269,10 @@ public class DefinitionSerialization implements ArendSerializer {
       builder.addConstructor(cBuilder.build());
     }
 
-    // builder.setTruncatedLevel(definition.getTruncatedLevel());
+    builder.setSort(defSerializer.writeSortExpression(definition.getSortExpression()));
+    if (definition.getTruncatedLevel() != null) {
+      builder.setTruncatedLevel(ByteString.copyFrom(definition.getTruncatedLevel().toByteArray()));
+    }
     builder.setIsSquashed(definition.isSquashed());
     if (definition.getSquasher() != null) {
       builder.setSquasher(myCallTargetIndexProvider.getDefIndex(definition.getSquasher()));
@@ -323,6 +326,9 @@ public class DefinitionSerialization implements ArendSerializer {
     builder.setHasParameters(parametersLevel.parameters != null);
     if (parametersLevel.parameters != null) {
       builder.addAllParameter(defSerializer.writeParameters(parametersLevel.parameters));
+    }
+    if (parametersLevel.level != null) {
+      builder.setLevel(ByteString.copyFrom(parametersLevel.level.toByteArray()));
     }
     return builder.build();
   }

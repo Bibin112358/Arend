@@ -17,6 +17,7 @@ import org.arend.core.expr.let.*;
 import org.arend.core.pattern.*;
 import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
+import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.Levels;
 import org.arend.core.subst.ListLevels;
 import org.arend.ext.core.level.ConstLevel;
@@ -63,19 +64,66 @@ class ExpressionDeserialization {
 
   // Sorts and levels
 
+  private static BigInteger readBigInteger(com.google.protobuf.ByteString bytes) {
+    return bytes.isEmpty() ? BigInteger.ZERO : new BigInteger(bytes.toByteArray());
+  }
+
   private Level readLevel(LevelProtos.Level proto) {
     return readLevel(proto, myDefinition);
   }
 
   private Level readLevel(LevelProtos.Level proto, Definition definition) {
-    LevelVariable var;
-    int index = proto.getVariable();
-    var = index < 0 ? null : definition.getLevelParameters().get(index);
-    return new Level(var);
+    if (proto.getIsInfinity()) {
+      return Level.INFINITY;
+    }
+    Map<LevelVariable, BigInteger> vars = new HashMap<>();
+    for (LevelProtos.Level.Var var : proto.getVarList()) {
+      vars.put(definition.getLevelParameters().get(var.getIndex()), readBigInteger(var.getCoefficient()));
+    }
+    return new Level(vars, readBigInteger(proto.getConstant()));
+  }
+
+  private ConstLevel readConstLevel(LevelProtos.ConstLevel proto) {
+    return proto.getIsInfinity() ? ConstLevel.INFINITY : new ConstLevel(readBigInteger(proto.getValue()));
   }
 
   Sort readSort(LevelProtos.Sort proto) {
-    return new Sort(readLevel(proto.getPLevel()), ConstLevel.INFINITY);
+    return new Sort(readLevel(proto.getPLevel()), readConstLevel(proto.getHLevel()));
+  }
+
+  SortExpression readSortExpression(LevelProtos.SortExpression proto) throws DeserializationException {
+    switch (proto.getKindCase()) {
+      case CONST_SORT -> {
+        return new SortExpression.Const(readSort(proto.getConstSort()));
+      }
+      case VAR_SORT -> {
+        List<ClassField> fields = new ArrayList<>();
+        for (int fieldRef : proto.getVarSort().getFieldList()) {
+          fields.add(myCallTargetProvider.getCallTarget(fieldRef, ClassField.class));
+        }
+        return new SortExpression.Var(proto.getVarSort().getIndex(), fields);
+      }
+      case RECURSIVE_DATA -> {
+        return new SortExpression.RecursiveData();
+      }
+      case MAX_SORT -> {
+        List<SortExpression> sorts = new ArrayList<>();
+        for (LevelProtos.SortExpression sort : proto.getMaxSort().getSortList()) {
+          sorts.add(readSortExpression(sort));
+        }
+        return SortExpression.makeMax(sorts);
+      }
+      case PI_SORT -> {
+        return SortExpression.makePi(readSortExpression(proto.getPiSort().getDomain()), readSortExpression(proto.getPiSort().getCodomain()));
+      }
+      case PREV_SORT -> {
+        return new SortExpression.Prev(readSortExpression(proto.getPrevSort()));
+      }
+      case SUCC_SORT -> {
+        return new SortExpression.Succ(readSortExpression(proto.getSuccSort()));
+      }
+      default -> throw new DeserializationException("Unknown SortExpression kind: " + proto.getKindCase());
+    }
   }
 
   Levels readLevels(LevelProtos.Levels proto) {
@@ -493,8 +541,8 @@ class ExpressionDeserialization {
     return new PiExpression(readSingleParameter(proto.getParam()), readExpr(proto.getCodomain()));
   }
 
-  private UniverseExpression readUniverse(ExpressionProtos.Expression.Universe proto) {
-    return new UniverseExpression(readSort(proto.getSort()));
+  private UniverseExpression readUniverse(ExpressionProtos.Expression.Universe proto) throws DeserializationException {
+    return new UniverseExpression(readSortExpression(proto.getSort()));
   }
 
   private ErrorExpression readError(ExpressionProtos.Expression.Error proto) throws DeserializationException {

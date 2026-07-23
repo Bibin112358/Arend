@@ -3,6 +3,8 @@ package org.arend.module.serialization;
 import com.google.protobuf.ByteString;
 import org.arend.core.constructor.*;
 import org.arend.core.context.binding.Binding;
+import org.arend.core.context.binding.LevelVariable;
+import org.arend.core.context.binding.ParamLevelVariable;
 import org.arend.core.context.binding.PersistentEvaluatingBinding;
 import org.arend.core.context.param.DependentLink;
 import org.arend.core.context.param.SingleDependentLink;
@@ -20,8 +22,10 @@ import org.arend.core.sort.Level;
 import org.arend.core.sort.Sort;
 import org.arend.core.sort.SortExpression;
 import org.arend.core.subst.Levels;
+import org.arend.ext.core.level.ConstLevel;
 import org.arend.prelude.Prelude;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,15 +63,74 @@ class ExpressionSerialization implements ExpressionVisitor<Void, ExpressionProto
 
   // Sorts and levels
 
+  private static ByteString writeBigInteger(BigInteger value) {
+    return ByteString.copyFrom(value.toByteArray());
+  }
+
   private LevelProtos.Level writeLevel(Level level) {
-    // Level.INFINITY should be read with great care
     LevelProtos.Level.Builder builder = LevelProtos.Level.newBuilder();
+    if (level.isInfinity()) {
+      builder.setIsInfinity(true);
+      return builder.build();
+    }
+    builder.setConstant(writeBigInteger(level.getConstant()));
+    for (Map.Entry<LevelVariable, BigInteger> entry : level.getVarPairs()) {
+      if (!(entry.getKey() instanceof ParamLevelVariable var)) {
+        throw new IllegalStateException("Cannot serialize level variable: " + entry.getKey());
+      }
+      builder.addVar(LevelProtos.Level.Var.newBuilder()
+        .setIndex(var.getIndex())
+        .setCoefficient(writeBigInteger(entry.getValue()))
+        .build());
+    }
+    return builder.build();
+  }
+
+  private LevelProtos.ConstLevel writeConstLevel(ConstLevel level) {
+    LevelProtos.ConstLevel.Builder builder = LevelProtos.ConstLevel.newBuilder();
+    if (level.isInfinity()) {
+      builder.setIsInfinity(true);
+    } else {
+      builder.setValue(writeBigInteger(level.value()));
+    }
     return builder.build();
   }
 
   LevelProtos.Sort writeSort(Sort sort) {
     LevelProtos.Sort.Builder builder = LevelProtos.Sort.newBuilder();
     builder.setPLevel(writeLevel(sort.getPLevel()));
+    builder.setHLevel(writeConstLevel(sort.getHLevel()));
+    return builder.build();
+  }
+
+  LevelProtos.SortExpression writeSortExpression(SortExpression sortExpr) {
+    LevelProtos.SortExpression.Builder builder = LevelProtos.SortExpression.newBuilder();
+    switch (sortExpr) {
+      case SortExpression.Const c -> builder.setConstSort(writeSort(c.sort()));
+      case SortExpression.Var v -> {
+        LevelProtos.SortExpression.VarSort.Builder varBuilder = LevelProtos.SortExpression.VarSort.newBuilder();
+        varBuilder.setIndex(v.index());
+        for (ClassField field : v.fields()) {
+          varBuilder.addField(myCallTargetIndexProvider.getDefIndex(field));
+        }
+        builder.setVarSort(varBuilder.build());
+      }
+      case SortExpression.RecursiveData ignored -> builder.setRecursiveData(true);
+      case SortExpression.Max max -> {
+        LevelProtos.SortExpression.MaxSort.Builder maxBuilder = LevelProtos.SortExpression.MaxSort.newBuilder();
+        for (SortExpression sort : max.getSorts()) {
+          maxBuilder.addSort(writeSortExpression(sort));
+        }
+        builder.setMaxSort(maxBuilder.build());
+      }
+      case SortExpression.Pi pi -> builder.setPiSort(LevelProtos.SortExpression.PiSort.newBuilder()
+        .setDomain(writeSortExpression(pi.getDomain()))
+        .setCodomain(writeSortExpression(pi.getCodomain()))
+        .build());
+      case SortExpression.Prev prev -> builder.setPrevSort(writeSortExpression(prev.getSort()));
+      case SortExpression.Succ succ -> builder.setSuccSort(writeSortExpression(succ.getSort()));
+      case SortExpression.InfVar ignored -> throw new IllegalStateException("Cannot serialize an inference sort variable");
+    }
     return builder.build();
   }
 
@@ -498,9 +561,7 @@ class ExpressionSerialization implements ExpressionVisitor<Void, ExpressionProto
   @Override
   public ExpressionProtos.Expression visitUniverse(UniverseExpression expr, Void params) {
     ExpressionProtos.Expression.Universe.Builder builder = ExpressionProtos.Expression.Universe.newBuilder();
-    if (expr.getSortExpression() instanceof SortExpression.Const(Sort sort)) {
-      builder.setSort(writeSort(sort));
-    }
+    builder.setSort(writeSortExpression(expr.getSortExpression()));
     return ExpressionProtos.Expression.newBuilder().setUniverse(builder).build();
   }
 

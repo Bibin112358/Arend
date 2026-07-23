@@ -1,6 +1,8 @@
 package org.arend.module.serialization;
 
 import com.google.protobuf.ByteString;
+
+import java.math.BigInteger;
 import org.arend.core.context.LinkList;
 import org.arend.core.context.binding.Binding;
 import org.arend.core.context.param.DependentLink;
@@ -149,7 +151,7 @@ public class DefinitionDeserialization implements ArendDeserializer {
     for (Integer fieldRef : classProto.getCovariantFieldList()) {
       classDef.addCovariantField(myCallTargetProvider.getCallTarget(fieldRef, ClassField.class));
     }
-    // classDef.setSort(defDeserializer.readSort(classProto.getSort()));
+    classDef.setSortExpression(defDeserializer.readSortExpression(classProto.getSort()));
 
     for (int superClassRef : classProto.getSuperClassRefList()) {
       ClassDefinition superClass = myCallTargetProvider.getCallTarget(superClassRef, ClassDefinition.class);
@@ -193,7 +195,8 @@ public class DefinitionDeserialization implements ArendDeserializer {
       } else {
         strictList = null;
       }
-      // classDef.addParametersLevel(new ClassDefinition.ParametersLevel(parametersLevelProto.getHasParameters() ? defDeserializer.readParameters(parametersLevelProto.getParameterList()) : null, parametersLevelProto.getLevel(), fields, strictList));
+      DependentLink parameters = parametersLevelProto.getHasParameters() ? defDeserializer.readParameters(parametersLevelProto.getParameterList()) : null;
+      classDef.addParametersLevel(new ClassDefinition.ParametersLevel(parameters, readParametersLevelValue(parametersLevelProto), fields, strictList));
     }
 
     List<Integer> goodFieldIndices = classProto.getGoodFieldList();
@@ -269,7 +272,7 @@ public class DefinitionDeserialization implements ArendDeserializer {
       }
       dataDef.setRecursiveDefinitions(recursiveDefs);
     }
-    dataDef.setSort(defDeserializer.readSort(dataProto.getSort()));
+    dataDef.setSortExpression(defDeserializer.readSortExpression(dataProto.getSort()));
 
     for (DefinitionProtos.Definition.DataData.Constructor constructorProto : dataProto.getConstructorList()) {
       Constructor constructor = myCallTargetProvider.getCallTarget(constructorProto.getReferable().getIndex(), Constructor.class);
@@ -297,9 +300,9 @@ public class DefinitionDeserialization implements ArendDeserializer {
       loadKeys(constructorProto.getUserDataMap(), constructor);
     }
 
-    int truncatedLevel = dataProto.getTruncatedLevel();
-    if (truncatedLevel >= -1) {
-      // dataDef.setTruncatedLevel(truncatedLevel);
+    ByteString truncatedLevel = dataProto.getTruncatedLevel();
+    if (!truncatedLevel.isEmpty()) {
+      dataDef.setTruncatedLevel(new BigInteger(truncatedLevel.toByteArray()));
     }
     dataDef.setSquashed(dataProto.getIsSquashed());
     int squasher = dataProto.getSquasher();
@@ -378,7 +381,12 @@ public class DefinitionDeserialization implements ArendDeserializer {
   }
 
   private ParametersLevel readParametersLevel(ExpressionDeserialization defDeserializer, DefinitionProtos.Definition.ParametersLevel proto) throws DeserializationException {
-    return null; // new ParametersLevel(proto.getHasParameters() ? defDeserializer.readParameters(proto.getParameterList()) : null, proto.getLevel());
+    DependentLink parameters = proto.getHasParameters() ? defDeserializer.readParameters(proto.getParameterList()) : null;
+    return new ParametersLevel(parameters, readParametersLevelValue(proto));
+  }
+
+  private static BigInteger readParametersLevelValue(DefinitionProtos.Definition.ParametersLevel proto) {
+    return proto.getLevel().isEmpty() ? null : new BigInteger(proto.getLevel().toByteArray());
   }
 
   private void fillInFunctionDefinition(ExpressionDeserialization defDeserializer, DefinitionProtos.Definition.FunctionData functionProto, FunctionDefinition functionDef) throws DeserializationException {

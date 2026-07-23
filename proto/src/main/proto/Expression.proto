@@ -191,7 +191,7 @@ message Expression {
         Sigma type = 2;
     }
     message Universe {
-        Sort sort = 1;
+        SortExpression sort = 1;
     }
     message SmallInteger {
         int32 value = 1;

@@ -717,8 +717,10 @@ public class ArendLibRoundTripTest {
 
   private void compareDataDefinitions(DataDefinition d1, DataDefinition d2,
                                       String context, List<String> errors) {
-    Sort s1 = d1.getSort();
-    Sort s2 = d2.getSort();
+    // getSort() is null when the sort expression is not a plain Const (e.g. Var/Max/Pi),
+    // so compare the (never-null) inf-level collapse of the full sort expression instead.
+    Sort s1 = d1.getSortExpression().withInfLevel();
+    Sort s2 = d2.getSortExpression().withInfLevel();
     if (!Sort.compare(s1, s2, CMP.EQ, DummyEquations.getInstance(), null)) {
       String msg = "Sort mismatch at " + context + ": " + s1 + " vs " + s2;
       errors.add(msg);
@@ -745,8 +747,10 @@ public class ArendLibRoundTripTest {
 
   private void compareClassDefinitions(ClassDefinition c1, ClassDefinition c2,
                                        String context, List<String> errors) {
-    Sort s1 = c1.getSort();
-    Sort s2 = c2.getSort();
+    // getSort() is null when the sort expression is not a plain Const (e.g. Var/Max/Pi),
+    // so compare the (never-null) inf-level collapse of the full sort expression instead.
+    Sort s1 = c1.getSortExpression().withInfLevel();
+    Sort s2 = c2.getSortExpression().withInfLevel();
     if (!Sort.compare(s1, s2, CMP.EQ, DummyEquations.getInstance(), null)) {
       String msg = "Sort mismatch at " + context + ": " + s1 + " vs " + s2;
       errors.add(msg);
