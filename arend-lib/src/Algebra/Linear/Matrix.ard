@@ -470,7 +470,7 @@
         | func-+ => arrayExt \lam k => pmap R.BigSum (arrayExt \lam j => rdistr) *> R.BigSum_+
         | func-*c => arrayExt \lam k => pmap R.BigSum (arrayExt \lam j => *-assoc) *> inv R.BigSum-ldistr
       }) determinant.alternating)
-      (isAlternating_linear-right {R} determinant.alternating RingLModule.*_hom-right)
+      (isAlternating_linear-right {R} determinant.alternating *-linear-left)
       MatrixRing.ide_generates
       (pmap determinant ide-left *> inv (pmap (`* _) determinant_ide *> ide-left))
       M

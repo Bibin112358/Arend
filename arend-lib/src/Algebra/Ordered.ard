@@ -121,14 +121,14 @@
 
 \class LatticeAbGroup \extends PosetAbGroup, MeetSemilatticeAbMonoid, JoinSemilatticeAbMonoid, DistributiveLattice {
   | meet_+-left {a} {b} {c} => <=-antisymmetric (meet-univ (<=_+ <=-refl meet-left) (<=_+ <=-refl meet-right)) $ <=_+-cancel-left (negative a) $ meet-univ (<=_+ <=-refl meet-left <=∘ =_<= (inv +-assoc *> pmap (`+ b) negative-left *> zro-left)) (<=_+ <=-refl meet-right <=∘ =_<= (inv +-assoc *> pmap (`+ c) negative-left *> zro-left)) <=∘ =_<= (inv zro-left *> pmap (`+ _) (inv negative-left) *> +-assoc)
-  | join_+-left {a} {b} {c} => <=-antisymmetric (<=_+-cancel-left (negative a) $ =_<= (inv +-assoc *> pmap (`+ _) negative-left *> zro-left) <=∘ join-univ (<=_+-cancel-left a $ join-left <=∘ =_<= (inv zro-left *> pmap (`+ _) (inv negative-right) *> +-assoc)) (<=_+-cancel-left a $ join-right <=∘ =_<= (inv zro-left *> pmap (`+ _) (inv negative-right) *> +-assoc))) $ join-univ (<=_+ <=-refl join-left) (<=_+ <=-refl join-right)
-  | ldistr>= {x} {y} {z} => =_<= (inv $ meet_+-right *> pmap2 (∧) (+-assoc *> pmap (x +) (negative-left {_} {y ∨ z}) *> zro-right) zro-left) <=∘ <=_+-cancel-left _ (=_<= (inv +-assoc *> pmap (`+ _) negative-left *> zro-left) <=∘ join-univ (<=_+-cancel-left _ $ =_<= meet_+-right <=∘ meet-monotone (=_<= +-assoc <=∘ <=_+ <=-refl (<=_+ <=-refl join-left <=∘ =_<= negative-left) <=∘ =_<= zro-right) (=_<= zro-left) <=∘ join-left <=∘ =_<= (inv (pmap (`+ _) negative-right *> zro-left) *> +-assoc)) (<=_+-cancel-left _ $ =_<= meet_+-right <=∘ meet-monotone (=_<= +-assoc <=∘ <=_+ <=-refl (<=_+ <=-refl join-right <=∘ =_<= negative-left) <=∘ =_<= zro-right) (=_<= zro-left) <=∘ join-right <=∘ =_<= (inv (pmap (`+ _) negative-right *> zro-left) *> +-assoc)))
+  | join_+-left {a} {b} {c} => <=-antisymmetric (<=_+-cancel-left (negative a) $ (inv +-assoc *> pmap (`+ _) negative-left *> zro-left) =<= join-univ (<=_+-cancel-left a $ join-left <=∘ =_<= (inv zro-left *> pmap (`+ _) (inv negative-right) *> +-assoc)) (<=_+-cancel-left a $ join-right <=∘ =_<= (inv zro-left *> pmap (`+ _) (inv negative-right) *> +-assoc))) $ join-univ (<=_+ <=-refl join-left) (<=_+ <=-refl join-right)
+  | ldistr>= {x} {y} {z} => (inv $ meet_+-right *> pmap2 (∧) (+-assoc *> pmap (x +) (negative-left {_} {y ∨ z}) *> zro-right) zro-left) =<= <=_+-cancel-left _ ((inv +-assoc *> pmap (`+ _) negative-left *> zro-left) =<= join-univ (<=_+-cancel-left _ $ meet_+-right =<= meet-monotone (+-assoc =<= <=_+ <=-refl (<=_+ <=-refl join-left <=∘ =_<= negative-left) <=∘ =_<= zro-right) (=_<= zro-left) <=∘ join-left <=∘ =_<= (inv (pmap (`+ _) negative-right *> zro-left) *> +-assoc)) (<=_+-cancel-left _ $ meet_+-right =<= meet-monotone (+-assoc =<= <=_+ <=-refl (<=_+ <=-refl join-right <=∘ =_<= negative-left) <=∘ =_<= zro-right) (=_<= zro-left) <=∘ join-right <=∘ =_<= (inv (pmap (`+ _) negative-right *> zro-left) *> +-assoc)))
 
   \lemma meet_negative {x y : E} : negative (x ∧ y) = negative x ∨ negative y
     => <=-antisymmetric (negative_<= (meet-univ (negative_<= join-left <=∘ =_<= negative-isInv) (negative_<= join-right <=∘ =_<= negative-isInv)) <=∘ =_<= negative-isInv) $ join-univ (negative_<= meet-left) (negative_<= meet-right)
 
   \lemma join_negative {x y : E} : negative (x ∨ y) = negative x ∧ negative y
-    => <=-antisymmetric (meet-univ (negative_<= join-left) (negative_<= join-right)) $ =_<= (inv negative-isInv) <=∘ negative_<= (join-univ (=_<= (inv negative-isInv) <=∘ negative_<= meet-left) (=_<= (inv negative-isInv) <=∘ negative_<= meet-right))
+    => <=-antisymmetric (meet-univ (negative_<= join-left) (negative_<= join-right)) $ inv negative-isInv =<= negative_<= (join-univ (inv negative-isInv =<= negative_<= meet-left) (inv negative-isInv =<= negative_<= meet-right))
 
   \lemma modularity {x y : E} : x + y = (x ∨ y) + (x ∧ y)
     => cancel-right (negative (x ∧ y)) $ pmap (_ +) meet_negative *> join_+-left *> pmap2 (∨) (+-comm *> inv +-assoc *> pmap (`+ y) negative-left *> zro-left) (+-assoc *> pmap (x +) negative-right *> zro-right) *> join-comm *> inv (+-assoc *> pmap (_ +) negative-right *> zro-right)
@@ -142,7 +142,7 @@
     => join-right
 
   \lemma abs_negative {x : E} : abs (negative x) = abs x
-    => <=-antisymmetric (join-univ join-right $ rewrite negative-isInv join-left) (join-univ (=_<= (inv negative-isInv) <=∘ join-right) join-left)
+    => <=-antisymmetric (join-univ join-right $ rewrite negative-isInv join-left) (join-univ (inv negative-isInv =<= join-right) join-left)
 
   \lemma abs-ofPos {x : E} (x>=0 : 0 <= x) : abs x = x
     => <=-antisymmetric (join-univ <=-refl $ transport2 (<=) zro-left negative-right (<=_+ x>=0 <=-refl) <=∘ x>=0) join-left
@@ -175,22 +175,22 @@
     => transportInv (_ <=) negative_+ (later $ rewrite negative-isInv <=-refl) <=∘ abs>=neg
 
   \lemma abs-univ {x y z : E} (p : x - y <= z) (q : y - x <= z) : abs (x - y) <= z
-    => join-univ p (=_<= negative_- <=∘ q)
+    => join-univ p (negative_- =<= q)
 
   \type IsSolid (U : Set E) => ∀ {y} {x : U} (abs y <= abs x -> U y)
 } \where {
     -- TODO: Make constructor classes
     \protected \class FromMeet \extends LatticeAbGroup
       | join a b => negative (negative a ∧ negative b)
-      | join-left => =_<= (inv negative-isInv) <=∘ negative_<= meet-left
-      | join-right => =_<= (inv negative-isInv) <=∘ negative_<= meet-right
+      | join-left => inv negative-isInv =<= negative_<= meet-left
+      | join-right => inv negative-isInv =<= negative_<= meet-right
       | join-univ x<=z y<=z => negative_<= (meet-univ (negative_<= x<=z) (negative_<= y<=z)) <=∘ =_<= negative-isInv
 
     \protected \class FromJoin \extends LatticeAbGroup
       | meet a b => negative (negative a ∨ negative b)
       | meet-left => negative_<= join-left <=∘ =_<= negative-isInv
       | meet-right => negative_<= join-right <=∘ =_<= negative-isInv
-      | meet-univ z<=x z<=y => =_<= (inv negative-isInv) <=∘ negative_<= (join-univ (negative_<= z<=x) (negative_<= z<=y))
+      | meet-univ z<=x z<=y => inv negative-isInv =<= negative_<= (join-univ (negative_<= z<=x) (negative_<= z<=y))
   }
 
 \class AbsAbGroup \extends LatticeAbGroup {
@@ -216,10 +216,10 @@
     => transport2 (x + __ <= __) zro-left (pmap (x +) join_+-right *> join_+-left *> pmap2 (x + __ ∨ __) (+-assoc *> pmap (x +) negative-left *> zro-right) (inv +-assoc *> pmap (`+ y) (pmap (x +) negative_- *> +-comm *> +-assoc *> pmap (y +) negative-left *> zro-right))) $ <=_+ <=-refl $ <=_+ abs>=0 <=-refl
 
   \lemma join_+-comm {x y : E} : (x ∨ y) + (x ∨ y) = (x + x) ∨ (y + y)
-    => join_+-left *> pmap2 (∨) join_+-right join_+-right *> <=-antisymmetric (join-univ (join-univ join-left $ =_<= +-comm <=∘ join_+-double) (join-univ join_+-double join-right)) (join-univ (join-left <=∘ join-left) (join-right <=∘ join-right))
+    => join_+-left *> pmap2 (∨) join_+-right join_+-right *> <=-antisymmetric (join-univ (join-univ join-left $ +-comm =<= join_+-double) (join-univ join_+-double join-right)) (join-univ (join-left <=∘ join-left) (join-right <=∘ join-right))
 
   \lemma join_*n {n : Nat} {x y : E} : n *n (x ∨ y) = (n *n x) ∨ (n *n y)
-    => <=-antisymmetric (<=_+-cancel-right ((NatSemiring.pow 2 n -' n) *n (x ∨ y)) $ =_<= (inv *n-rdistr *> pmap (`*n _) (<=_exists $ NatSemiring.<=-less id<pow2) *> steps *> inv (pmap2 (∨) (inv *n-rdistr *> pmap (`*n _) (<=_exists $ NatSemiring.<=-less id<pow2)) (inv *n-rdistr *> pmap (`*n _) (<=_exists $ NatSemiring.<=-less id<pow2)))) <=∘ join-univ (<=_+ join-left $ *n_<= join-left) (<=_+ join-right $ *n_<= join-right)) $ join-univ (*n_<= join-left) (*n_<= join-right)
+    => <=-antisymmetric (<=_+-cancel-right ((NatSemiring.pow 2 n -' n) *n (x ∨ y)) $ (inv *n-rdistr *> pmap (`*n _) (<=_exists $ NatSemiring.<=-less id<pow2) *> steps *> inv (pmap2 (∨) (inv *n-rdistr *> pmap (`*n _) (<=_exists $ NatSemiring.<=-less id<pow2)) (inv *n-rdistr *> pmap (`*n _) (<=_exists $ NatSemiring.<=-less id<pow2)))) =<= join-univ (<=_+ join-left $ *n_<= join-left) (<=_+ join-right $ *n_<= join-right)) $ join-univ (*n_<= join-left) (*n_<= join-right)
     \where {
       \private \lemma steps {k : Nat} {x y : E} : NatSemiring.pow 2 k *n (x ∨ y) = (NatSemiring.pow 2 k *n x) ∨ (NatSemiring.pow 2 k *n y) \elim k
         | 0 => zro-left *> inv (pmap2 (∨) zro-left zro-left)

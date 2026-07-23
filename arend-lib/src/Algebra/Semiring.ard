@@ -4,6 +4,7 @@
 \import Function.Meta
 \import Logic
 \import Logic.Meta
+\import Logic.Unique
 \import Meta
 \import Paths
 \import Paths.Meta
@@ -82,6 +83,15 @@
     | 0 => natCoefZero *> inv (pmap (_ *) natCoefZero *> zro_*-right)
     | suc m => natCoef_+ *> pmap (`+ _) natCoef_* *> inv (pmap (_ *) (natCoefSuc m) *> ldistr *> pmap (_ +) ide-right)
 
+  \func IsNilpotent (x : E) => ∃ (n : Nat) (pow x n = 0)
+
+  \protected \lemma trivial-char : (zro = ide) <-> Contr E
+    => (\lam p => Contr.make 0 \lam x => inv zro_*-right *> pmap (x *) p *> ide-right,
+        \lam c => inv (c.contraction 0) *> c.contraction 1)
+
+  \lemma Inv_zro : Monoid.Inv zro <-> (zro = ide)
+    => (\lam zi => inv zro_*-left *> zi.inv-right, \lam t => \new Monoid.Inv zro zro (trivial t) (trivial t))
+
   \lemma BigSum-ldistr {x : E} {l : Array E} : x * BigSum l = BigSum (map (x *) l) \elim l
     | nil => zro_*-right
     | :: a l => ldistr *> pmap (x * a +) BigSum-ldistr
@@ -110,7 +120,7 @@
   \lemma BigSum_replicate1 {n : Nat} : BigSum (replicate n ide) = natCoef n
     => BigSum_replicate *> ide-right
 
-  \lemma FinSum_replicate {A : FinSet} {x : E} : FinSum {_} {A} (\lam _ => x) = natCoef A.finCard * x
+  \lemma FinSum_replicate {A : FinSet} {x : E} : FinSum {_} {A} (\lam _ => x) = natCoef A.card * x
     => FinSum-const *> BigSum_replicate
 
   \lemma BigProd_zro {l : Array E} (j : Fin l.len) (p : l j = 0) : BigProd l = 0 \elim l, j

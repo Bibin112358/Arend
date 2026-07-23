@@ -171,7 +171,7 @@
 
   \lemma rfunc<=1 {n : Nat} : rfunc n <= 1 \elim n
     | 0 => rewrite (\peval rfunc 0) rat_<=-dec
-    | suc n => rewrite (\peval rfunc (suc n)) $ RatField.<=_*_positive-right rat_<=-dec $ RatField.<=_+ <=-refl $ RatField.<=_*_positive-left rfunc<=1 rfunc>=0 <=∘ =_<= ide-left <=∘ rfunc<=1
+    | suc n => rewrite (\peval rfunc (suc n)) $ RatField.<=_*_positive-right rat_<=-dec $ RatField.<=_+ <=-refl $ RatField.<=_*_positive-left rfunc<=1 rfunc>=0 <=∘ ide-left =<= rfunc<=1
 
   \lemma rfunc-inc {n : Nat} : rfunc n <= rfunc (suc n) \elim n
     | 0 => rewrite (\peval rfunc 0) rfunc>=0
@@ -215,7 +215,7 @@
     \open CoverMap
     \open TopAbGroupCompletion
 
-    \func *-cover : CoverMap (Completion X ⨯ Completion X) (Completion X)
+    \func *-cover : CoverMap (Completion X `ProductCoverSpace` Completion X) (Completion X)
       => lift2 *-locally-uniform
 
     \func *-func (x y : RegularCauchyFilter X) => *-cover (x,y)

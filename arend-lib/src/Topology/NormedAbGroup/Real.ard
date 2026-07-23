@@ -1,6 +1,7 @@
 \import Algebra.Group
 \import Algebra.Meta
 \import Algebra.Monoid
+\import Algebra.Monoid.Localization
 \import Algebra.Ordered
 \import Algebra.StrictlyOrdered
 \import Algebra.Pointed
@@ -22,7 +23,6 @@
 \import Order.StrictOrder
 \import Paths
 \import Paths.Meta
-\import Relation.Equivalence
 \import Set.Filter
 \import Set.Subset
 \import Topology.CoverSpace
@@ -175,7 +175,7 @@
   => transport2 RealNormed.IsLimit {_} {\lam n => Real.fromRat $ suc (suc n) RatField.* RatField.finv (suc n)}
       (later $ ext \lam n => RealAbGroup.+-rat
         *> pmap Real.fromRat (RatField.+=+' *> rat_alt-inj (rat_alt_makeRat {_} {_} {_} {idp}
-          *> path (~-equiv _ _ $ pmap2 (\lam x y => suc (suc x) IntRing.* suc y) ide-left ide-left)
+          *> ~-lequiv1 (pmap2 (\lam x y => suc (suc x) IntRing.* suc y) ide-left ide-left)
           *> inv (rat_alt_makeRat {_} {_} {_} {idp}))))
       zro-left
       (cont2-limit {_} {RealNormed} {_} {_} {\lam n => RatField.finv (suc n)} {\lam _ => 1} harmonic-limit const-limit +-uniform)

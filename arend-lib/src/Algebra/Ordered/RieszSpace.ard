@@ -53,7 +53,7 @@
 
 \class RieszSpace \extends PosetQModule, AbsAbGroup, LatticeAbGroup.FromJoin {
   -- <=_*n-div is equivalent to conjunction of noTorsion and abs>=0.
-  \default abs>=0 => <=_*n-div {_} {2} suc/=0 $ rewrite zro-left $ transportInv (0 <=) join_+-left $ transportInv (0 <=) join_+-right (=_<= (inv negative-left) <=∘ join-right) <=∘ join-left
+  \default abs>=0 => <=_*n-div {_} {2} suc/=0 $ rewrite zro-left $ transportInv (0 <=) join_+-left $ transportInv (0 <=) join_+-right (inv negative-left =<= join-right) <=∘ join-left
   \default <=_*n-div n/=0 na>=0 => transport (0 <=) (noTorsion-div n/=0 (abs_*n *> abs-ofPos na>=0)) abs>=0
 
   \lemma join_*q {q : Rat} (q>=0 : RatField.zro RatField.<= q) {x y : E} : q *q (x ∨ y) = (q *q x) ∨ (q *q y)
@@ -74,8 +74,8 @@
   \func fromAbs {A : PosetQModule} (abs : \Pi (a : A) -> ∃ (b : A) (a <= b) (negative a <= b) ∀ {c} (a <= c -> negative a <= c -> b <= c)) : RieszSpace \cowith
     | PosetQModule => A
     | join => join
-    | join-left => transportInv (_ <=) (\peval join _ _) $ A.<=_*q-cancel-left {2} idp $ transport2 (<=) (inv A.*q_*2) (inv +-assoc *> inv A.ide_*q *> A.*q-assoc) $ <=_+ <=-refl $ =_<= equation.abGroup <=∘ <=_+ <=-refl (getAbs _).2
-    | join-right => transportInv (_ <=) (\peval join _ _) $ A.<=_*q-cancel-left {2} idp $ transport2 (<=) (inv A.*q_*2) (inv +-assoc *> pmap (`+ _) +-comm *> inv A.ide_*q *> A.*q-assoc) $ <=_+ <=-refl $ =_<= equation.abGroup <=∘ <=_+ <=-refl (getAbs _).3
+    | join-left => transportInv (_ <=) (\peval join _ _) $ A.<=_*q-cancel-left {2} idp $ transport2 (<=) (inv A.*q_*2) (inv +-assoc *> inv A.ide_*q *> A.*q-assoc) $ <=_+ <=-refl $ equation.abGroup =<= <=_+ <=-refl (getAbs _).2
+    | join-right => transportInv (_ <=) (\peval join _ _) $ A.<=_*q-cancel-left {2} idp $ transport2 (<=) (inv A.*q_*2) (inv +-assoc *> pmap (`+ _) +-comm *> inv A.ide_*q *> A.*q-assoc) $ <=_+ <=-refl $ equation.abGroup =<= <=_+ <=-refl (getAbs _).3
     | join-univ {x} {y} x<=z y<=z => transportInv (`<= _) (\peval join _ _) $ A.<=_*q-cancel-left {2} idp $ transport2 (<=) (inv A.ide_*q *> A.*q-assoc) (inv A.*q_*2) $ A.<=_+-cancel-left (negative (x + y)) $ transportInv (`<= _) (inv +-assoc *> pmap (`+ _) negative-left *> zro-left) $ (getAbs _).4
       -- TODO: Use solver for PosetAbGroup
       (A.from>=0 $ transport (A.zro <=) equation.abGroup $ A.<=_+-positive (A.to>=0 x<=z) (A.to>=0 x<=z))

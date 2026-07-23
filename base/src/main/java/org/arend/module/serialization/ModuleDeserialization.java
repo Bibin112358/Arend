@@ -16,7 +16,6 @@ import org.arend.naming.reference.*;
 import org.arend.naming.scope.EmptyScope;
 import org.arend.naming.scope.Scope;
 import org.arend.prelude.Prelude;
-import org.arend.term.concrete.Concrete;
 import org.arend.term.group.*;
 import org.arend.typechecking.order.dependency.DependencyListener;
 import org.arend.ext.util.Pair;
@@ -287,44 +286,19 @@ public class ModuleDeserialization {
     List<ConcreteGroup> dynamicSubgroups = new ArrayList<>(groupProto.getDynamicSubgroupCount());
     ConcreteGroup group = new ConcreteGroup(DocFactory.nullDoc(), referable, null, statements, dynamicSubgroups, Collections.emptyList());
     for (ModuleProtos.Group subgroup : groupProto.getSubgroupList()) {
-      statements.add(new ConcreteStatement(readGroup(subgroup, group, modulePath), null, null, null));
+      statements.add(new ConcreteStatement(readGroup(subgroup, group, modulePath), null));
     }
     for (ModuleProtos.Group dynSubgroup : groupProto.getDynamicSubgroupList()) {
       dynamicSubgroups.add(readGroup(dynSubgroup, group, modulePath));
     }
 
-    // Reconstruct plevels/hlevels declarations so they are visible in scope.
-    for (ModuleProtos.LevelsDeclaration decl : groupProto.getPlevelsDeclarationList()) {
-      statements.add(new ConcreteStatement(null, null, buildLevelsDeclaration(decl, true, referable), null));
-    }
-    for (ModuleProtos.LevelsDeclaration decl : groupProto.getHlevelsDeclarationList()) {
-      statements.add(new ConcreteStatement(null, null, null, buildLevelsDeclaration(decl, false, referable)));
-    }
-
     return group;
   }
 
-  private static Concrete.LevelsDefinition buildLevelsDeclaration(
-      ModuleProtos.LevelsDeclaration decl, boolean isPLevels, LocatedReferable parent) {
-    List<TCLevelReferable> refs = new ArrayList<>(decl.getNameCount());
-    LevelDefinition levelDef = new LevelDefinition(isPLevels, decl.getIncreasing(), refs, parent);
-    for (String name : decl.getNameList()) {
-      refs.add(new TCLevelReferable(null, name, levelDef));
-    }
-    return new Concrete.LevelsDefinition(null, refs, decl.getIncreasing(), isPLevels);
-  }
-
-  private List<LevelVariable> readLevelParameters(List<DefinitionProtos.Definition.LevelParameter> parameters, boolean isStd) {
-    if (isStd) return null;
+  private List<LevelVariable> readLevelParameters(List<DefinitionProtos.Definition.LevelParameter> parameters) {
     List<LevelVariable> result = new ArrayList<>(parameters.size());
     for (DefinitionProtos.Definition.LevelParameter parameter : parameters) {
-      LevelVariable base = parameter.getIsPlevel() ? LevelVariable.PVAR : LevelVariable.HVAR;
-      int size = parameter.getSize();
-      if (size == -1) {
-        result.add(base);
-      } else {
-        result.add(new ParamLevelVariable(base.getType(), parameter.getName(), parameter.getIndex(), size));
-      }
+      result.add(new ParamLevelVariable(parameter.getName(), parameter.getIndex()));
     }
     return result;
   }
@@ -374,9 +348,9 @@ public class ModuleDeserialization {
       default -> throw new DeserializationException("Unknown Definition kind: " + defProto.getDefinitionDataCase());
     }
     if (def instanceof TopLevelDefinition) {
-      ((TopLevelDefinition) def).setLevelParameters(readLevelParameters(defProto.getLevelParamList(), defProto.getIsStdLevels()));
+      ((TopLevelDefinition) def).setLevelParameters(readLevelParameters(defProto.getLevelParamList()));
     } else {
-      ((MetaTopDefinition) def).setLevelParameters(readLevelParameters(defProto.getLevelParamList(), defProto.getIsStdLevels()));
+      ((MetaTopDefinition) def).setLevelParameters(readLevelParameters(defProto.getLevelParamList()));
     }
     return def;
   }

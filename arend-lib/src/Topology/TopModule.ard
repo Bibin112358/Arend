@@ -50,5 +50,5 @@
     }
   }
 
-\instance TopLModuleHasProduct (R : TopRing) : HasProduct (TopLModule R)
-  | Product => ProductTopLModule {R}
+\instance TopLModuleHasProduct.{u} (R : TopRing) : HasProduct (TopLModule.{u} R)
+  | Product A B => ProductTopLModule A B

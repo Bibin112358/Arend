@@ -10,12 +10,12 @@ import java.util.Collection;
 import java.util.List;
 
 public interface AbstractExpressionVisitor<P, R> {
-  R visitReference(@Nullable Object data, @NotNull Referable referent, @Nullable Fixity fixity, @Nullable Collection<? extends Abstract.LevelExpression> pLevels, @Nullable Collection<? extends Abstract.LevelExpression> hLevels, P params);
-  R visitReference(@Nullable Object data, @NotNull Referable referent, int lp, int lh, P params);
+  R visitReference(@Nullable Object data, @NotNull Referable referent, @Nullable Fixity fixity, @Nullable Collection<? extends Abstract.LevelExpression> pLevels, P params);
   R visitThis(@Nullable Object data, P params);
   R visitLam(@Nullable Object data, @NotNull Collection<? extends Abstract.LamParameter> parameters, /* @NotNull */ @Nullable Abstract.Expression body, P params);
   R visitPi(@Nullable Object data, @NotNull Collection<? extends Abstract.Parameter> parameters, /* @NotNull */ @Nullable Abstract.Expression codomain, P params);
-  R visitUniverse(@Nullable Object data, @Nullable Integer pLevelNum, @Nullable Integer hLevelNum, @Nullable Abstract.LevelExpression pLevel, @Nullable Abstract.LevelExpression hLevel, P params);
+  R visitUniverse(@Nullable Object data, @Nullable BigInteger pLevelNum, @Nullable BigInteger hLevelNum, @Nullable Abstract.LevelExpression pLevel, P params);
+  R visitCatUniverse(@Nullable Object data, @Nullable BigInteger pLevelNum, @Nullable Abstract.LevelExpression pLevel, P params);
   R visitApplyHole(@Nullable Object data, P params);
   R visitInferHole(@Nullable Object data, P params);
   R visitGoal(@Nullable Object data, @Nullable String name, @Nullable Abstract.Expression expression, P params);

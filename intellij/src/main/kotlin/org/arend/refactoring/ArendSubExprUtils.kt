@@ -75,7 +75,7 @@ data class SubExprResult(
             && subConcrete is Concrete.LetExpression
             && subCore is LetExpression) binding(subPsi, selected)?.let {
         it to FindBinding.visitLet(it, subConcrete, subCore)
-    } else findTeleBinding(selected)?.let { (id, link) -> id to link?.typeExpr }
+    } else findTeleBinding(selected)?.let { (id, link) -> id to link?.type }
 
     @Suppress("MemberVisibilityCanBePrivate")
     fun findTeleBinding(selected: TextRange) = if (subPsi is ArendLamExpr
@@ -139,11 +139,13 @@ fun correspondedSubExpr(range: TextRange, file: PsiFile, project: Project): SubE
     }
     val concreteDef = psiDef.tcReferable?.let { arendServer.getResolvedDefinition(it) }?.definition as? Concrete.Definition
 
+    /*
     val extension = concreteDef?.data?.getLocation()?.libraryName?.let { arendServer.getLibrary(it) as? ArendLibraryImpl }?.extension
     getReferableConcreteGroup(psiDef)?.let { concreteGroup ->
         DefinitionResolveNameVisitor(SimpleConcreteProvider(ArendServerImpl.updateDefinitions(concreteGroup)), arendServer.typingInfo, DummyErrorReporter.INSTANCE, extension?.literalTypechecker, resolver)
             .resolveGroup(concreteGroup, getReferableScope(psiDef), ArendInstances(), LinkedHashMap())
     }
+    */
     val body = concreteDef?.let { it to psiDef }
 
     val errors: List<SubExprError>

@@ -108,17 +108,6 @@
     | inverse => inverse
     | inverse-left => inverse-right
     | inverse-right => inverse-left
-
-  \lemma check-for-inv {x y : E} (p : x * y = ide) : y = inverse x
-    => simplify in pmap (inverse x *) p
-
-  \lemma equality-check {g h : E} (p : inverse g * h = ide) : g = h
-    => inv $ simplify in pmap (g *) p
-
-  \lemma equality-corrolary (g h : E) (p : g = h) : inverse g * h = ide =>
-    inverse g * h ==< pmap (inverse g *) (inv p) >==
-    inverse g * g ==< inverse-left >==
-    ide `qed
 } \where {
   \open Monoid(Inv)
 
@@ -127,19 +116,20 @@
         (\new Inv e (G.inverse e) G.inverse-left G.inverse-right)
         (\new Inv e (H.inverse e) (m *> H.inverse-left *> inv z) (m *> H.inverse-right *> inv z)))
 
-  \func equals (G H : Group) (p : G = {Monoid} H) : G = H
+  \func equals.{u} (G H : Group.{u}) (p : G = {Monoid.{u}} H) : G = {Group.{u}} H
     => exts Group {
          | Monoid => p
-         | inverse => inverse-equality
+         | inverse => inverse-equality p
        }
     \where {
-      \lemma inverse-equality (e : G) : coe (p @ __) (inverse e) right = inverse (coe (p @ __) e right)
-        => \let | h' {H' : Monoid} (q : G = {Monoid} H') => transport (\lam (H' : Monoid) => MonoidHom G H') q MonoidHom.id
-                | h => transport (MonoidHom G H __) (Jl (\lam (H' : Monoid) q => (h' q).func = (\lam x => coe (q @ __) x right)) idp p) (h' p)
+      \lemma inverse-equality.{u} {G H : Group.{u}} (p : G = {Monoid.{u}} H) (e : G) : coe (p @ __) (inverse e) right = inverse (coe (p @ __) e right)
+        => \let | h' {H' : Monoid.{u}} (q : G = {Monoid.{u}} H') => transport (\lam (H' : Monoid.{u}) => MonoidHom G H') q MonoidHom.id
+                | h => transport (MonoidHom G H __) (Jl (\lam (H' : Monoid.{u}) q => (h' q).func = (\lam x => coe (q @ __) x right)) idp p) (h' p)
                 | e' => coe (p @ __) e right
-           \in MonoidHom.presInvElem h
+           \in h.func-InvElem
                 (\new Inv e (inverse e) inverse-left inverse-right)
                 (\new Inv e' (inverse e') inverse-left inverse-right)
+                idp
     }
 
   \private \lemma make-inverse-left {M : Semigroup} {ide : M} (ide-right : \Pi {x : M} -> x * ide = x) (inverse : M -> M) (inverse-right : \Pi {x : M} -> x * inverse x = ide) {x : M} : inverse x * x = ide
@@ -396,7 +386,7 @@
     \use \coerce fromCGroup (G : CGroup) => \new AbGroup G.E G.ide (G.*) G.ide-left G.ide-right G.*-assoc G.inverse G.inverse-left G.*-comm
     \use \coerce toCGroup (G : AbGroup) => \new CGroup G.E G.zro (G.+) G.+-assoc G.zro-left G.zro-right G.negative G.negative-left G.+-comm
 
-    \func equals (A B : AbGroup) (p : A = {AddGroup} B) : A = B
+    \func equals.{u} (A B : AbGroup.{u}) (p : A = {AddGroup.{u}} B) : A = {AbGroup.{u}} B
       => path (\lam i => \new AbGroup {
         | AddGroup => p @ i
         | +-comm => prop-dpi (\Pi {x y : p @ __} -> x + y = y + x) A.+-comm B.+-comm @ i

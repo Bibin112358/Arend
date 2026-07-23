@@ -1,0 +1,285 @@
+\import AG.SchemeSite
+\import Algebra.Meta
+\import Algebra.Monoid
+\import Algebra.Monoid.Localization
+\import Algebra.Monoid.MonoidHom
+\import Algebra.Monoid.SubMonoid
+\import Algebra.Pointed
+\import Algebra.Pointed.PointedHom
+\import Algebra.Ring.Ideal
+\import Algebra.Ring.Localization
+\import Algebra.Ring.RingHom
+\import Category.Topos.Sheaf
+\import Function
+\import Function.Meta
+\import Logic
+\import Logic.Meta
+\import Meta
+\import Order.PartialOrder
+\import Paths
+\import Paths.Meta
+\import Relation.Equivalence
+\import Set.Subset
+\import Topology.Locale.PreorderSite
+\open Monoid
+\open Cover
+\open SubMonoid
+\open Localization
+
+\record SchemeSitePrehom.{u} (Dom Cod : SchemeSite.{u}) {
+  | \infix 4 <=f* : Dom -> Cod -> \Prop
+  | <=f*-left {b' b : Dom} {a : Cod} : b' <= b -> b <=f* a -> b' <=f* a
+  | <=f*-right {b : Dom} {a a' : Cod} : b <=f* a -> a <= a' -> b <=f* a'
+  | \protected f# {a : Cod} {b : Dom} : b <=f* a -> RingHom (Cod.R a) (Dom.R b)
+  | f#-left {a : Cod} {b b' : Dom} (b'<=b : b' <= b) (b<=a : b <=f* a) (b'<=a : b' <=f* a) {x : Cod.R a} : Dom.R.Func b'<=b (f# b<=a x) = f# b'<=a x
+  | f#-right {a a' : Cod} (a<=a' : a <= a') {b : Dom} (b<=a : b <=f* a) (b<=a' : b <=f* a') {x : Cod.R a'} : f# b<=a (Cod.R.Func a<=a' x) = f# b<=a' x
+  | <=f*-top {b : Dom} : Cover {Dom.toSite} b \lam y => ∃ (a : Cod) (y <=f* a)
+  | <=f*-meet {a1 a2 : Cod} {b : Dom} : b <=f* a1 -> b <=f* a2 -> Cover {Dom.toSite} b \lam y => ∃ (x : Cod) (x <= a1) (x <= a2) (y <=f* x)
+  | <=f*-loc {a a' : Cod} (a'<=a : a' <= a) {b : Dom} (b<=a : b <=f* a) : ∃ (b' : Dom) (b'<=b : b' <= b) (b'<=a' : b' <=f* a')
+    (x : Cod.R a) (Cod.IsLocalizationAt a'<=a x) (Dom.IsLocalizationAt b'<=b (f# b<=a x))
+
+  \lemma f#_f*-left {a : Cod} {b b' : Dom} {b'<=b : b' <= b} {b<=a : b <=f* a} {x : Cod.R a} : Dom.R.Func b'<=b (f# b<=a x) = f# (<=f*-left b'<=b b<=a) x
+    => f#-left b'<=b b<=a _
+
+  \lemma f#_f*-right {a a' : Cod} {a<=a' : a <= a'} {b : Dom} {b<=a : b <=f* a} {x : Cod.R a'} : f# b<=a (Cod.R.Func a<=a' x) = f# (<=f*-right b<=a a<=a') x
+    => f#-right a<=a' b<=a _
+
+  \sfunc f#-cover {a : Cod} {b : Dom} (b<=a : Cover {Dom.toSite} b (`<=f* a))
+    => IsPreorderSheaf.sheaf-map Dom.toRLSite.R-sheaf b<=a f# \lam ba b'a cb cb' => exts \lam x => f#_f*-left *> inv f#_f*-left
+
+  \lemma <=f*-loc-forall {a a' : Cod} (a'<=a : a' <= a) {b : Dom} (b<=a : b <=f* a) {x : Cod.R a} (xl : Cod.IsLocalizationAt a'<=a x)
+    : ∃ (b' : Dom) (b'<=b : b' <= b) (b'<=a' : b' <=f* a') (Dom.IsLocalizationAt b'<=b (f# b<=a x))
+    => \have | lem {x y : Cod.R a} (bx : Cod.IsLocalizationAt a'<=a x) (by : Cod.IsLocalizationAt a'<=a y) : ∃ (n : Nat) (LDiv (f# b<=a x) (pow (f# b<=a y) n))
+               => \case subMonoid-compare1 bx by \with {
+                    | inP (n,x|y^n) => inP (n, LDiv.make (f# b<=a x|y^n.inv) $ inv func-* *> pmap (f# b<=a) x|y^n.inv-right *> MonoidHom.func-pow)
+                  }
+             | (inP (b',b'<=b,b'<=a',y,yl,yb')) => <=f*-loc a'<=a b<=a
+       \in inP (b', b'<=b, b'<=a', transportSubMonoid1 yb' (lem xl yl) (lem yl xl))
+
+  \lemma <=f*_Cover {b : Dom} {a : Cod} {U : Set Cod} (ba : b <=f* a) (a<=U : Cover {Cod.toSite} a U)
+    : Cover {Dom.toSite} b \lam x => ∃ (y : U) (x <=f* y)
+    => cover-basic $ Ideal.sclosure-mono (SetIm-elim $ later \lam {x} (inP (a',c,a'c,Uc,a'a,al)) => \case <=f*-loc-forall a'a ba al \with {
+      | inP (b',b'b,b'a',bl) => inP (b', b', <=-refl, inP (c, Uc, <=f*-right b'a' a'c), b'b, bl)
+    }) $ transport (Ideal.sclosure _) func-ide $ PseudoRingHom.func-Ideal_sclosure (f# ba) (Cod.Cover_Ideal a<=U)
+
+  \lemma f#-cover_f# {b : Dom} {a : Cod} {b<<a : Cover {Dom.toSite} b (`<=f* a)} (b<=a : b <=f* a) {x : Cod.R a} : (f#-cover b<<a).1 x = f# b<=a x
+    => inv (path \lam i => Dom.R.Func-id i _) *> path (\lam i => (f#-cover b<<a).2 b<=a <=-refl <=-refl i x) *> path (\lam i => Dom.R.Func-id i _)
+} \where {
+  \protected \func id.{u} {S : SchemeSite.{u}} : SchemeSitePrehom S S \cowith
+    | <=f* => <=
+    | <=f*-left => <=∘
+    | <=f*-right => <=∘
+    | f# p => S.R.Func p
+    | f#-left b'b ba b'a {x} => inv (path \lam i => S.R.Func-o i x) *> pmap (S.R.Func __ x) prop-pi
+    | f#-right aa' ba ba' {x} => inv (path \lam i => S.R.Func-o i x) *> pmap (S.R.Func __ x) prop-pi
+    | <=f*-top {b} => cover-refl $ inP (b, <=-refl)
+    | <=f*-meet b<=a1 b<=a2 => cover-refl $ inP (_, b<=a1, b<=a2, <=-refl)
+    | <=f*-loc a'<=a b<=a => loc-stable b<=a a'<=a
+
+  \protected \func compose \alias \infixl 8 ∘.{u} {S T U : SchemeSite.{u}} (g : SchemeSitePrehom T U) (f : SchemeSitePrehom S T) : SchemeSitePrehom S U \cowith
+    | <=f* c a => ∃ (b : T) (c f.<=f* b) (b g.<=f* a)
+    | <=f*-left {c'} {c} c'<=c (inP (b,c<=b,b<=a)) => inP (b, <=f*-left c'<=c c<=b, b<=a)
+    | <=f*-right {c} {a} {a'} (inP (b,c<=b,b<=a)) a<=a' => inP (b, c<=b, <=f*-right b<=a a<=a')
+    | f# {a} {c} t => f# t
+    | f#-left {a} {c} {c'} c'<=c (inP (b,c<=b,b<=a)) (inP (b',c'<=b',b'<=a)) {x}
+      => pmap (S.R.Func _) f#-eval *> f.f#_f*-left *> f#-coh *> inv f#-eval
+    | f#-right a<=a' {c} (inP (b,c<=b,b<=a)) (inP (b',c<=b',b'<=a')) {x} => f#-eval *> pmap (f.f# _) g.f#_f*-right *> f#-coh *> inv f#-eval
+    | <=f*-top {c} => cover-trans* f.<=f*-top \lam {c'} (inP (b,c'<=b)) => cover-sub (f.<=f*_Cover c'<=b g.<=f*-top)
+      \lam {x} (inP (y, inP (u,y<=u), x<=y)) => inP (u, inP (y, x<=y, y<=u))
+    | <=f*-meet {a1} {a2} {c} (inP (b1,c<=b1,b1<=a1)) (inP (b2,c<=b2,b2<=a2)) => cover-trans* (f.<=f*-meet c<=b1 c<=b2)
+      \lam {c'} (inP (b,b<=b1,b<=b2,c'<=b)) => cover-sub (f.<=f*_Cover c'<=b $ g.<=f*-meet (<=f*-left b<=b1 b1<=a1) (<=f*-left b<=b2 b2<=a2))
+      \lam {c''} (inP (b', inP (a,a<=a1,a<=a2,b'<=a), c''<=b')) => inP (a, a<=a1, a<=a2, inP (b', c''<=b', b'<=a))
+    | <=f*-loc a'<=a {c} (inP (b,c<=b,b<=a)) => \case g.<=f*-loc a'<=a b<=a \with {
+      | inP (b',b'<=b,b'<=a',x,xl,xb') => \case f.<=f*-loc-forall b'<=b c<=b xb' \with {
+        | inP (c',c'<=c,c'<=b',xc') => inP (c', c'<=c, inP (b', c'<=b', b'<=a'), x, xl, transportInv (S.IsLocalizationAt c'<=c) f#-eval xc')
+      }
+    }
+    \where {
+      \lemma f#-coh {c : S} {b1 b2 : T} {a : U} {c<=b1 : c f.<=f* b1} {b1<=a : b1 g.<=f* a} {c<=b2 : c f.<=f* b2} {b2<=a : b2 g.<=f* a} {x : U.R a}
+        : f.f# c<=b1 (g.f# b1<=a x) = f.f# c<=b2 (g.f# b2<=a x)
+        => S.toRLSite.R-equals (f.<=f*-meet c<=b1 c<=b2) \lam {c'} {c''} (inP (b,b<=b1,b<=b2,c''<=b)) c'<=c c'<=c'' =>
+            \have c'<=b => <=f*-left c'<=c'' c''<=b \in hiding (c'',c'<=c'',c''<=b) $
+            f.f#_f*-left *> pmap (f.f# __ _) (prop-pi {_} {_} {<=f*-right c'<=b b<=b1}) *> inv f.f#_f*-right *>
+            pmap (f.f# c'<=b) (g.f#_f*-left *> pmap (g.f# __ x) prop-pi *> inv g.f#_f*-left) *>
+            f.f#_f*-right *> pmap (f.f# __ _) (prop-pi {_} {<=f*-right c'<=b b<=b2}) *> inv f.f#_f*-left
+
+      \lemma f#-coh-map {c : S} {a : U} (s s' : \Sigma (b : T) (c<=b : c f.<=f* b) (b<=a : b g.<=f* a))
+        : f.f# s.2 RingHom.∘ g.f# s.3 = f.f# s'.2 RingHom.∘ g.f# s'.3
+        => exts \lam x => f#-coh
+
+      \protected \func f# {c : S} {a : U} (t : ∃ (b : T) (c<=b : c f.<=f* b) (b<=a : b g.<=f* a)) : RingHom (U.R a) (S.R c)
+        => (TruncP.rec-set t (\lam s => f.f# s.2 RingHom.∘ g.f# s.3) f#-coh-map).1
+
+      \lemma f#-eval {c : S} {a : U} {t : \Sigma (b : T) (c<=b : c f.<=f* b) (b<=a : b g.<=f* a)} {x : U.R a}
+        : f# (inP t) x = f.f# t.2 (g.f# t.3 x)
+        => path \lam i => TruncP.rec-set-eval {_} {RingHom _ _} t {\lam s => f.f# s.2 RingHom.∘ g.f# s.3} i x
+
+      \lemma f#-evalAt {c : S} {a : U} {e : ∃ (b : T) (c<=b : c f.<=f* b) (b<=a : b g.<=f* a)}
+                       (t : \Sigma (b : T) (c<=b : c f.<=f* b) (b<=a : b g.<=f* a)) {x : U.R a}
+        : f# e x = f.f# t.2 (g.f# t.3 x) \elim e
+        | inP e => f#-eval *> f#-coh
+    }
+
+  \protected \lemma equals.{u} {T S : SchemeSite.{u}} {f g : SchemeSitePrehom T S}
+    (p : \Pi (b : T) (a : S) -> b f.<=f* a <-> b g.<=f* a)
+    (q : \Pi (a : S) (b : T) (b<=fa : b f.<=f* a) (b<=ga : b g.<=f* a) (x : S.R a) -> f.f# b<=fa x = g.f# b<=ga x) : f = g
+    => exts (\lam b a => ext (p b a), \lam {a} {b} r => exts $ q a b r _)
+}
+
+\type SchemeSiteHom.{u} (X Y : SchemeSite.{u}) => Quotient (~ {X} {Y})
+  \where {
+    \record \infix 4 ~.{u} {X Y : SchemeSite.{u}} (f g : SchemeSitePrehom X Y)
+      | ~-dir {b : X} {a : Y} : b f.<=f* a -> Cover {X.toSite} b (g.`<=f* a)
+      | ~-conv {b : X} {a : Y} : b g.<=f* a -> Cover {X.toSite} b (f.`<=f* a)
+      | ~-f# {b : X} {a : Y} {bfa : b f.<=f* a} {bga : b g.<=f* a} {y : Y.R a} : f.f# bfa y = g.f# bga y
+
+    \instance ~-equivalence.{u} {X Y : SchemeSite.{u}} : Equivalence (SchemeSitePrehom X Y) (__ ~ __)
+      | ~-reflexive {f} => \new ~ {
+        | ~-dir => cover-refl
+        | ~-conv => cover-refl
+        | ~-f# => pmap (f.f# __ _) prop-pi
+      }
+      | ~-symmetric r => \new ~ {
+        | ~-dir => r.~-conv
+        | ~-conv => r.~-dir
+        | ~-f# => inv r.~-f#
+      }
+      | ~-transitive {f} {g} {h} f~g g~h => \new ~ {
+        | ~-dir ba => cover-trans* (f~g.~-dir ba) \lam {b'} => g~h.~-dir
+        | ~-conv ba => cover-trans* (g~h.~-conv ba) \lam {b'} => f~g.~-conv
+        | ~-f# {b} {a} {bfa} {bha} {y} => X.toRLSite.R-equals (f~g.~-dir bfa) \lam {c} {b'} b'a cb cb' =>
+          f.f#_f*-left *> f~g.~-f# {_} {_} {_} {<=f*-left cb' b'a} *> g~h.~-f# *> inv h.f#_f*-left
+      }
+
+    \func inh~.{u} {X Y : SchemeSite.{u}} (f : SchemeSitePrehom X Y) : SchemeSiteHom X Y
+      => in~ f
+
+    \lemma ~-hequiv.{u} {X Y : SchemeSite.{u}} (f g : SchemeSitePrehom X Y) (p : f ~ g) : inh~ f = inh~ g
+      => path \lam i => ~-equiv f g p i
+
+    \lemma ~-unhequiv.{u} {X Y : SchemeSite.{u}} {f g : SchemeSitePrehom X Y} (p : inh~ f = inh~ g) : f ~ g
+      => Quotient.equalityEquiv ~-equivalence (path \lam i => p i)
+
+    \protected \func id.{u} {S : SchemeSite.{u}} : SchemeSiteHom S S
+      => inh~ SchemeSitePrehom.id
+
+    \open SchemeSitePrehom (compose \as pcomp)
+
+    \protected \func compose \alias \infixl 8 ∘.{u} {S T U : SchemeSite.{u}} (g : SchemeSiteHom T U) (f : SchemeSiteHom S T) : SchemeSiteHom S U \elim g, f
+      | in~ g, in~ f => in~ (g SchemeSitePrehom.∘ f)
+      | in~ g, ~-equiv f f' r => ~-hequiv (pcomp g f) (pcomp g f') \new ~ {
+        | ~-dir {c} (inP (b,cb,ba)) => cover-sub (r.~-dir cb) \lam {b'} b'b => inP $ later (b, b'b, ba)
+        | ~-conv {c} (inP (b,cb,ba)) => cover-sub (r.~-conv cb) \lam {b'} b'b => inP $ later (b, b'b, ba)
+        | ~-f# {c} {a} {inP (b,cb,ba)} {ca} {x} => pcomp.f#-eval *> S.toRLSite.R-equals (r.~-dir cb) \lam {c'} {c''} c''b c'c c'c'' =>
+          f.f#_f*-left *> r.~-f# *> inv (pcomp.f#-evalAt (b, <=f*-left c'c'' c''b, ba)) *> inv (pcomp g f').f#_f*-left
+      }
+      | ~-equiv g g' r, in~ f => ~-hequiv (pcomp g f) (pcomp g' f) \new ~ {
+        | ~-dir {c} (inP (b,cb,ba)) => cover-sub (f.<=f*_Cover cb (r.~-dir ba)) \lam {c'} (inP (b,ba,c'b)) => inP (b,c'b,ba)
+        | ~-conv {c} (inP (b,cb,ba)) => cover-sub (f.<=f*_Cover cb (r.~-conv ba)) \lam {c'} (inP (b,ba,c'b)) => inP (b,c'b,ba)
+        | ~-f# {c} {a} {inP (b,cb,ba)} {inP (b',cb',b'a)} {x} => pcomp.f#-eval *> S.toRLSite.R-equals (f.<=f*-meet cb cb')
+          (\lam {c'} {c''} (inP (b'',b''b,b''b',c''b'')) c'c c'c'' => f.f#_f*-left *> pmap (f.f# __ _) (prop-pi {_} {_} {<=f*-right (<=f*-left c'c'' c''b'') b''b})
+            *> inv f.f#_f*-right *> pmap (f.f# _) (g.f#_f*-left *> r.~-f# *> inv g'.f#_f*-left) *> f.f#_f*-right
+            *> pmap (f.f# __ _) (prop-pi {_} {<=f*-right (<=f*-left c'c'' c''b'') b''b'}) *> inv f.f#_f*-left) *> inv pcomp.f#-eval
+      }
+  }
+
+\func satCounit.{u} {S : SchemeSite.{u}} : SchemeSiteHom (SatSite S) S
+  => in~ prehom
+  \where {
+    \protected \func prehom.{u} {S : SchemeSite.{u}} : SchemeSitePrehom (SatSite S) S \cowith
+      | <=f* b a => b.1 <= a
+      | <=f*-left b'b ba => b'b.1 <=∘ ba
+      | <=f*-right ba aa' => ba <=∘ aa'
+      | f# ba => locR RingHom.∘ S.R.Func ba
+      | f#-left b'b ba b'a {x} => lift_inL *> pmap locR (inv (path \lam i => S.R.Func-o i x) *> pmap (S.R.Func __ x) prop-pi)
+      | f#-right aa' ba ba' {x} => pmap locR (inv (path \lam i => S.R.Func-o i x) *> pmap (S.R.Func __ x) prop-pi)
+      | <=f*-top {b} => cover-refl $ inP (b.1, <=-refl)
+      | <=f*-meet {a} {a'} {b} ba ba' => cover-refl $ inP (b.1, ba, ba', <=-refl)
+      | <=f*-loc a'a {b} ba => \case loc-stable ba a'a \with {
+        | inP (b',b'b,b'a',x,al,bl) => inP ((b', S.R.Func b'b b.2), (b'b, inP LDiv.id-div), b'a', x, al, transportSubMonoid1
+          (factor-right1 LocRing.isLocalization (comp1 bl LocRing.isLocalization) \lam x => unfold lift_inL)
+          (inP (1, LDiv.make (locR b.2) $ ~-lequiv1 simplify))
+          (inP (1, \have bi => (LocRing.isLocalization {_} {powers b.2}).localization-inv powers-id
+                   \in LDiv.make bi.inv $ inv $ bi.rotate-inv-right $ later $ ~-lequiv1 simplify)))
+      }
+
+    \open SchemeSiteHom
+
+    \lemma isMono.{u} {X Y : SchemeSite.{u}} {f g : SchemeSiteHom X (SatSite Y)} (p : satCounit SchemeSiteHom.∘ f = satCounit SchemeSiteHom.∘ g) : f = g \elim f, g
+      | in~ f, in~ g => ~-unhequiv {X} {Y} at p $ ~-hequiv f g
+        \have lem {f g : SchemeSitePrehom X (SatSite Y)} (p : prehom SchemeSitePrehom.∘ f ~ prehom SchemeSitePrehom.∘ g)
+                  {b : X} {a : SatSite Y} (ba : b f.<=f* a) : Cover {X.toSite} b (g.`<=f* a)
+              => cover-trans* (cover-down $ p.~-dir $ inP (a, ba, <=-refl)) \lam {b'} (inP (b'', inP (a',b''a',a'a), b'b'', b'b)) =>
+                  \case g.<=f*-loc-forall {a.1, 1} (<=-refl, \box inP $ transportInv (LDiv __ _) func-ide LDiv.ide-div)
+                        (<=f*-left b'b'' $ <=f*-right b''a' (a'a, \box inP $ transportInv (LDiv __ _) func-ide LDiv.ide-div))
+                        (factor-right1 LocRing.isLocalization LocRing.isLocalization \lam x => lift_inL *> path \lam i => locR (Y.R.Func-id i x)) \with {
+                    | inP (c,cb',ca,bl) => flip cover-trans1 (cover-refl ca) $ X.inv-cover cb' <=-refl bl $
+                      transport Inv (
+                          inv (path \lam i => f.f# _ (locR (Y.R.Func-id i _)))
+                          *> inv SchemeSitePrehom.compose.f#-eval
+                          *> p.~-f# {b'} {a.1} {inP (a, <=f*-left b'b ba, <=-refl)} {inP (a', <=f*-left b'b'' b''a', a'a)} {a.2}
+                          *> SchemeSitePrehom.compose.f#-eval
+                          *> pmap (g.f# _) (later $ inv lift_inL)
+                          *> inv g.f#_f*-left
+                          *> pmap (X.R.Func b'b'') g.f#_f*-right
+                          *> g.f#_f*-left
+                          *> inv (path \lam i => X.R.Func-id i _)) $
+                        (f.f# (<=f*-left b'b ba)).func-Inv (LocRing.isLocalization.localization-inv powers-id)
+                  }
+        \in \new ~ {
+          | ~-dir => lem p
+          | ~-conv => lem (~-symmetric p)
+          | ~-f# {b} {a} {bfa} {bga} => LocRing.isLocalization.isEpi (f.f# bfa) (g.f# bga) \lam y =>
+            inv (SchemeSitePrehom.compose.f#-eval *> path \lam i => f.f# bfa (locR (Y.R.Func-id i _)))
+            *> p.~-f# {b} {a.1} {inP (a, bfa, <=-refl)} {inP (a, bga, <=-refl)}
+            *> SchemeSitePrehom.compose.f#-eval *> path (\lam i => g.f# bga (locR (Y.R.Func-id i _)))
+        }
+  }
+
+\func satLift.{u} {X : SatSchemeSite.{u}} {Y : SchemeSite.{u}} (f : SchemeSiteHom X Y) : SchemeSiteHom X (SatSite Y) \elim f
+  | in~ f => in~ (prehom f)
+  | ~-equiv f g r => SchemeSiteHom.~-hequiv (prehom f) (prehom g) \new SchemeSiteHom.~ {
+    | ~-dir ba => cover-down-sub (r.~-dir ba.1) \lam {b'} {b''} b''a b'b'' b'b =>
+      (<=f*-left b'b'' b''a, transport Inv (f.f#_f*-left *> r.~-f#) $ (X.R.Func b'b).func-Inv ba.2)
+    | ~-conv ba => cover-down-sub (r.~-conv ba.1) \lam {b'} {b''} b''a b'b'' b'b =>
+      (<=f*-left b'b'' b''a, transport Inv (g.f#_f*-left *> inv r.~-f#) $ (X.R.Func b'b).func-Inv ba.2)
+    | ~-f# {b} {a} {bfa} {bga} => isEpi (prehom.f# {X} bfa) (prehom.f# {X} bga) \lam x => lift_inL *> r.~-f# *> inv lift_inL
+  }
+  \where {
+    \protected \func prehom (f : SchemeSitePrehom X Y) : SchemeSitePrehom X (SatSite Y) \cowith
+      | <=f* b a => \Sigma (ba : b f.<=f* a.1) (Inv (f.f# ba a.2))
+      | <=f*-left b'b ba => (<=f*-left b'b ba.1, transport Inv f.f#_f*-left $ (X.R.Func b'b).func-Inv ba.2)
+      | <=f*-right ba (aa', inP d) => (<=f*-right ba.1 aa', Inv.Inv_LDiv ba.2 $ transport (LDiv __ _) f.f#_f*-right $ (f.f# ba.1).func-LDiv d)
+      | f# {a : SatSite Y} {b : X} (ba : \Sigma (ba : b f.<=f* a.1) (Inv (f.f# ba a.2))) : RingHom (SatSite.R a) (X.R b)
+        => RingLocalization.liftHom1 LocRing.isLocalization (f.f# ba.1) ba.2
+      | f#-left b'b ba b'a => isEpi (X.R.Func b'b RingHom.∘ f# {X} ba) (f# {X} b'a) \lam x =>
+        pmap (X.R.Func b'b) lift_inL *> f.f#_f*-left *> pmap (f.f# __ x) prop-pi *> inv lift_inL
+      | f#-right aa' ba ba' => isEpi (f# {X} ba RingHom.∘ SatSite.R.Func aa') (f# {X} ba') \lam x =>
+        pmap (f# {X} ba) lift_inL *> lift_inL *> f.f#_f*-right *> pmap (f.f# __ x) prop-pi *> inv lift_inL
+      | <=f*-top => cover-sub f.<=f*-top \lam (inP (a,xa)) => inP ((a, 1), (xa, transportInv Inv func-ide Inv.ide-isInv))
+      | <=f*-meet {a} {a'} ba ba' => cover-down-sub (f.<=f*-meet ba.1 ba'.1) \lam {b'} {b''} (inP (a0,a0a,a0a',b''a0)) b'b'' b'b =>
+        inP ((a0, Y.R.Func a0a a.2 * Y.R.Func a0a' a'.2), (a0a, inP $ LDiv.make _ idp), (a0a', inP $ LDiv.make _ *-comm),
+             (<=f*-left b'b'' b''a0, transportInv Inv func-* $ Inv.Inv_*
+              (transport Inv (f.f#_f*-left *> pmap (f.f# __ _) prop-pi *> inv f.f#_f*-right) $ (X.R.Func b'b).func-Inv ba.2)
+              (transport Inv (f.f#_f*-left *> pmap (f.f# __ _) prop-pi *> inv f.f#_f*-right) $ (X.R.Func b'b).func-Inv ba'.2)))
+      | <=f*-loc {a} {a'} a'a ba => \case f.<=f*-loc a'a.1 ba.1 \with {
+        | inP (b',b'b,b'a',x,al,bl) => \case loc-exists (f.f# b'a' a'.2), al.localization-surj a'.2 \with {
+          | inP (b'',b''b',b'l), inP v => inP (b'', b''b' <=∘ b'b,
+            (<=f*-left b''b' b'a', transport Inv f.f#_f*-left $ b'l.localization-inv powers-id), locR (x * v.1),
+            SatSite.loc-lemma a'a al LDiv.ide-div (v.1, v.2, v.3, v.4 *> pmap (Y.R.Func _) (inv ide-left)),
+            transport2 (\lam x y => Localization (powers x) _ y) (inv $ lift_inL *> func-*) (inv X.R.Func-o) $ comp1 bl $ transportSubMonoid1 b'l
+              (\let ci => bl.localization-inv (func-powers v.3)
+               \in inP (1, later $ rewrite (f.f#_f*-left,ide-left) $ LDiv.make ci.inv $ inv $ ci.rotate-inv-right $
+                pmap (_ *) (f.f#_f*-left *> pmap (f.f# __ _) prop-pi *> inv f.f#_f*-right) *> inv func-* *> pmap (f.f# b'a') v.4 *> f.f#_f*-right))
+              (inP (1, later $ rewrite (f.f#_f*-left,ide-left) $ LDiv.make (f.f# (<=f*-left b'b ba.1) v.2) $
+                pmap (_ *) (pmap (f.f# __ _) prop-pi *> inv f.f#_f*-right) *> inv func-* *> pmap (f.f# b'a') v.4 *> f.f#_f*-right)))
+        }
+      }
+
+    \lemma lift_counit {f : SchemeSiteHom X Y} : satCounit SchemeSiteHom.∘ satLift f = f \elim f
+      | in~ f => SchemeSiteHom.~-hequiv _ f \new SchemeSiteHom.~ {
+        | ~-dir => later \lam (inP (a',ba',a'a)) => cover-refl (f.<=f*-right ba'.1 a'a)
+        | ~-conv {b} {a} ba => cover-refl $ inP $ later ((a, 1), (ba, MonoidHom.func-Inv Inv.ide-isInv), <=-refl)
+        | ~-f# {b} {a} => later \lam {inP bfa} {bga} {y} => SchemeSitePrehom.compose.f#-eval *> lift_inL *> f.f#_f*-right *> pmap (f.f# __ y) prop-pi
+      }
+  }

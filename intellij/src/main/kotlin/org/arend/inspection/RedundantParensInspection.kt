@@ -6,7 +6,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
-import com.intellij.psi.util.childrenOfType
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.endOffset
 import com.intellij.psi.util.startOffset
@@ -31,13 +30,7 @@ class RedundantParensInspection : ArendInspectionBase() {
         return object : PsiElementVisitor() {
             override fun visitElement(element: PsiElement) {
                 super.visitElement(element)
-                if (element !is ArendTuple && element !is ArendTypeTele && element !is ArendMaybeAtomLevelExprs) return
-                if (element is ArendMaybeAtomLevelExprs) {
-                    if (isRedundantParensInArendMaybeAtomLevelExprs(element)) {
-                        registerFix(element)
-                    }
-                    return
-                }
+                if (element !is ArendTuple && element !is ArendTypeTele) return
                 if (element is ArendTypeTele && !(element.isExplicit && element.referableList == listOf(null))) return
                 if (element is ArendTuple && element.tupleExprList.size > 1 &&
                         withAncestors(ArendAtom::class.java, ArendAtomFieldsAcc::class.java, ArendArgumentAppExpr::class.java, ArendNewExpr::class.java, ArendTupleExpr::class.java, ArendImplicitArgument::class.java).accepts(element) &&
@@ -60,21 +53,16 @@ private fun hasTypeTeleParens(element: ArendTypeTele): Boolean {
     return element.lparen != null
 }
 
-private fun isRedundantParensInArendMaybeAtomLevelExprs(element: ArendMaybeAtomLevelExprs): Boolean {
-    return element.childrenOfType<ArendAtomLevelExpr>().size == 1 &&
-            element.childOfType(LPAREN) != null &&
-            element.childOfType(RPAREN) != null
-}
-
 private fun neverNeedsParens(expression: ArendExpr): Boolean {
     val childAppExpr = if (expression is ArendNewExpr && isAtomic(expression)) expression.argumentAppExpr else null
-    return childAppExpr != null && isAtomic(childAppExpr) && !isBinOp(childAppExpr.atomFieldsAcc!!)
+    return childAppExpr != null && isAtomic(childAppExpr) && !isBinOp(childAppExpr.atomFieldsAcc)
 }
 
 private fun typeTeleDoesntNeedParens(expression: ArendExpr): Boolean {
     return expression.descendantOfType<ArendLiteral>()?.textRange == expression.textRange ||
            expression.descendantOfType<ArendUniverseAppExpr>()?.let { it.childOfType(UNIVERSE)?.textRange == expression.textRange } == true ||
-           expression.descendantOfType<ArendSetUniverseAppExpr>()?.let { it.childOfType(SET)?.textRange == expression.textRange } == true
+           expression.descendantOfType<ArendSetUniverseAppExpr>()?.let { it.childOfType(SET)?.textRange == expression.textRange } == true ||
+           expression.descendantOfType<ArendCatUniverseAppExpr>()?.let { it.childOfType(CAT_UNIVERSE)?.textRange == expression.textRange } == true
 }
 
 fun isAtomic(expression: ArendNewExpr) =
@@ -86,15 +74,7 @@ fun isAtomic(expression: ArendNewExpr) =
             expression.withBody == null
 
 private fun isAtomic(argumentAppExpr: ArendArgumentAppExpr): Boolean =
-    argumentAppExpr.argumentList.isEmpty() &&
-            hasNoLevelArguments(argumentAppExpr) &&
-            argumentAppExpr.atomFieldsAcc != null
-
-fun hasNoLevelArguments(argumentAppExpr: ArendArgumentAppExpr): Boolean {
-    val longNameExpr = argumentAppExpr.longNameExpr
-    // Excludes cases like `f (Path \levels 0 0) 1`, `f (Path \lp \lh) 1`
-    return longNameExpr == null || longNameExpr.levelsExpr == null && longNameExpr.pLevelExpr == null
-}
+    argumentAppExpr.argumentList.isEmpty()
 
 private fun isBinOp(atomFieldsAcc: ArendAtomFieldsAcc): Boolean {
     if (atomFieldsAcc.fieldAccList.isNotEmpty()) {
@@ -225,9 +205,6 @@ fun doUnwrapParens(startElement: PsiElement) {
             spaceLeft += startElement.tupleExprList.first().getWhitespace(SpaceDirection.LeadingSpace)
             spaceRight = startElement.tupleExprList.last().getWhitespace(SpaceDirection.TrailingSpace) + spaceRight
             contents = startElement.containingFile.text.substring(startElement.tupleExprList.first().startOffset, startElement.tupleExprList.last().endOffset)
-        }
-        is ArendMaybeAtomLevelExprs -> {
-            contents = startElement.childOfType<ArendAtomLevelExpr>()?.text ?: ""
         }
         else -> {
             contents = unwrapParens(startElement)?.text ?: ""

@@ -6,9 +6,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
-import org.arend.psi.childOfType
-import org.arend.psi.deleteWithWhitespaces
-import org.arend.psi.ext.ArendLevelsExpr
 import org.arend.util.ArendBundle
 
 class RemoveIgnoredLevelsQuickFix(private val cause: SmartPsiElementPointer<PsiElement>) : IntentionAction {
@@ -21,8 +18,10 @@ class RemoveIgnoredLevelsQuickFix(private val cause: SmartPsiElementPointer<PsiE
     override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean = cause.element != null
 
     override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
+        /* TODO[sorts]
         val parent = cause.element?.parent
         val levels = parent?.childOfType<ArendLevelsExpr>()
         levels?.deleteWithWhitespaces()
+        */
     }
 }

@@ -32,7 +32,7 @@ import org.arend.term.concrete.Concrete
             else -> null
         }
 
-        val refExpr = Concrete.FixityReferenceExpression.make(data, referent, fixity, null, null)
+        val refExpr = Concrete.FixityReferenceExpression.make(data, referent, fixity, null)
 
         var resolved: Concrete.Expression? = null
         var isCachedValue = true
@@ -68,8 +68,7 @@ import org.arend.term.concrete.Concrete
 
 @Deprecated("Obsolete") private fun getExpression(expr: Abstract.Expression?): Concrete.Expression {
     val ref = expr?.accept(object : BaseAbstractExpressionVisitor<Void, Concrete.Expression?>(null) {
-        override fun visitReference(data: Any?, referent: Referable, lp: Int, lh: Int, params: Void?) = resolveReference(data, referent, null)
-        override fun visitReference(data: Any?, referent: Referable, fixity: Fixity?, pLevels: Collection<Abstract.LevelExpression>?, hLevels: Collection<Abstract.LevelExpression>?, params: Void?) = resolveReference(data, referent, fixity)
+        override fun visitReference(data: Any?, referent: Referable, fixity: Fixity?, pLevels: Collection<Abstract.LevelExpression>?, params: Void?) = resolveReference(data, referent, fixity)
         override fun visitFieldAccs(data: Any?, expression: Abstract.Expression, fieldAccs: List<Abstract.FieldAcc?>, infixReference: AbstractReference?, infixName: String?, fixity: Fixity?, params: Void?): Concrete.Expression? {
           return fieldAccs.lastOrNull()?.let { fieldAcc -> fieldAcc.fieldRef?.let { resolveReference(data, it, fixity) } }
         }

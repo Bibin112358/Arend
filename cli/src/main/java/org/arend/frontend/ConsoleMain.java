@@ -76,6 +76,7 @@ public class ConsoleMain {
           ClassHierarchyTool.INSTANCE, ScopeInfoTool.INSTANCE);
 
   private final ErrorReporter mySystemErrErrorReporter = error -> {
+    finishProgressLine();
     System.err.println(error);
     System.err.flush();
     myExitWithError = true;
@@ -164,6 +165,30 @@ public class ConsoleMain {
     System.out.println("[" + resultChar(result) + "]" + " " + modulePath);
   }
 
+  private boolean myProgressActive = false;
+  private int myLastProgressLength = 0;
+
+  private void reportModuleProgress(int checked, int total, ModulePath modulePath) {
+    String line = "[" + (checked + 1) + "/" + total + "] Typechecking " + modulePath;
+    StringBuilder sb = new StringBuilder().append('\r').append(line);
+    int pad = myLastProgressLength - line.length();
+    if (pad > 0) {
+      sb.repeat(" ", pad);
+    }
+    System.err.print(sb);
+    System.err.flush();
+    myLastProgressLength = line.length();
+    myProgressActive = true;
+  }
+
+  private void finishProgressLine() {
+    if (myProgressActive) {
+      System.err.println();
+      myProgressActive = false;
+      myLastProgressLength = 0;
+    }
+  }
+
   private static char resultChar(GeneralError.Level result) {
     if (result == null) {
       return ' ';
@@ -195,6 +220,7 @@ public class ConsoleMain {
       }
       String errorText = error.getDoc(ppConfig).toString();
 
+      finishProgressLine();
       if (error.isSevere()) {
         System.err.println(errorText);
         System.err.flush();
@@ -523,9 +549,15 @@ public class ConsoleMain {
         System.out.println("--- Typechecking " + library.getLibraryName() + " ---");
         long time = System.currentTimeMillis();
 
-        for (ModulePath modulePath : library.findModules(false)) {
+        List<ModulePath> modulesToTypecheck = library.findModules(false);
+        int totalModules = modulesToTypecheck.size();
+        int checkedModules = 0;
+        for (ModulePath modulePath : modulesToTypecheck) {
+          reportModuleProgress(checkedModules, totalModules, modulePath);
           server.getCheckerFor(Collections.singletonList(new ModuleLocation(library.getLibraryName(), ModuleLocation.LocationKind.SOURCE, modulePath))).typecheck(UnstoppableCancellationIndicator.INSTANCE, progressReporter);
+          checkedModules++;
         }
+        finishProgressLine();
 
         time = System.currentTimeMillis() - time;
 
@@ -650,9 +682,15 @@ public class ConsoleMain {
         System.out.println("--- Running tests in " + library.getLibraryName() + " ---");
         long time = System.currentTimeMillis();
 
-        for (ModulePath modulePath : library.findModules(true)) {
+        List<ModulePath> testModulesToTypecheck = library.findModules(true);
+        int totalTestModules = testModulesToTypecheck.size();
+        int checkedTestModules = 0;
+        for (ModulePath modulePath : testModulesToTypecheck) {
+          reportModuleProgress(checkedTestModules, totalTestModules, modulePath);
           server.getCheckerFor(Collections.singletonList(new ModuleLocation(library.getLibraryName(), ModuleLocation.LocationKind.TEST, modulePath))).typecheck(UnstoppableCancellationIndicator.INSTANCE, progressReporter);
+          checkedTestModules++;
         }
+        finishProgressLine();
 
         time = System.currentTimeMillis() - time;
 

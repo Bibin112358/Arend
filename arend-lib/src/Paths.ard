@@ -94,6 +94,10 @@
 
 \func pathOver {A : I -> \Type} {a : A left} {a' : A right} (p : coe A a right = a') : Path A a a'
   => *>.concat (idpOver A a) p
+  \where {
+    \protected \func conv (p : Path A a a') : coe A a right = a'
+      => coe (\lam i => coe A a i = p i) idp right
+  }
 
 \func coe_path {A : \Type} {a1 a2 a3 a4 : A} (p : a2 = a1) (q : a2 = a3) (r : a3 = a4)
   : coe (\lam i => p @ i = r @ i) q right = inv p *> q *> r
@@ -103,7 +107,7 @@
       : coe (\lam i => p @ i = r @ i) (p *> q *> inv r) right = q
       | idp, idp, idp => idp
 
-\func path-sym {A : \Type} (a a' : A) : (a = a') = (a' = a) => path (iso inv inv inv_inv inv_inv)
+\func path-sym.{u} {A : \Type u} (a a' : A) : (a = a') = (a' = a) => path (iso inv inv inv_inv inv_inv)
 
 \func rotatePathLeft {A : \Type} {a a' a'' : A} {p : a' = a} {q : a' = a''} {r : a = a''} (t : q = p *> r)
   : inv p *> q = r \elim p, r, t

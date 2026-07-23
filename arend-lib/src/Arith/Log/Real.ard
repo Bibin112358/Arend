@@ -118,7 +118,7 @@
       }
 
     -- | Triples $(n,\, 0 < x/2^n,\, x/2^n < 2)$: dyadic shifts placing $x$ in $\ell$'s domain.
-    \func DyadicShift (x : Real) : \Type
+    \func DyadicShift (x : Real) : \Set0
       => \Sigma (n : Nat)
              ((0 : Real) < x * RatField.finv (RatField.pow 2 n))
              ((x * RatField.finv (RatField.pow 2 n)).U 2)

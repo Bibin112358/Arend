@@ -168,7 +168,7 @@
           | inr n<=i => aux (NatSemiring.<_+-right n (\case LinearOrder.dec<_<= j m \with {
             | inl j<m => j<m
             | inr m<=j => absurd $ ij/=nm $ ext
-              \have j=m => <=-antisymmetric (NatBSemilattice.<=_cancel-left i $ =_<= i+j=n+m <=∘ NatSemiring.<=_+ n<=i <=-refl) m<=j
+              \have j=m => <=-antisymmetric (NatBSemilattice.<=_cancel-left i $ i+j=n+m =<= NatSemiring.<=_+ n<=i <=-refl) m<=j
               \in (NatSemiring.cancel-right j $ i+j=n+m *> pmap (n +) (inv j=m), j=m)
           }) <∘l <_suc_<= n+m<k) xn#0 (R.#0-*-right p)
         }

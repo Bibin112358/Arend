@@ -348,9 +348,11 @@
         <runLineMarkerContributor language="Arend"
                                   implementationClass="org.arend.typechecking.execution.TypeCheckRunLineMarkerContributor"/>
 
+        <!-- TODO
         <codeInsight.lineMarkerProvider language="Arend" implementationClass="org.arend.codeInsight.ArendRecursiveLineMarkerProvider"/>
 
         <codeInsight.lineMarkerProvider language="Arend" implementationClass="org.arend.codeInsight.ArendSuperclassesLineMarkerProvider"/>
+        -->
 
         <!-- Color Settings -->
 

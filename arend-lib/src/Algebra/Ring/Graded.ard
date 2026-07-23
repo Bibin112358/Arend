@@ -24,7 +24,6 @@
 \class GradedCRing \extends CRing {
   | isHomogen : E -> Nat -> \Prop
   | homogen-zro {n : Nat} : isHomogen 0 n
-  | homogen-negative_ide : isHomogen -1 0
   | homogen-+ {n : Nat} {a b : E} : isHomogen a n -> isHomogen b n -> isHomogen (a + b) n
   | homogen-* {n m : Nat} {a b : E} : isHomogen a n -> isHomogen b m -> isHomogen (a * b) (n Nat.+ m)
   | homogen-decomp (x : E) : ∃ (l : Array E) (\Pi (n : Fin l.len) -> isHomogen (l n) n) (BigSum l = x)
@@ -33,12 +32,53 @@
   \func isHomogenArray (l : Array E) => \Pi (n : Fin l.len) -> isHomogen (l n) n
 
   \lemma homogen-ide : isHomogen 1 0
-    => transport (isHomogen __ 0) equation (homogen-* homogen-negative_ide homogen-negative_ide)
+    => \case homogen-decomp 1 \with {
+      | inP (nil, lh, l=1) => transport (isHomogen __ 0) l=1 homogen-zro
+      | inP (x0 :: l, lh, l=1) =>
+        \have | lj=x0lj {j} : l j = x0 * l j =>
+                \let | l1 => replicate (suc j) 0
+                     | l' => l1 ++ map (l j *) (x0 :: l)
+                     | lj=l' : l j = BigSum l' => inv (pmap (_ *) l=1 *> ide-right) *> BigSum-ldistr {_} {_} {x0 :: l} *> inv zro-left *> pmap (`+ _) (inv $ BigSum_zro {_} {l1} \lam _ => idp) *> inv (BigSum_++ {_} {l1})
+                \in \case homogenSum-unique {_} {l'} (\lam i => \case ++.split-index {_} {l1} i \with {
+                  | inl (i',i_i') => transportInv (\lam r => isHomogen (l' r) _) (fin_nat-inj i_i') $ transportInv (isHomogen __ i) (++.++_index-left i') homogen-zro
+                  | inr (i',i_i') => transportInv (\lam r => isHomogen (l' r) _) (fin_nat-inj i_i') $ transportInv (isHomogen __ i) ++.++_index-right $ transportInv (isHomogen _) (later $ i_i' *> pmap suc ++.index-right-nat) $ homogen-* (lh (suc j)) (lh i')
+                }) (transport (isHomogen __ _) lj=l' (lh (suc j))) \with {
+                  | inl (j',q,j'_j) => lj=l' *> q *> pmap (++ (replicate (suc j) zro) _ __) {j'} {++.index-right {_} {replicate (suc j) zro} 0} (fin_nat-inj $ j'_j *> pmap suc (inv ++.index-right-nat)) *> ++.++_index-right *> *-comm
+                  | inr l'=0 => lj=l' *> l'=0 *> inv (pmap (_ *) (lj=l' *> l'=0) *> zro_*-right)
+                }
+              | x0lj=0 {j} : x0 * l j = 0 => homogen-unique (negative x0 + x0 * x0 :: map (x0 *) l) (\case \elim __ \with {
+                | 0 => homogen-+ (homogen-negative (lh 0)) $ homogen-* (lh 0) (lh 0)
+                | suc i => homogen-* (lh 0) (lh (suc i))
+              }) (+-assoc *> +-comm *> toZero (inv (BigSum-ldistr {_} {_} {x0 :: l}) *> pmap (_ *) l=1 *> ide-right)) (suc j)
+        \in transportInv (isHomogen __ 0) (inv l=1 *> pmap (_ +) (BigSum_zro \lam j => lj=x0lj *> x0lj=0) *> zro-right) (lh 0)
+    }
 
   \lemma homogen-negative {n : Nat} {x : E} (xh : isHomogen x n) : isHomogen (negative x) n
-    => transport (isHomogen __ n) equation (homogen-* homogen-negative_ide xh)
+    => \case homogen-decomp (negative x) \with {
+      | inP (l,lh,l=-x) => \case LinearOrder.dec<_<= n l.len \with {
+        | inl n<l =>
+          \have | l' => \new Array E l.len \lam j => \case decideEq n j \with {
+                          | yes _ => l j + x
+                          | no _ => l j
+                        }
+                | ln+x=0 => rewrite (decideEq=_reduce $ inv toFin=id) in homogen-unique l' (\lam j => mcases \with {
+                    | yes n=j => homogen-+ (lh j) $ transport (isHomogen x) n=j xh
+                    | no _ => lh j
+                  }) (cancel-right (negative (BigSum l)) $ pmap (_ +) BigSum_negative *> inv (BigSum_+ {_} {_} {l'}) *>
+                    BigSum-unique {_} {\new Array E l.len \lam j => l' j - l j} (toFin n n<l)
+                      (\lam j n/=j => rewrite (decideEq/=_reduce \lam n=j => n/=j $ fin_nat-inj $ toFin=id *> n=j) negative-right) *>
+                    rewrite (decideEq=_reduce $ inv toFin=id) equation.abGroup *> inv negative-isInv *> pmap negative (inv l=-x) *> inv zro-left) (toFin n n<l)
+          \in transport2 isHomogen (fromZero $ pmap (_ +) negative-isInv *> ln+x=0) toFin=id (lh _)
+        | inr n>=l =>
+          \have x=0 => inv ++.++_index-right *> inv ++.++_index-right *> homogen-unique _ (homogen-++ {_} {l} {replicate (n -' l.len) 0 ++ (x :: nil)} lh \lam j => \case ++.split-index j \with {
+              | inl (j1,j_j1) => transportInv (isHomogen __ _) (later $ rewrite j_j1 $ ++.++_index-left j1) homogen-zro
+              | inr (0,j_0) => transport2 isHomogen (later $ rewrite j_0 $ inv $ ++.++_index-right) (inv $ pmap {Nat} (_ Nat.+) (j_0 *> ++.index-right-nat) *> <=_exists n>=l) xh
+            }) (BigSum_++ *> pmap2 (+) l=-x (BigSum_++ *> pmap2 (+) (BigSum_zro \lam _ => idp) zro-right *> zro-left) *> negative-left) (++.index-right $ ++.index-right 0)
+          \in transportInv (isHomogen __ n) (pmap negative x=0 *> negative_zro) homogen-zro
+      }
+    }
 
-  \lemma homogen-pow {a : E} {n m : Nat} (ah : isHomogen a n) : isHomogen (pow a m) (n Nat.* m) \elim m
+  \lemma homogen-pow {a : E} {n : Nat} (ah : isHomogen a n) {m : Nat} : isHomogen (pow a m) (n Nat.* m) \elim m
     | 0 => homogen-ide
     | suc m => homogen-* (homogen-pow ah) ah
 
@@ -50,6 +90,18 @@
     => \case FinSum_char a \with {
       | inP (e,q) => transportInv (isHomogen __ n) q $ homogen-BigSum \lam j => p (e j)
     }
+
+  \func IsHomogen (a : E) : \Prop
+    => ∃ (n : Nat) (isHomogen a n)
+
+  \lemma IsHomogen_ide : IsHomogen 1
+    => inP (0, homogen-ide)
+
+  \lemma IsHomogen_* {a b : E} (ah : IsHomogen a) (bh : IsHomogen b) : IsHomogen (a * b) \elim ah, bh
+    | inP (n,ah), inP (m,bh) => inP (_, homogen-* ah bh)
+
+  \lemma IsHomogen_pow {a : E} (ah : IsHomogen a) {k : Nat} : IsHomogen (pow a k) \elim ah
+    | inP (n,ah) => inP (_, homogen-pow ah)
 
   \lemma homogen-similar {l l' : Array E} (lh : isHomogenArray l) (l'h : isHomogenArray l') (p : BigSum l = BigSum l') : Similar l l'
     => diff=0->similar $ homogen-unique (diff l l') (diff-homogen l l' 0 lh l'h) (diff-sum l l' *> toZero p)
@@ -165,12 +217,12 @@
         | a :: l, 0 => lh 0
         | a :: l, suc j => aux (suc n) (\lam j => lh (suc j)) l'h j
 
-  \lemma homogen-factor {a b c : E} (b=ac : b = a * c) {n m : Nat} (bh : isHomogen b n) (ah : isHomogen a m)
-    : ∃ (c' : E) (k : Nat) (isHomogen c' k) (b = a * c')
-    => TruncP.map (homogen-decomp c) \lam (l,lh,+l=c) => aux n m 0 lh $ homogen-similar
+  \lemma homogen-factor {a b : E} (a|b : Monoid.LDiv a b) (bh : IsHomogen b) (ah : IsHomogen a)
+    : ∃ (c : E) (k : Nat) (isHomogen c k) (b = a * c) \elim bh, ah
+    | inP (n,bh), inP (m,ah) => TruncP.map (homogen-decomp a|b.inv) \lam (l,lh,+l=c) => aux n m 0 lh $ homogen-similar
          (homogen-++ (\lam j => homogen-zro) $ later \lam (0) => bh)
          (homogen-++ (\lam j => homogen-zro) $ later \lam j => homogen-* ah (lh j))
-         (BigSum_++ *> pmap (`+ _) BigSum_replicate0 *> later (simplify $ b=ac *> pmap (a *) (inv +l=c) *> BigSum-ldistr) *> inv (BigSum_++ *> pmap (`+ _) BigSum_replicate))
+         (BigSum_++ *> pmap (`+ _) BigSum_replicate0 *> later (simplify $ inv a|b.inv-right *> pmap (a *) (inv +l=c) *> BigSum-ldistr) *> inv (BigSum_++ *> pmap (`+ _) BigSum_replicate))
     \where {
       \func aux {a b : E} (s t n : Nat) {l : Array E} (lh : \Pi (j : Fin l.len) -> isHomogen (l j) (n Nat.+ j)) (p : Similar (replicate s zro ++ b :: nil) (replicate t zro ++ map (a *) l))
         : \Sigma (c : E) (k : Nat) (isHomogen c k) (b = a * c) \elim s, t, l, p
@@ -259,7 +311,7 @@
     }
 
   \lemma sum-decomp (l : Array (\Sigma E E)) (c : \Pi (i : Fin l.len) -> ∃ (n : Nat) (isHomogen (l i).2 n))
-    : ∃ (N : Nat) (f : \Pi (n : Fin N) -> \Sigma (J : FinSet) (g : J -> E) (\Pi (j : J) -> \Sigma (n : Nat) (isHomogen (g j) n)) (h : J -> Fin l.len) (\Pi (j : J) -> isHomogen (g j * (l (h j)).2) n))
+    : ∃ (N : Nat) (f : \Pi (n : Fin N) -> \Sigma (J : FinSet.{0}) (g : J -> E) (\Pi (j : J) -> \Sigma (n : Nat) (isHomogen (g j) n)) (h : J -> Fin l.len) (\Pi (j : J) -> isHomogen (g j * (l (h j)).2) n))
         (BigSum (map (\lam s => s.1 * s.2) l) = BigSum (\lam n => FinSum (\lam j => (f n).2 j * (l ((f n).4 j)).2)))
     => \let | (inP c') => FinSet.finiteAC c
             | (inP d) => FinSet.finiteAC (\lam i => homogen-decomp (l i).1)

@@ -15,7 +15,7 @@
 \import Data.Array.Pairs
 \import Data.Array.Split
 \import Data.Or
-\import Equiv (Equiv)
+\import Equiv
 \import Function (IsInj)
 \import Function.Meta
 \import Logic
@@ -311,7 +311,7 @@
        | inP (l, inj, q) =>
         \let l' : Array M => remove (\lam m => decideEq (msCoef p m) 0) l
         \in KFinSet.KFin+Dec=>Fin (\new KFinSet {
-         | finCard => l'.len
+         | card => l'.len
          | finSurj => inP (\lam j => (l' j, remove.no-element \lam m => decideEq (msCoef p m) 0), \lam x => \case index-dec l' x.1 \with {
            | inl s => inP (s.1, ext s.2)
            | inr r => absurd $ x.2 $ rewrite q $ monoidSet-coefs_BigSum *> BigSum_zro \lam j => BigSum_zro $ later $ rewrite (decideEq/=_reduce \lam p' => r $ rewrite p' $ remove.element $ later $ rewriteI p' x.2) \case __
@@ -351,8 +351,8 @@
   | in~ s => in~ s.1
   | ~-equiv x y r => ~-msequiv (~-perm r)
 
-\lemma monoidSetDec-equiv {M : DecSet} {R : AbMonoid} {Rd : DecSet R} : Equiv (decToMonoidSet {M} {R})
-  => Equiv.fromInjSurj _ (\lam {in~ s} {in~ t} q => \case Transitive.Closure.univ (Equivalence.map msNorm $ EPerm-equivalence) (\lam e => inP (msNorm_~ e)) (MonoidSet.toClosure q) \with {
+\lemma monoidSetDec-equiv {M : DecSet} {R : AbMonoid} {Rd : DecSet R} : IsEquiv (decToMonoidSet {M} {R})
+  => IsEquiv.fromInjSurj (\lam {in~ s} {in~ t} q => \case Transitive.Closure.univ (Equivalence.map msNorm $ EPerm-equivalence) (\lam e => inP (msNorm_~ e)) (MonoidSet.toClosure q) \with {
        | inP r => DecMonoidSet.~-dmsequiv $ transport2 EPerm (msNorm=msNorm' *> msNorm'-norm) (msNorm=msNorm' *> msNorm'-norm) r
      }) \lam (in~ l) => inP (DecMonoidSet.inDMS (msNorm l, remove.no-repeats nub-isInj, \lam j => remove.no-element (\lam m => decideEq (msCoef (inMS l) m) 0)),
                              inv $ rewrite msNorm=msNorm' $ ~-msequiv (~-perm nub-split) *> fromClosure +_~ *> fromClosure remove_~)

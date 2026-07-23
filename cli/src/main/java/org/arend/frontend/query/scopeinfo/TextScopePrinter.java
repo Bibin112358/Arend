@@ -27,14 +27,12 @@ final class TextScopePrinter implements ScopePrinter {
   public int print(Scope scope, String targetLabel, @Nullable SymbolPattern pattern,
       Options options, boolean showLibrary, PrintStream out) {
     out.println("--- Scope at " + targetLabel + " ---");
-    int total = 0;
+    int total;
     int matched = 0;
     if (options.context == ScopeSelection.ALL) {
       // Print each context section in turn.
       matched += dumpSection(scope, ScopeContext.STATIC,  "STATIC",  pattern, showLibrary, out);
       matched += dumpSection(scope, ScopeContext.DYNAMIC, "DYNAMIC", pattern, showLibrary, out);
-      matched += dumpSection(scope, ScopeContext.PLEVEL,  "PLEVEL",  pattern, showLibrary, out);
-      matched += dumpSection(scope, ScopeContext.HLEVEL,  "HLEVEL",  pattern, showLibrary, out);
       total = scope.getElements(null).size();
     } else if (options.context == ScopeSelection.STATIC_AND_DYNAMIC) {
       // Default: static and dynamic entries as a single sorted list (not two sections).

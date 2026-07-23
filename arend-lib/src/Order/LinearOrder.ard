@@ -270,6 +270,12 @@
       | less a<a' => contradiction
     })
 
+  \lemma dec< {A : Dec} (a a' : A) : Set.Dec (a < a')
+    => \case dec<_<= a a' \with {
+      | inl q => yes q
+      | inr q => no q
+    }
+
   \lemma dec<= {A : Dec} (a a' : A) : Set.Dec (a <= a')
     => \case dec<_<= a' a \with {
          | inl q => no \lam p => <-irreflexive (q <∘l p)

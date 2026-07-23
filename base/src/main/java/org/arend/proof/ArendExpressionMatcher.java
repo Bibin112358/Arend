@@ -183,7 +183,7 @@ public class ArendExpressionMatcher {
             Referable referable = Scope.resolveName(scope, referenceName);
             if (referable == null) referable = disambiguate(references.get(referenceName.getLast()), referenceName);
             if (referable != null) {
-                return Concrete.FixityReferenceExpression.make(null, referable, Fixity.UNKNOWN, null, null);
+                return Concrete.FixityReferenceExpression.make(null, referable, Fixity.UNKNOWN, null);
             } else if (!referenceName.isEmpty()) {
                 try {
                     int number = Integer.parseInt(referenceName.getFirst());

@@ -94,13 +94,13 @@ public class CollectCallVisitor extends SearchVisitor<Void> {
       switch (eliminators.get(i)) {
         case PiEliminator ignored -> {
           if (!(type instanceof PiExpression piExpr)) return null;
-          type = piExpr.getParameters().getNext().hasNext() ? new PiExpression(piExpr.getResultSort(), piExpr.getParameters().getNext(), piExpr.getCodomain()) : piExpr.getCodomain();
+          type = piExpr.getParameters().getNext().hasNext() ? new PiExpression(piExpr.getParameters().getNext(), piExpr.getCodomain()) : piExpr.getCodomain();
         }
         case SigmaEliminator sigmaEliminator -> {
           if (!(type instanceof SigmaExpression sigmaExpr)) return null;
           DependentLink param = DependentLink.Helper.get(sigmaExpr.getParameters(), sigmaEliminator.field);
           if (!param.hasNext()) return null;
-          type = param.getTypeExpr();
+          type = param.getType();
         }
         case PathEliminator ignored -> {
           if (type instanceof FunCallExpression funCall && funCall.getDefinition() == Prelude.PATH_INFIX) {
@@ -117,8 +117,8 @@ public class CollectCallVisitor extends SearchVisitor<Void> {
           if (type instanceof FunCallExpression funCall && funCall.getDefinition() == Prelude.ARRAY) {
             type = type.normalize(NormalizationMode.WHNF);
           }
-          if (!(type instanceof ClassCallExpression classCall)) return null;
-          type = classCall.getDefinition().getFieldType(classEliminator.classField).applyExpression(new ReferenceExpression(classCall.getThisBinding()));
+          if (!(type instanceof ClassCallExpression classCall && classCall.getDefinition().containsField(classEliminator.classField))) return null;
+          type = classCall.getFieldType(classEliminator.classField);
         }
       }
     }
@@ -178,7 +178,7 @@ public class CollectCallVisitor extends SearchVisitor<Void> {
 
       for (ExpressionPattern arg : subPatterns) {
         if (!conParam.hasNext()) break;
-        Expression newExpr1 = isConstructor ? removeArgsTyped(expr1, conParam.getTypeExpr()) : conPattern.isArray() ? expr1 : null;
+        Expression newExpr1 = isConstructor ? removeArgsTyped(expr1, conParam.getType()) : conPattern.isArray() ? expr1 : null;
         if (newExpr1 != null && isLess(newExpr1, arg) != BaseCallMatrix.R.Unknown) return BaseCallMatrix.R.LessThan;
         conParam = conParam.getNext();
       }

@@ -68,7 +68,7 @@
     => split_<= meet-left *> pmap (`∨ _) (pmap (x +) (inv *-assoc *> pmap (`* y) isBooleanRing))
 
   \lemma diff-trans {x y z : E} : diff x z <= diff x y ∨ diff y z
-    => =_<= split <=∘ join-monotone (diff-mono diff_<= <=-refl) (diff-univ meet-right $ *-assoc *> pmap (_ *) *-comm *> inv *-assoc *> pmap (`* y) diff_* *> zro_*-left)
+    => split =<= join-monotone (diff-mono diff_<= <=-refl) (diff-univ meet-right $ *-assoc *> pmap (_ *) *-comm *> inv *-assoc *> pmap (`* y) diff_* *> zro_*-left)
 
   \lemma diff_BigJoin {l : Array E} {x : E} : diff (BigJoin l) x = BigJoin \lam j => diff (l j) x \elim l
     | nil => equation.bRing

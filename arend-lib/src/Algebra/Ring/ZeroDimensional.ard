@@ -78,7 +78,7 @@
                      \new ReducedRing { | isReduced {a} p => \case c a \with {
                        | inP (b,q) => equation
                      } })),
-  ((1,0), \lam (zd, red : ReducedRing) => \lam a => \case zd a \with {
+  ((1,0), \lam (zd, red) => \lam a => \case zd a \with {
     | inP (b, 0, p) => inP (b, equation)
     | inP (b, suc n, p) => inP (b, inv ide-right *> R.fromZero (inv R.ldistr_- *>
       red.noNilpotent {_} {suc n} (R.pow_*-comm {_} {_} {suc n} *> equation)) *> inv *-assoc)

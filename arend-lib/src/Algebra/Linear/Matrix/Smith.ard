@@ -28,7 +28,6 @@
 \import Function
 \import Function.Meta
 \import Logic
-\import Logic.Classical
 \import Logic.Meta
 \import Logic.TFAE
 \import Meta
@@ -87,7 +86,7 @@
 
     \lemma smith-diag-func {R : CRing} {n m : Nat} {A : Matrix R n m} (As : IsSmith A)
                            : TruncP (\Pi {i i' : Fin n} {j j' : Fin m} (p : i = {Nat} j) (q : i NatSemiring.<= i') -> LDiv (A i j) (A i' j'))
-      => \case choice {SigmaFin (FinFin n) \lam i => SigmaFin (FinFin n) \lam i' => SigmaFin (FinFin m) \lam j => SigmaFin (FinFin m) \lam j' => ProdFin (DecFin (decideEq (i : Nat) j)) (DecFin (LinearOrder.dec<= (i : Nat) i'))} (\lam s => smith-diag As {_} {_} {_} {s.2.2.2.1} s.2.2.2.2.1 s.2.2.2.2.2) \with {
+      => \case (SigmaFin (FinFin n) \lam i => SigmaFin (FinFin n) \lam i' => SigmaFin (FinFin m) \lam j => SigmaFin (FinFin m) \lam j' => ProdFin (DecFin (decideEq (i : Nat) j)) (DecFin (LinearOrder.dec<= (i : Nat) i'))).choice (\lam s => smith-diag As {_} {_} {_} {s.2.2.2.1} s.2.2.2.2.1 s.2.2.2.2.2) \with {
            | inP f => inP (\lam p q => f (_, (_, (_, (_, (p,q))))))
          }
 
@@ -312,7 +311,7 @@
   \lemma M~_LDiv {R : CRing} {a : R} {n m : Nat} {A B : Matrix R n m} (A~B : A M~ B)
                  (d : \Pi (i : Fin n) (j : Fin m) -> TruncP (LDiv a (A i j)))
                  (i : Fin n) (j : Fin m) : TruncP (LDiv a (B i j)) \elim A~B
-    | inP (C : Inv, D : Inv, A~B) => rewrite A~B $ TruncP.map (choice {_} {\lam (s : \Sigma (Fin n) (Fin m)) => LDiv a (A s.1 s.2)} \lam s => d s.1 s.2)
+    | inP (C : Inv, D : Inv, A~B) => rewrite A~B $ TruncP.map (FinSet.choice {_} {\lam (s : \Sigma (Fin n) (Fin m)) => LDiv a (A s.1 s.2)} \lam s => d s.1 s.2)
                                          \lam f => R.LDiv_BigSum \lam k => LDiv.factor-left {_} {_} {BigSum \lam j => C.val i j * A j k} {D.val k j} $ R.LDiv_BigSum \lam j => later $ LDiv.factor-right $ f (j,k)
 
   \lemma ind-step {R : CRing} {n m : Nat} (A : Matrix R (suc n) (suc m))

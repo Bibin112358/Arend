@@ -16,15 +16,9 @@ message Definition {
         DConstructorData constructor = 4;
         MetaData meta = 5;
     }
-    UniverseKind universe_kind = 6;
     map<string, bytes> user_data = 7;
     repeated int32 meta_ref = 8;
-    int32 p_levels_parent = 9;
-    int32 h_levels_parent = 10;
-    bool p_levels_derived = 11;
-    bool h_levels_derived = 12;
     repeated LevelParameter level_param = 13;
-    bool is_std_levels = 14;
     repeated ParameterOriginalDef parameter_original_def = 15;
     repeated int32 axiom = 16;
     bool no_errors = 17;
@@ -35,9 +29,7 @@ message Definition {
         repeated int32 ref = 1;
     }
     message LevelParameter {
-        bool is_plevel = 1;
         string name = 2;
-        int32 size = 3;
         int32 index = 4;
     }
     message ParameterOriginalDef {
@@ -69,10 +61,7 @@ message Definition {
         repeated ClassParametersLevel parameters_level = 11;
         map<int32, OverriddenData> overridden_field = 23;
         repeated int32 covariant_field = 20;
-        int32 squasher = 13;
         map<int32, Levels> super_levels = 19;
-        UniverseKind base_universe_kind = 21;
-        repeated int32 omega_field = 22;
 
         message Field {
             Referable referable = 1;
@@ -85,7 +74,6 @@ message Definition {
             bool isRealParameter = 13;
             bool isProperty = 8;
             bool isHideable = 9;
-            UniverseKind universe_kind = 11;
             map<string, bytes> user_data = 12;
         }
     }
@@ -120,7 +108,6 @@ message Definition {
         CoerceData coerce_data = 12;
         repeated ParametersLevel parameters_levels = 13;
         bool has_enclosing_class = 16;
-        repeated bool omega_parameter = 19;
 
         message Constructor {
             Referable referable = 1;
@@ -150,7 +137,6 @@ message Definition {
         HiddenStatus body_hidden_status = 16;
         bool has_enclosing_class = 13;
         repeated bool strict_parameters = 15;
-        repeated bool omega_parameter = 19;
         int32 implemented_field = 20;
 
         enum HiddenStatus {

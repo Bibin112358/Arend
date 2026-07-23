@@ -225,7 +225,7 @@
                   => exp-log1p (negative ix) (\lam z => *-comm {_} {negative ix}) pnix
                | exp-arg : exp (2 * i * arctan x |x|<1) = exp P * exp (negative N)
                   => pmap exp (inv (arctan-log-bridge |x|<1)) *> exp_+ (ComplexField.*-comm {P} {ComplexField.negative N})
-               | mul-cancel-helper {M : CMonoid} {A b c : M} (bc : b * c = 1) : (A * b) * (A * c) = A * A
+               | mul-cancel-helper {M : CMonoid.{0}} {A b c : M} (bc : b * c = 1) : (A * b) * (A * c) = A * A
                  => equation.cMonoid {bc}
           \in pmap (_ *) exp-arg
               *> pmap (__ * (exp P * exp (negative N))) (inv one-plus-ix-times-one-minus-ix *> pmap (_ *) (inv eqN))

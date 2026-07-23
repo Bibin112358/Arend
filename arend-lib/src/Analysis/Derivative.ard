@@ -1,6 +1,7 @@
 \import Algebra.Group
 \import Algebra.Meta
 \import Algebra.Module
+\import Algebra.Module.BilinearMap
 \import Algebra.Module.LinearMap
 \import Algebra.Monoid
 \import Algebra.Pointed
@@ -78,7 +79,7 @@
   => limit-transport (cont2-limit fd gd +-cont) (\lam h => dquot.dquot_+ S h.6.2)
 
 \lemma dirDeriv_bilinear {R : NearSkewField} {X X1 X2 Y : TopLModule R} {S : Set X} (So : isOpen S) {f : Set.Total S -> X1} {g : Set.Total S -> X2} {x : Set.Total S} (gc : IsContAt {TopSub S} g x) {a : X}
-                         (b : BilinearMap X1 X2 Y) (bc : ContMap (X1 ⨯ X2) Y \lam s => b s.1 s.2) (Df : X1) (Dg : X2) (fd : IsDirDerivAt So f x a Df) (gd : IsDirDerivAt So g x a Dg)
+                         (b : BilinearMap X1 X2 Y) (bc : ContMap (ProductTopLModule X1 X2) Y \lam s => b s.1 s.2) (Df : X1) (Dg : X2) (fd : IsDirDerivAt So f x a Df) (gd : IsDirDerivAt So g x a Dg)
   : IsDirDerivAt So (\lam x => b (f x) (g x)) x a (b Df (g x) + b (f x) Dg)
   => limit-transport
       (cont2-limit (cont2-limit fd (contAt-limit {_} {TopSub S} (TopSub-limit $ transport (X.IsLimit _) (pmap (_ +) X.*c_zro-left *> zro-right) $ cont-limit (IsDirDerivAt.limit-id So) (+-cont ∘ tuple (const x.1) (*c-cont ∘ tuple id (const a)))) gc) bc) (cont-limit gd (bc ∘ tuple (const _) id)) +-cont)

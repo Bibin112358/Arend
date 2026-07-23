@@ -22,7 +22,6 @@
 \import Data.Or
 \import Equiv
 \import Equiv.Fiber
-\import Equiv.Univalence
 \import Function
 \import Function.Iterate
 \import Function.Meta
@@ -78,8 +77,8 @@
       | :: a l, padd p e => \lam s => pmap2 padd (gfunc l p (qadd_cons s).2) (qadd_cons {_} {e} {a} {toQPoly p} {l} s).1
       | :: a l, peq => pathOver $ coe_pi *> ext (\lam s => coe_path (path peq) _ idp *> pmap (inv (path peq) *>) (pmap2 (\lam x => pmap2 padd (gfunc l pzero x)) prop-pi set-pi))
 
-    \use \lemma toQPoly-equiv {R : AddPointed} : Equiv (toQPoly {R})
-      => contrFibers=>Equiv \case \elim __ \with {
+    \use \sfunc toQPoly-equiv {R : AddPointed} : QEquiv toQPoly
+      => contrFibers=>QEquiv {_} {QPoly R} \case \elim __ \with {
         | in~ l => \new Contr {
           | center => (fromArray l, cfunc l)
           | contraction t => ext (inv (gfunc l t.1 t.2))
@@ -87,10 +86,10 @@
       }
 
     \use \level levelSet {R : AddPointed} : isSet (Poly R)
-      => transportInv isSet (Equiv-to-= toQPoly-equiv) (\lam _ _ _ _ => set-pi)
+      => isSet.equiv (inP toQPoly-equiv) (\lam _ _ _ _ => set-pi)
 
     \func poly-countable {R : AddPointed} (c : Countable R) : Countable (Poly R)
-      => surj-countable (quotient-countable (array-countable c)) (Equiv.isSurj {symQEquiv toQPoly-equiv})
+      => surj-countable (quotient-countable (array-countable c)) (symQEquiv toQPoly-equiv).isSurj
 
     \lemma poly-trivial {R : AddPointed} (p : \Pi (x : R) -> x = zro) (p : Poly R) : p = pzero \elim p
       | pzero => idp

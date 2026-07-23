@@ -33,8 +33,6 @@ final class JsonScopePrinter implements ScopePrinter {
     if (options.context == ScopeSelection.ALL) {
       collectJson(scope, ScopeContext.STATIC,  "STATIC",  pattern, showLibrary, rows);
       collectJson(scope, ScopeContext.DYNAMIC, "DYNAMIC", pattern, showLibrary, rows);
-      collectJson(scope, ScopeContext.PLEVEL,  "PLEVEL",  pattern, showLibrary, rows);
-      collectJson(scope, ScopeContext.HLEVEL,  "HLEVEL",  pattern, showLibrary, rows);
     } else if (options.context == ScopeSelection.STATIC_AND_DYNAMIC) {
       collectJson(scope, ScopeContext.STATIC,  "STATIC",  pattern, showLibrary, rows);
       collectJson(scope, ScopeContext.DYNAMIC, "DYNAMIC", pattern, showLibrary, rows);

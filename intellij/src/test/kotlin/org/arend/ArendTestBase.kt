@@ -83,7 +83,7 @@ abstract class ArendTestBase : BasePlatformTestCase(), ArendTestCase {
     protected fun makeMeta(name: String, resolver: MetaResolver?, definition: MetaDefinition?): Concrete.MetaDefinition =
         Concrete.MetaDefinition(MetaReferable(AccessModifier.PUBLIC, Precedence.DEFAULT, name, TrivialMetaTypechecker(definition), resolver, FullModuleReferable(
             ModuleLocation(module.name, ModuleLocation.LocationKind.GENERATED, ModulePath("Meta"))
-        )), null, null, emptyList(), null)
+        )), null, emptyList(), null)
 
     protected fun addGeneratedModules(filler: DefinitionContributor.() -> Unit) {
         addGeneratedModules(this.library.name, filler)
@@ -271,9 +271,9 @@ abstract class ArendTestBase : BasePlatformTestCase(), ArendTestCase {
     private fun setupLibraryManager(config: ExternalLibraryConfig, libName: String) {
         project.service<ArendServerService>().server.updateLibrary(config, NotificationErrorReporter(project))
         addGeneratedModules(libName) {
-            declare(DocFactory.nullDoc(), Concrete.MetaDefinition(MetaReferable(AccessModifier.PUBLIC, Precedence.DEFAULT, "using", TrivialMetaTypechecker(null), null, FullModuleReferable(ModuleLocation(libName, ModuleLocation.LocationKind.GENERATED, ModulePath("Meta")))), null, null, emptyList(), null))
-            declare(DocFactory.nullDoc(), Concrete.MetaDefinition(MetaReferable(AccessModifier.PUBLIC, Precedence.DEFAULT, "$", TrivialMetaTypechecker(null), null, FullModuleReferable(ModuleLocation(libName, ModuleLocation.LocationKind.GENERATED, ModulePath("Function", "Meta")))), null, null, emptyList(), null))
-            declare(DocFactory.nullDoc(), Concrete.MetaDefinition(MetaReferable(AccessModifier.PUBLIC, Precedence.DEFAULT, "rewrite", TrivialMetaTypechecker(null), null, FullModuleReferable(ModuleLocation(libName, ModuleLocation.LocationKind.GENERATED, ModulePath("Paths", "Meta")))), null, null, emptyList(), null))
+            declare(DocFactory.nullDoc(), Concrete.MetaDefinition(MetaReferable(AccessModifier.PUBLIC, Precedence.DEFAULT, "using", TrivialMetaTypechecker(null), null, FullModuleReferable(ModuleLocation(libName, ModuleLocation.LocationKind.GENERATED, ModulePath("Meta")))), null, emptyList(), null))
+            declare(DocFactory.nullDoc(), Concrete.MetaDefinition(MetaReferable(AccessModifier.PUBLIC, Precedence.DEFAULT, "$", TrivialMetaTypechecker(null), null, FullModuleReferable(ModuleLocation(libName, ModuleLocation.LocationKind.GENERATED, ModulePath("Function", "Meta")))), null, emptyList(), null))
+            declare(DocFactory.nullDoc(), Concrete.MetaDefinition(MetaReferable(AccessModifier.PUBLIC, Precedence.DEFAULT, "rewrite", TrivialMetaTypechecker(null), null, FullModuleReferable(ModuleLocation(libName, ModuleLocation.LocationKind.GENERATED, ModulePath("Paths", "Meta")))), null, emptyList(), null))
         }
         TestModeFlags.set(stdLib, config, testRootDisposable)
     }

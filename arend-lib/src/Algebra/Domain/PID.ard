@@ -13,7 +13,8 @@
 \import Algebra.Meta
 \import Algebra.Monoid
 \import Algebra.Monoid.GCD
-\import Algebra.Monoid.Sub
+\import Algebra.Monoid.MonoidHom
+\import Algebra.Monoid.SubMonoid
 \import Algebra.Pointed
 \import Algebra.Ring.Ideal
 \import Algebra.Ring.Noetherian
@@ -31,17 +32,17 @@
 \open Monoid
 \open equation(cRing)
 
-\class PID \extends SmithDomain, NoetherianCRing {
+\class PID \extends SmithDomain, WeaklyNoetherianCRing {
   | divChain : CMonoid.DivChain {DivQuotientMonoid nonZeroCMonoid}
-  | isNoetherian I Ifg => Ideal.fromMonoidChainCondition (IntegralDomain.Dec.fromNonZeroDivChain divChain) I \lam n => bezout_finitelyGenerated_principal.1 isBezout (Ifg n)
+  | isWeaklyNoetherian I Ifg => Ideal.fromMonoidChainCondition (IntegralDomain.Dec.fromNonZeroDivChain divChain) I \lam n => bezout_finitelyGenerated_principal.1 isBezout (Ifg n)
   | isKaplansky => adequate_kaplansky \lam a/=0 => adequate'_adequate (domain_adequate' divChain a/=0)
 
   \lemma is1Dim : Dim<= 1
     => bezout_1Dim<->adequate'.2 \lam a/=0 => domain_adequate' divChain a/=0
 } \where {
-  \type IsAdequate {M : CMonoid} (a : M) => \Pi (b : M) -> ∃ (c : M) (LDiv c a) (IsCoprime c b) ∀ d (LDiv d a -> IsCoprime d b -> TruncP (LDiv d c))
+  \func IsAdequate {M : CMonoid} (a : M) => \Pi (b : M) -> ∃ (c : M) (LDiv c a) (IsCoprime c b) ∀ d (LDiv d a -> IsCoprime d b -> TruncP (LDiv d c))
 
-  \type IsAdequate' {M : CMonoid} (a : M) => \Pi (b : M) -> ∃ (a1 a2 : M) (n : Nat) (a = a1 * a2) (LDiv a1 (pow b n)) (IsCoprime a2 b)
+  \func IsAdequate' {M : CMonoid} (a : M) => \Pi (b : M) -> ∃ (a1 a2 : M) (n : Nat) (a = a1 * a2) (LDiv a1 (pow b n)) (IsCoprime a2 b)
 
   \lemma adequate'_adequate {M : GCDMonoid} {a : M} (adeq : IsAdequate' a) : IsAdequate a
     => \lam b => \case adeq b \with {
@@ -70,7 +71,7 @@
     => \lam b => \case decideEq b 0 \with {
       | yes b=0 => inP (a, 1, 1, inv ide-right, rewrite b=0 $ simplify M.zero-div, IsCoprime.IsCoprime_ide-left)
       | no b/=0 => TruncP.map (monoid_adequate' dc (a, M.nonZeroApart a/=0) (b, M.nonZeroApart b/=0)) \lam (a1,a2,n,a=a1a2,a1|b^n,a2_b) =>
-          (a1.1, a2.1, n, pmap __.1 a=a1a2, transport (LDiv _) M.subMonoid.embedMonoid.func-pow (M.nonZero_ldiv a1|b^n),
+          (a1.1, a2.1, n, pmap __.1 a=a1a2, transport (LDiv _) IMonoid.embed.func-pow (M.nonZero_ldiv a1|b^n),
            \lam z z|a2 z|b => M.nonZero_inv $ a2_b (z, M.nonZeroApart $ M.ldiv/=0 b/=0 z|b) (M.ldiv_nonZero z|a2) (M.ldiv_nonZero z|b))
     }
 

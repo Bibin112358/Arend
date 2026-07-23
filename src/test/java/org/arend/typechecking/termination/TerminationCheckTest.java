@@ -544,17 +544,17 @@ public class TerminationCheckTest extends TypeCheckingTestCase {
   @Test
   public void mutualRecursiveConstructor() {
     typeCheckModule("""
-      \\data D : \\hType
+      \\data D
         | con1
         | con2 (Nat -> D)
         | con3 {d1 d2 : D} (E d1 d2) : d1 = d2
-      \\data E (d1 d2 : D) : \\hType
+      \\data E (d1 d2 : D)
         | con4 (f : Nat -> D) (d1 = f 0) (d2 = con2 f)
-      \\func foo {A : D -> \\hType} (B : \\Pi {d1 d2 : D} -> A d1 -> A d2 -> E d1 d2 -> \\hType) (a1 : A con1) (a2 : \\Pi {f : Nat -> D} -> (\\Pi (n : Nat) -> A (f n)) -> A (con2 f)) (a3 : \\Pi {d1 d2 : D} (Ad1 : A d1) (Ad2 : A d2) (e : E d1 d2) -> B Ad1 Ad2 e -> Path (\\lam i => A (con3 e i)) Ad1 Ad2) (a4 : \\Pi {d1 d2 : D} (Ad1 : A d1) (Ad2 : A d2) {f : Nat -> D} (Af : \\Pi (n : Nat) -> A (f n)) (p1 : d1 = f 0) (p2 : d2 = con2 f) -> B Ad1 Ad2 (con4 f p1 p2)) (d : D) : A d \\elim d
+      \\func foo {A : D -> \\Type} (B : \\Pi {d1 d2 : D} -> A d1 -> A d2 -> E d1 d2 -> \\Type) (a1 : A con1) (a2 : \\Pi {f : Nat -> D} -> (\\Pi (n : Nat) -> A (f n)) -> A (con2 f)) (a3 : \\Pi {d1 d2 : D} (Ad1 : A d1) (Ad2 : A d2) (e : E d1 d2) -> B Ad1 Ad2 e -> Path (\\lam i => A (con3 e i)) Ad1 Ad2) (a4 : \\Pi {d1 d2 : D} (Ad1 : A d1) (Ad2 : A d2) {f : Nat -> D} (Af : \\Pi (n : Nat) -> A (f n)) (p1 : d1 = f 0) (p2 : d2 = con2 f) -> B Ad1 Ad2 (con4 f p1 p2)) (d : D) : A d \\elim d
         | con1 => a1
         | con2 f => a2 (\\lam n => foo B a1 a2 a3 a4 (f n))
         | con3 {d1} {d2} e => a3 (foo B a1 a2 a3 a4 d1) (foo B a1 a2 a3 a4 d2) e (bar B a1 a2 a3 a4 (foo B a1 a2 a3 a4 d1) (foo B a1 a2 a3 a4 d2) e)
-      \\func bar {A : D -> \\hType} (B : \\Pi {d1 d2 : D} -> A d1 -> A d2 -> E d1 d2 -> \\hType) (a1 : A con1) (a2 : \\Pi {f : Nat -> D} -> (\\Pi (n : Nat) -> A (f n)) -> A (con2 f)) (a3 : \\Pi {d1 d2 : D} (Ad1 : A d1) (Ad2 : A d2) (e : E d1 d2) -> B Ad1 Ad2 e -> Path (\\lam i => A (con3 e i)) Ad1 Ad2) (a4 : \\Pi {d1 d2 : D} (Ad1 : A d1) (Ad2 : A d2) {f : Nat -> D} (Af : \\Pi (n : Nat) -> A (f n)) (p1 : d1 = f 0) (p2 : d2 = con2 f) -> B Ad1 Ad2 (con4 f p1 p2)) {d1 d2 : D} (Ad1 : A d1) (Ad2 : A d2) (e : E d1 d2) : B Ad1 Ad2 e \\elim e
+      \\func bar {A : D -> \\Type} (B : \\Pi {d1 d2 : D} -> A d1 -> A d2 -> E d1 d2 -> \\Type) (a1 : A con1) (a2 : \\Pi {f : Nat -> D} -> (\\Pi (n : Nat) -> A (f n)) -> A (con2 f)) (a3 : \\Pi {d1 d2 : D} (Ad1 : A d1) (Ad2 : A d2) (e : E d1 d2) -> B Ad1 Ad2 e -> Path (\\lam i => A (con3 e i)) Ad1 Ad2) (a4 : \\Pi {d1 d2 : D} (Ad1 : A d1) (Ad2 : A d2) {f : Nat -> D} (Af : \\Pi (n : Nat) -> A (f n)) (p1 : d1 = f 0) (p2 : d2 = con2 f) -> B Ad1 Ad2 (con4 f p1 p2)) {d1 d2 : D} (Ad1 : A d1) (Ad2 : A d2) (e : E d1 d2) : B Ad1 Ad2 e \\elim e
         | con4 f p1 p2 => a4 Ad1 Ad2 (\\lam n => foo B a1 a2 a3 a4 (f n)) p1 p2
       """);
   }

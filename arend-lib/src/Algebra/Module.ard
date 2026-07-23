@@ -14,12 +14,10 @@
 \import Data.Array.Split
 \import Data.Fin (unfsuc)
 \import Equiv
-\import Equiv.Univalence (Equiv-to-=)
 \import Function (IsInj, IsSurj)
 \import Function.Meta
 \import Logic.Unique
 \import Logic
-\import Logic.Classical
 \import Logic.Meta
 \import Meta
 \import Order.Biordered
@@ -142,7 +140,7 @@
 
   \lemma IsIndependentSet-right-inj {J K : \Set} {f : J -> K} (inj : IsInj f) {g : K -> E} (gi : IsIndependentSet g) : IsIndependentSet (\lam j => g (f j))
     => \lam c p => \case IsZeroSum.nonEmpty $ gi (map (\lam s => (s.1, f s.2)) c) p \with {
-         | inP (l1 : Array, e, h) => inP
+         | inP (l1, e, h) => inP
            \let | g (s : \Sigma R J) => (s.1, f s.2)
                 | pi (i : Fin l1.len) : \Sigma (j : J) (f j = (l1 i).2) =>
                   \let | i' => ++.index-big {_} {map (\lam s => map (\lam p0 => (p0, s.2)) s.1) l1} i $ toFin 0 (nonZero>0 (l1 i).3)
@@ -174,17 +172,20 @@
 
   \lemma IsIndependentSet-fin {J : FinSet} {g : J -> E} : IsIndependentSet g <-> (\Pi (c : J -> R) -> FinSum (\lam j => c j *c g j) = 0 -> \Pi (j : J) -> c j = 0)
     => \case J.finEq \with {
-      | inP (e : Equiv) => transport {FinSet} (\lam X => \Pi (g : X -> E) -> IsIndependentSet g <-> (\Pi (c : X -> R) -> FinSum (\lam j => c j *c g j) = 0 -> \Pi (j : X) -> c j = 0)) {FinFin J.finCard} {J} (ext (Equiv-to-= e, idp))
-          (\lam g => <->sym (IsIndependent<->IsIndependentSet {_} {g}) `<->trans` later (\lam f c p j => f c (inv FinSum=BigSum *> p) j, \lam f c p j => f c (FinSum=BigSum *> p) j)) g
+      | inP e =>
+        \have isc => IsIndependent<->IsIndependentSet {_} {\lam i => g (e i)}
+        \in (\lam gi c p j => pmap c (inv (e.f_ret j)) *> isc.2 (IsIndependentSet-right-inj e.isInj gi) (\lam i => c (e i)) (inv (FinSum_char2 e) *> p) (e.ret j),
+             \lam gi => transport IsIndependentSet (ext \lam j => pmap g $ e.f_ret j) $ IsIndependentSet-right-inj (symQEquiv e).isInj $ isc.1 \lam c p i =>
+               pmap c (inv $ e.ret_f i) *> gi (\lam j => c (e.ret j)) (FinSum_char2 e *> pmap BigSum (exts \lam i => pmap (c __ *c _) (e.ret_f i)) *> p) (e i))
     }
 
   \type IsGeneratingSet {J : \Set} (g : J -> E) : \Prop
     => \Pi (x : E) -> ∃ (c : Array (\Sigma R J)) (x = IsIndependentSet.sum g c)
 
-  \lemma IsGeneratingSet-fin {J : \Set} {g : J -> E} : IsGeneratingSet g <-> (\Pi (x : E) -> ∃ (K : FinSet) (c : K -> \Sigma R J) (x = FinSum (\lam k => (c k).1 *c g (c k).2)))
+  \lemma IsGeneratingSet-fin {J : \Set} {g : J -> E} : IsGeneratingSet g <-> (\Pi (x : E) -> ∃ (K : FinSet.{0}) (c : K -> \Sigma R J) (x = FinSum (\lam k => (c k).1 *c g (c k).2)))
     => (\lam gs x => TruncP.map (gs x) \lam s => (_, s.1, s.2 *> inv FinSum=BigSum), \lam gs x =>
          \have | (inP (K, c, p)) => gs x
-               | (inP e) => finEq {K}
+               | (inP e) => K.finEq
          \in inP (\lam j => c (e j), p *> FinSum_Equiv e *> FinSum=BigSum))
 
   \lemma IsGeneratingSet-surj {J K : \Set} {f : J -> K} (surj : IsSurj f) {g : K -> E} (gi : IsGeneratingSet g) : IsGeneratingSet (\lam j => g (f j))
@@ -193,7 +194,7 @@
               | (inP h) => FinSet.finiteAC (\lam i => surj (s.1 i).2)
         \in inP (mkArray \lam i => ((s.1 i).1, (h i).1), s.2 *> pmap BigSum (exts \lam i => cong (inv (h i).2)))
 
-  \lemma IsBasisSet-equiv {J K : \Set} (e : Equiv {J} {K}) {g : K -> E} (gb : IsBasisSet g) : IsBasisSet (\lam j => g (e j))
+  \lemma IsBasisSet-equiv {J K : \Set} (e : QEquiv {J} {K}) {g : K -> E} (gb : IsBasisSet g) : IsBasisSet (\lam j => g (e j))
     => (IsIndependentSet-right-inj e.isInj gb.1, IsGeneratingSet-surj e.isSurj gb.2)
 
   \lemma IsGenerated<->IsGeneratingSet {l : Array E} : IsGenerated l <-> IsGeneratingSet l
@@ -245,12 +246,12 @@
   \protected \func IsFinitelyGenerated : \Prop
     => ∃ (l : Array E) (IsGenerated l)
 
-  \lemma basisSet_basis (J : FinSet) {g : J -> E} (gb : IsBasisSet g) : ∃ (l : Array E J.finCard) (IsBasis l)
-    => \case FinSet.finEq \with {
+  \lemma basisSet_basis (J : FinSet) {g : J -> E} (gb : IsBasisSet g) : ∃ (l : Array E J.card) (IsBasis l)
+    => \case J.finEq \with {
          | inP e => inP (\lam j => g (e j), IsBasis<->IsBasisSet.2 $ IsBasisSet-equiv e gb)
        }
 
-  \lemma free-char : ∃ (l : Array E) (IsBasis l) <-> ∃ (J : FinSet) (g : J -> E) (IsBasisSet g)
+  \lemma free-char : ∃ (l : Array E) (IsBasis l) <-> ∃ (J : FinSet.{0}) (g : J -> E) (IsBasisSet g)
     => (TruncP.map __ \lam s => (FinFin (DArray.len {s.1}), s.1, IsBasis<->IsBasisSet.1 s.2), \case __ \with {
          | inP (J,g,gb) => basisSet_basis J gb
        })
@@ -259,8 +260,9 @@
     => \lam x => TruncP.map (g x) \lam t => (t.1, t.2 *> inv FinSum=BigSum)
 
   \lemma generated-fin-array {J : FinSet} {f : J -> E} (g : IsGeneratedFin f) : IsFinitelyGenerated
-    => TruncP.map J.finEq \lam (e : Equiv {Fin J.finCard} {J}) =>
-        (\lam i => f (e i), \lam x => TruncP.map (g x) \lam t => (\lam i => t.1 (e i), t.2 *> FinSum_Equiv e *> FinSum=BigSum))
+    => \case J.finEq \with {
+      | inP e => inP (\lam i => f (e i), \lam x => TruncP.map (g x) \lam t => (\lam i => t.1 (e i), t.2 *> FinSum_Equiv e *> FinSum=BigSum))
+    }
 
   \func IsFaithful : \Prop
     => \Pi (r : R) -> (\Pi (m : E) -> r *c m = 0) -> r = 0
@@ -350,7 +352,7 @@
   \lemma generated-fin-comp (f : RingHom) {M : LModule f.Cod} {I J : FinSet} {a : I -> f.Cod} {b : J -> M} (Cg : (homLModule f).IsGeneratedFin a) (Mg : M.IsGeneratedFin b)
     : LModule.IsGeneratedFin {pullback f M} (\lam (p : \Sigma J I) => a p.2 *c b p.1)
     => \lam x => \have | (inP (d,p)) => Mg x
-                       | (inP g) => choice (\lam j => Cg (d j))
+                       | (inP g) => FinSet.choice (\lam j => Cg (d j))
                  \in inP (\lam s => (g s.1).1 s.2, p *> path (\lam i => FinSum (\lam j => (g j).2 i *c b j)) *>
                             path (\lam i' => FinSum (\lam j => M.*c_FinSum-rdistr {I} {\lam i => (g j).1 i *c a i} {b j} i')) *> FinSum-double *> pmap FinSum (ext \lam s => *c-assoc))
 
@@ -407,7 +409,7 @@
   }
 
 
-\func RingLModule (R : Ring) : LModule R R \cowith
+\func RingLModule (R : Ring) : LModule R \cowith
   | AbGroup => R
   | *c => *
   | *c-assoc => *-assoc
@@ -415,16 +417,6 @@
   | *c-rdistr => R.rdistr
   | ide_*c => ide-left
   \where {
-    \func *_hom-left {R : CRing} {x : R} : LinearMap (RingLModule R) (RingLModule R) \cowith
-      | func y => x * y
-      | func-+ => ldistr
-      | func-*c => equation
-
-    \func *_hom-right {R : Ring} {x : R} : LinearMap (RingLModule R) (RingLModule R) \cowith
-      | func y => y * x
-      | func-+ => rdistr
-      | func-*c => *-assoc
-
     \lemma basis {R : Ring} : LModule.IsBasis {RingLModule R} (1 :: nil)
       => (\lam c p (0) => inv ide-right *> inv zro-right *> p, \lam x => inP (x :: nil, simplify))
   }
