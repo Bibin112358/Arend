@@ -30,7 +30,13 @@ class RedundantParensInspection : ArendInspectionBase() {
         return object : PsiElementVisitor() {
             override fun visitElement(element: PsiElement) {
                 super.visitElement(element)
-                if (element !is ArendTuple && element !is ArendTypeTele) return
+                if (element !is ArendTuple && element !is ArendTypeTele && element !is ArendAtomLevelExpr) return
+                if (element is ArendAtomLevelExpr) {
+                    if (isRedundantParensInLevelExpr(element)) {
+                        registerFix(element)
+                    }
+                    return
+                }
                 if (element is ArendTypeTele && !(element.isExplicit && element.referableList == listOf(null))) return
                 if (element is ArendTuple && element.tupleExprList.size > 1 &&
                         withAncestors(ArendAtom::class.java, ArendAtomFieldsAcc::class.java, ArendArgumentAppExpr::class.java, ArendNewExpr::class.java, ArendTupleExpr::class.java, ArendImplicitArgument::class.java).accepts(element) &&
@@ -51,6 +57,13 @@ class RedundantParensInspection : ArendInspectionBase() {
 
 private fun hasTypeTeleParens(element: ArendTypeTele): Boolean {
     return element.lparen != null
+}
+
+private fun isRedundantParensInLevelExpr(element: ArendAtomLevelExpr): Boolean {
+    // A parenthesized level expression like `(0)` or `(l)` is redundant when it wraps an atomic
+    // level expression (a number, a reference, or another parenthesized level), since an atom
+    // fits directly into any level-argument position without the parentheses.
+    return element.lparen != null && element.levelExpr is ArendAtomLevelExpr
 }
 
 private fun neverNeedsParens(expression: ArendExpr): Boolean {
@@ -205,6 +218,9 @@ fun doUnwrapParens(startElement: PsiElement) {
             spaceLeft += startElement.tupleExprList.first().getWhitespace(SpaceDirection.LeadingSpace)
             spaceRight = startElement.tupleExprList.last().getWhitespace(SpaceDirection.TrailingSpace) + spaceRight
             contents = startElement.containingFile.text.substring(startElement.tupleExprList.first().startOffset, startElement.tupleExprList.last().endOffset)
+        }
+        is ArendAtomLevelExpr -> {
+            contents = startElement.levelExpr?.text ?: ""
         }
         else -> {
             contents = unwrapParens(startElement)?.text ?: ""

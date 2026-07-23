@@ -34,8 +34,9 @@ class RedundantParensInspectionTest : QuickFixTestBase() {
 
        \func test8 => f2 (\Set 0) 1
 
-       \func test9 => f2 Path.{0,0} 1
-       \func test10 {A : \Type \lp} => f2 Path.{\lp} 1
+       \func L.{l} => \Type l
+       \func test9 => f2 L.{0} 1
+       \func test10.{l} => f2 L.{l} 1
 
        \func test11 => f2 (\Sigma) 1
        \func test12 => f2 (\Pi (n : Nat) -> Nat) 1
@@ -186,7 +187,7 @@ class RedundantParensInspectionTest : QuickFixTestBase() {
        \func test13 => 0 + suc (suc 1) + 2
        \func test14 => 0 + 1 + suc (suc 2)
 
-       \func test15 {A : \Type} (l : Array A) (a : A) => a :: (::.{\lp} a l)
+       \func test15 {A : \Type} (l : Array A) (a : A) => a :: (:: a l)
 
        \func test16 => + (suc 0) (suc 1)
        \func test17 => +(suc 0) (suc 1)
@@ -286,10 +287,12 @@ class RedundantParensInspectionTest : QuickFixTestBase() {
         \func test => \Sigma \Prop (Nat -> Nat)
     """)
 
-    fun testArendMaybeAtomLevelExprs() = doTypedQuickFixTest("""       
-        \func a : 1 = 1 => idp.{0, (1){-caret-}}
+    fun testArendMaybeAtomLevelExprs() = doTypedQuickFixTest("""
+        \func f.{l1, l2} => \Type (\max l1 l2)
+        \func a => f.{0, (1){-caret-}}
     """, """
-        \func a : 1 = 1 => idp.{0, 1}
+        \func f.{l1, l2} => \Type (\max l1 l2)
+        \func a => f.{0, 1}
     """)
 
     fun `test a tuple with a tuple with case expression`() = doWeakWarningsCheck(myFixture,"""
