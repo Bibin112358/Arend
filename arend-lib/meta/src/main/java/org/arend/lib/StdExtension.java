@@ -39,6 +39,8 @@ import org.arend.lib.meta.exists.ExistsMeta;
 import org.arend.lib.meta.exists.GivenMeta;
 import org.arend.lib.meta.exists.ExistsResolver;
 import org.arend.lib.meta.linear.LinearSolverMeta;
+import org.arend.lib.meta.arith.IntArithMeta;
+import org.arend.lib.meta.arith.NatArithMeta;
 import org.arend.lib.meta.rewrite.RewriteEquationMeta;
 import org.arend.lib.meta.rewrite.RewriteMeta;
 import org.arend.lib.meta.simplify.SimplifyMeta;
@@ -525,6 +527,10 @@ public class StdExtension implements ArendExtension {
         For example, if `p : a = b + c`, `q : b + b * c = c`, and the goal is `a * b = c`, then `bRing {p,q}` proves the goal.
         """), makeDef(equation.getRef(), "bRing", new DependencyMetaTypechecker(BooleanRingEquationMeta.class, () -> new DeferredMetaDefinition(new BooleanRingEquationMeta(), true))));
     contributor.declare(text("Solve systems of linear equations"), makeDef(algebra, "linarith", new DependencyMetaTypechecker(LinearSolverMeta.class, () -> new DeferredMetaDefinition(new LinearSolverMeta(), true))));
+    contributor.declare(text("Like linarith, but additionally synthesizes hypotheses about div, mod, and truncated minus (-') subterms for Nat"),
+        makeDef(algebra, "natarith", new DependencyMetaTypechecker(NatArithMeta.class, () -> new DeferredMetaDefinition(new NatArithMeta(), true))));
+    contributor.declare(text("Like linarith, but additionally converts strict Int inequalities x < y into isuc x <= y"),
+        makeDef(algebra, "intarith", new DependencyMetaTypechecker(IntArithMeta.class, () -> new DeferredMetaDefinition(new IntArithMeta(), true))));
     contributor.declare(text("Proves an equality by congruence closure of equalities in the context. E.g. derives f a = g b from f = g and a = b"),
         makeDef(algebra, "cong", new DependencyMetaTypechecker(CongruenceMeta.class, () ->  new DeferredMetaDefinition(new CongruenceMeta()))));
     contributor.declare(text("Simplifies the expected type or the type of the argument if the expected type is unknown."),
