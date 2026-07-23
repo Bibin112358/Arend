@@ -636,28 +636,6 @@ public class CompareVisitor implements ExpressionVisitor2<Expression, Expression
     return true;
   }
 
-  /*
-  private boolean compareIsoArgs(List<? extends Expression> list1, List<? extends Expression> list2, ExprSubstitution substitution) {
-    DependentLink link = Prelude.ISO.getParameters();
-    if (!compare(list1.get(0), list2.get(0), link.getTypeExpr())) {
-      return false;
-    }
-    substitution.add(link, (myCMP == CMP.LE ? list2 : list1).get(0));
-    link = link.getNext();
-
-    if (!compare(list1.get(1), list2.get(1), link.getTypeExpr())) {
-      return false;
-    }
-    substitution.add(link, (myCMP == CMP.LE ? list2 : list1).get(1));
-    link = link.getNext();
-
-    if (!compare(list1.get(2), list2.get(2), link.getTypeExpr().subst(substitution))) {
-      return false;
-    }
-    return compare(list1.get(6), list2.get(6), link.getNext().getNext().getNext().getNext().getTypeExpr());
-  }
-  */
-
   private boolean compareConstArray(FunCallExpression atExpr, Expression otherExpr, Expression type, boolean correctOrder) {
     boolean ok = true;
     if (otherExpr.getStuckInferenceVariable() != null) {

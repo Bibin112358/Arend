@@ -19,7 +19,7 @@ public interface CoreParameter {
 
   /**
    * Returns the type of the parameter.
-   * Equivalent to {@code getBinding().getTypeExpr()}
+   * Equivalent to {@code getBinding().getType()}
    */
   @NotNull CoreExpression getType();
 

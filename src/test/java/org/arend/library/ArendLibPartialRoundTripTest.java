@@ -701,7 +701,7 @@ public class ArendLibPartialRoundTripTest {
           String paramDesc = link == null
               ? "<null>"
               : (link.isExplicit() ? "explicit" : "implicit") + " " + link.getName()
-                + " : " + safeRender(link.getTypeExpr())
+                + " : " + safeRender(link.getType())
                 + " paramHash=@" + System.identityHashCode(link);
           String loc = "<no-cause>";
           if (err.getCause() instanceof org.arend.term.concrete.Concrete.SourceNode sn) {
