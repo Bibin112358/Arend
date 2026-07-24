@@ -1,6 +1,6 @@
 \import Arith.Fin.Order
-\import Set \hiding (ArrayDec) -- hide the fixed-length ArrayDec; DecSet (Array Byte) should use the open-length Data.Array.ArrayDecSet
 \import Data.Array
+\import Set
 \import Function
 \import Function.Meta
 \import Paths
@@ -19,7 +19,7 @@
   => pmap (String.bytes {__}) p
 
 \instance StringDecSet : DecSet String
-  | decideEq s t => \case decideEq s.bytes t.bytes \with {
+  | decideEq s t => \case arrayDecSet s.bytes t.bytes \with {
     | yes p => yes $ stringExt p
     | no q => no $ q o stringInj
   }

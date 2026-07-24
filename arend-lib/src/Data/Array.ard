@@ -154,19 +154,16 @@
   | nil => idp
   | a :: l => pmap suc len_++
 
--- Decidable equality for arrays of arbitrary length (cf. Set.ArrayDec, which fixes the length).
-\instance ArrayDecSet (A : DecSet) : DecSet (Array A)
-  | decideEq => aux
-  \where {
-    \func aux {A : DecSet} (s t : Array A) : Dec (s = t) \elim s, t
-      | nil, nil => yes idp
-      | nil, _ :: _ => no contradiction
-      | a :: s, nil => no contradiction
-      | a :: s, a' :: t => \case decideEq a a', aux s t \with {
-        | yes e, yes e' => yes $ cong_:: e e'
-        | no q, _ => no $ q o unhead
-        | _, no q => no $ q o untail
-      }
+-- Decidable equality for arrays of arbitrary length
+-- not an instance as Set.ArrayDec already defines it for fixed length
+\func arrayDecSet {A : DecSet} (s t : Array A) : Dec (s = t) \elim s, t
+  | nil, nil => yes idp
+  | nil, _ :: _ => no contradiction
+  | a :: s, nil => no contradiction
+  | a :: s, a' :: t => \case decideEq a a', arrayDecSet s t \with {
+    | yes e, yes e' => yes $ cong_:: e e'
+    | no q, _ => no $ q o unhead
+    | _, no q => no $ q o untail
   }
 
 \func unhead {A : \Type} {a a' : A} {l l' : Array A} (p : a :: l = a' :: l') : a = a'

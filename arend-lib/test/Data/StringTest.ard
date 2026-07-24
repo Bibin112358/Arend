@@ -1,5 +1,5 @@
 \import Data.Bool
-\import Set  -- for the == DecSet operator
+\import Set
 \import Data.String
 \import Paths
 \import Logic
