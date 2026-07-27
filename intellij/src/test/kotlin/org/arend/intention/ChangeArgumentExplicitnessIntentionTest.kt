@@ -469,35 +469,35 @@ class ChangeArgumentExplicitnessIntentionTest : QuickFixTestBase() {
 
     fun testPartialAppIESimple() = doTest(
         """
-        \func f {A {-caret-}B : \Type} (a : A) (b : B) => (a, b)
-        \func id (a : \Pi {B : \Set} -> Nat -> B -> \Sigma Nat B ) => a
+        \func f {A {-caret-}B : \Type0} (a : A) (b : B) => (a, b)
+        \func id (a : \Pi {B : \Type0} -> Nat -> B -> \Sigma Nat B ) => a
         \func g => id (f {Nat})
         """,
         """
-        \func f {A : \Type} (B : \Type) (a : A) (b : B) => (a, b)
-        \func id (a : \Pi {B : \Set} -> Nat -> B -> \Sigma Nat B ) => a
+        \func f {A : \Type0} (B : \Type0) (a : A) (b : B) => (a, b)
+        \func id (a : \Pi {B : \Type0} -> Nat -> B -> \Sigma Nat B ) => a
         \func g => id (\lam {B} => f {Nat} B)
         """
     )
 
     fun testPartialAppIENotToLambda() = doTest(
         """
-        \func f {{-caret-}A B : \Type} (a : A) (b : B) => (a, b)
+        \func f {{-caret-}A B : \Type0} (a : A) (b : B) => (a, b)
         \func g => f {Nat}
         """,
         """
-        \func f ({-caret-}A : \Type) {B : \Type} (a : A) (b : B) => (a, b)
+        \func f ({-caret-}A : \Type0) {B : \Type0} (a : A) (b : B) => (a, b)
         \func g => f Nat
         """
     )
 
     fun testPartialAppEISimple() = doTest(
         """
-        \func f (A {-caret-}B : \Type) (a : A) (b : B) => (a, b)
+        \func f (A {-caret-}B : \Type0) (a : A) (b : B) => (a, b)
         \func g => f Nat
         """,
         """
-        \func f (A : \Type) {B : \Type} (a : A) (b : B) => (a, b)
+        \func f (A : \Type0) {B : \Type0} (a : A) (b : B) => (a, b)
         \func g => \lam B => f Nat {B}
         """
     )
@@ -526,11 +526,11 @@ class ChangeArgumentExplicitnessIntentionTest : QuickFixTestBase() {
 
     fun testPartialAppIEField() = doTest(
         """
-        \class Test {A {-caret-}B : \Type} (a : A) (b : B)
+        \class Test {A {-caret-}B : \Type0} (a : A) (b : B)
         \func f => Test {Nat}
         """,
         """
-        \class Test {A : \Type} (B : \Type) (a : A) (b : B)
+        \class Test {A : \Type0} (B : \Type0) (a : A) (b : B)
         \func f => Test {Nat}
         """
     )
@@ -1219,14 +1219,14 @@ class ChangeArgumentExplicitnessIntentionTest : QuickFixTestBase() {
     """)
 
     fun testTqInPattern() = doTest("""
-       \class Lol {{-caret-}X Y : \Type} {foo : X -> Y}
+       \class Lol {{-caret-}X Y : \Type0} {foo : X -> Y}
 
-       \func lol {X : \Type} (l : Lol {X}) : Nat \elim X, l
+       \func lol {X : \Type0} (l : Lol {X}) : Nat \elim X, l
          | X, e : Lol => 1
     """, """
-       \class Lol (X : \Type) {Y : \Type} {foo : X -> Y}
+       \class Lol (X : \Type0) {Y : \Type0} {foo : X -> Y}
 
-       \func lol {X : \Type} (l : Lol X) : Nat \elim X, l
+       \func lol {X : \Type0} (l : Lol X) : Nat \elim X, l
          | X, e : Lol => 1
     """)
 
