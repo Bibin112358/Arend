@@ -168,6 +168,14 @@ tasks.withType<Test>().configureEach {
         }
         exceptionFormat = TestExceptionFormat.FULL
     }
+    // The JetBrains Academy plugin (a hard dependency of ours, see plugin.xml) ships its own outdated copies
+    // of the `ai.grazie.*` libraries. In the IDE every plugin gets its own class loader, but tests run from a
+    // single flat class path where those jars come first and shadow the copies bundled with the Grazie plugin.
+    // Grazie's spell checker then dies with `NoSuchMethodError: ai.grazie.nlp.langs.Language.getEntries()`,
+    // failing every test that reaches a name suggestion provider (e.g. the inplace renamer started by the
+    // generate-function intentions). Keep the Academy jars available, but let the IDE's own copies win.
+    val isAcademyJar = { file: File -> file.path.contains("JetBrainsAcademy") }
+    classpath = classpath.filter { !isAcademyJar(it) } + classpath.filter(isAcademyJar)
 }
 
 // Keep the expensive whole-standard-library formatter stress test out of the normal suite; it runs
