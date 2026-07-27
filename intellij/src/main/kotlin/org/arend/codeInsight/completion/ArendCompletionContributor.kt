@@ -92,7 +92,7 @@ class ArendCompletionContributor : CompletionContributor() {
                         result2 = foundWhere
                         break
                     } else if (ancestor is ArendDefClass) {
-                        if (ancestor.lbrace != null) foundLbrace = true
+                        if (ancestor.dynamicPartContains(o)) foundLbrace = true
                         result2 = if (allowData) foundWhere else !foundWhere && foundLbrace
                         break
                     } else if (ancestor is ArendDefinition<*> && foundWhere) {
@@ -105,7 +105,8 @@ class ArendCompletionContributor : CompletionContributor() {
             }
         }
 
-        basic(and(STATEMENT_END_CONTEXT, definitionWhereModulePattern(false, false)), JointOfStatementsProvider(CLASS_MEMBER_KWS, allowBeforeClassFields = true))
+        basic(and(STATEMENT_END_CONTEXT, definitionWhereModulePattern(false, false), CLASS_MEMBER_START_CONTEXT),
+                JointOfStatementsProvider(CLASS_MEMBER_KWS, allowBeforeClassFields = true))
 
         basic(and(STATEMENT_END_CONTEXT, definitionWhereModulePattern(true, true)), JointOfStatementsProvider(USE_KW_LIST))
 
@@ -554,6 +555,16 @@ class ArendCompletionContributor : CompletionContributor() {
             withAncestors(ArendRefIdentifier::class.java, ArendLongName::class.java, ArendClassImplement::class.java, ArendDefClass::class.java),
             withAncestors(ArendRefIdentifier::class.java, ArendLongName::class.java, ArendClassImplement::class.java, ArendClassStat::class.java, ArendDefClass::class.java))
 
+        /** Class member keywords may only begin a new class statement, so they are not allowed right after a token
+         *  which must be followed by an expression, by a name or by a modifier of the statement being written */
+        private val CLASS_MEMBER_START_CONTEXT = not(afterLeaves(
+                COLON, ARROW, FAT_ARROW, PIPE, COMMA, LPAREN, DOT,
+                PI_KW, SIGMA_KW, LAM_KW, HAVE_KW, HAVES_KW, LET_KW, LETS_KW, IN_KW, CASE_KW, SCASE_KW, WITH_KW,
+                NEW_KW, EVAL_KW, PEVAL_KW, BOX_KW, ELIM_KW, COWITH_KW, RETURN_KW, AS_KW, LEVEL_KW,
+                FUNC_KW, SFUNC_KW, LEMMA_KW, TYPE_KW, CONS_KW, AXIOM_KW, META_KW, DATA_KW, TRUNCATED_KW,
+                CLASS_KW, RECORD_KW, INSTANCE_KW, EXTENDS_KW, OPEN_KW, MODULE_KW, WHERE_KW, USE_KW,
+                FIELD_KW, PROPERTY_KW, OVERRIDE_KW, DEFAULT_KW, CLASSIFYING_KW, COERCE_KW, PRIVATE_KW, PROTECTED_KW))
+
         private val CLASSFIELD_CONTEXT =
             or(withAncestors(ArendDefIdentifier::class.java, ArendFieldDefIdentifier::class.java, ArendFieldTele::class.java, ArendDefClass::class.java),
                 withAncestors(PsiErrorElement::class.java, ArendFieldTele::class.java, ArendDefClass::class.java))
@@ -627,6 +638,14 @@ class ArendCompletionContributor : CompletionContributor() {
         }
 
         val BASIC_EXPRESSION_KW_PATTERN = and(or(EXPRESSION_CONTEXT), expressionPattern.invoke(false, false))
+
+        /** Checks that [element] belongs to the dynamic part of the class, i.e. lies between its braces.
+         *  Parser error recovery may put the elements which follow the closing brace inside the class itself,
+         *  so the PSI hierarchy alone is not enough to tell the dynamic part from the code after the class */
+        private fun ArendDefClass.dynamicPartContains(element: PsiElement): Boolean {
+            val lbrace = lbrace ?: return false
+            return element.startOffset > lbrace.startOffset && rbrace.let { it == null || element.startOffset < it.startOffset }
+        }
 
         // Contribution to LookupElementBuilder
         fun LookupElementBuilder.withPriority(priority: Double): LookupElement = PrioritizedLookupElement.withPriority(this, priority)

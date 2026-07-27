@@ -168,6 +168,59 @@ class ArendKeywordCompletionTest : ArendCompletionTestBase() {
                     "\\record R\n  {-caret-}",
                     "\\record R\n  | F : Nat\n  {-caret-}"))
 
+    fun `test field keyword in dynamic part`() =
+            checkKeywordCompletionVariants(FIELD_KW_LIST, CompletionCondition.CONTAINS,
+                    "\\class Foo {\n  {-caret-}\n}",
+                    "\\record R {\n  {-caret-}\n}",
+                    "\\class Foo \\extends Bar {\n  {-caret-}\n}",
+                    "\\class Foo {\n  | x : Nat\n  {-caret-}\n}",
+                    "\\class Foo {\n  | x : Nat\n  {-caret-}" /* unclosed dynamic part */,
+                    "\\record R {\n  {-caret-}\n  | x : Nat\n}",
+                    "\\record R {\n  | x : Nat\n  {-caret-}\n  | y : Nat\n}",
+                    "\\class Foo {\n  \\func f => 0\n  {-caret-}\n}",
+                    "\\class Foo {\n  \\func f => 0 \\where { }\n  {-caret-}\n}",
+                    "\\class Foo {\n  \\instance I : Bar\n  {-caret-}\n}",
+                    "\\class Foo {\n  \\record S {\n    {-caret-}\n  }\n}",
+                    "\\class Foo { \\module M { \\record S {\n  {-caret-}\n} } }",
+                    "\\class Foo {} \\where { \\class Bar {\n  {-caret-}\n} }")
+
+    fun `test no field keyword outside dynamic part`() =
+            checkKeywordCompletionVariants(FIELD_KW_LIST, CompletionCondition.DOES_NOT_CONTAIN,
+                    "{-caret-}",
+                    "\\func f => 0\n{-caret-}",
+                    "\\data D | con\n{-caret-}",
+                    "\\class Foo {}\n{-caret-}" /* completion after the dynamic part is over */,
+                    "\\record R {}\n{-caret-}",
+                    "\\class Foo { \\func f => 0 }\n{-caret-}",
+                    "\\class Foo {}\n{-caret-}\n\\func g => 0",
+                    "\\class Foo (x : Nat)\n{-caret-}",
+                    "\\class Foo {} \\where {\n  {-caret-}\n}",
+                    "\\class Foo { } \\where { \\func f => 0 \\where {\n  {-caret-}\n} }",
+                    "\\class Foo {\n  \\func f => 0 \\where {\n    {-caret-}\n  }\n}",
+                    "\\class Foo { \\module Bar {\n  {-caret-}\n} }",
+                    "\\record R\n  {-caret-}",
+                    "\\record R\n  | x : Nat\n  {-caret-}",
+                    "\\func f => 0 \\where {\n  {-caret-}\n}",
+                    "\\data D \\where {\n  {-caret-}\n}",
+                    "\\func f => {-caret-}",
+                    "\\func f => \\new Foo {\n  {-caret-}\n}" /* only coclauses are allowed in an anonymous extension */,
+                    "\\class Foo { | x : {-caret-} }",
+                    "\\class Foo {\n  | x :\n  {-caret-}\n}" /* no class members in expressions inside the dynamic part */,
+                    "\\class Foo {\n  | x : Nat ->\n  {-caret-}\n}",
+                    "\\class Foo {\n  | x : \\Sigma\n  {-caret-}\n}",
+                    "\\class Foo {\n  | x : Nat\n  |\n  {-caret-}\n}",
+                    "\\class Foo {\n  \\func f =>\n  {-caret-}\n}",
+                    "\\class Foo {\n  \\func f : Nat \\cowith\n  {-caret-}\n}",
+                    "\\class Foo {\n  \\func f (a : Nat) \\elim\n  {-caret-}\n}",
+                    "\\class Foo (x : Nat) { \\func f : Foo \\cowith | x => {-caret-} }",
+                    "\\class Foo {\n  \\private\n  {-caret-}\n}" /* access modifiers follow class member keywords, not vice versa */,
+                    "\\class Foo {\n  \\field\n  {-caret-}\n}",
+                    "\\class Foo {\n  \\property\n  {-caret-}\n}",
+                    "\\class Foo {\n  \\override\n  {-caret-}\n}",
+                    "\\class Foo {\n  \\default\n  {-caret-}\n}",
+                    "\\class Foo {\n  \\func\n  {-caret-}\n}",
+                    "\\class Foo {\n  \\open\n  {-caret-}\n}")
+
     private val kwModuleInsideClass =
             arrayOf("\\class Foo { \\module Bar { {-caret-} } }")
 
