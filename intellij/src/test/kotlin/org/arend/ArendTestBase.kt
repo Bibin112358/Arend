@@ -1,5 +1,6 @@
 package org.arend
 
+import com.intellij.codeInsight.template.impl.TemplateManagerImpl
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.LogicalPosition
@@ -60,6 +61,13 @@ abstract class ArendTestBase : BasePlatformTestCase(), ArendTestCase {
 
     override fun setUp() {
         super.setUp()
+
+        // Without this, a template started by a test (e.g. the inplace renamer that the generate-function
+        // intentions open on the definition they have just created) does not show its lookup but silently
+        // inserts its first item instead. That item comes from the name suggestion providers, and the
+        // spell checker among them happily "corrects" Arend identifiers -- turning a generated `foo-lemma'`
+        // back into `foo-lemma`. Templates behave as in production once testing mode is on.
+        TemplateManagerImpl.setTemplateTesting(testRootDisposable)
 
         service<ArendSettings>().isBackgroundTypechecking = true
 
