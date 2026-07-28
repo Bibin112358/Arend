@@ -82,6 +82,17 @@ tasks.withType<Wrapper> {
     gradleVersion = "9.6.1"
 }
 
+// The expensive arend-lib round-trip / cache tests live in their own source set rather than in
+// `src/test/java`. They used to sit alongside the normal tests and be kept out of `test` by
+// `exclude` patterns, with each of their tasks pointing back at the `test` source set. That made
+// every one of those tasks a candidate runner for *every* class under `src/test/java` as far as an
+// IDE is concerned -- the mapping IDEs use is a task's `testClassesDirs`, and `include`/`exclude`
+// filters are invisible to them -- so running any single test from the gutter popped up a chooser
+// listing `test`, `roundTripTest`, `partialRoundTripTest` and `partialCacheTest`. Giving them a
+// separate source set makes the mapping unambiguous for the ~120 normal tests.
+val slowTest by sourceSets.creating
+
+// Mirrors the `test` source set, minus what these three tests do not use (antlr, hamcrest).
 dependencies {
     testImplementation("org.jetbrains:annotations:$annotationsVersion")
     testImplementation("org.antlr:antlr4-runtime:$antlrVersion")
@@ -92,14 +103,32 @@ dependencies {
 
     testImplementation("junit:junit:4.13.1")
     testImplementation("org.hamcrest:hamcrest-library:1.3")
+
+    "slowTestImplementation"("org.jetbrains:annotations:$annotationsVersion")
+    "slowTestImplementation"(project(":base"))
+    "slowTestImplementation"(project(":parser"))
+    "slowTestImplementation"(project(":cli"))
+    "slowTestImplementation"("junit:junit:4.13.1")
 }
 
-// Normal test suite: exclude the expensive round-trip tests.
+// Mark the new source set as test (not production) sources for IDE imports.
+idea {
+    module {
+        testSources.from(slowTest.java.srcDirs)
+    }
+}
+
 tasks.test {
     maxHeapSize = "4g"
-    exclude("**/ArendLibRoundTripTest.class")
-    exclude("**/ArendLibPartialRoundTripTest.class")
-    exclude("**/ArendLibPartialCacheTest.class")
+}
+
+// The slow tests are too expensive for `check` to run, but they must still be *compiled* by it:
+// while they lived in `src/test/java` the `test` source set compiled them even though `test`
+// excluded them, so CI caught it whenever a core API change broke them (e.g. the
+// getTypeExpr -> getType rename). Nothing depends on `slowTestClasses` otherwise, so without this
+// they would silently rot until someone ran them by hand.
+tasks.check {
+    dependsOn(tasks.named("slowTestClasses"))
 }
 
 // Separate task for the arend-lib round-trip serialization test.
@@ -110,8 +139,8 @@ tasks.register<Test>("roundTripTest") {
     description = "Runs the arend-lib serialization round-trip test"
     group = "verification"
     maxHeapSize = "6g"
-    testClassesDirs = sourceSets.test.get().output.classesDirs
-    classpath = sourceSets.test.get().runtimeClasspath
+    testClassesDirs = slowTest.output.classesDirs
+    classpath = slowTest.runtimeClasspath
     include("**/ArendLibRoundTripTest.class")
     System.getProperty("arend.roundtrip.modules")?.let {
         systemProperty("arend.roundtrip.modules", it)
@@ -140,8 +169,8 @@ tasks.register<Test>("partialRoundTripTest") {
     // InstanceDepthExceeded when instance resolution runs away (cycle caused by
     // deserialized instances matching each other transitively).
     systemProperty("arend.instance.maxDepth", "200")
-    testClassesDirs = sourceSets.test.get().output.classesDirs
-    classpath = sourceSets.test.get().runtimeClasspath
+    testClassesDirs = slowTest.output.classesDirs
+    classpath = slowTest.runtimeClasspath
     include("**/ArendLibPartialRoundTripTest.class")
     System.getProperty("arend.partial_roundtrip.targets")?.let {
         systemProperty("arend.partial_roundtrip.targets", it)
@@ -172,8 +201,8 @@ tasks.register<Test>("partialCacheTest") {
     // Required gate — without this the test self-skips via Assume.assumeTrue.
     systemProperty("arend.partial_cache.enabled",
         System.getProperty("arend.partial_cache.enabled", "true"))
-    testClassesDirs = sourceSets.test.get().output.classesDirs
-    classpath = sourceSets.test.get().runtimeClasspath
+    testClassesDirs = slowTest.output.classesDirs
+    classpath = slowTest.runtimeClasspath
     include("**/ArendLibPartialCacheTest.class")
     System.getProperty("arend.partial_cache.touched")?.let {
         systemProperty("arend.partial_cache.touched", it)
