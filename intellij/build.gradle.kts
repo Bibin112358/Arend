@@ -178,10 +178,34 @@ tasks.withType<Test>().configureEach {
     classpath = classpath.filter { !isAcademyJar(it) } + classpath.filter(isAcademyJar)
 }
 
-// Keep the expensive whole-standard-library formatter stress test out of the normal suite; it runs
-// only through its own `formatterStressTest` task below (see ArendLibReformatStressTest).
-tasks.named<Test>("test") {
-    exclude("**/ArendLibReformatStressTest*")
+// The whole-standard-library formatter stress test lives in its own `slowTest` source set rather than
+// in `src/test/kotlin`. It used to sit alongside the normal tests, kept out of `test` by an `exclude`
+// pattern while `formatterStressTest` pointed its `testClassesDirs` back at the `test` source set.
+// The mapping an IDE uses to decide which Gradle task can run a given test is the task's
+// `testClassesDirs`; `include`/`exclude` patterns and `filter {}` are not part of it. So both tasks
+// looked like valid runners for every one of the ~100 classes under `src/test/kotlin`, and running any
+// single test from the gutter first popped up a chooser offering `test` and `formatterStressTest`.
+//
+// Unlike the root project's slow tests, this one extends ArendTestBase, so the source set has to
+// compile against the `test` output on top of the IntelliJ Platform test dependencies that the
+// platform plugin puts on `test`.
+val slowTest by sourceSets.creating {
+    val test = sourceSets.test.get()
+    compileClasspath += test.output + test.compileClasspath
+    runtimeClasspath += test.output + test.runtimeClasspath
+}
+
+// The stress test is far too expensive for `check` to run, but it must still be *compiled* by it:
+// while it lived in `src/test/kotlin` the `test` source set compiled it even though `test` excluded
+// it, so CI caught any change that broke it. Nothing else depends on `slowTestClasses`.
+tasks.named("check") {
+    dependsOn(tasks.named("slowTestClasses"))
+}
+
+idea {
+    module {
+        testSources.from(file("src/slowTest/kotlin"))
+    }
 }
 
 // Dedicated task for the whole-standard-library formatter stress test, analogous to the root
@@ -194,8 +218,10 @@ tasks.register<Test>("formatterStressTest") {
     val defaultTest = tasks.named<Test>("test").get()
     group = "verification"
     description = "Reformats every arend-lib source file to surface formatter exceptions"
-    testClassesDirs = defaultTest.testClassesDirs
-    classpath = defaultTest.classpath
+    testClassesDirs = slowTest.output.classesDirs
+    // The platform test framework classpath and the `test` output (for ArendTestBase) come from the
+    // default test task; only the stress test's own classes have to be added on top.
+    classpath = defaultTest.classpath + slowTest.output
     jvmArgumentProviders.addAll(defaultTest.jvmArgumentProviders)
     systemProperties(defaultTest.systemProperties)
     dependsOn(defaultTest.dependsOn)
