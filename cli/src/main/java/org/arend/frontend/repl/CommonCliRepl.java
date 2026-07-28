@@ -279,8 +279,6 @@ public abstract class CommonCliRepl extends Repl {
 
   private void loadLibraryWithDependencies(@NotNull ArendLibrary library, @NotNull Set<String> loaded) {
     if (!loaded.add(library.getLibraryName())) return;
-    loadLibrary(library);
-    checkErrors();
     for (String dependency : library.getLibraryDependencies()) {
       if (loaded.contains(dependency) || myServer.getLibrary(dependency) != null) continue;
       ArendLibrary dependencyLibrary = createLibrary(dependency);
@@ -290,6 +288,8 @@ public abstract class CommonCliRepl extends Repl {
         eprintln("[ERROR] Cannot find dependency library '" + dependency + "' required by '" + library.getLibraryName() + "'.");
       }
     }
+    loadLibrary(library);
+    checkErrors();
   }
 
   @Override

@@ -454,12 +454,9 @@ public class ConsoleMain {
     // exits below, which the old code leaked past. The typecheck blocks after it
     // are reached only when none of those matched, hence never in JSON mode.
     try {
+      Set<String> loading = new HashSet<>();
       for (SourceLibrary library : requestedLibraries) {
-        loadLibrary(libraryManager, library, server);
-      }
-
-      for (SourceLibrary library : requestedLibraries) {
-        if (!loadDependencies(library, libraryManager, libDirs, server)) {
+        if (!loadLibraryWithDependencies(library, libraryManager, libDirs, server, loading)) {
           return false;
         }
       }
@@ -1030,16 +1027,24 @@ public class ConsoleMain {
     System.out.println("[INFO] " + "Loaded " + library.getLibraryName() + " (" + TimedProgressReporter.timeToString(System.currentTimeMillis() - time) + ")");
   }
 
-  private boolean loadDependencies(SourceLibrary library, LibraryManager libraryManager, List<Path> libDirs, ArendServer server) {
+  /**
+   * Loads {@code library} together with its transitive dependencies.
+   *
+   * @param loading   holds the libraries on the current dependency chain and.
+   * @return false if a dependency cannot be found, in which case the dependent is not loaded either.
+   */
+  boolean loadLibraryWithDependencies(SourceLibrary library, LibraryManager libraryManager, List<Path> libDirs, ArendServer server, Set<String> loading) {
+    if (libraryManager.containsLibrary(library.getLibraryName()) || !loading.add(library.getLibraryName())) return true;
+
     for (String dependency : library.getLibraryDependencies()) {
-      if (!libraryManager.containsLibrary(dependency)) {
-        List<SourceLibrary> libDependency = new ArrayList<>(1);
-        findLibrary(dependency, libDirs, libDependency);
-        if (libDependency.isEmpty()) return false;
-        loadLibrary(libraryManager, libDependency.getFirst(), server);
-        if (!loadDependencies(libDependency.getFirst(), libraryManager, libDirs, server)) return false;
-      }
+      if (libraryManager.containsLibrary(dependency) || loading.contains(dependency)) continue;
+      List<SourceLibrary> libDependency = new ArrayList<>(1);
+      findLibrary(dependency, libDirs, libDependency);
+      if (libDependency.isEmpty()) return false;
+      if (!loadLibraryWithDependencies(libDependency.getFirst(), libraryManager, libDirs, server, loading)) return false;
     }
+
+    loadLibrary(libraryManager, library, server);
     return true;
   }
 
