@@ -161,6 +161,20 @@
       => cover-trans* (cover-down x<=U) \lam {y} (inP (a,Ua,y<=a,y<=x)) => cover-down-sub (cover-left y<=x x<=V)
           \lam {z} {b} Vb z<=b z<=y => inP (a, Ua, b, Vb, z<=y <=∘ y<=a, z<=b)
 
+    \lemma cover-interN {x : P} (Vs : Array (Set P)) (x<=Vs : ∀ (V : Vs) (Cover x V))
+      : Cover x (\lam e => ∀ (V : Vs) ∃ (v : V) (e <= v)) \elim Vs
+      | nil => cover-refl \case __
+      | V :: Vs => cover-sub (cover-inter (x<=Vs 0) (cover-interN Vs (\lam j => x<=Vs (suc j)))) \lam {e} (inP (u,Vu,v,c,eu,ev)) => \case \elim __ \with {
+        | 0 => inP (u,Vu,eu)
+        | suc j => \case c j \with {
+          | inP (v',Vv',vv') => inP (v', Vv', ev <=∘ vv')
+        }
+      }
+
+    \lemma cover-interN-down {x : P} (Vs : Array (Set P)) (x<=Vs : ∀ (V : Vs) (Cover x V))
+      : Cover x (\lam e => Given (e <= x) ∀ (V : Vs) ∃ (v : V) (e <= v))
+      => cover-down-sub (cover-interN Vs x<=Vs) \lam h yz yx => (yx, \lam j => TruncP.map (h j) \lam s => (s.1, s.2, yz <=∘ s.3))
+
     \lemma toCovering {x : P} {U : Set P} (x<=U : Cover x U) : Covering x \lam y => ∃ (z : U) (y.1 <= z) \elim x<=U
       | cover-inj {t} x<=t Ut => Covering.covering-id $ inP (t,Ut,x<=t)
       | cover-trans {T} x<=T T<=U => \case basic-cover-stable <=-refl x<=T \with {

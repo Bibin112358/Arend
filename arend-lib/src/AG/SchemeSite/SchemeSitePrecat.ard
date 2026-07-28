@@ -7,7 +7,6 @@
 \import Paths
 \import Relation.Equivalence
 \open SchemeSitePrehom
-\open SchemeSiteHom (inh~)
 
 \func SchemeSitePrehomPrecat.{u} : Precat SchemeSite.{u} \cowith
   | Hom => SchemeSitePrehom
@@ -27,16 +26,10 @@
 \instance SchemeSitePrecat.{u} : Precat SchemeSite.{u}
   | Hom => SchemeSiteHom
   | id => SchemeSiteHom.id
-  | o => SchemeSiteHom.∘
-  | id-left {X} {Y} {f} => \case \elim f \with {
-    | in~ f => pmap inh~ SchemeSitePrehomPrecat.id-left
-  }
-  | id-right {X} {Y} {f} => \case \elim f \with {
-    | in~ f => pmap inh~ SchemeSitePrehomPrecat.id-right
-  }
-  | o-assoc {X} {Y} {Z} {W} {h} {g} {f} => \case \elim h, \elim g, \elim f \with {
-    | in~ h, in~ g, in~ f => pmap inh~ SchemeSitePrehomPrecat.o-assoc
-  }
+  | o g f => g SchemeSiteHom.∘ f
+  | id-left => SchemeSiteHom.satPrehom_o-left *> pmap satPrehom SchemeSitePrehomPrecat.id-left *> satPrehom.isIdempotent
+  | id-right => SchemeSiteHom.satPrehom_o-right *> pmap satPrehom SchemeSitePrehomPrecat.id-right *> satPrehom.isIdempotent
+  | o-assoc => SchemeSiteHom.satPrehom_o-left *> pmap satPrehom SchemeSitePrehomPrecat.o-assoc *> inv SchemeSiteHom.satPrehom_o-right
 
 \instance SatSchemeSitePrecat.{u} : Precat SatSchemeSite.{u}
   => subPrecat {SchemeSitePrecat} \lam X => X

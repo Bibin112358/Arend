@@ -80,8 +80,9 @@
   \protected \func toLocale : Locale
     => SiteLocale toSite
 
-  \func toRLSite : RingedSite toSite R \cowith
-    | R-sheaf => IsPreorderSheaf.fromSheaf (sheaf-reflect forget (\lam {J} => forget.reflectsLimit {J}) (IsPreorderSheaf.toSheaf setPreorderSheaf)) __
+  \func toSheaf : VSheaf CRingCat toSite \cowith
+    | F => R
+    | isSheaf => sheaf-reflect forget (\lam {J} => forget.reflectsLimit {J}) (IsPreorderSheaf.toSheaf setPreorderSheaf) __
     \where {
       \private \lemma setPreorderSheaf : IsPreorderSheaf {toSite} (Comp forget.{u} R)
         => \lam {a} {U} a<=U U<=a {D} => IsPreorderSheaf.SetSheafCond a U
@@ -108,6 +109,9 @@
                           *> path (\lam i => mf.isMatching {index j} {b} prop-pi i ())
                     })
     }
+
+  \func toRLSite : RingedSite toSite R \cowith
+    | R-sheaf => IsPreorderSheaf.fromSheaf toSheaf.isSheaf __
 
   \sfunc Func-Cover1 {b a : P} (b<=a : Cover1 {toSite} b a) : RingHom (R a) (R b)
     => (SiteLocaleSheaf.cover-restrict {toSite} toRLSite.R-sheaf b<=a).1

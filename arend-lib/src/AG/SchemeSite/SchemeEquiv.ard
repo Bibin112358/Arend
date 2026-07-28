@@ -4,6 +4,7 @@
 \import AG.Scheme
 \import AG.SchemeSite
 \import AG.SchemeSite.LRLSchemeSiteHom
+\import AG.SchemeSite.SchemeSiteHom
 \import AG.SchemeSite.SchemeSitePrecat
 \import Algebra.Monoid
 \import Algebra.Monoid.Localization
@@ -22,18 +23,16 @@
 \import Paths
 \import Relation.Equivalence
 \import Topology.Locale.PreorderSite
-\open SatSchemeSiteHom
+\open LRLSchemeSiteHom
 
 \func SchemeSiteFunctor.{u} : FullyFaithfulFunctor SatSchemeSitePrecat.{u} LocallyRingedLocaleCat.{u} \cowith
   | F S => S.toScheme
-  | Func f => (saturateHom f).toLRLSchemeSiteHom.toLRLHom
-  | Func-id {X} => later (path \lam i => (id_toLRL i).toLRLHom) *> LRLSchemeSiteHom.LRL-equiv.f_ret _
-  | Func-o {X} {Y} {Z} {in~ g} {in~ f} =>
-    inv (path \lam i => (saturatePrehom_o {X} {Y} {Z} i).toLRLSchemeSiteHom.toLRLHom)
-    *> path (\lam i => (toLRLSchemeSiteHom-natural i).toLRLHom)
-    *> inv (path \lam i => (toLRLSchemeSiteHom_toLRLHom {_} {_} {_} {(saturatePrehom f).toLRLSchemeSiteHom} i).toLRLHom)
-    *> inv (LRLSchemeSiteHom.toLRLHom-natural {_} {_} {_} {(saturatePrehom f).toLRLSchemeSiteHom.toLRLHom} {(saturatePrehom g).toLRLSchemeSiteHom})
-  | isFullyFaithful => IsEquiv.trans (inP saturateHom.isEquiv) $ IsEquiv.trans (inP LRL-equiv) (inP LRLSchemeSiteHom.LRL-equiv)
+  | Func f => (fromSchemeSiteHom f).toLRLHom
+  | Func-id => later (path \lam i => (id_toLRL i).toLRLHom) *> LRL-equiv.f_ret _
+  | Func-o {X} {Y} {Z} {g} {f} => path (\lam i => (fromSchemeSiteHom-natural {X} {Y} {Z} i).toLRLHom)
+    *> inv (path \lam i => (fromSchemeSiteHom_toLRLHom {_} {_} {Z} {fromSchemeSiteHom f} i).toLRLHom)
+    *> inv (toLRLHom-natural {_} {_} {_} {(fromSchemeSiteHom f).toLRLHom} {fromSchemeSiteHom g})
+  | isFullyFaithful => IsEquiv.trans (inP SchemeSiteHom-equiv) (inP LRL-equiv)
 
 \func LRL->SchemeSiteHom.{u} {S : Scheme.{u}} : LRLSchemeSiteHom S (maxSchemeSite S) \cowith
   | f* => LRL->SchemeSite.embedding {S} {S.IsAffineOpen} {\lam p => p}

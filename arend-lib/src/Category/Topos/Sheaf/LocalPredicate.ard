@@ -15,12 +15,14 @@
 \import Logic
 \import Logic.Meta
 \import Meta
+\import Order.Lattice
 \import Order.PartialOrder
 \import Paths
 \import Paths.Meta
 \import Set.SetCategory
 \import Set.Subset
 \import Topology.Locale
+\import Topology.Locale.PreorderSite
 
 \record LocalPredicate.{u} \extends PrelocalPredicate.{u} {
   \override C : Site
@@ -35,10 +37,20 @@
       \have r => inv S.F.Func-o *> pmap S.F.Func f_z *> S.F.Func-o
       \in transport pred (path \lam i => r i x) $ isPrelocalPredicate (Ux Ub)
 } \where {
+  \lemma localPredicate_localeAt.{u} {L : Locale.{u}} (P : LocalPredicate.{u} {L}) {a : L} {U : Set L} (aU : a <= L.Join U) {x : P.S a}
+                                     (Ux : ∀ {y} (Uy : U y) {z} (z <= y) (za : z <= a) (P (P.S.F.Func za x))) : P x
+    => P.byCovering {_} {\lam b => ∃ (y : U) (b.1 <= y)}
+        (Covering.covering-basic $ meet-univ <=-refl aU <=∘ Join-ldistr>= <=∘ L.SJoin-univ \lam {y} Uy => L.Join-cond $ later (meet-left, inP (y, Uy, meet-right)))
+        (\lam {z} (inP (y,Uy,zy)) => transport (\lam r => P.pred (P.S.F.Func r x)) prop-pi (Ux Uy zy z.2))
+
   \lemma localPredicate_locale.{u} {L : Locale.{u}} (P : LocalPredicate.{u} {L}) {U : Set L} {x : P.S (L.Join U)}
                                    (Ux : ∀ {y} (Uy : U y) {z} (zy : z <= y) (P (P.S.F.Func (zy <=∘ L.Join-cond Uy) x))) : P x
-    => P.byCovering {_} {\lam b => ∃ (y : U) (b.1 <= y)} (Covering.covering-basic $ L.Join-univ \lam {y} Uy => L.Join-cond (L.Join-cond Uy, inP (y, Uy, <=-refl)))
-        \lam {z} (inP (y,Uy,z<=y)) => transport (\lam r => P.pred (P.S.F.Func r x)) prop-pi (Ux Uy z<=y)
+    => localPredicate_localeAt P <=-refl \lam Uy zy zU => transport (\lam t => P (P.S.F.Func t x)) prop-pi (Ux Uy zy)
+
+  \lemma localPredicate_preorder.{u} {S : PreorderSite.{u}} (P : LocalPredicate.{u} {S}) {a : S} {U : Set S} (aU : Cover a U) {x : P.S a}
+                                     (Ux : ∀ {y} (Uy : U y) {z} (z <= y) (za : z <= a) (P (P.S.F.Func za x))) : P x
+    => P.byCovering {_} {\lam b => ∃ (y : U) (b.1 <= y)} (Cover.toCovering aU)
+        \lam {z} (inP (y,Uy,zy)) => transport (\lam r => P.pred (P.S.F.Func r x)) prop-pi (Ux Uy zy z.2)
 }
 
 \lemma exists-localPredicate.{u} {C : Site} {S : Presheaf.{u} C} {T : Sheaf.{u} C} (P : LocalPredicate (VPresheafComplete.BprodPresheaf {SetBicat} S T))
