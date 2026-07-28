@@ -33,19 +33,25 @@ public class StringExpressionPrettifier implements ExpressionPrettifier {
     // CoreNewExpression under normalize(); its *type*, not its value,
     // is where the `bytes` implementation lives. computeType() works uniformly for both a literal
     // (whose precise type is the same singleton-refined form) and a call to such a function.
-    if (!(expression.computeType().normalize(NormalizationMode.WHNF) instanceof CoreClassCallExpression classCall) || !classCall.getDefinition().getRef().checkName(Names.STRING)) {
+    //
+    // We normalize the *value* first, then read its type. This matters for values whose declared
+    // type is a type synonym for String (e.g. `\func Code => String`): the outer definition's
+    // result type is the bare, unrefined `Code`/`String`, so computeType() on the un-normalized
+    // expression loses the `bytes` implementation. Normalizing the value unfolds past the synonym
+    // wrapper to the underlying String-returning term, whose computeType() carries `bytes` again.
+    if (!(expression.normalize(NormalizationMode.WHNF).computeType().normalize(NormalizationMode.WHNF) instanceof CoreClassCallExpression classCall) || !classCall.getDefinition().getRef().checkName(Names.STRING)) {
       return null;
     }
 
     CoreClassField bytesField = classCall.getDefinition().findField("bytes");
     CoreExpression bytesValue = bytesField == null ? null : classCall.getAbsImplementationHere(bytesField);
-    if (!(bytesValue != null && bytesValue.normalize(NormalizationMode.NF) instanceof CoreArrayExpression array) || array.getTail() != null) {
+    if (!(bytesValue != null && bytesValue.normalize(NormalizationMode.WHNF) instanceof CoreArrayExpression array) || array.getTail() != null) {
       return null;
     }
 
     ByteArrayOutputStream bytes = new ByteArrayOutputStream(array.getElements().size());
     for (CoreExpression element : array.getElements()) {
-      if (!(element.normalize(NormalizationMode.NF) instanceof CoreIntegerExpression intExpr)) return null;
+      if (!(element.normalize(NormalizationMode.WHNF) instanceof CoreIntegerExpression intExpr)) return null;
       bytes.write(intExpr.getBigInteger().intValue() & 0xFF);
     }
     return ext.makeString(bytes.toString(StandardCharsets.UTF_8));

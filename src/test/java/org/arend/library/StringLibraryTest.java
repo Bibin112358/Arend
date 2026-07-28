@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.arend.Matchers.missingClauses;
+import static org.arend.Matchers.typecheckingError;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -122,5 +123,71 @@ public class StringLibraryTest extends ArendTestCase {
 
     int size = SizeExpressionVisitor.getSize(bigString);
     assertTrue("term size " + size + " suggests a unary blowup, not a compact representation", size < 200_000);
+  }
+
+  // putStrLn prints a String literal as raw text; the snippet must typecheck without errors.
+  // (The raw output goes to stdout via the extension's console; here we only assert it elaborates.)
+  @Test
+  public void putStrLnAcceptsStringLiteral() throws IOException {
+    typecheckSnippet("putstrln-literal",
+        "\\import Debug.Meta\n" +
+        "\\import Data.String\n" +
+        "\\func test => putStrLn \"h\u00e9llo\"\n");
+    assertTrue("expected no errors", getAllErrors().isEmpty());
+  }
+
+  // A non-literal String value (built with ++) still decodes to a literal, so putStrLn accepts it.
+  @Test
+  public void putStrLnAcceptsDecodableConcatenation() throws IOException {
+    typecheckSnippet("putstrln-concat",
+        "\\import Debug.Meta\n" +
+        "\\import Data.String\n" +
+        "\\func test => putStrLn (\"foo\" ++ \"bar\")\n");
+    assertTrue("expected no errors", getAllErrors().isEmpty());
+  }
+
+  // A non-String argument is rejected: putStrLn reports a type error and the definition fails.
+  @Test
+  public void putStrLnRejectsNonString() throws IOException {
+    typecheckSnippet("putstrln-non-string",
+        "\\import Debug.Meta\n" +
+        "\\import Data.String\n" +
+        "\\func test => putStrLn 42\n");
+    assertThatErrorsAre(typecheckingError());
+  }
+
+  // A String value that cannot be reduced to a concrete literal (an opaque parameter) is rejected.
+  @Test
+  public void putStrLnRejectsOpaqueString() throws IOException {
+    typecheckSnippet("putstrln-opaque",
+        "\\import Debug.Meta\n" +
+        "\\import Data.String\n" +
+        "\\func test (x : String) => putStrLn x\n");
+    assertThatErrorsAre(typecheckingError());
+  }
+
+  // Type synonym: a value whose declared type is a \func alias of String must still print.
+  @Test
+  public void putStrLnAcceptsTypeSynonym() throws IOException {
+    typecheckSnippet("putstrln-synonym",
+        "\\import Debug.Meta\n" +
+        "\\import Data.String\n" +
+        "\\func Code : \\Type => String\n" +
+        "\\func rep (n : Nat) : String \\elim n\n" +
+        "  | 0 => \"x\"\n" +
+        "  | suc n => \"y\" ++ rep n\n" +
+        "\\func mk (n : Nat) : Code => rep n\n" +
+        "\\func test => putStrLn (mk 3)\n");
+    assertTrue("expected no errors", getAllErrors().isEmpty());
+  }
+
+  // Regression guard for the PrintMeta revert: println still elaborates a String argument without errors.
+  @Test
+  public void printlnStillAcceptsString() throws IOException {
+    typecheckSnippet("println-string",
+        "\\import Debug.Meta\n" +
+        "\\import Data.String\n" +
+        "\\func test => println (\"Hello\" ++ \" \" ++ \"World\" ++ \"!\")\n");
+    assertTrue("expected no errors", getAllErrors().isEmpty());
   }
 }
