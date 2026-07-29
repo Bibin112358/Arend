@@ -3455,6 +3455,22 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
   }
 
   @Override
+  public @NotNull TypecheckingResult checkByteArray(byte @NotNull [] bytes) {
+    // Construct the element-type lambda `\lam (_ : Fin bytes.length) => Fin 256`.
+    TypedSingleDependentLink param = new TypedSingleDependentLink(true, null, Fin(bytes.length));
+    Expression elementsType = Fin(256);
+    Expression elementsTypeFun = new LamExpression(param, elementsType);
+
+    List<Expression> elements = new ArrayList<>(bytes.length);
+    for (byte b : bytes) {
+      elements.add(new SmallIntegerExpression(b & 0xFF));
+    }
+
+    Expression resultExpr = ArrayExpression.make(elementsTypeFun, elements, null);
+    return new TypecheckingResult(resultExpr, resultExpr.getType());
+  }
+
+  @Override
   public @Nullable Definition getCoreDefinition(@Nullable ArendRef ref) {
     return ref instanceof TCDefReferable ? ((TCDefReferable) ref).getTypechecked() : null;
   }
@@ -3507,7 +3523,15 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
       }
     }
 
-    return expr.getResolvedExpression() != null ? checkExpr(expr.getResolvedExpression(), expectedType) : checkResult(expectedType, new TypecheckingResult(new StringExpression(string), ExpressionFactory.String()), expr);
+    if (expr.getResolvedExpression() != null) {
+      return checkExpr(expr.getResolvedExpression(), expectedType);
+    }
+
+    // String is library-owned (arend-lib), not part of the bootstrap Prelude, so there is no core
+    // representation to fall back on: without a literal-typechecker extension a string literal cannot
+    // be elaborated, which is a hard error.
+    errorReporter.report(new TypecheckingError("Cannot check string", expr));
+    return null;
   }
 
   @Override

@@ -23,7 +23,6 @@ public interface ArendPrelude {
   CoreDataDefinition getInt();
   CoreConstructor getPos();
   CoreConstructor getNeg();
-  CoreDataDefinition getString();
   CoreFunctionDefinition getCoerce();
   CoreFunctionDefinition getCoerce2();
   CoreDataDefinition getPath();
@@ -61,7 +60,6 @@ public interface ArendPrelude {
   ArendRef getIntRef();
   ArendRef getPosRef();
   ArendRef getNegRef();
-  ArendRef getStringRef();
   ArendRef getCoerceRef();
   ArendRef getCoerce2Ref();
   ArendRef getPathRef();
