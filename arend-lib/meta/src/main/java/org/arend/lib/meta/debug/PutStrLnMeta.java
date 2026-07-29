@@ -45,29 +45,30 @@ public class PutStrLnMeta extends BaseMetaDefinition {
 
   @Override
   public @Nullable TypedExpression invokeMeta(@NotNull ExpressionTypechecker typechecker, @NotNull ContextData contextData) {
-    ArendConsole console = ext.ui.getConsole(contextData.getMarker());
+
+    // Typecheck the argument (a String literal also elaborates to a String value here, so it needs
+    // no special casing) and reject anything that isn't a String value reducing to a literal.
     ConcreteExpression strArg = contextData.getArguments().getFirst().getExpression();
-    if (strArg instanceof ConcreteStringExpression) {
-      console.println(((ConcreteStringExpression) strArg).getUnescapedString());
-    } else {
-      TypedExpression result = typechecker.typecheck(strArg, null);
-      if (result == null) {
-        return null;
-      }
-      ExpressionPrettifier prettifier = typechecker.getExpressionPrettifier();
-      CoreExpression type = result.getExpression().computeType();
-      if (!(type.normalize(NormalizationMode.WHNF) instanceof CoreClassCallExpression classCall) || !classCall.getDefinition().getRef().checkName(Names.STRING)) {
-        typechecker.getErrorReporter().report(new TypeError(prettifier, "putStrLn expects a String argument", type, strArg));
-        return null;
-      }
-      ConcreteExpression pretty = prettifier == null ? null : prettifier.prettify(result.getExpression(), (e, d) -> null);
-      if (pretty instanceof ConcreteStringExpression) {
-        console.println(((ConcreteStringExpression) pretty).getUnescapedString());
-      } else {
-        typechecker.getErrorReporter().report(new TypecheckingError("putStrLn expects a String value that reduces to a literal", strArg));
-        return null;
-      }
+    TypedExpression result = typechecker.typecheck(strArg, null);
+    if (result == null) {
+      return null;
     }
+    ExpressionPrettifier prettifier = typechecker.getExpressionPrettifier();
+    CoreExpression type = result.getExpression().computeType();
+    if (!(type.normalize(NormalizationMode.WHNF) instanceof CoreClassCallExpression classCall) || !classCall.getDefinition().getRef().checkName(Names.STRING)) {
+      typechecker.getErrorReporter().report(new TypeError(prettifier, "putStrLn expects a String argument", type, strArg));
+      return null;
+    }
+    ConcreteExpression pretty = prettifier == null ? null : prettifier.prettify(result.getExpression(), (e, d) -> null);
+    if (!(pretty instanceof ConcreteStringExpression stringExpr)) {
+      typechecker.getErrorReporter().report(new TypecheckingError("putStrLn expects a String value that reduces to a literal", strArg));
+      return null;
+    }
+
+    // Everything checks out: print the raw, unquoted, unescaped text.
+    ArendConsole console = ext.ui.getConsole(contextData.getMarker());
+    console.println(stringExpr.getUnescapedString());
+
     // Print-and-pass-through: return the given continuation, or the printed String itself when none is provided.
     ConcreteExpression cont = contextData.getArguments().size() > 1 ? contextData.getArguments().get(1).getExpression() : strArg;
     return typechecker.typecheck(cont, contextData.getExpectedType());
