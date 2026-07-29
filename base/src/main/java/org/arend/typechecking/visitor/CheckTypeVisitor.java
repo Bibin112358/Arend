@@ -3576,13 +3576,12 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
   @Override
   public @NotNull TypecheckingResult checkByteArray(byte @NotNull [] bytes) {
-    // construct lambda `\lam (_ : Fin bytes.length) => Fin 256`.
+    // Construct the element-type lambda `\lam (_ : Fin bytes.length) => Fin 256`.
     TypedSingleDependentLink param = new TypedSingleDependentLink(true, null, Fin(bytes.length));
     Expression elementsType = Fin(256);
-    // sort \Set0, since Prelude.FIN has sort \Set0
+    // Sort \Set0, since Prelude.FIN has sort \Set0.
     Expression elementsTypeFun = new LamExpression(Sort.SET0, param, elementsType);
 
-    // build the array expression
     List<Expression> elements = new ArrayList<>(bytes.length);
     for (byte b : bytes) {
       elements.add(new SmallIntegerExpression(b & 0xFF));

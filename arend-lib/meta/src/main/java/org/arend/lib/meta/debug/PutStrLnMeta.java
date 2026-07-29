@@ -45,7 +45,6 @@ public class PutStrLnMeta extends BaseMetaDefinition {
 
   @Override
   public @Nullable TypedExpression invokeMeta(@NotNull ExpressionTypechecker typechecker, @NotNull ContextData contextData) {
-
     // Typecheck the argument (a String literal also elaborates to a String value here, so it needs
     // no special casing) and reject anything that isn't a String value reducing to a literal.
     ConcreteExpression strArg = contextData.getArguments().getFirst().getExpression();

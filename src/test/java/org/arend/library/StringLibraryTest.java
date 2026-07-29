@@ -31,9 +31,10 @@ import static org.arend.Matchers.typecheckingError;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-// String literal elaboration lives in arend-lib's extension (and needs Prelude's nil/:: refs), so
-// these tests load a real arend-lib rather than the bare kernel+Prelude that TypeCheckingTestCase
-// provides. Library-level behavior of String itself is covered in Data/StringTest.ard.
+// String literal elaboration lives in arend-lib's extension (the String record, Data.String, and
+// the LiteralTypechecker), so these tests load a real arend-lib rather than the bare kernel+Prelude
+// that TypeCheckingTestCase provides. Library-level behavior of String itself is covered in
+// Data/StringTest.ard.
 public class StringLibraryTest extends ArendTestCase {
   private Path repoRoot;
   private LibraryManager libraryManager;

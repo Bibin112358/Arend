@@ -155,7 +155,7 @@
   | a :: l => pmap suc len_++
 
 -- Decidable equality for arrays of arbitrary length
--- not an instance as Set.ArrayDec already defines it for fixed length
+-- Not an instance, since Set.ArrayDec already provides one for fixed-length arrays.
 \func arrayDecSet {A : DecSet} (s t : Array A) : Dec (s = t) \elim s, t
   | nil, nil => yes idp
   | nil, _ :: _ => no contradiction

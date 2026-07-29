@@ -26,19 +26,12 @@ public class StringExpressionPrettifier implements ExpressionPrettifier {
 
   @Override
   public @Nullable ConcreteExpression prettify(@NotNull CoreExpression expression, @NotNull ExpressionPrettifier defaultPrettifier) {
-    // A function whose result type is a class with all fields already implemented (e.g. String's
-    // `++`, which returns `\new String {|bytes=>...|}`) gets its body optimized away by the
-    // typechecker in favor of a refined result type (String {|bytes=>...|}) that already carries
-    // the same field implementation. So a call to such a function never reduces to a
-    // CoreNewExpression under normalize(); its *type*, not its value,
-    // is where the `bytes` implementation lives. computeType() works uniformly for both a literal
-    // (whose precise type is the same singleton-refined form) and a call to such a function.
-    //
-    // We normalize the *value* first, then read its type. This matters for values whose declared
-    // type is a type synonym for String (e.g. `\func Code => String`): the outer definition's
-    // result type is the bare, unrefined `Code`/`String`, so computeType() on the un-normalized
-    // expression loses the `bytes` implementation. Normalizing the value unfolds past the synonym
-    // wrapper to the underlying String-returning term, whose computeType() carries `bytes` again.
+    // A function returning a fully-implemented class (e.g. String's `++`, returning
+    // `\new String {|bytes=>...|}`) has its body folded by the typechecker into a refined result
+    // *type* (String {|bytes=>...|}); the call never reduces to a CoreNewExpression, so the `bytes`
+    // implementation lives in the type, not the value. Hence we read the type, not the value.
+    // We normalize the value first so that type synonyms (e.g. `\func Code => String`) unfold to
+    // the underlying String-returning term, whose computeType() still carries the `bytes` field.
     if (!(expression.normalize(NormalizationMode.WHNF).computeType().normalize(NormalizationMode.WHNF) instanceof CoreClassCallExpression classCall) || !classCall.getDefinition().getRef().checkName(Names.STRING)) {
       return null;
     }
