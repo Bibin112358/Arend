@@ -589,7 +589,7 @@ public class StdExtension implements ArendExtension {
     ModulePath debug = new ModulePath("Debug", "Meta");
     contributor.declare(text("Returns current time in milliseconds"), makeDef(debug, "time", new TimeMeta()));
     contributor.declare(text("Prints the argument to the console"), makeDef(debug, "println", new PrintMeta(this)));
-    contributor.declare(text("`putStrLn s k` prints the String `s` as raw text, without quotes or escaping, and returns the optional continuation `k` (or Unit when `k` is omitted)"), makeDef(debug, "putStrLn", new PutStrLnMeta(this)));
+    contributor.declare(text("Low-level variant of `Debug.putStrLn`. The byte array of its argument must evaluate to constructor form. Use `Debug.putStrLn` to print arbitrary evaluable Strings."), makeDef(debug, "putStrLnMaterialized", new PutStrLnMeta(this)));
     contributor.declare(text("`sleep m` waits for `m` milliseconds"), makeDef(debug, "sleep", new SleepMeta()));
     contributor.declare(multiline("""
         `random` returns a random number.

@@ -34,6 +34,7 @@ import java.util.List;
 import static org.arend.Matchers.missingClauses;
 import static org.arend.Matchers.typecheckingError;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -141,7 +142,7 @@ public class StringLibraryTest extends ArendTestCase {
   @Test
   public void putStrLnAcceptsStringLiteral() throws IOException {
     typecheckSnippet("putstrln-literal",
-        "\\import Debug.Meta\n" +
+        "\\import Debug\n" +
         "\\import Data.String\n" +
         "\\func test => putStrLn \"h\u00e9llo\"\n");
     assertTrue("expected no errors", getAllErrors().isEmpty());
@@ -156,7 +157,7 @@ public class StringLibraryTest extends ArendTestCase {
     try {
       System.setOut(new PrintStream(output, true, StandardCharsets.UTF_8));
       typecheckSnippet("putstrln-continuation",
-          "\\import Debug.Meta\n" +
+          "\\import Debug\n" +
           "\\import Data.String\n" +
           "\\func test => putStrLn (putStrLn \"a\" \"b\")\n");
     } finally {
@@ -166,10 +167,7 @@ public class StringLibraryTest extends ArendTestCase {
     assertEquals("a" + System.lineSeparator() + "b" + System.lineSeparator(), output.toString(StandardCharsets.UTF_8));
   }
 
-  // An indexed String value (`\new String (\new Array Byte n f)`) does not reduce to an enumerated
-  // byte literal, yet it is a perfectly valid, concrete String. putStrLn must still print it: it
-  // materializes the bytes by reading the length and evaluating each element by index. Here the
-  // bytes come from "AB" via an index function, so the raw output is "AB".
+  // An indexed String value is materialized to the constructor representation before it is printed.
   @Test
   public void putStrLnAcceptsIndexedArrayString() throws IOException {
     ByteArrayOutputStream output = new ByteArrayOutputStream();
@@ -177,7 +175,7 @@ public class StringLibraryTest extends ArendTestCase {
     try {
       System.setOut(new PrintStream(output, true, StandardCharsets.UTF_8));
       typecheckSnippet("putstrln-indexed",
-          "\\import Debug.Meta\n" +
+          "\\import Debug\n" +
           "\\import Data.String\n" +
           "\\func src : String => \"AB\"\n" +
           "\\func test => putStrLn (\\new String (\\new Array Byte src.bytes.len (\\lam i => src.bytes i)))\n");
@@ -188,11 +186,31 @@ public class StringLibraryTest extends ArendTestCase {
     assertEquals("AB" + System.lineSeparator(), output.toString(StandardCharsets.UTF_8));
   }
 
-  // A non-literal String value (built with ++) still decodes to a literal, so putStrLn accepts it.
+  // Materialization continues through a constructor prefix into an indexed tail.
+  @Test
+  public void putStrLnAcceptsMixedArrayString() throws IOException {
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    PrintStream originalOut = System.out;
+    try {
+      System.setOut(new PrintStream(output, true, StandardCharsets.UTF_8));
+      typecheckSnippet("putstrln-mixed",
+          "\\import Debug\n" +
+          "\\import Data.String\n" +
+          "\\func src : String => \"AB\"\n" +
+          "\\func indexed : String => \\new String (\\new Array Byte src.bytes.len (\\lam i => src.bytes i))\n" +
+          "\\func test => putStrLn (\"x\" ++ indexed)\n");
+    } finally {
+      System.setOut(originalOut);
+    }
+    assertTrue("expected no errors", getAllErrors().isEmpty());
+    assertEquals("xAB" + System.lineSeparator(), output.toString(StandardCharsets.UTF_8));
+  }
+
+  // A non-literal String value (built with ++) is materialized before putStrLn prints it.
   @Test
   public void putStrLnAcceptsDecodableConcatenation() throws IOException {
     typecheckSnippet("putstrln-concat",
-        "\\import Debug.Meta\n" +
+        "\\import Debug\n" +
         "\\import Data.String\n" +
         "\\func test => putStrLn (\"foo\" ++ \"bar\")\n");
     assertTrue("expected no errors", getAllErrors().isEmpty());
@@ -202,7 +220,7 @@ public class StringLibraryTest extends ArendTestCase {
   @Test
   public void putStrLnRejectsNonString() throws IOException {
     typecheckSnippet("putstrln-non-string",
-        "\\import Debug.Meta\n" +
+        "\\import Debug\n" +
         "\\import Data.String\n" +
         "\\func test => putStrLn 42\n");
     assertThatErrorsAre(typecheckingError());
@@ -212,17 +230,27 @@ public class StringLibraryTest extends ArendTestCase {
   @Test
   public void putStrLnRejectsOpaqueString() throws IOException {
     typecheckSnippet("putstrln-opaque",
-        "\\import Debug.Meta\n" +
+        "\\import Debug\n" +
         "\\import Data.String\n" +
         "\\func test (x : String) => putStrLn x\n");
     assertThatErrorsAre(typecheckingError());
+  }
+
+  // String can contain arbitrary bytes, but putStrLn must not silently replace malformed UTF-8.
+  @Test
+  public void putStrLnRejectsMalformedUtf8() throws IOException {
+    typecheckSnippet("putstrln-malformed-utf8",
+        "\\import Debug\n" +
+        "\\import Data.String\n" +
+        "\\func test => putStrLn (\\new String [255])\n");
+    assertFalse("expected malformed UTF-8 to be rejected", getAllErrors().isEmpty());
   }
 
   // Type synonym: a value whose declared type is a \func alias of String must still print.
   @Test
   public void putStrLnAcceptsTypeSynonym() throws IOException {
     typecheckSnippet("putstrln-synonym",
-        "\\import Debug.Meta\n" +
+        "\\import Debug\n" +
         "\\import Data.String\n" +
         "\\func Code : \\Type => String\n" +
         "\\func rep (n : Nat) : String \\elim n\n" +
