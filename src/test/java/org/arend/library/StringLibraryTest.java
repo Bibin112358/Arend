@@ -166,6 +166,28 @@ public class StringLibraryTest extends ArendTestCase {
     assertEquals("a" + System.lineSeparator() + "b" + System.lineSeparator(), output.toString(StandardCharsets.UTF_8));
   }
 
+  // An indexed String value (`\new String (\new Array Byte n f)`) does not reduce to an enumerated
+  // byte literal, yet it is a perfectly valid, concrete String. putStrLn must still print it: it
+  // materializes the bytes by reading the length and evaluating each element by index. Here the
+  // bytes come from "AB" via an index function, so the raw output is "AB".
+  @Test
+  public void putStrLnAcceptsIndexedArrayString() throws IOException {
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    PrintStream originalOut = System.out;
+    try {
+      System.setOut(new PrintStream(output, true, StandardCharsets.UTF_8));
+      typecheckSnippet("putstrln-indexed",
+          "\\import Debug.Meta\n" +
+          "\\import Data.String\n" +
+          "\\func src : String => \"AB\"\n" +
+          "\\func test => putStrLn (\\new String (\\new Array Byte src.bytes.len (\\lam i => src.bytes i)))\n");
+    } finally {
+      System.setOut(originalOut);
+    }
+    assertTrue("expected no errors", getAllErrors().isEmpty());
+    assertEquals("AB" + System.lineSeparator(), output.toString(StandardCharsets.UTF_8));
+  }
+
   // A non-literal String value (built with ++) still decodes to a literal, so putStrLn accepts it.
   @Test
   public void putStrLnAcceptsDecodableConcatenation() throws IOException {
