@@ -505,6 +505,10 @@ public class NormalizeVisitor extends ExpressionTransformer<NormalizationMode>  
     List<Expression> conArgs = null;
     int recursiveParam = -1;
     int sucs = 0;
+    // Accumulate constructor-array prefixes in the evaluator loop instead of normalizing their
+    // recursive tails on the Java stack.
+    List<Expression> arrayElements = null;
+    Expression arrayElementsType = null;
 
     Expression resultExpr = origExpr;
     ElimTree elimTree = elimBody.getElimTree();
@@ -539,6 +543,15 @@ public class NormalizeVisitor extends ExpressionTransformer<NormalizationMode>  
               }
             }
             resultExpr = let.getExpression();
+          } else if (resultExpr instanceof ArrayExpression array && array.getTail() != null) {
+            if (arrayElements == null) {
+              arrayElements = new ArrayList<>();
+              arrayElementsType = array.getElementsType().subst(substitution, levelSubstitution);
+            }
+            for (Expression element : array.getElements()) {
+              arrayElements.add(element.subst(substitution, levelSubstitution));
+            }
+            resultExpr = array.getTail();
           } else if (mode != NormalizationMode.WHNF && resultExpr instanceof ConCallExpression conCall) {
             if (conCall.getDefinition() == Prelude.SUC) {
               sucs++;
@@ -626,6 +639,9 @@ public class NormalizeVisitor extends ExpressionTransformer<NormalizationMode>  
         }
 
         resultExpr = resultExpr.subst(substitution, levelSubstitution);
+        if (arrayElements != null) {
+          resultExpr = ArrayExpression.make(arrayElementsType, arrayElements, resultExpr);
+        }
         if (result == null) {
           result = resultExpr;
         } else {
