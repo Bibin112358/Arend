@@ -95,11 +95,6 @@ public class ConcretePrelude implements ArendPrelude {
   }
 
   @Override
-  public CoreDataDefinition getString() {
-    return Prelude.STRING;
-  }
-
-  @Override
   public CoreFunctionDefinition getCoerce() {
     return Prelude.COERCE;
   }
@@ -293,12 +288,6 @@ public class ConcretePrelude implements ArendPrelude {
   public ArendRef getNegRef() {
     if (Prelude.NEG != null) return Prelude.NEG.getRef();
     return myPreludeScope.resolveName("neg");
-  }
-
-  @Override
-  public ArendRef getStringRef() {
-    if (Prelude.STRING != null) return Prelude.STRING.getRef();
-    return myPreludeScope.resolveName("String");
   }
 
   @Override
