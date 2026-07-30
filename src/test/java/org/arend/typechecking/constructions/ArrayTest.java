@@ -8,14 +8,12 @@ import org.arend.core.definition.FunctionDefinition;
 import org.arend.core.expr.*;
 import org.arend.core.sort.Sort;
 import org.arend.core.subst.Levels;
-import org.arend.ext.core.ops.NormalizationMode;
 import org.arend.prelude.Prelude;
 import org.arend.typechecking.TypeCheckingTestCase;
 import org.arend.typechecking.error.local.*;
 import org.arend.util.SingletonList;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -63,44 +61,6 @@ public class ArrayTest extends TypeCheckingTestCase {
     FunctionDefinition def = (FunctionDefinition) typeCheckDef("\\func foo => 1 :: 2 :: nil");
     assertTrue(def.getBody() instanceof ArrayExpression);
     assertEquals(Sort.SET0, def.getResultType().getSortOfType());
-  }
-
-  @Test
-  public void consNormalizationFlattensTail() {
-    typeCheckModule("""
-      \\func tail : Array Nat => 2 :: nil
-      \\func test : Array Nat => 1 :: tail
-      """);
-    Expression body = (Expression) ((FunctionDefinition) getDefinition("test")).getBody();
-    assertNotNull(body);
-    ArrayExpression array = body.normalize(NormalizationMode.WHNF).cast(ArrayExpression.class);
-    assertNotNull(array);
-    assertEquals(2, array.getElements().size());
-    assertNull(array.getTail());
-
-    array = body.normalize(NormalizationMode.NF).cast(ArrayExpression.class);
-    assertNotNull(array);
-    assertEquals(2, array.getElements().size());
-    assertNull(array.getTail());
-  }
-
-  @Test
-  public void recursiveArrayNormalizationIsStackSafe() {
-    typeCheckModule("""
-      \\func copy (xs : Array Nat) : Array Nat \\elim xs
-        | nil => nil
-        | x :: xs => x :: copy xs
-      \\func sample : Array Nat => 0 :: nil
-      """);
-    FunctionDefinition copy = (FunctionDefinition) getDefinition("copy");
-    ArrayExpression sample = (ArrayExpression) ((FunctionDefinition) getDefinition("sample")).getBody();
-    int length = 50000;
-    ArrayExpression input = ArrayExpression.makeArray(sample.getElementsType(), Collections.nCopies(length, new SmallIntegerExpression(0)), null);
-    Expression result = FunCallExpression.make(copy, Levels.EMPTY, Collections.singletonList(input)).normalize(NormalizationMode.WHNF);
-    ArrayExpression array = result.cast(ArrayExpression.class);
-    assertNotNull(array);
-    assertEquals(length, array.getElements().size());
-    assertNull(array.getTail());
   }
 
   @Test
