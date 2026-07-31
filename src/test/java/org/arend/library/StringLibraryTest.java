@@ -11,14 +11,19 @@ import org.arend.frontend.library.FileSourceLibrary;
 import org.arend.frontend.library.LibraryManager;
 import org.arend.library.classLoader.FileClassLoaderDelegate;
 import org.arend.naming.reference.TCDefReferable;
+import org.arend.naming.scope.EmptyScope;
 import org.arend.server.ArendServerRequester;
 import org.arend.server.ProgressReporter;
 import org.arend.server.impl.DefinitionData;
+import org.arend.term.prettyprint.PrettyPrinterConfigWithRenamer;
 import org.arend.typechecking.computation.UnstoppableCancellationIndicator;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -28,6 +33,7 @@ import java.util.List;
 
 import static org.arend.Matchers.missingClauses;
 import static org.arend.Matchers.typecheckingError;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -73,13 +79,17 @@ public class StringLibraryTest extends ArendTestCase {
   // Typechecks `source` as a standalone module depending on arend-lib (so it can \import
   // Data.String and use string literals), reusing arend-lib's own compiled extension classes.
   private ModuleLocation typecheckSnippet(String libraryName, String source) throws IOException {
+    return typecheckSnippet(libraryName, source, "org.arend.lib.StdExtension");
+  }
+
+  private ModuleLocation typecheckSnippet(String libraryName, String source, String extensionMainClass) throws IOException {
     Path srcDir = Files.createTempDirectory("arend-string-test-" + libraryName);
     Files.writeString(srcDir.resolve("Snippet.ard"), source);
 
     // args: name, isExternal, modStamp, dependencies, version, langVersion, extensionMainClass,
     // modules, sourceBasePath, binaryBasePath, testBasePath, classLoaderDelegate
     FileSourceLibrary snippetLib = new FileSourceLibrary(libraryName, false, -1,
-        List.of("arend-lib"), null, null, "org.arend.lib.StdExtension", null,
+        List.of("arend-lib"), null, null, extensionMainClass, null,
         srcDir, null, null, new FileClassLoaderDelegate(repoRoot.resolve("arend-lib").resolve("ext")));
     libraryManager.updateLibrary(snippetLib, server);
 
@@ -190,5 +200,38 @@ public class StringLibraryTest extends ArendTestCase {
         "\\import Data.String\n" +
         "\\func test => println (\"Hello\" ++ \" \" ++ \"World\" ++ \"!\")\n");
     assertTrue("expected no errors", getAllErrors().isEmpty());
+  }
+
+  @Test
+  public void defaultExtensionForwardsStringPrettifier() throws IOException {
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    PrintStream originalOut = System.out;
+    try {
+      System.setOut(new PrintStream(output, true, StandardCharsets.UTF_8));
+      typecheckSnippet("default-extension-prettifier",
+          "\\import Debug.Meta\n" +
+          "\\import Data.String\n" +
+          "\\func value : String => \"hello\"\n" +
+          "\\func test => println value\n",
+          null);
+    } finally {
+      System.setOut(originalOut);
+    }
+    assertTrue("expected no errors", getAllErrors().isEmpty());
+    assertEquals("\"hello\"" + System.lineSeparator(), output.toString(StandardCharsets.UTF_8));
+  }
+
+  @Test
+  public void stringPrettifierHandlesStringTypeInApplicationError() throws IOException {
+    typecheckSnippet("default-extension-error-prettifier",
+        "\\import Debug\n" +
+        "\\import Data.String\n" +
+        "\\func test => putStrLn (\"foo\" \"bar\")\n",
+        null);
+
+    assertEquals(1, getAllErrors().size());
+    String error = getAllErrors().getFirst().getDoc(new PrettyPrinterConfigWithRenamer(EmptyScope.INSTANCE)).toString();
+    assertTrue(error, error.contains("Argument: \"bar\""));
+    assertTrue(error, error.contains("Type: \"foo\""));
   }
 }

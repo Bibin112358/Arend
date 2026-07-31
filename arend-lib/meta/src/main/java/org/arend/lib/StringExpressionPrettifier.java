@@ -32,7 +32,9 @@ public class StringExpressionPrettifier implements ExpressionPrettifier {
     // implementation lives in the type, not the value. Hence we read the type, not the value.
     // We normalize the value first so that type synonyms (e.g. `\func Code => String`) unfold to
     // the underlying String-returning term, whose computeType() still carries the `bytes` field.
-    if (!(expression.normalize(NormalizationMode.WHNF).computeType().normalize(NormalizationMode.WHNF) instanceof CoreClassCallExpression classCall) || !classCall.getDefinition().getRef().checkName(Names.STRING)) {
+    CoreExpression normalized = expression.normalize(NormalizationMode.WHNF);
+    CoreExpression type = normalized instanceof CoreClassCallExpression ? normalized : normalized.computeType().normalize(NormalizationMode.WHNF);
+    if (!(type instanceof CoreClassCallExpression classCall) || !classCall.getDefinition().getRef().checkName(Names.STRING)) {
       return null;
     }
 

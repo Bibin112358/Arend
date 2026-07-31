@@ -1,5 +1,6 @@
 package org.arend.ext;
 
+import org.arend.ext.prettifier.ExpressionPrettifier;
 import org.arend.ext.typechecking.GoalSolver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +36,17 @@ public class DefaultArendExtension implements ArendExtension {
       var checker = extension.getLiteralTypechecker();
       if (checker != null) {
         return checker;
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public @Nullable ExpressionPrettifier getExpressionPrettifier() {
+    for (var extension : dependencies.values()) {
+      var prettifier = extension.getExpressionPrettifier();
+      if (prettifier != null) {
+        return prettifier;
       }
     }
     return null;
