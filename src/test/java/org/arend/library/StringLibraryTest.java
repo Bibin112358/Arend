@@ -99,6 +99,22 @@ public class StringLibraryTest extends ArendTestCase {
     return module;
   }
 
+  private String captureOutput(String libraryName, String source) throws IOException {
+    return captureOutput(libraryName, source, "org.arend.lib.StdExtension");
+  }
+
+  private String captureOutput(String libraryName, String source, String extensionMainClass) throws IOException {
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    PrintStream originalOut = System.out;
+    try {
+      System.setOut(new PrintStream(output, true, StandardCharsets.UTF_8));
+      typecheckSnippet(libraryName, source, extensionMainClass);
+    } finally {
+      System.setOut(originalOut);
+    }
+    return output.toString(StandardCharsets.UTF_8);
+  }
+
   // Soundness guard: a string literal inhabits String without going through a constructor, so
   // `\case "s" \with {}` must not be accepted as exhaustive -- otherwise one could "prove" Empty.
   // String is a \record, which the coverage checker sees as a single implicit shape (regardless of
@@ -110,6 +126,15 @@ public class StringLibraryTest extends ArendTestCase {
         "\\data Empty\n" +
         "\\func f : Empty => \\case \"s\" \\with {}\n");
     assertThatErrorsAre(missingClauses(1));
+  }
+
+  @Test
+  public void stringLiteralWithoutImportReportsActionableError() throws IOException {
+    typecheckSnippet("string-missing-import", "\\func value => \"hello\"\n");
+
+    assertEquals(1, getAllErrors().size());
+    String error = getAllErrors().getFirst().getDoc(new PrettyPrinterConfigWithRenamer(EmptyScope.INSTANCE)).toString();
+    assertTrue(error, error.contains("did you forget to `\\import Data.String`?"));
   }
 
   @Test
@@ -167,25 +192,26 @@ public class StringLibraryTest extends ArendTestCase {
     assertTrue("term size " + size + " suggests a unary blowup, not a compact representation", size < 200_000);
   }
 
-  // putStrLn prints a String literal as raw text; the snippet must typecheck without errors.
-  // (The raw output goes to stdout via the extension's console; here we only assert it elaborates.)
+  // putStrLn prints a String literal as raw text.
   @Test
   public void putStrLnAcceptsStringLiteral() throws IOException {
-    typecheckSnippet("putstrln-literal",
-        "\\import Debug.Meta\n" +
+    String output = captureOutput("putstrln-literal",
+        "\\import Debug\n" +
         "\\import Data.String\n" +
         "\\func test => putStrLn \"h\u00e9llo\"\n");
     assertTrue("expected no errors", getAllErrors().isEmpty());
+    assertEquals("héllo" + System.lineSeparator(), output);
   }
 
   // A non-literal String value (built with ++) still decodes to a literal, so putStrLn accepts it.
   @Test
   public void putStrLnAcceptsDecodableConcatenation() throws IOException {
-    typecheckSnippet("putstrln-concat",
-        "\\import Debug.Meta\n" +
+    String output = captureOutput("putstrln-concat",
+        "\\import Debug\n" +
         "\\import Data.String\n" +
         "\\func test => putStrLn (\"foo\" ++ \"bar\")\n");
     assertTrue("expected no errors", getAllErrors().isEmpty());
+    assertEquals("foobar" + System.lineSeparator(), output);
   }
 
   // A non-String argument is rejected: putStrLn reports a type error and the definition fails.
@@ -211,8 +237,8 @@ public class StringLibraryTest extends ArendTestCase {
   // Type synonym: a value whose declared type is a \func alias of String must still print.
   @Test
   public void putStrLnAcceptsTypeSynonym() throws IOException {
-    typecheckSnippet("putstrln-synonym",
-        "\\import Debug.Meta\n" +
+    String output = captureOutput("putstrln-synonym",
+        "\\import Debug\n" +
         "\\import Data.String\n" +
         "\\func Code : \\Type => String\n" +
         "\\func rep (n : Nat) : String \\elim n\n" +
@@ -221,35 +247,19 @@ public class StringLibraryTest extends ArendTestCase {
         "\\func mk (n : Nat) : Code => rep n\n" +
         "\\func test => putStrLn (mk 3)\n");
     assertTrue("expected no errors", getAllErrors().isEmpty());
+    assertEquals("yyyx" + System.lineSeparator(), output);
   }
 
-  // Regression guard for the PrintMeta revert: println still elaborates a String argument without errors.
   @Test
-  public void printlnStillAcceptsString() throws IOException {
-    typecheckSnippet("println-string",
-        "\\import Debug.Meta\n" +
+  public void putStrLnWorksInExtensionlessLibrary() throws IOException {
+    String output = captureOutput("default-extension-putstrln",
+        "\\import Debug\n" +
         "\\import Data.String\n" +
-        "\\func test => println (\"Hello\" ++ \" \" ++ \"World\" ++ \"!\")\n");
+        "\\func value : String => \"hello\"\n" +
+        "\\func test => putStrLn value\n",
+        null);
     assertTrue("expected no errors", getAllErrors().isEmpty());
-  }
-
-  @Test
-  public void defaultExtensionForwardsStringPrettifier() throws IOException {
-    ByteArrayOutputStream output = new ByteArrayOutputStream();
-    PrintStream originalOut = System.out;
-    try {
-      System.setOut(new PrintStream(output, true, StandardCharsets.UTF_8));
-      typecheckSnippet("default-extension-prettifier",
-          "\\import Debug\n" +
-          "\\import Data.String\n" +
-          "\\func value : String => \"hello\"\n" +
-          "\\func test => putStrLn value\n",
-          null);
-    } finally {
-      System.setOut(originalOut);
-    }
-    assertTrue("expected no errors", getAllErrors().isEmpty());
-    assertEquals("hello" + System.lineSeparator(), output.toString(StandardCharsets.UTF_8));
+    assertEquals("hello" + System.lineSeparator(), output);
   }
 
   @Test
