@@ -112,6 +112,37 @@ public class StringLibraryTest extends ArendTestCase {
     assertThatErrorsAre(missingClauses(1));
   }
 
+  @Test
+  public void stringLiteralRejectsLoneLowSurrogate() throws IOException {
+    String loneLowSurrogate = "\\" + "uDC00";
+    typecheckSnippet("string-lone-low-surrogate",
+        "\\import Data.String\n" +
+        "\\func malformed => \"" + loneLowSurrogate + "\"\n");
+    assertFalse("a lone low surrogate must be rejected", getAllErrors().isEmpty());
+  }
+
+  @Test
+  public void stringLiteralAcceptsValidSurrogatePair() throws IOException {
+    String grinningFace = "\\" + "uD83D" + "\\" + "uDE00";
+    typecheckSnippet("string-surrogate-pair",
+        "\\import Data.String\n" +
+        "\\func valid : \"" + grinningFace + "\" = \"😀\" => idp\n");
+    assertTrue("expected no errors", getAllErrors().isEmpty());
+  }
+
+  @Test
+  public void malformedUnicodeMustNotBecomeQuestionMark() throws IOException {
+    String loneHighSurrogate = "\\" + "uD800";
+
+    typecheckSnippet("malformed-unicode",
+      "\\import Data.String\n" +
+        "\\func collision : \"" + loneHighSurrogate + "\" = \"?\" => idp\n");
+
+    assertFalse(
+      "A malformed Unicode literal was silently encoded as '?'",
+      getAllErrors().isEmpty());
+  }
+
   // If Fin values (String's byte elements) materialized as unary constructor chains instead of
   // staying compact, a 10,000-character literal would produce a term with hundreds of thousands of
   // nodes. The bound is generous -- this is a regression guard against a unary blowup in the term
@@ -209,16 +240,16 @@ public class StringLibraryTest extends ArendTestCase {
     try {
       System.setOut(new PrintStream(output, true, StandardCharsets.UTF_8));
       typecheckSnippet("default-extension-prettifier",
-          "\\import Debug.Meta\n" +
+          "\\import Debug\n" +
           "\\import Data.String\n" +
           "\\func value : String => \"hello\"\n" +
-          "\\func test => println value\n",
+          "\\func test => putStrLn value\n",
           null);
     } finally {
       System.setOut(originalOut);
     }
     assertTrue("expected no errors", getAllErrors().isEmpty());
-    assertEquals("\"hello\"" + System.lineSeparator(), output.toString(StandardCharsets.UTF_8));
+    assertEquals("hello" + System.lineSeparator(), output.toString(StandardCharsets.UTF_8));
   }
 
   @Test

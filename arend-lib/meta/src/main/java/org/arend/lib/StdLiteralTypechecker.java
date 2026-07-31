@@ -21,6 +21,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 
 public class StdLiteralTypechecker implements LiteralTypechecker {
@@ -111,7 +115,20 @@ public class StdLiteralTypechecker implements LiteralTypechecker {
       return null;
     }
 
-    TypedExpression array = typechecker.checkByteArray(unescapedString.getBytes(StandardCharsets.UTF_8));
+    byte[] bytes;
+    try {
+      ByteBuffer buffer = StandardCharsets.UTF_8.newEncoder()
+          .onMalformedInput(CodingErrorAction.REPORT)
+          .onUnmappableCharacter(CodingErrorAction.REPORT)
+          .encode(CharBuffer.wrap(unescapedString));
+      bytes = new byte[buffer.remaining()];
+      buffer.get(bytes);
+    } catch (CharacterCodingException e) {
+      typechecker.getErrorReporter().report(new TypecheckingError("String literal contains an invalid Unicode surrogate", contextData.getMarker()));
+      return null;
+    }
+
+    TypedExpression array = typechecker.checkByteArray(bytes);
 
     ConcreteFactory factory = contextData.getFactory();
     ConcreteExpression newExpr = factory.newExpr(factory.classExt(factory.ref(stringRef), factory.implementation(bytesField.getRef(), factory.core(array))));
