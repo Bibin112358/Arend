@@ -34,4 +34,4 @@
 
 -- Manual test for String printing (not run automatically):
 -- \import Debug.Meta
--- \func testPrintStringConcat => println ("Hello" ++ " " ++ "World" ++ "!")
+-- \func testPrintStringConcat => putStrLn ("Hello" ++ " " ++ "World" ++ "!")

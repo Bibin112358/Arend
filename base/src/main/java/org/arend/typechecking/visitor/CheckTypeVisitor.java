@@ -3650,8 +3650,10 @@ public class CheckTypeVisitor extends UserDataHolderImpl implements ConcreteExpr
 
     // String is library-owned (arend-lib), not part of the bootstrap Prelude, so there is no core
     // representation to fall back on: without a literal-typechecker extension a string literal cannot
-    // be elaborated, which is a hard error.
-    errorReporter.report(new TypecheckingError("Cannot check string", expr));
+    // be elaborated, which is a hard error. The hint targets libraries with a custom extension class:
+    // such an extension must provide string support itself, typically by extending
+    // DefaultArendExtension, which forwards the literal typechecker of the library's dependencies.
+    errorReporter.report(new TypecheckingError("Cannot check string: no literal typechecker is available. The library must depend on arend-lib; if it defines its own extension, the extension should extend DefaultArendExtension to inherit string support from the library's dependencies", expr));
     return null;
   }
 
